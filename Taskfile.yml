@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: '3'
+
+vars:
+  BINARY: '{{if eq OS "windows"}}gradlew.bat{{else}}gradlew{{end}}'
+  ENGINE: .engine/{{.BINARY}}
+
+tasks:
+  run:
+    cmds:
+      - docker compose up -d
+      - ./{{.ENGINE}} bootRun
