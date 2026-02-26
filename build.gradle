@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.0.3'
 	id 'io.spring.dependency-management' version '1.1.7'
+  	id("com.diffplug.spotless") version "8.2.1"
 }
 
 group = 'aros.services'
@@ -34,17 +35,15 @@ dependencies {
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-websocket-test'
+	testImplementation "org.mockito:mockito-core:5.+"
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+// to load .env files
 
 bootRun {
 	doFirst {
@@ -58,4 +57,26 @@ bootRun {
 			}
 		}
 	}
+}
+
+
+// formater config
+
+spotless {
+  java {
+    importOrder()
+    removeUnusedImports()
+    forbidWildcardImports() // or expandWildcardImports, see below
+    forbidModuleImports()
+
+    // Cleanthat will refactor your code, but it may break your style: apply it before your formatter
+    cleanthat()          // has its own section below
+
+    // Choose one of these formatters.
+    googleJavaFormat()   // has its own section below
+
+    formatAnnotations()  // fixes formatting of type annotations, see below
+
+    licenseHeader '/* (C) $YEAR */' // or licenseHeaderFile
+  }
 }

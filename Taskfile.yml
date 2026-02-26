@@ -10,3 +10,19 @@ tasks:
     cmds:
       - docker compose up -d
       - ./{{.ENGINE}} bootRun
+
+  build:
+    cmds:
+      - docker compose up -d
+      - ./{{.ENGINE}} build # TODO: add build docker image
+
+  format:
+    cmds:
+      - ./{{.ENGINE}} spotlessApply
+
+  clean:
+    cmds:
+      - docker compose down
+      - ./{{.ENGINE}} clean
+      - docker compose up -d
+

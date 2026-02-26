@@ -1,13 +1,13 @@
+/* (C) 2026 */
 package aros.services.rms;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class RmsApplication {
+public class App {
 
-	public static void main(String[] args) {
-		SpringApplication.run(RmsApplication.class, args);
-	}
-
+  public static void main(String[] args) {
+    SpringApplication.run(App.class, args);
+  }
 }
