@@ -20,6 +20,11 @@ tasks:
     cmds:
       - ./{{.ENGINE}} spotlessApply --configuration-cache
 
+  test:
+    cmds:
+      - docker compose up -d
+      - ./{{.ENGINE}} test
+
   clean:
     cmds:
       - docker compose down
