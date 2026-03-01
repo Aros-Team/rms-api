@@ -19,9 +19,6 @@ task run
 # Build project and generate Docker image
 task build
 
-# Format code (check if available)
-task format
-
 # Clean build directory
 ./.engine/gradlew clean
 
@@ -42,12 +39,6 @@ task format
 
 # Run tests with verbose output
 ./.engine/gradlew test --info
-
-# Run tests in continuous mode (watch for changes)
-./.engine/gradlew test --continuous
-
-# Run a specific test task with debug logging
-./.engine/gradlew test --debug
 ```
 
 ### Running the Application
@@ -63,19 +54,16 @@ java -jar build/libs/rms-0.1.0.jar
 ### Docker Commands
 ```bash
 # Start only the database
-docker compose up -d db
+docker compose up -d
 
 # Stop all containers
 docker compose down
-
-# View logs
-docker compose logs -f
 ```
 
 ## Code Style Guidelines
 
 ### General Principles
-- Use **4 spaces** for indentation (no tabs)
+- Use **Google style guide**
 - Follow **Spring Boot conventions** and Java 21 best practices
 - Keep methods short and focused (single responsibility)
 - Write meaningful commit messages
@@ -87,29 +75,28 @@ docker compose logs -f
 - **Constants**: UPPER_SNAKE_CASE (e.g., `MAX_RETRY_COUNT`)
 - **Packages**: lowercase with dots (e.g., `aros.services.rms.controller`)
 
-### Package Structure
+### Package Structure (Hexagonal Architecture)
 ```
 src/main/java/aros/services/rms/
-├── config/           # Configuration classes
-├── controller/       # REST controllers
-├── service/          # Business logic
-├── repository/       # Data access (JPA)
-├── model/            # Entity classes
-├── dto/              # Data Transfer Objects
-├── exception/        # Custom exceptions
-└── security/         # Security configurations
+├── core/
+│   └── {domain}/           # Domain entities
+│      ├── application/    # Use cases & exceptions
+│      ├── domain/         # Domain models
+│      └── port/         # Input/Output interfaces
+└──infraestructure/
+       ├── {module}/       # API DTOs, JPA repos, configs
+       └── common/         # Shared config, CORS, logging
 ```
 
 ### Imports
 - Use explicit imports (no wildcard `.*` except for static imports)
-- Order imports: java > javax > org > com > all other packages
-- Group related imports together
+- Order: java > javax > org > com > all other packages
 
 ### Types and Generics
 - Use generics for collections: `List<Order>` not `List`
-- Prefer interfaces over concrete types: `List<T>` not `ArrayList<T>`
+- Prefer interfaces: `List<T>` not `ArrayList<T>`
 - Use `Optional` for nullable return values
-- Use `var` for local variable type inference when type is obvious
+- Use `var` when type is obvious
 
 ### Error Handling
 - Use custom exceptions with `@ResponseStatus` or `@ControllerAdvice`
@@ -118,33 +105,25 @@ src/main/java/aros/services/rms/
 - Never expose stack traces to clients
 
 ### Lombok Usage
-- Use `@Data` for simple DTOs/entities (generates getters/setters/equals/hashCode/toString)
-- Use `@Builder` for complex objects with many fields
+- Use `@Data` for simple DTOs/entities
+- Use `@Builder` for complex objects
 - Use `@Slf4j` for logging
 - Use `@AllArgsConstructor` and `@NoArgsConstructor` as needed
 
 ### Testing
-- Use `@SpringBootTest` for integration tests
-- Use `@DataJpaTest` for repository tests
-- Use `@WebMvcTest` for controller tests
-- Use `@MockBean` to
-- Follow mock dependencies naming: `ClassNameTests` for test class
+- Use `@MockBean` for mocking dependencies
+- Name test classes: `ClassNameTests`
 
 ### Database/JPA
-- Use meaningful entity names with `@Entity` and `@Table`
+- Use `@Entity` and `@Table` for entities
 - Define relationships with `@OneToMany`, `@ManyToOne`, etc.
 - Use repository interfaces extending `JpaRepository`
-- Prefer JPQL queries over native queries when possible
+- Prefer JPQL over native queries when possible
 
 ### Security
 - Use Spring Security for authentication/authorization
 - Never hardcode secrets; use environment variables
-- Validate all inputs with `@Valid` and Bean Validation annotations
-
-### Documentation
-- Use Javadoc for public APIs
-- Document complex business logic with inline comments
-- Keep README.md updated with setup instructions
+- Validate all inputs with `@Valid` and Bean Validation
 
 ## Environment Variables
 
@@ -157,29 +136,21 @@ DB_PORT=3306
 
 ## Database Configuration
 
-The application expects MySQL to be available at `localhost:3306`. Use Docker Compose to start the database:
+The application expects MySQL at `localhost:3306`. Start with:
 ```bash
-docker compose up -d db
+docker compose up -d
 ```
 
 ## Common Issues
 
-- **Port already in use**: Check if another instance is running or change port in `application.properties`
+- **Port already in use**: Check if another instance is running
 - **Database connection failed**: Ensure Docker containers are running
 - **Test failures**: Check database is accessible and properly configured
 
 ## Useful Gradle Commands
 
 ```bash
-# Check dependencies
-./.engine/gradlew dependencies
-
-# Show project structure
-./.engine/gradlew projects
-
-# Show properties
-./.engine/gradlew properties
-
-# Update Gradle wrapper
-./.engine/gradlew wrapper --gradle-version=9.x
+./.engine/gradlew dependencies   # Check dependencies
+./.engine/gradlew projects       # Show project structure
+./.engine/gradlew properties     # Show properties
 ```

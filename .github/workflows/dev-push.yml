@@ -1,0 +1,62 @@
+name: Dev Push Check
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x .engine/gradlew
+
+      - name: Check Spotless format
+        run: .engine/gradlew spotlessCheck
+
+  test:
+    runs-on: ubuntu-latest
+    needs: format-check
+    services:
+      mysql:
+        image: mysql:7.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: rms
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x .engine/gradlew
+
+      - name: Create .env file
+        run: |
+          echo "DB_ROOT_PASSWORD=root" > .env
+          echo "DB_NAME=rms" >> .env
+          echo "DB_PORT=3306" >> .env
+          echo "DB_HOST=localhost" >> .env
+
+      - name: Run tests
+        run: .engine/gradlew test
