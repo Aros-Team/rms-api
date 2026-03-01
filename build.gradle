@@ -45,20 +45,21 @@ tasks.named('test') {
 
 // to load .env files
 
-bootRun {
-	doFirst {
-		def envFile = file('.env')
-		if (envFile.exists()) {
-			envFile.readLines().each { line ->
-				if (line && !line.startsWith('#')) {
-					def (key, value) = line.split('=', 2)
-					environment key.trim(), value.trim()
-				}
-			}
-		}
-	}
+// Al inicio del archivo build.gradle
+def envVars = [:]
+def envFile = new File(project.projectDir, ".env")
+if (envFile.exists()) {
+    envFile.readLines().each { line ->
+        if (line && !line.startsWith('#')) {
+            def (key, value) = line.split('=', 2)
+            envVars[key.trim()] = value.trim()
+        }
+    }
 }
 
+bootRun {
+    systemProperties envVars
+}
 
 // formater config
 
