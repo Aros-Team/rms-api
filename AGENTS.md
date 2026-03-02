@@ -20,34 +20,34 @@ task run
 task build
 
 # Clean build directory
-./.engine/gradlew clean
+./gradlew clean
 
 # Build without tests
-./.engine/gradlew assemble
+./gradlew assemble
 ```
 
 ### Testing Commands
 ```bash
 # Run all tests
-./.engine/gradlew test
+./gradlew test
 
 # Run a single test class
-./.engine/gradlew test --tests "aros.services.rms.RmsApplicationTests"
+./gradlew test --tests "aros.services.rms.RmsApplicationTests"
 
 # Run a specific test method
-./.engine/gradlew test --tests "aros.services.rms.RmsApplicationTests.contextLoads"
+./gradlew test --tests "aros.services.rms.RmsApplicationTests.contextLoads"
 
 # Run tests with verbose output
-./.engine/gradlew test --info
+./gradlew test --info
 ```
 
 ### Running the Application
 ```bash
 # Run Spring Boot application (requires Docker containers)
-./.engine/gradlew bootRun
+./gradlew bootRun
 
 # Build and run JAR
-./.engine/gradlew bootJar
+./gradlew bootJar
 java -jar build/libs/rms-0.1.0.jar
 ```
 
@@ -150,7 +150,7 @@ docker compose up -d
 ## Useful Gradle Commands
 
 ```bash
-./.engine/gradlew dependencies   # Check dependencies
-./.engine/gradlew projects       # Show project structure
-./.engine/gradlew properties     # Show properties
+./gradlew dependencies   # Check dependencies
+./gradlew projects       # Show project structure
+./gradlew properties     # Show properties
 ```

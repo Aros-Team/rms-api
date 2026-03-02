@@ -1,0 +1,158 @@
+@startuml MER-RMS
+hide circle
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+entity "users" as users {
+    *id : BIGINT <<PK>>
+    --
+    *document : VARCHAR(50)
+    *name : VARCHAR(80)
+    *email : VARCHAR(255)
+    *password : VARCHAR(60)
+    address : TINYTEXT
+    phone : VARCHAR(12)
+    *role : VARCHAR(20) <<'ADMIN', 'WORKER'>>
+}
+
+
+
+entity "areas" as areas {
+    *id : BIGINT <<PK>>
+    --
+    *name : VARCHAR(100)
+}
+
+
+entity "user_areas" as user_areas {
+    *id : BIGINT <<PK>>
+    --
+    *id_user : BIGINT <<FK>>
+    *id_area : BIGINT <<FK>>
+}
+
+
+entity "products" as products {
+    *id : BIGINT <<PK>>
+    --
+    *name : VARCHAR(100)
+    description : TINYTEXT
+    price : FLOAT
+    preparation_area : BIGINT <<FK>>
+    preparation_time : TINYINT
+    active : BOOLEAN
+}
+
+entity "categories" as categories {
+    *id : BIGINT <<PK>>
+    --
+    *name : VARCHAR(100)
+}
+
+entity "product_categories" as product_categories {
+    *id : BIGINT <<PK>>
+    --
+    *id_product : BIGINT <<FK>>
+    *id_category : BIGINT <<FK>>
+}
+
+entity "daymenus" as daymenus {
+    *id : BIGINT <<PK>>
+    --
+    *creation : DATE
+}
+
+entity "daymenu_categories" as daymenu_categories {
+    *id : BIGINT <<PK>>
+    --
+    *id_daymenu : BIGINT <<FK>>
+    *id_category : BIGINT <<FK>>
+    *position : TINYINT
+}
+
+entity "daymenu_products" as daymenu_products {
+    *id : BIGINT <<PK>>
+    --
+    *id_daymenu_category : BIGINT <<FK>>
+    *id_subproduct : BIGINT <<FK>>
+}
+
+entity "tables" as tables {
+    *id : BIGINT <<PK>>
+    --
+    *name : VARCHAR(50)
+}
+
+entity "orders" as orders {
+    *id : BIGINT <<PK>>
+    --
+    status : VARCHAR(255)
+    taked_at : DATETIME
+    *id_table : BIGINT <<FK>>
+    *id_user : BIGINT <<FK>>
+    total : FLOAT
+}
+
+entity "client_orders" as client_orders {
+    *id : BIGINT <<PK>>
+    --
+    status : VARCHAR(255)
+    *id_order : BIGINT <<FK>>
+    total : FLOAT
+}
+
+entity "order_details" as order_details {
+    *id : BIGINT <<PK>>
+    --
+    *id_order : BIGINT <<FK>>
+    *id_product : BIGINT <<FK>>
+    *name : VARCHAR(255)
+    *price : FLOAT
+    *quantity : TINYINT
+    observations : TINYTEXT
+}
+
+entity "order_detail_subproducts" as order_detail_subproducts {
+    *id : BIGINT <<PK>>
+    --
+    *id_detail : BIGINT <<FK>>
+    *name : VARCHAR(255)
+    observations : TINYTEXT
+}
+
+entity "refresh_tokens" as refresh_tokens {
+    *id : BIGINT <<PK>>
+    --
+    *hash : VARCHAR(255)
+    revoked_at : DATETIME
+    user_id : BIGINT <<FK>>
+    *user_document : VARCHAR(255)
+    created_at : DATETIME
+}
+
+users ||--o{ user_areas
+
+areas ||--o{ user_areas
+
+users ||--o{ orders
+tables ||--o{ orders
+
+orders ||--o| client_orders
+
+client_orders ||--o{ order_details
+products ||--o{ order_details
+
+order_details ||--o{ order_detail_subproducts
+
+products ||--o{ product_categories
+categories ||--o{ product_categories
+
+products ||--o{ daymenu_products
+daymenus ||--o{ daymenu_categories
+
+daymenu_categories ||--o{ daymenu_products
+
+products }o--|| areas
+
+users ||--o{ refresh_tokens
+@enduml
