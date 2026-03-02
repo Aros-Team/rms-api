@@ -1,33 +1,32 @@
-# yaml-language-server: $shema=https://taskfile.dev/schema.json
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
 version: '3'
 
 vars:
-  BINARY: '{{if eq OS "windows"}}gradlew.bat{{else}}gradlew{{end}}'
-  ENGINE: .engine/{{.BINARY}}
+  # Agregamos doble barra \\ en la parte de Windows
+  GRADLEW: '{{if eq OS "windows"}}.engine\\gradlew.bat{{else}}./.engine/gradlew{{end}}'
 
 tasks:
   run:
     cmds:
       - docker compose up -d
-      - ./{{.ENGINE}} bootRun --configuration-cache
+      - '{{.GRADLEW}} bootRun --configuration-cache'
 
   build:
     cmds:
       - docker compose up -d
-      - ./{{.ENGINE}} build --configuration-cache  # TODO: add build docker image
+      - '{{.GRADLEW}} build --configuration-cache'  # TODO: add build docker image
 
   format:
     cmds:
-      - ./{{.ENGINE}} spotlessApply --configuration-cache
+      - '{{.GRADLEW}} spotlessApply --configuration-cache'
 
   test:
     cmds:
       - docker compose up -d
-      - ./{{.ENGINE}} test
+      - '{{.GRADLEW}} test'
 
   clean:
     cmds:
       - docker compose down
-      - ./{{.ENGINE}} clean
+      - '{{.GRADLEW}} clean'
       - docker compose up -d
-
