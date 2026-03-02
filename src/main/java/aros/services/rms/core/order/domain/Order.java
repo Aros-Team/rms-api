@@ -16,6 +16,8 @@ public class Order {
     private Long id;
     @Builder.Default
     private LocalDateTime date = LocalDateTime.now();
+    @Builder.Default
+    private OrderStatus status = OrderStatus.QUEUE;
     private Table table;
     private List<OrderDetail> details;
 }

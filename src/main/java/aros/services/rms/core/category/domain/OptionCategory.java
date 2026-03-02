@@ -1,6 +1,5 @@
-package aros.services.rms.core.product.domain;
+package aros.services.rms.core.category.domain;
 
-import aros.services.rms.core.category.domain.OptionCategory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,8 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductOption {
+public class OptionCategory {
     private Long id;
     private String name;
-    private OptionCategory category;
+    private String description;
 }

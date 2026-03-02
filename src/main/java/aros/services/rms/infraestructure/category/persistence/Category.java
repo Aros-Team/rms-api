@@ -1,12 +1,9 @@
-package aros.services.rms.infraestructure.product.persistence;
+package aros.services.rms.infraestructure.category.persistence;
 
-import aros.services.rms.infraestructure.category.persistence.OptionCategory;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,12 +11,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "product_options")
+@Table(name = "categories")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductOption {
+public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +24,5 @@ public class ProductOption {
 
     private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "option_category_id")
-    private OptionCategory category;
+    private String description;
 }

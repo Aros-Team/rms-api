@@ -49,31 +49,50 @@ public class TakeOrderUseCaseImpl implements TakeOrderUseCase {
         table.setStatus(TableStatus.OCCUPIED);
         tableRepositoryPort.save(table);
 
-        Order order = Order.builder()
-                .table(table)
-                .date(LocalDateTime.now())
-                .details(new ArrayList<>())
-                .build();
-
-        for (TakeOrderCommand.OrderDetailCommand detailCommand : command.getDetails()) {
-            Product product = productRepositoryPort.findById(detailCommand.getProductId())
-                    .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-
-            List<ProductOption> selectedOptions = new ArrayList<>();
-            if (detailCommand.getSelectedOptionIds() != null && !detailCommand.getSelectedOptionIds().isEmpty()) {
-                selectedOptions = productOptionRepositoryPort.findAllById(detailCommand.getSelectedOptionIds());
-            }
-
-            OrderDetail detail = OrderDetail.builder()
-                    .product(product)
-                    .unitPrice(product.getBasePrice())
-                    .instructions(detailCommand.getInstructions())
-                    .selectedOptions(selectedOptions)
+        try {
+            Order order = Order.builder()
+                    .table(table)
+                    .date(LocalDateTime.now())
+                    .details(new ArrayList<>())
                     .build();
 
-            order.getDetails().add(detail);
-        }
+            for (TakeOrderCommand.OrderDetailCommand detailCommand : command.getDetails()) {
+                Product product = productRepositoryPort.findById(detailCommand.getProductId())
+                        .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-        return orderRepositoryPort.save(order);
+                boolean hasSelectedOptions = detailCommand.getSelectedOptionIds() != null
+                        && !detailCommand.getSelectedOptionIds().isEmpty();
+
+                if (product.isHasOptions() && !hasSelectedOptions) {
+                    throw new IllegalArgumentException(
+                            "Product '" + product.getName() + "' requires options to be selected");
+                }
+
+                if (!product.isHasOptions() && hasSelectedOptions) {
+                    throw new IllegalArgumentException(
+                            "Product '" + product.getName() + "' does not support options");
+                }
+
+                List<ProductOption> selectedOptions = new ArrayList<>();
+                if (hasSelectedOptions) {
+                    selectedOptions = productOptionRepositoryPort.findAllById(detailCommand.getSelectedOptionIds());
+                }
+
+                OrderDetail detail = OrderDetail.builder()
+                        .product(product)
+                        .unitPrice(product.getBasePrice())
+                        .instructions(detailCommand.getInstructions())
+                        .selectedOptions(selectedOptions)
+                        .build();
+
+                order.getDetails().add(detail);
+            }
+
+            return orderRepositoryPort.save(order);
+        } catch (Exception e) {
+            table.setStatus(TableStatus.AVAILABLE);
+            tableRepositoryPort.save(table);
+            throw e;
+        }
     }
 }

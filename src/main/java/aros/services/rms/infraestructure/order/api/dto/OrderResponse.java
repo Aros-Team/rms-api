@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 public record OrderResponse(
         Long id,
         LocalDateTime date,
+        String status,
         Long tableId,
         List<OrderDetailResponse> details
 ) {
@@ -25,7 +26,7 @@ public record OrderResponse(
     public record ProductOptionResponse(
             Long id,
             String name,
-            String type
+            String categoryName
     ) {}
 
     public static OrderResponse fromDomain(Order order) {
@@ -34,6 +35,7 @@ public record OrderResponse(
         return new OrderResponse(
                 order.getId(),
                 order.getDate(),
+                order.getStatus() != null ? order.getStatus().name() : null,
                 order.getTable() != null ? order.getTable().getId() : null,
                 order.getDetails() != null ? order.getDetails().stream()
                         .map(OrderResponse::fromDomainDetail)
@@ -62,7 +64,7 @@ public record OrderResponse(
         return new ProductOptionResponse(
                 option.getId(),
                 option.getName(),
-                option.getType()
+                option.getCategory() != null ? option.getCategory().getName() : null
         );
     }
 }

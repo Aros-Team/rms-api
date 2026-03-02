@@ -22,6 +22,9 @@ public class OrderMapper {
         aros.services.rms.infraestructure.order.persistence.Order entity = aros.services.rms.infraestructure.order.persistence.Order.builder()
                 .id(domain.getId())
                 .date(domain.getDate())
+                .status(domain.getStatus() != null
+                        ? aros.services.rms.infraestructure.order.persistence.OrderStatus.valueOf(domain.getStatus().name())
+                        : null)
                 .table(tableMapper.toEntity(domain.getTable()))
                 .build();
 
@@ -55,6 +58,9 @@ public class OrderMapper {
         return Order.builder()
                 .id(entity.getId())
                 .date(entity.getDate())
+                .status(entity.getStatus() != null
+                        ? aros.services.rms.core.order.domain.OrderStatus.valueOf(entity.getStatus().name())
+                        : null)
                 .table(tableMapper.toDomain(entity.getTable()))
                 .details(entity.getDetails() != null ? entity.getDetails().stream()
                         .map(this::toOrderDetailDomain)

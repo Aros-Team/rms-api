@@ -2,10 +2,15 @@ package aros.services.rms.infraestructure.product.persistence.jpa;
 
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
+import aros.services.rms.infraestructure.category.persistence.jpa.CategoryMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class ProductMapper {
+
+    private final CategoryMapper categoryMapper;
 
     public Product toProductDomain(aros.services.rms.infraestructure.product.persistence.Product entity) {
         if (entity == null) return null;
@@ -13,7 +18,8 @@ public class ProductMapper {
                 .id(entity.getId())
                 .name(entity.getName())
                 .basePrice(entity.getBasePrice())
-                .category(entity.getCategory())
+                .hasOptions(entity.isHasOptions())
+                .category(categoryMapper.toDomain(entity.getCategory()))
                 .build();
     }
 
@@ -22,7 +28,7 @@ public class ProductMapper {
         return ProductOption.builder()
                 .id(entity.getId())
                 .name(entity.getName())
-                .type(entity.getType())
+                .category(categoryMapper.toOptionCategoryDomain(entity.getCategory()))
                 .build();
     }
 
@@ -32,7 +38,8 @@ public class ProductMapper {
                 .id(domain.getId())
                 .name(domain.getName())
                 .basePrice(domain.getBasePrice())
-                .category(domain.getCategory())
+                .hasOptions(domain.isHasOptions())
+                .category(categoryMapper.toEntity(domain.getCategory()))
                 .build();
     }
 
@@ -41,7 +48,7 @@ public class ProductMapper {
         return aros.services.rms.infraestructure.product.persistence.ProductOption.builder()
                 .id(domain.getId())
                 .name(domain.getName())
-                .type(domain.getType())
+                .category(categoryMapper.toOptionCategoryEntity(domain.getCategory()))
                 .build();
     }
 }
