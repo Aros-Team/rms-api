@@ -1,10 +1,11 @@
 package aros.services.rms.core.order.application.usecases;
 
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
-import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderRepository;
 import aros.services.rms.core.order.port.input.AddProductToOrderInput;
+import aros.services.rms.core.product.application.exception.ProductNotAvailableException;
+import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,10 +30,15 @@ public class AddProductToOrderUseCase implements AddProductToOrderInput {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(productId));
 
-        // 3. Aplicar lógica de negocio (el dominio valida stock y disponibilidad)
+        // 3. Validar disponibilidad (Regla de negocio: stock > 0)
+        if (!product.isAvailable()) {
+            throw new ProductNotAvailableException(productId);
+        }
+
+        // 4. Aplicar lógica de negocio
         order.addItem(product, quantity, note);
 
-        // 4. Persistir los cambios (Puerto de salida)
+        // 5. Persistir los cambios (Puerto de salida)
         return orderRepository.save(order);
     }
 }

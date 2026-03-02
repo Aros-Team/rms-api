@@ -21,11 +21,6 @@ public class Order {
      * Comportamiento: Agrega un producto al pedido actual.
      */
     public void addItem(Product product, Integer quantity, String note) {
-        if (!product.isAvailable()) {
-            // Nota: En la Fase 3 cambiaremos esto por una excepción de dominio (ej. ProductNotAvailableException)
-            throw new IllegalArgumentException("El producto no está disponible o no tiene stock suficiente.");
-        }
-        
         OrderItem newItem = OrderItem.builder()
                 .product(product)
                 .quantity(quantity)
