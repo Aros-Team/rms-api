@@ -7,6 +7,10 @@ import aros.services.rms.core.order.port.output.OrderRepositoryPort;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Implementación del caso de uso para consultar órdenes.
+ * Soporta filtros por estado y rango de fechas.
+ */
 public class OrderQueryUseCaseImpl implements OrderQueryUseCase {
 
     private final OrderRepositoryPort orderRepositoryPort;
@@ -15,6 +19,10 @@ public class OrderQueryUseCaseImpl implements OrderQueryUseCase {
         this.orderRepositoryPort = orderRepositoryPort;
     }
 
+    /**
+     * {@inheritDoc}
+     * Valida que endDate no sea futura y startDate <= endDate.
+     */
     @Override
     public List<Order> findOrders(OrderStatus status, LocalDateTime startDate, LocalDateTime endDate) {
         boolean hasStatus = status != null;

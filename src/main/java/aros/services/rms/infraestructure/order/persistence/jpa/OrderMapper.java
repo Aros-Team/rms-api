@@ -2,12 +2,13 @@ package aros.services.rms.infraestructure.order.persistence.jpa;
 
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
+import aros.services.rms.infraestructure.area.persistence.jpa.Area;
 import aros.services.rms.infraestructure.product.persistence.jpa.ProductMapper;
 import aros.services.rms.infraestructure.table.persistence.jpa.TableMapper;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -34,6 +35,12 @@ public class OrderMapper {
                     .collect(Collectors.toList()));
         }
 
+        if (domain.getPreparationAreaIds() != null) {
+            entity.setPreparationAreas(domain.getPreparationAreaIds().stream()
+                    .map(areaId -> Area.builder().id(areaId).build())
+                    .collect(Collectors.toSet()));
+        }
+
         return entity;
     }
 
@@ -55,6 +62,12 @@ public class OrderMapper {
     public Order toDomain(aros.services.rms.infraestructure.order.persistence.Order entity) {
         if (entity == null) return null;
 
+        Set<Long> areaIds = entity.getPreparationAreas() != null
+                ? entity.getPreparationAreas().stream()
+                        .map(Area::getId)
+                        .collect(Collectors.toSet())
+                : null;
+
         return Order.builder()
                 .id(entity.getId())
                 .date(entity.getDate())
@@ -65,6 +78,7 @@ public class OrderMapper {
                 .details(entity.getDetails() != null ? entity.getDetails().stream()
                         .map(this::toOrderDetailDomain)
                         .collect(Collectors.toList()) : null)
+                .preparationAreaIds(areaIds)
                 .build();
     }
 

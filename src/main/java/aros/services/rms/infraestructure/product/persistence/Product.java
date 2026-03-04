@@ -1,5 +1,6 @@
 package aros.services.rms.infraestructure.product.persistence;
 
+import aros.services.rms.infraestructure.area.persistence.jpa.Area;
 import aros.services.rms.infraestructure.category.persistence.Category;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -36,4 +37,8 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
+
+    @ManyToOne
+    @JoinColumn(name = "area_id")
+    private Area preparationArea;
 }

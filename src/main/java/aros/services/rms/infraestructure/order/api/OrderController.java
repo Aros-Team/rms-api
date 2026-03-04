@@ -4,6 +4,7 @@ import aros.services.rms.core.order.application.usecases.TakeOrderCommand;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.input.DeliveryUseCase;
+import aros.services.rms.core.order.port.input.MarkAsReadyUseCase;
 import aros.services.rms.core.order.port.input.OrderQueryUseCase;
 import aros.services.rms.core.order.port.input.PreparationUseCase;
 import aros.services.rms.core.order.port.input.TakeOrderUseCase;
@@ -27,6 +28,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controlador REST para gestión de órdenes.
+ * Expone endpoints para todo el ciclo de vida de una orden.
+ */
 @RestController
 @RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor
@@ -35,9 +40,14 @@ public class OrderController {
     private final TakeOrderUseCase takeOrderUseCase;
     private final UpdateOrderUseCase updateOrderUseCase;
     private final PreparationUseCase preparationUseCase;
+    private final MarkAsReadyUseCase markAsReadyUseCase;
     private final DeliveryUseCase deliveryUseCase;
     private final OrderQueryUseCase orderQueryUseCase;
 
+    /**
+     * Crea una nueva orden. La orden inicia en estado QUEUE.
+     * Requiere mesa disponible.
+     */
     @PostMapping
     public ResponseEntity<OrderResponse> takeOrder(@Valid @RequestBody TakeOrderRequest request) {
         TakeOrderCommand command = TakeOrderCommand.builder()
@@ -55,12 +65,18 @@ public class OrderController {
         return new ResponseEntity<>(OrderResponse.fromDomain(order), HttpStatus.CREATED);
     }
 
+    /**
+     * Cancela una orden existente.
+     */
     @PutMapping("/{id}/cancel")
     public ResponseEntity<OrderResponse> cancelOrder(@PathVariable Long id) {
         Order order = updateOrderUseCase.cancel(id);
         return ResponseEntity.ok(OrderResponse.fromDomain(order));
     }
 
+    /**
+     * Actualiza los detalles de una orden.
+     */
     @PutMapping("/{id}")
     public ResponseEntity<OrderResponse> updateOrder(
             @PathVariable Long id,
@@ -81,18 +97,39 @@ public class OrderController {
         return ResponseEntity.ok(OrderResponse.fromDomain(order));
     }
 
+    /**
+     * Toma la siguiente orden de la cola y la pone en preparación.
+     * Cambia estado de QUEUE a PREPARING.
+     */
     @PutMapping("/prepare")
     public ResponseEntity<OrderResponse> prepareNextOrder() {
         Order order = preparationUseCase.processNextOrder();
         return ResponseEntity.ok(OrderResponse.fromDomain(order));
     }
 
+    /**
+     * Marca una orden específica como lista para entregar.
+     * Cambia estado de PREPARING a READY.
+     */
+    @PutMapping("/{id}/ready")
+    public ResponseEntity<OrderResponse> markOrderAsReady(@PathVariable Long id) {
+        Order order = markAsReadyUseCase.markAsReady(id);
+        return ResponseEntity.ok(OrderResponse.fromDomain(order));
+    }
+
+    /**
+     * Entrega una orden al cliente.
+     * Cambia estado de READY a DELIVERED y libera la mesa.
+     */
     @PutMapping("/{id}/deliver")
     public ResponseEntity<OrderResponse> deliverOrder(@PathVariable Long id) {
         Order order = deliveryUseCase.markAsDelivered(id);
         return ResponseEntity.ok(OrderResponse.fromDomain(order));
     }
 
+    /**
+     * Consulta órdenes con filtros opcionales por estado y rango de fechas.
+     */
     @GetMapping
     public ResponseEntity<List<OrderResponse>> getOrders(
             @RequestParam(required = false) String status,

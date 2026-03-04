@@ -15,6 +15,10 @@ import aros.services.rms.core.table.port.output.TableRepositoryPort;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementación del caso de uso para actualizar órdenes.
+ * Permite cancelar o modificar órdenes en estado QUEUE.
+ */
 public class UpdateOrderUseCaseImpl implements UpdateOrderUseCase {
 
     private final OrderRepositoryPort orderRepositoryPort;
@@ -34,6 +38,10 @@ public class UpdateOrderUseCaseImpl implements UpdateOrderUseCase {
         this.productOptionRepositoryPort = productOptionRepositoryPort;
     }
 
+    /**
+     * {@inheritDoc}
+     * Cancela orden en QUEUE y libera la mesa.
+     */
     @Override
     public Order cancel(Long id) {
         Order order = orderRepositoryPort.findById(id)
@@ -55,6 +63,10 @@ public class UpdateOrderUseCaseImpl implements UpdateOrderUseCase {
         return savedOrder;
     }
 
+    /**
+     * {@inheritDoc}
+     * Actualiza detalles de orden en QUEUE. Valida productos y opciones.
+     */
     @Override
     public Order update(Long id, TakeOrderCommand command) {
         Order order = orderRepositoryPort.findById(id)

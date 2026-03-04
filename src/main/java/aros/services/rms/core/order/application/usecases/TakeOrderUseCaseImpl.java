@@ -18,7 +18,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
+/**
+ * Implementación del caso de uso para crear órdenes.
+ * Valida mesa disponible y opciones de productos.
+ */
 public class TakeOrderUseCaseImpl implements TakeOrderUseCase {
 
     private final OrderRepositoryPort orderRepositoryPort;
@@ -38,6 +41,11 @@ public class TakeOrderUseCaseImpl implements TakeOrderUseCase {
         this.productOptionRepositoryPort = productOptionRepositoryPort;
     }
 
+    /**
+     * {@inheritDoc}
+     * Valida mesa disponible, productos y sus opciones.
+     * En caso de error libera la mesa.
+     */
     public Order execute(TakeOrderCommand command) {
         Table table = tableRepositoryPort.findById(command.getTableId())
                 .orElseThrow(() -> new IllegalArgumentException("Table not found"));

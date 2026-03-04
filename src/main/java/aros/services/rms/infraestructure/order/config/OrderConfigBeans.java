@@ -1,11 +1,13 @@
 package aros.services.rms.infraestructure.order.config;
 
 import aros.services.rms.core.order.application.usecases.DeliveryUseCaseImpl;
+import aros.services.rms.core.order.application.usecases.MarkAsReadyUseCaseImpl;
 import aros.services.rms.core.order.application.usecases.OrderQueryUseCaseImpl;
 import aros.services.rms.core.order.application.usecases.PreparationUseCaseImpl;
 import aros.services.rms.core.order.application.usecases.TakeOrderUseCaseImpl;
 import aros.services.rms.core.order.application.usecases.UpdateOrderUseCaseImpl;
 import aros.services.rms.core.order.port.input.DeliveryUseCase;
+import aros.services.rms.core.order.port.input.MarkAsReadyUseCase;
 import aros.services.rms.core.order.port.input.OrderQueryUseCase;
 import aros.services.rms.core.order.port.input.PreparationUseCase;
 import aros.services.rms.core.order.port.input.UpdateOrderUseCase;
@@ -16,9 +18,16 @@ import aros.services.rms.core.table.port.output.TableRepositoryPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configuración de beans para el módulo de órdenes.
+ * Registra todos los casos de uso relacionados con gestión de órdenes.
+ */
 @Configuration
 public class OrderConfigBeans {
 
+    /**
+     * Crea bean para tomar nuevas órdenes.
+     */
     @Bean
     public TakeOrderUseCaseImpl takeOrderUseCaseImpl(
             OrderRepositoryPort orderRepositoryPort,
@@ -34,6 +43,9 @@ public class OrderConfigBeans {
         );
     }
 
+    /**
+     * Crea bean para actualizar órdenes existentes.
+     */
     @Bean
     public UpdateOrderUseCase updateOrderUseCase(
             OrderRepositoryPort orderRepositoryPort,
@@ -49,6 +61,9 @@ public class OrderConfigBeans {
         );
     }
 
+    /**
+     * Crea bean para pasar órdenes de cola a preparación.
+     */
     @Bean
     public PreparationUseCase preparationUseCase(
             OrderRepositoryPort orderRepositoryPort
@@ -56,6 +71,19 @@ public class OrderConfigBeans {
         return new PreparationUseCaseImpl(orderRepositoryPort);
     }
 
+    /**
+     * Crea bean para marcar órdenes como listas (READY).
+     */
+    @Bean
+    public MarkAsReadyUseCase markAsReadyUseCase(
+            OrderRepositoryPort orderRepositoryPort
+    ) {
+        return new MarkAsReadyUseCaseImpl(orderRepositoryPort);
+    }
+
+    /**
+     * Crea bean para entregar órdenes al cliente.
+     */
     @Bean
     public DeliveryUseCase deliveryUseCase(
             OrderRepositoryPort orderRepositoryPort,
@@ -64,6 +92,9 @@ public class OrderConfigBeans {
         return new DeliveryUseCaseImpl(orderRepositoryPort, tableRepositoryPort);
     }
 
+    /**
+     * Crea bean para consultar órdenes.
+     */
     @Bean
     public OrderQueryUseCase orderQueryUseCase(
             OrderRepositoryPort orderRepositoryPort

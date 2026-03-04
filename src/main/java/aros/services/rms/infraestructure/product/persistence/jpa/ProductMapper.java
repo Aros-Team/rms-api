@@ -2,6 +2,7 @@ package aros.services.rms.infraestructure.product.persistence.jpa;
 
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
+import aros.services.rms.infraestructure.area.persistence.jpa.Area;
 import aros.services.rms.infraestructure.category.persistence.jpa.CategoryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ public class ProductMapper {
                 .basePrice(entity.getBasePrice())
                 .hasOptions(entity.isHasOptions())
                 .category(categoryMapper.toDomain(entity.getCategory()))
+                .preparationAreaId(entity.getPreparationArea() != null ? entity.getPreparationArea().getId() : null)
                 .build();
     }
 
@@ -34,13 +36,19 @@ public class ProductMapper {
 
     public aros.services.rms.infraestructure.product.persistence.Product toProductEntity(Product domain) {
         if (domain == null) return null;
-        return aros.services.rms.infraestructure.product.persistence.Product.builder()
+        aros.services.rms.infraestructure.product.persistence.Product entity = aros.services.rms.infraestructure.product.persistence.Product.builder()
                 .id(domain.getId())
                 .name(domain.getName())
                 .basePrice(domain.getBasePrice())
                 .hasOptions(domain.isHasOptions())
                 .category(categoryMapper.toEntity(domain.getCategory()))
                 .build();
+
+        if (domain.getPreparationAreaId() != null) {
+            entity.setPreparationArea(Area.builder().id(domain.getPreparationAreaId()).build());
+        }
+
+        return entity;
     }
 
     public aros.services.rms.infraestructure.product.persistence.ProductOption toProductOptionEntity(ProductOption domain) {

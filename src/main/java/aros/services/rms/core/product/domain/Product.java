@@ -16,4 +16,5 @@ public class Product {
     private Double basePrice;
     private boolean hasOptions;
     private Category category;
+    private Long preparationAreaId;
 }
