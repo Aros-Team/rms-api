@@ -50,3 +50,6 @@ Before running this project, ensure you have installed:
   ```
   task format
   ```
+
+- **API Documentation:**
+  Access Swagger UI at: http://localhost:8080/swagger-ui/index.html
