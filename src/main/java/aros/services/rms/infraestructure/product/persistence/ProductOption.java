@@ -1,3 +1,4 @@
+/* (C) 2026 */
 package aros.services.rms.infraestructure.product.persistence;
 
 import aros.services.rms.infraestructure.category.persistence.OptionCategory;
@@ -21,13 +22,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProductOption {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String name;
+  private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "option_category_id")
-    private OptionCategory category;
+  @ManyToOne
+  @JoinColumn(name = "option_category_id")
+  private OptionCategory category;
 }

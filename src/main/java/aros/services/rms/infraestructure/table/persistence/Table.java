@@ -1,3 +1,4 @@
+/* (C) 2026 */
 package aros.services.rms.infraestructure.table.persistence;
 
 import jakarta.persistence.Entity;
@@ -19,14 +20,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Table {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private Integer tableNumber;
+  private Integer tableNumber;
 
-    private Integer capacity;
+  private Integer capacity;
 
-    @Enumerated(EnumType.STRING)
-    private TableStatus status;
+  @Enumerated(EnumType.STRING)
+  private TableStatus status;
 }

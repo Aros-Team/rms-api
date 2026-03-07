@@ -1,3 +1,4 @@
+/* (C) 2026 */
 package aros.services.rms.infraestructure.product.persistence;
 
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
@@ -23,22 +24,22 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Product {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String name;
+  private String name;
 
-    private Double basePrice;
+  private Double basePrice;
 
-    @Column(name = "has_options", nullable = false)
-    private boolean hasOptions;
+  @Column(name = "has_options", nullable = false)
+  private boolean hasOptions;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
+  @ManyToOne
+  @JoinColumn(name = "category_id")
+  private Category category;
 
-    @ManyToOne
-    @JoinColumn(name = "area_id")
-    private Area preparationArea;
+  @ManyToOne
+  @JoinColumn(name = "area_id")
+  private Area preparationArea;
 }

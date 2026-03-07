@@ -1,3 +1,4 @@
+/* (C) 2026 */
 package aros.services.rms.core.order.domain;
 
 import aros.services.rms.core.product.domain.Product;
@@ -13,9 +14,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderDetail {
-    private Long id;
-    private Product product;
-    private Double unitPrice;
-    private String instructions;
-    private List<ProductOption> selectedOptions;
+  private Long id;
+  private Product product;
+  private Double unitPrice;
+  private String instructions;
+  private List<ProductOption> selectedOptions;
 }

@@ -1,3 +1,4 @@
+/* (C) 2026 */
 package aros.services.rms.infraestructure.order.persistence;
 
 import aros.services.rms.infraestructure.product.persistence.Product;
@@ -25,26 +26,26 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OrderDetail {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "order_id")
-    private Order order;
+  @ManyToOne
+  @JoinColumn(name = "order_id")
+  private Order order;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
+  @ManyToOne
+  @JoinColumn(name = "product_id")
+  private Product product;
 
-    private Double unitPrice;
+  private Double unitPrice;
 
-    private String instructions;
+  private String instructions;
 
-    @ManyToMany
-    @JoinTable(
-            name = "order_detail_options",
-            joinColumns = @JoinColumn(name = "order_detail_id"),
-            inverseJoinColumns = @JoinColumn(name = "option_id"))
-    private List<ProductOption> selectedOptions;
+  @ManyToMany
+  @JoinTable(
+      name = "order_detail_options",
+      joinColumns = @JoinColumn(name = "order_detail_id"),
+      inverseJoinColumns = @JoinColumn(name = "option_id"))
+  private List<ProductOption> selectedOptions;
 }

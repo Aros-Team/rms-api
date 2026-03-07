@@ -1,3 +1,4 @@
+/* (C) 2026 */
 package aros.services.rms.infraestructure.category.persistence;
 
 import jakarta.persistence.Entity;
@@ -18,11 +19,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OptionCategory {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String name;
+  private String name;
 
-    private String description;
+  private String description;
 }

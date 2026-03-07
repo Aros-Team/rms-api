@@ -1,3 +1,4 @@
+/* (C) 2026 */
 package aros.services.rms.core.order.application.usecases;
 
 import aros.services.rms.core.order.domain.Order;
@@ -16,100 +17,102 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implementación del caso de uso para actualizar órdenes.
- * Permite cancelar o modificar órdenes en estado QUEUE.
+ * Implementación del caso de uso para actualizar órdenes. Permite cancelar o modificar órdenes en
+ * estado QUEUE.
  */
 public class UpdateOrderUseCaseImpl implements UpdateOrderUseCase {
 
-    private final OrderRepositoryPort orderRepositoryPort;
-    private final TableRepositoryPort tableRepositoryPort;
-    private final ProductRepositoryPort productRepositoryPort;
-    private final ProductOptionRepositoryPort productOptionRepositoryPort;
+  private final OrderRepositoryPort orderRepositoryPort;
+  private final TableRepositoryPort tableRepositoryPort;
+  private final ProductRepositoryPort productRepositoryPort;
+  private final ProductOptionRepositoryPort productOptionRepositoryPort;
 
-    public UpdateOrderUseCaseImpl(
-            OrderRepositoryPort orderRepositoryPort,
-            TableRepositoryPort tableRepositoryPort,
-            ProductRepositoryPort productRepositoryPort,
-            ProductOptionRepositoryPort productOptionRepositoryPort
-    ) {
-        this.orderRepositoryPort = orderRepositoryPort;
-        this.tableRepositoryPort = tableRepositoryPort;
-        this.productRepositoryPort = productRepositoryPort;
-        this.productOptionRepositoryPort = productOptionRepositoryPort;
+  public UpdateOrderUseCaseImpl(
+      OrderRepositoryPort orderRepositoryPort,
+      TableRepositoryPort tableRepositoryPort,
+      ProductRepositoryPort productRepositoryPort,
+      ProductOptionRepositoryPort productOptionRepositoryPort) {
+    this.orderRepositoryPort = orderRepositoryPort;
+    this.tableRepositoryPort = tableRepositoryPort;
+    this.productRepositoryPort = productRepositoryPort;
+    this.productOptionRepositoryPort = productOptionRepositoryPort;
+  }
+
+  /** {@inheritDoc} Cancela orden en QUEUE y libera la mesa. */
+  @Override
+  public Order cancel(Long id) {
+    Order order =
+        orderRepositoryPort
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+
+    if (order.getStatus() != OrderStatus.QUEUE) {
+      throw new IllegalStateException("Order can only be cancelled when in QUEUE status");
     }
 
-    /**
-     * {@inheritDoc}
-     * Cancela orden en QUEUE y libera la mesa.
-     */
-    @Override
-    public Order cancel(Long id) {
-        Order order = orderRepositoryPort.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+    order.setStatus(OrderStatus.CANCELLED);
+    Order savedOrder = orderRepositoryPort.save(order);
 
-        if (order.getStatus() != OrderStatus.QUEUE) {
-            throw new IllegalStateException("Order can only be cancelled when in QUEUE status");
-        }
-
-        order.setStatus(OrderStatus.CANCELLED);
-        Order savedOrder = orderRepositoryPort.save(order);
-
-        if (order.getTable() != null) {
-            Table table = order.getTable();
-            table.setStatus(TableStatus.AVAILABLE);
-            tableRepositoryPort.save(table);
-        }
-
-        return savedOrder;
+    if (order.getTable() != null) {
+      Table table = order.getTable();
+      table.setStatus(TableStatus.AVAILABLE);
+      tableRepositoryPort.save(table);
     }
 
-    /**
-     * {@inheritDoc}
-     * Actualiza detalles de orden en QUEUE. Valida productos y opciones.
-     */
-    @Override
-    public Order update(Long id, TakeOrderCommand command) {
-        Order order = orderRepositoryPort.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+    return savedOrder;
+  }
 
-        if (order.getStatus() != OrderStatus.QUEUE) {
-            throw new IllegalStateException("Order can only be updated when in QUEUE status");
-        }
+  /** {@inheritDoc} Actualiza detalles de orden en QUEUE. Valida productos y opciones. */
+  @Override
+  public Order update(Long id, TakeOrderCommand command) {
+    Order order =
+        orderRepositoryPort
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Order not found"));
 
-        List<OrderDetail> newDetails = new ArrayList<>();
-        for (TakeOrderCommand.OrderDetailCommand detailCommand : command.getDetails()) {
-            Product product = productRepositoryPort.findById(detailCommand.getProductId())
-                    .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-
-            boolean hasSelectedOptions = detailCommand.getSelectedOptionIds() != null
-                    && !detailCommand.getSelectedOptionIds().isEmpty();
-
-            if (product.isHasOptions() && !hasSelectedOptions) {
-                throw new IllegalArgumentException(
-                        "Product '" + product.getName() + "' requires options to be selected");
-            }
-
-            if (!product.isHasOptions() && hasSelectedOptions) {
-                throw new IllegalArgumentException(
-                        "Product '" + product.getName() + "' does not support options");
-            }
-
-            List<ProductOption> selectedOptions = new ArrayList<>();
-            if (hasSelectedOptions) {
-                selectedOptions = productOptionRepositoryPort.findAllById(detailCommand.getSelectedOptionIds());
-            }
-
-            OrderDetail detail = OrderDetail.builder()
-                    .product(product)
-                    .unitPrice(product.getBasePrice())
-                    .instructions(detailCommand.getInstructions())
-                    .selectedOptions(selectedOptions)
-                    .build();
-
-            newDetails.add(detail);
-        }
-
-        order.setDetails(newDetails);
-        return orderRepositoryPort.save(order);
+    if (order.getStatus() != OrderStatus.QUEUE) {
+      throw new IllegalStateException("Order can only be updated when in QUEUE status");
     }
+
+    List<OrderDetail> newDetails = new ArrayList<>();
+    for (TakeOrderCommand.OrderDetailCommand detailCommand : command.getDetails()) {
+      Product product =
+          productRepositoryPort
+              .findById(detailCommand.getProductId())
+              .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
+      boolean hasSelectedOptions =
+          detailCommand.getSelectedOptionIds() != null
+              && !detailCommand.getSelectedOptionIds().isEmpty();
+
+      if (product.isHasOptions() && !hasSelectedOptions) {
+        throw new IllegalArgumentException(
+            "Product '" + product.getName() + "' requires options to be selected");
+      }
+
+      if (!product.isHasOptions() && hasSelectedOptions) {
+        throw new IllegalArgumentException(
+            "Product '" + product.getName() + "' does not support options");
+      }
+
+      List<ProductOption> selectedOptions = new ArrayList<>();
+      if (hasSelectedOptions) {
+        selectedOptions =
+            productOptionRepositoryPort.findAllById(detailCommand.getSelectedOptionIds());
+      }
+
+      OrderDetail detail =
+          OrderDetail.builder()
+              .product(product)
+              .unitPrice(product.getBasePrice())
+              .instructions(detailCommand.getInstructions())
+              .selectedOptions(selectedOptions)
+              .build();
+
+      newDetails.add(detail);
+    }
+
+    order.setDetails(newDetails);
+    return orderRepositoryPort.save(order);
+  }
 }

@@ -1,3 +1,4 @@
+/* (C) 2026 */
 package aros.services.rms.infraestructure.order.api.dto;
 
 import aros.services.rms.core.order.domain.Order;
@@ -8,63 +9,54 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public record OrderResponse(
-        Long id,
-        LocalDateTime date,
-        String status,
-        Long tableId,
-        List<OrderDetailResponse> details
-) {
-    public record OrderDetailResponse(
-            Long id,
-            Long productId,
-            String productName,
-            Double unitPrice,
-            String instructions,
-            List<ProductOptionResponse> selectedOptions
-    ) {}
+    Long id, LocalDateTime date, String status, Long tableId, List<OrderDetailResponse> details) {
+  public record OrderDetailResponse(
+      Long id,
+      Long productId,
+      String productName,
+      Double unitPrice,
+      String instructions,
+      List<ProductOptionResponse> selectedOptions) {}
 
-    public record ProductOptionResponse(
-            Long id,
-            String name,
-            String categoryName
-    ) {}
+  public record ProductOptionResponse(Long id, String name, String categoryName) {}
 
-    public static OrderResponse fromDomain(Order order) {
-        if (order == null) return null;
+  public static OrderResponse fromDomain(Order order) {
+    if (order == null) return null;
 
-        return new OrderResponse(
-                order.getId(),
-                order.getDate(),
-                order.getStatus() != null ? order.getStatus().name() : null,
-                order.getTable() != null ? order.getTable().getId() : null,
-                order.getDetails() != null ? order.getDetails().stream()
-                        .map(OrderResponse::fromDomainDetail)
-                        .collect(Collectors.toList()) : null
-        );
-    }
+    return new OrderResponse(
+        order.getId(),
+        order.getDate(),
+        order.getStatus() != null ? order.getStatus().name() : null,
+        order.getTable() != null ? order.getTable().getId() : null,
+        order.getDetails() != null
+            ? order.getDetails().stream()
+                .map(OrderResponse::fromDomainDetail)
+                .collect(Collectors.toList())
+            : null);
+  }
 
-    private static OrderDetailResponse fromDomainDetail(OrderDetail detail) {
-        if (detail == null) return null;
+  private static OrderDetailResponse fromDomainDetail(OrderDetail detail) {
+    if (detail == null) return null;
 
-        return new OrderDetailResponse(
-                detail.getId(),
-                detail.getProduct() != null ? detail.getProduct().getId() : null,
-                detail.getProduct() != null ? detail.getProduct().getName() : null,
-                detail.getUnitPrice(),
-                detail.getInstructions(),
-                detail.getSelectedOptions() != null ? detail.getSelectedOptions().stream()
-                        .map(OrderResponse::fromDomainOption)
-                        .collect(Collectors.toList()) : null
-        );
-    }
+    return new OrderDetailResponse(
+        detail.getId(),
+        detail.getProduct() != null ? detail.getProduct().getId() : null,
+        detail.getProduct() != null ? detail.getProduct().getName() : null,
+        detail.getUnitPrice(),
+        detail.getInstructions(),
+        detail.getSelectedOptions() != null
+            ? detail.getSelectedOptions().stream()
+                .map(OrderResponse::fromDomainOption)
+                .collect(Collectors.toList())
+            : null);
+  }
 
-    private static ProductOptionResponse fromDomainOption(ProductOption option) {
-        if (option == null) return null;
+  private static ProductOptionResponse fromDomainOption(ProductOption option) {
+    if (option == null) return null;
 
-        return new ProductOptionResponse(
-                option.getId(),
-                option.getName(),
-                option.getCategory() != null ? option.getCategory().getName() : null
-        );
-    }
+    return new ProductOptionResponse(
+        option.getId(),
+        option.getName(),
+        option.getCategory() != null ? option.getCategory().getName() : null);
+  }
 }

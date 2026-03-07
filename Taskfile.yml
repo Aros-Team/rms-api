@@ -23,7 +23,8 @@ tasks:
   test:
     cmds:
       - docker compose up -d
-      - ./{{.ENGINE}} test
+      - ./{{.ENGINE}} spotlessCheck --configuration-cache
+      - ./{{.ENGINE}} test --configuration-cache
 
   clean:
     cmds:

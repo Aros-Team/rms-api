@@ -1,3 +1,4 @@
+/* (C) 2026 */
 package aros.services.rms.core.order.application.usecases;
 
 import java.util.List;
@@ -11,16 +12,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TakeOrderCommand {
-    private Long tableId;
-    private List<OrderDetailCommand> details;
+  private Long tableId;
+  private List<OrderDetailCommand> details;
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class OrderDetailCommand {
-        private Long productId;
-        private String instructions;
-        private List<Long> selectedOptionIds;
-    }
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class OrderDetailCommand {
+    private Long productId;
+    private String instructions;
+    private List<Long> selectedOptionIds;
+  }
 }

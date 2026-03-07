@@ -1,3 +1,4 @@
+/* (C) 2026 */
 package aros.services.rms.infraestructure.order.config;
 
 import aros.services.rms.core.order.application.usecases.DeliveryUseCaseImpl;
@@ -19,86 +20,62 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuración de beans para el módulo de órdenes.
- * Registra todos los casos de uso relacionados con gestión de órdenes.
+ * Configuración de beans para el módulo de órdenes. Registra todos los casos de uso relacionados
+ * con gestión de órdenes.
  */
 @Configuration
 public class OrderConfigBeans {
 
-    /**
-     * Crea bean para tomar nuevas órdenes.
-     */
-    @Bean
-    public TakeOrderUseCaseImpl takeOrderUseCaseImpl(
-            OrderRepositoryPort orderRepositoryPort,
-            TableRepositoryPort tableRepositoryPort,
-            ProductRepositoryPort productRepositoryPort,
-            ProductOptionRepositoryPort productOptionRepositoryPort
-    ) {
-        return new TakeOrderUseCaseImpl(
-                orderRepositoryPort,
-                tableRepositoryPort,
-                productRepositoryPort,
-                productOptionRepositoryPort
-        );
-    }
+  /** Crea bean para tomar nuevas órdenes. */
+  @Bean
+  public TakeOrderUseCaseImpl takeOrderUseCaseImpl(
+      OrderRepositoryPort orderRepositoryPort,
+      TableRepositoryPort tableRepositoryPort,
+      ProductRepositoryPort productRepositoryPort,
+      ProductOptionRepositoryPort productOptionRepositoryPort) {
+    return new TakeOrderUseCaseImpl(
+        orderRepositoryPort,
+        tableRepositoryPort,
+        productRepositoryPort,
+        productOptionRepositoryPort);
+  }
 
-    /**
-     * Crea bean para actualizar órdenes existentes.
-     */
-    @Bean
-    public UpdateOrderUseCase updateOrderUseCase(
-            OrderRepositoryPort orderRepositoryPort,
-            TableRepositoryPort tableRepositoryPort,
-            ProductRepositoryPort productRepositoryPort,
-            ProductOptionRepositoryPort productOptionRepositoryPort
-    ) {
-        return new UpdateOrderUseCaseImpl(
-                orderRepositoryPort,
-                tableRepositoryPort,
-                productRepositoryPort,
-                productOptionRepositoryPort
-        );
-    }
+  /** Crea bean para actualizar órdenes existentes. */
+  @Bean
+  public UpdateOrderUseCase updateOrderUseCase(
+      OrderRepositoryPort orderRepositoryPort,
+      TableRepositoryPort tableRepositoryPort,
+      ProductRepositoryPort productRepositoryPort,
+      ProductOptionRepositoryPort productOptionRepositoryPort) {
+    return new UpdateOrderUseCaseImpl(
+        orderRepositoryPort,
+        tableRepositoryPort,
+        productRepositoryPort,
+        productOptionRepositoryPort);
+  }
 
-    /**
-     * Crea bean para pasar órdenes de cola a preparación.
-     */
-    @Bean
-    public PreparationUseCase preparationUseCase(
-            OrderRepositoryPort orderRepositoryPort
-    ) {
-        return new PreparationUseCaseImpl(orderRepositoryPort);
-    }
+  /** Crea bean para pasar órdenes de cola a preparación. */
+  @Bean
+  public PreparationUseCase preparationUseCase(OrderRepositoryPort orderRepositoryPort) {
+    return new PreparationUseCaseImpl(orderRepositoryPort);
+  }
 
-    /**
-     * Crea bean para marcar órdenes como listas (READY).
-     */
-    @Bean
-    public MarkAsReadyUseCase markAsReadyUseCase(
-            OrderRepositoryPort orderRepositoryPort
-    ) {
-        return new MarkAsReadyUseCaseImpl(orderRepositoryPort);
-    }
+  /** Crea bean para marcar órdenes como listas (READY). */
+  @Bean
+  public MarkAsReadyUseCase markAsReadyUseCase(OrderRepositoryPort orderRepositoryPort) {
+    return new MarkAsReadyUseCaseImpl(orderRepositoryPort);
+  }
 
-    /**
-     * Crea bean para entregar órdenes al cliente.
-     */
-    @Bean
-    public DeliveryUseCase deliveryUseCase(
-            OrderRepositoryPort orderRepositoryPort,
-            TableRepositoryPort tableRepositoryPort
-    ) {
-        return new DeliveryUseCaseImpl(orderRepositoryPort, tableRepositoryPort);
-    }
+  /** Crea bean para entregar órdenes al cliente. */
+  @Bean
+  public DeliveryUseCase deliveryUseCase(
+      OrderRepositoryPort orderRepositoryPort, TableRepositoryPort tableRepositoryPort) {
+    return new DeliveryUseCaseImpl(orderRepositoryPort, tableRepositoryPort);
+  }
 
-    /**
-     * Crea bean para consultar órdenes.
-     */
-    @Bean
-    public OrderQueryUseCase orderQueryUseCase(
-            OrderRepositoryPort orderRepositoryPort
-    ) {
-        return new OrderQueryUseCaseImpl(orderRepositoryPort);
-    }
+  /** Crea bean para consultar órdenes. */
+  @Bean
+  public OrderQueryUseCase orderQueryUseCase(OrderRepositoryPort orderRepositoryPort) {
+    return new OrderQueryUseCaseImpl(orderRepositoryPort);
+  }
 }
