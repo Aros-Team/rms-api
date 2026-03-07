@@ -2,14 +2,38 @@ spring:
   application:
     name: rms
   datasource:
-    url: jdbc:mysql://localhost:3306/rmsdb
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:rmsdb}
     username: root
-    password: jero123
+    password: ${DB_ROOT_PASSWORD:?}
   jpa:
     hibernate:
       ddl-auto: update
-      show-sql: true
     open-in-view: false
+    show-sql: false
+
+logging:
+  level:
+    root: WARN
+    aros.services.rms: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate: WARN
+    org.hibernate.SQL: ERROR
+    org.hibernate.type.descriptor.sql.BasicBinder: ERROR
+    com.zaxxer.hikari: WARN
+    jakarta.persistence: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n"
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    url: /v3/api-docs
+  api-docs:
+    path: /v3/api-docs
+
+app:
+  version: 0.1.0
 
 
 
