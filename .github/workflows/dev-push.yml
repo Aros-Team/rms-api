@@ -28,7 +28,7 @@ jobs:
     needs: format-check
     services:
       mysql:
-        image: mysql:7.4
+        image: mysql:lts
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: rms
