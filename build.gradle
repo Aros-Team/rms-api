@@ -37,6 +37,14 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation "org.mockito:mockito-core:5.+"
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	implementation "org.springframework.boot:spring-boot-starter-oauth2-resource-server"
+
+	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
+	implementation 'org.flywaydb:flyway-mysql'
+	implementation 'org.flywaydb:flyway-core'
 }
 
 tasks.named('test') {
@@ -44,21 +52,23 @@ tasks.named('test') {
 }
 
 // to load .env files
-
-// Al inicio del archivo build.gradle
-def envVars = [:]
 def envFile = new File(project.projectDir, ".env")
+def envVars = [:]
 if (envFile.exists()) {
     envFile.readLines().each { line ->
-        if (line && !line.startsWith('#')) {
-            def (key, value) = line.split('=', 2)
-            envVars[key.trim()] = value.trim()
+        if (line && !line.startsWith('#') && line.contains('=')) {
+            def parts = line.split('=', 2)
+            def key = parts[0].trim()
+            def value = parts[1].trim()
+            envVars[key] = value
         }
     }
 }
 
 bootRun {
-    systemProperties envVars
+    envVars.each { key, value ->
+        environment key, value
+    }
 }
 
 // formater config
