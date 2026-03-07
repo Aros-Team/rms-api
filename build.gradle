@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.4.3'
+	id 'org.springframework.boot' version '4.0.3'
 	id 'io.spring.dependency-management' version '1.1.7'
   	id "com.diffplug.spotless" version "8.2.1"
 }
@@ -31,6 +31,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.mysql:mysql-connector-j'
@@ -47,7 +48,6 @@ tasks.named('test') {
 
 // to load .env files
 
-// Al inicio del archivo build.gradle
 def envVars = [:]
 def envFile = new File(project.projectDir, ".env")
 if (envFile.exists()) {
@@ -79,7 +79,5 @@ spotless {
     googleJavaFormat()   // has its own section below
 
     formatAnnotations()  // fixes formatting of type annotations, see below
-
-    licenseHeader '/* (C) $YEAR */' // or licenseHeaderFile
   }
 }
