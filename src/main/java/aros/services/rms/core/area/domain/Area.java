@@ -1,3 +1,4 @@
+/* (C) 2026 */
 package aros.services.rms.core.area.domain;
 
 import java.util.HashSet;
@@ -12,8 +13,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Area {
-    private Long id;
-    private String name;
-    private AreaType type;
-    private Set<Long> orderIds = new HashSet<>();
+  private Long id;
+  private String name;
+  private AreaType type;
+  @Builder.Default private Set<Long> orderIds = new HashSet<>();
 }

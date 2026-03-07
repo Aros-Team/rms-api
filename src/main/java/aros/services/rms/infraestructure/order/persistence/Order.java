@@ -1,3 +1,4 @@
+/* (C) 2026 */
 package aros.services.rms.infraestructure.order.persistence;
 
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
@@ -32,30 +33,29 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Order {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Builder.Default
-    private LocalDateTime date = LocalDateTime.now();
+  @Builder.Default private LocalDateTime date = LocalDateTime.now();
 
-    @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private OrderStatus status = OrderStatus.QUEUE;
+  @Enumerated(EnumType.STRING)
+  @Builder.Default
+  private OrderStatus status = OrderStatus.QUEUE;
 
-    @ManyToOne
-    @JoinColumn(name = "table_id")
-    private Table table;
+  @ManyToOne
+  @JoinColumn(name = "table_id")
+  private Table table;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderDetail> details = new ArrayList<>();
+  @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+  @Builder.Default
+  private List<OrderDetail> details = new ArrayList<>();
 
-    @ManyToMany
-    @JoinTable(
-        name = "order_preparation_areas",
-        joinColumns = @JoinColumn(name = "order_id"),
-        inverseJoinColumns = @JoinColumn(name = "area_id")
-    )
-    private Set<Area> preparationAreas = new HashSet<>();
-
+  @ManyToMany
+  @JoinTable(
+      name = "order_preparation_areas",
+      joinColumns = @JoinColumn(name = "order_id"),
+      inverseJoinColumns = @JoinColumn(name = "area_id"))
+  @Builder.Default
+  private Set<Area> preparationAreas = new HashSet<>();
 }
