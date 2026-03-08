@@ -3,10 +3,6 @@ package aros.services.rms.config;
 
 import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.auth.application.service.AuthService;
-import aros.services.rms.core.auth.port.input.GetCurrentAuthUserInfoUseCase;
-import aros.services.rms.core.auth.port.input.LoginUseCase;
-import aros.services.rms.core.auth.port.input.RefreshTokensUseCase;
-import aros.services.rms.core.auth.port.input.VerifyTwoFactorUseCase;
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
 import aros.services.rms.core.auth.port.output.RefreshTokenRepositoryPort;
 import aros.services.rms.core.auth.port.output.TokenPort;
@@ -49,24 +45,4 @@ public class AuthBeanConfig {
         tfaCodeGeneratorPort,
         areaPort);
   }
-
-  // @Bean
-  // public LoginUseCase loginUseCase(AuthService authService) {
-  //   return authService;
-  // }
-
-  // @Bean
-  // public VerifyTwoFactorUseCase verifyTwoFactorUseCase(AuthService authService) {
-  //   return authService;
-  // }
-
-  // @Bean
-  // public RefreshTokensUseCase refreshTokensUseCase(AuthService authService) {
-  //   return authService;
-  // }
-
-  // @Bean
-  // public GetCurrentAuthUserInfoUseCase getCurrentAuthUserInfoUseCase(AuthService authService) {
-  //   return authService;
-  // }
 }

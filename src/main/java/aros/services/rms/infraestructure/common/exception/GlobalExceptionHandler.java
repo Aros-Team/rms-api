@@ -1,7 +1,6 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.common.exception;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -129,7 +128,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(InvalidCredentialsException.class)
   public ResponseEntity<Map<String, Object>> handleInvalidCredentials(
       InvalidCredentialsException ex) {
-    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(
             Map.of(
                 "error", "Invalid credentials",
