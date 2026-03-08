@@ -2,8 +2,6 @@
 package aros.services.rms.infraestructure.product.persistence.jpa;
 
 import aros.services.rms.core.product.domain.Product;
-import aros.services.rms.core.product.domain.ProductOption;
-import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import java.util.List;
 import java.util.Optional;
@@ -11,14 +9,22 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/** Persistence adapter that implements ProductRepositoryPort using JPA. */
 @Component
 @RequiredArgsConstructor
-public class ProductPersistenceAdapter
-    implements ProductRepositoryPort, ProductOptionRepositoryPort {
+public class ProductPersistenceAdapter implements ProductRepositoryPort {
 
   private final ProductRepository productRepository;
-  private final ProductOptionRepository productOptionRepository;
   private final ProductMapper productMapper;
+
+  @Override
+  public Product save(Product product) {
+    aros.services.rms.infraestructure.product.persistence.Product entity =
+        productMapper.toProductEntity(product);
+    aros.services.rms.infraestructure.product.persistence.Product savedEntity =
+        productRepository.save(entity);
+    return productMapper.toProductDomain(savedEntity);
+  }
 
   @Override
   public Optional<Product> findById(Long id) {
@@ -26,9 +32,14 @@ public class ProductPersistenceAdapter
   }
 
   @Override
-  public List<ProductOption> findAllById(List<Long> ids) {
-    return productOptionRepository.findAllById(ids).stream()
-        .map(productMapper::toProductOptionDomain)
+  public List<Product> findAll() {
+    return productRepository.findAll().stream()
+        .map(productMapper::toProductDomain)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public boolean existsById(Long id) {
+    return productRepository.existsById(id);
   }
 }

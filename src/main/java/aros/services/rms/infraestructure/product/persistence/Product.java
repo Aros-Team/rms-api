@@ -16,6 +16,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** JPA entity representing a product in the database. */
 @Entity
 @Table(name = "products")
 @Data
@@ -34,6 +35,10 @@ public class Product {
 
   @Column(name = "has_options", nullable = false)
   private boolean hasOptions;
+
+  @Column(nullable = false)
+  @Builder.Default
+  private boolean active = true;
 
   @ManyToOne
   @JoinColumn(name = "category_id")

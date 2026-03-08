@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/** Persistence adapter that implements AreaRepositoryPort using JPA. */
 @Component
 @RequiredArgsConstructor
 public class AreaPersistenceAdapter implements AreaRepositoryPort {
@@ -27,6 +28,11 @@ public class AreaPersistenceAdapter implements AreaRepositoryPort {
   @Override
   public Optional<Area> findById(Long id) {
     return areaRepository.findById(id).map(areaMapper::toDomain);
+  }
+
+  @Override
+  public Optional<Area> findByName(String name) {
+    return areaRepository.findByName(name).map(areaMapper::toDomain);
   }
 
   @Override
