@@ -49,4 +49,11 @@ public class AreaPersistenceAdapter implements AreaRepositoryPort {
   public boolean existsById(Long id) {
     return areaRepository.existsById(id);
   }
+
+  @Override
+  public List<Area> findByIdIn(List<Long> ids) {
+    return areaRepository.findByIdIn(ids).stream()
+        .map(areaMapper::toDomain)
+        .toList();
+  }
 }

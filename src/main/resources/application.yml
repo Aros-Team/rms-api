@@ -1,17 +1,6 @@
-spring:
-  application:
-    name: rms
-  datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:rmsdb}
-    username: root
-    password: jero123
-  jpa:
-    hibernate:
-      ddl-auto: update
-    open-in-view: false
-    show-sql: false
-
 logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n"
   level:
     root: WARN
     aros.services.rms: INFO
@@ -22,8 +11,36 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: ERROR
     com.zaxxer.hikari: WARN
     jakarta.persistence: WARN
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n"
+    org.flywaydb: DEBUG
+    springframework:
+      boot:
+        autoconfigure:
+          flyway: DEBUG
+
+spring:
+  application:
+    name: rms
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:rmsdb}
+    username: root
+    password: ${DB_ROOT_PASSWORD}
+  jpa:
+    hibernate:
+    ddl-auto: none
+    open-in-view: false
+    show-sql: false
+  flyway:
+    enabled: true
+    # url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?createDatabaseIfNotExist=true
+    # user: root
+    # password: ${DB_ROOT_PASSWORD}
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    # baseline-version: 0
+    # connect-retries: 10
+    # connect-retries-interval: 2
+    check-location: true
+
 
 springdoc:
   swagger-ui:
@@ -34,6 +51,10 @@ springdoc:
 
 app:
   version: 0.1.0
-
-
-
+  jwt:
+    issuer: rms-api
+    expiration-minutes: 60
+    public-key: ${JWT_PUBLIC_KEY}
+    private-key: ${JWT_PRIVATE_KEY}
+  email:
+    base-url: https://mail.aros.services

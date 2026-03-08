@@ -20,4 +20,6 @@ public interface AreaRepositoryPort {
   void deleteById(Long id);
 
   boolean existsById(Long id);
+
+  List<Area> findByIdIn(List<Long> ids);
 }

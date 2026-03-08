@@ -26,6 +26,11 @@ repositories {
 }
 
 dependencies {
+	implementation 'org.flywaydb:flyway-core:12.0.3'
+	implementation 'org.flywaydb:flyway-mysql:12.0.3'
+
+	implementation "org.springframework.boot:spring-boot-starter-flyway"
+
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -40,6 +45,12 @@ dependencies {
 	testImplementation "org.mockito:mockito-core:5.+"
 	testImplementation "org.mockito:mockito-junit-jupiter:5.+"
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	implementation "org.springframework.boot:spring-boot-starter-oauth2-resource-server"
+
+	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
 }
 
 tasks.named('test') {
@@ -47,20 +58,23 @@ tasks.named('test') {
 }
 
 // to load .env files
-
-def envVars = [:]
 def envFile = new File(project.projectDir, ".env")
+def envVars = [:]
 if (envFile.exists()) {
     envFile.readLines().each { line ->
-        if (line && !line.startsWith('#')) {
-            def (key, value) = line.split('=', 2)
-            envVars[key.trim()] = value.trim()
+        if (line && !line.startsWith('#') && line.contains('=')) {
+            def parts = line.split('=', 2)
+            def key = parts[0].trim()
+            def value = parts[1].trim()
+            envVars[key] = value
         }
     }
 }
 
 bootRun {
-    systemProperties envVars
+    envVars.each { key, value ->
+        environment key, value
+    }
 }
 
 // formater config

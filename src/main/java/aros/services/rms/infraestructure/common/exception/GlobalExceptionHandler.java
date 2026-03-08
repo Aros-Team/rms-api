@@ -1,8 +1,18 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.common.exception;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 import aros.services.rms.core.area.application.exception.AreaAlreadyExistsException;
 import aros.services.rms.core.area.application.exception.AreaNotFoundException;
+import aros.services.rms.core.auth.application.exception.InvalidCredentialsException;
 import aros.services.rms.core.category.application.exception.CategoryNotFoundException;
 import aros.services.rms.core.category.application.exception.OptionCategoryNotFoundException;
 import aros.services.rms.core.order.application.exception.InvalidOrderStatusException;
@@ -12,11 +22,6 @@ import aros.services.rms.core.product.application.exception.ProductNotFoundExcep
 import aros.services.rms.core.product.application.exception.ProductOptionNotFoundException;
 import aros.services.rms.core.table.application.exception.InvalidTableStatusException;
 import aros.services.rms.core.table.application.exception.TableNotFoundException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /** Global exception handler that maps core exceptions to HTTP responses. */
 @RestControllerAdvice
@@ -119,5 +124,15 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(IllegalStateException.class)
   public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException e) {
     return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
+  @ExceptionHandler(InvalidCredentialsException.class)
+  public ResponseEntity<Map<String, Object>> handleInvalidCredentials(
+      InvalidCredentialsException ex) {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        .body(
+            Map.of(
+                "error", "Invalid credentials",
+                "message", "Usuario o contraseña incorrectos"));
   }
 }
