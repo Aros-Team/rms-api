@@ -5,9 +5,11 @@ import aros.services.rms.core.area.domain.Area;
 import aros.services.rms.core.area.domain.AreaType;
 import org.springframework.stereotype.Component;
 
+/** Mapper between Area domain model and Area JPA entity. */
 @Component
 public class AreaMapper {
 
+  /** Converts a domain Area to a JPA entity. */
   public aros.services.rms.infraestructure.area.persistence.jpa.Area toEntity(Area domain) {
     if (domain == null) return null;
 
@@ -19,9 +21,11 @@ public class AreaMapper {
                 ? aros.services.rms.infraestructure.area.persistence.AreaType.valueOf(
                     domain.getType().name())
                 : null)
+        .enabled(domain.isEnabled())
         .build();
   }
 
+  /** Converts a JPA entity Area to a domain model. */
   public Area toDomain(aros.services.rms.infraestructure.area.persistence.jpa.Area entity) {
     if (entity == null) return null;
 
@@ -29,6 +33,7 @@ public class AreaMapper {
         .id(entity.getId())
         .name(entity.getName())
         .type(entity.getType() != null ? AreaType.valueOf(entity.getType().name()) : null)
+        .enabled(entity.isEnabled())
         .build();
   }
 }

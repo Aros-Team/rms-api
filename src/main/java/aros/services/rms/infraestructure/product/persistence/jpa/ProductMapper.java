@@ -8,12 +8,14 @@ import aros.services.rms.infraestructure.category.persistence.jpa.CategoryMapper
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/** Mapper between Product/ProductOption domain models and their JPA entities. */
 @Component
 @RequiredArgsConstructor
 public class ProductMapper {
 
   private final CategoryMapper categoryMapper;
 
+  /** Converts a Product JPA entity to a domain model. */
   public Product toProductDomain(
       aros.services.rms.infraestructure.product.persistence.Product entity) {
     if (entity == null) return null;
@@ -22,12 +24,14 @@ public class ProductMapper {
         .name(entity.getName())
         .basePrice(entity.getBasePrice())
         .hasOptions(entity.isHasOptions())
+        .active(entity.isActive())
         .category(categoryMapper.toDomain(entity.getCategory()))
         .preparationAreaId(
             entity.getPreparationArea() != null ? entity.getPreparationArea().getId() : null)
         .build();
   }
 
+  /** Converts a ProductOption JPA entity to a domain model. */
   public ProductOption toProductOptionDomain(
       aros.services.rms.infraestructure.product.persistence.ProductOption entity) {
     if (entity == null) return null;
@@ -38,6 +42,7 @@ public class ProductMapper {
         .build();
   }
 
+  /** Converts a Product domain model to a JPA entity. */
   public aros.services.rms.infraestructure.product.persistence.Product toProductEntity(
       Product domain) {
     if (domain == null) return null;
@@ -47,6 +52,7 @@ public class ProductMapper {
             .name(domain.getName())
             .basePrice(domain.getBasePrice())
             .hasOptions(domain.isHasOptions())
+            .active(domain.isActive())
             .category(categoryMapper.toEntity(domain.getCategory()))
             .build();
 
@@ -57,6 +63,7 @@ public class ProductMapper {
     return entity;
   }
 
+  /** Converts a ProductOption domain model to a JPA entity. */
   public aros.services.rms.infraestructure.product.persistence.ProductOption toProductOptionEntity(
       ProductOption domain) {
     if (domain == null) return null;

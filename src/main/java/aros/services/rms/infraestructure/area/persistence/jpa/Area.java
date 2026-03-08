@@ -3,6 +3,7 @@ package aros.services.rms.infraestructure.area.persistence.jpa;
 
 import aros.services.rms.infraestructure.area.persistence.AreaType;
 import aros.services.rms.infraestructure.order.persistence.Order;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -17,6 +18,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** JPA entity representing a preparation area in the database. */
 @Entity
 @jakarta.persistence.Table(name = "areas")
 @Data
@@ -32,6 +34,10 @@ public class Area {
 
   @Enumerated(EnumType.STRING)
   private AreaType type;
+
+  @Column(nullable = false)
+  @Builder.Default
+  private boolean enabled = true;
 
   @ManyToMany(mappedBy = "preparationAreas")
   @Builder.Default

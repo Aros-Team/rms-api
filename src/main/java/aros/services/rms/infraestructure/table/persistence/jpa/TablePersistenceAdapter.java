@@ -3,10 +3,13 @@ package aros.services.rms.infraestructure.table.persistence.jpa;
 
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/** Persistence adapter that implements TableRepositoryPort using JPA. */
 @Component
 @RequiredArgsConstructor
 public class TablePersistenceAdapter implements TableRepositoryPort {
@@ -25,5 +28,17 @@ public class TablePersistenceAdapter implements TableRepositoryPort {
     aros.services.rms.infraestructure.table.persistence.Table savedEntity =
         tableRepository.save(entity);
     return tableMapper.toDomain(savedEntity);
+  }
+
+  @Override
+  public List<Table> findAll() {
+    return tableRepository.findAll().stream()
+        .map(tableMapper::toDomain)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public boolean existsByTableNumber(Integer tableNumber) {
+    return tableRepository.existsByTableNumber(tableNumber);
   }
 }
