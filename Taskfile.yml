@@ -1,34 +1,36 @@
-# yaml-language-server: $shema=https://taskfile.dev/schema.json
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
 version: '3'
 
+# 1. SOLUCIÓN DOCKER: Cargamos las variables de entorno para que Docker las reconozca
+dotenv: ['.env']
+
 vars:
-  BINARY: '{{if eq OS "windows"}}gradlew.bat{{else}}gradlew{{end}}'
-  ENGINE: '{{.BINARY}}'
+  # En Windows delegamos en cmd y ejecutamos gradlew.bat en el directorio actual
+  GRADLEW: '{{if eq OS "windows"}}cmd /c gradlew.bat{{else}}./gradlew{{end}}'
 
 tasks:
   run:
     cmds:
       - docker compose up -d
-      - ./{{.ENGINE}} bootRun --configuration-cache
+      - '{{.GRADLEW}} bootRun --configuration-cache'
 
   build:
     cmds:
       - docker compose up -d
-      - ./{{.ENGINE}} build --configuration-cache  # TODO: add build docker image
+      - '{{.GRADLEW}} build --configuration-cache'  # TODO: add build docker image
 
   format:
     cmds:
-      - ./{{.ENGINE}} spotlessApply --configuration-cache
+      - '{{.GRADLEW}} spotlessApply --configuration-cache'
 
   test:
     cmds:
       - docker compose up -d
-      - ./{{.ENGINE}} spotlessCheck --configuration-cache
-      - ./{{.ENGINE}} test --configuration-cache
+      - '{{.GRADLEW}} spotlessCheck --configuration-cache'
+      - '{{.GRADLEW}} test --configuration-cache'
 
   clean:
     cmds:
       - docker compose down
-      - ./{{.ENGINE}} clean
+      - '{{.GRADLEW}} clean'
       - docker compose up -d
-
