@@ -1,5 +1,7 @@
+/* (C) 2026 */
 package aros.services.rms.infraestructure.device.persistence.jpa;
 
+import aros.services.rms.infraestructure.user.persistence.jpa.UserEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -8,42 +10,40 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
-import aros.services.rms.infraestructure.user.persistence.jpa.UserEntity;
-
 @Entity
 @Table(name = "devices")
 public class DeviceEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false)
+  private UserEntity user;
 
-    private String hash;
+  private String hash;
 
-    public Long getId() {
-        return id;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public UserEntity getUser() {
-        return user;
-    }
+  public UserEntity getUser() {
+    return user;
+  }
 
-    public void setUser(UserEntity user) {
-        this.user = user;
-    }
+  public void setUser(UserEntity user) {
+    this.user = user;
+  }
 
-    public String getHash() {
-        return hash;
-    }
+  public String getHash() {
+    return hash;
+  }
 
-    public void setHash(String hash) {
-        this.hash = hash;
-    }
+  public void setHash(String hash) {
+    this.hash = hash;
+  }
 }

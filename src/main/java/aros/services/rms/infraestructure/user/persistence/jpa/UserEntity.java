@@ -1,5 +1,8 @@
+/* (C) 2026 */
 package aros.services.rms.infraestructure.user.persistence.jpa;
 
+import aros.services.rms.core.user.domain.UserRole;
+import aros.services.rms.infraestructure.area.persistence.jpa.AreaEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -8,110 +11,105 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
-
 import java.util.List;
-
-import aros.services.rms.core.user.domain.UserRole;
-import aros.services.rms.infraestructure.area.persistence.jpa.AreaEntity;
 
 @Entity
 @Table(name = "users")
 public class UserEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String document;
+  private String document;
 
-    private String name;
+  private String name;
 
-    private String email;
+  private String email;
 
-    private String password;
+  private String password;
 
-    private String address;
+  private String address;
 
-    private String phone;
+  private String phone;
 
-    private UserRole role;
+  private UserRole role;
 
-    @ManyToMany
-    @JoinTable(
-        name = "user_assigned_areas",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "area_id")
-    )
-    private List<AreaEntity> assignedAreas;
+  @ManyToMany
+  @JoinTable(
+      name = "user_assigned_areas",
+      joinColumns = @JoinColumn(name = "user_id"),
+      inverseJoinColumns = @JoinColumn(name = "area_id"))
+  private List<AreaEntity> assignedAreas;
 
-    public Long getId() {
-        return id;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public String getDocument() {
-        return document;
-    }
+  public String getDocument() {
+    return document;
+  }
 
-    public void setDocument(String document) {
-        this.document = document;
-    }
+  public void setDocument(String document) {
+    this.document = document;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public String getEmail() {
-        return email;
-    }
+  public String getEmail() {
+    return email;
+  }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+  public void setEmail(String email) {
+    this.email = email;
+  }
 
-    public String getPassword() {
-        return password;
-    }
+  public String getPassword() {
+    return password;
+  }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+  public void setPassword(String password) {
+    this.password = password;
+  }
 
-    public String getAddress() {
-        return address;
-    }
+  public String getAddress() {
+    return address;
+  }
 
-    public void setAddress(String address) {
-        this.address = address;
-    }
+  public void setAddress(String address) {
+    this.address = address;
+  }
 
-    public String getPhone() {
-        return phone;
-    }
+  public String getPhone() {
+    return phone;
+  }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
+  public void setPhone(String phone) {
+    this.phone = phone;
+  }
 
-    public UserRole getRole() {
-        return role;
-    }
+  public UserRole getRole() {
+    return role;
+  }
 
-    public void setRole(UserRole role) {
-        this.role = role;
-    }
+  public void setRole(UserRole role) {
+    this.role = role;
+  }
 
-    public List<AreaEntity> getAssignedAreas() {
-        return assignedAreas;
-    }
+  public List<AreaEntity> getAssignedAreas() {
+    return assignedAreas;
+  }
 
-    public void setAssignedAreas(List<AreaEntity> assignedAreas) {
-        this.assignedAreas = assignedAreas;
-    }
+  public void setAssignedAreas(List<AreaEntity> assignedAreas) {
+    this.assignedAreas = assignedAreas;
+  }
 }

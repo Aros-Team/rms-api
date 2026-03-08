@@ -34,7 +34,8 @@ public class JwtServiceImpl implements JwtService {
   public String generateAccessToken(String username, UserRole role, List<AreaId> areas) {
     Instant now = Instant.now();
 
-    List<Long> areaIds = areas != null ? areas.stream().map(AreaId::value).toList() : Collections.emptyList();
+    List<Long> areaIds =
+        areas != null ? areas.stream().map(AreaId::value).toList() : Collections.emptyList();
 
     JwtClaimsSet claims =
         JwtClaimsSet.builder()
@@ -75,7 +76,7 @@ public class JwtServiceImpl implements JwtService {
             .issuer(issuer)
             .subject(username)
             .issuedAt(now)
-            .expiresAt(now.plus(Duration.ofMinutes(5)))
+            .expiresAt(now.plus(Duration.ofMinutes(50)))
             .claim("type", "tfa")
             .build();
 

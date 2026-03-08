@@ -2,7 +2,6 @@
 package aros.services.rms.core.user.domain;
 
 import aros.services.rms.core.area.domain.AreaId;
-
 import java.util.List;
 
 public class User {

@@ -1,12 +1,16 @@
 logging:
   level:
     org.flywaydb: DEBUG
+    springframework:
+      boot:
+        autoconfigure:
+          flyway: DEBUG
 
 spring:
   application:
     name: rms
   datasource:
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?createDatabaseIfNotExist=true
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true
     username: root
     password: ${DB_ROOT_PASSWORD}
   jpa:
@@ -15,11 +19,15 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+    # url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?createDatabaseIfNotExist=true
+    # user: root
+    # password: ${DB_ROOT_PASSWORD}
     locations: classpath:db/migration
     baseline-on-migrate: true
-    baseline-version: 0
-    connect-retries: 10
-    connect-retries-interval: 2
+    # baseline-version: 0
+    # connect-retries: 10
+    # connect-retries-interval: 2
+    check-location: true
 
 app:
   jwt:
@@ -28,4 +36,4 @@ app:
     public-key: ${JWT_PUBLIC_KEY}
     private-key: ${JWT_PRIVATE_KEY}
   email:
-    base-url: http://localhost:8000
+    base-url: https://mail.aros.services

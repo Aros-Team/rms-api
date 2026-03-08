@@ -2,5 +2,5 @@
 package aros.services.rms.core.twofactor.port.output;
 
 public interface TfaCodeGeneratorPort {
-    String generateCode(int digits);
+  String generateCode(int digits);
 }

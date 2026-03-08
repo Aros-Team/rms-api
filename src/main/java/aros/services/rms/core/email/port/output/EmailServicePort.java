@@ -4,5 +4,5 @@ package aros.services.rms.core.email.port.output;
 import aros.services.rms.core.email.domain.Email;
 
 public interface EmailServicePort {
-  public void send(Email email);
+  void send(Email email);
 }
