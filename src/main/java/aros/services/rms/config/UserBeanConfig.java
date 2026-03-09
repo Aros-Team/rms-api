@@ -1,0 +1,29 @@
+package aros.services.rms.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
+import aros.services.rms.core.email.port.input.RegistrationEmailUseCase;
+import aros.services.rms.core.share.port.output.HashServicePort;
+import aros.services.rms.core.user.application.usecases.CreateUserService;
+import aros.services.rms.core.user.port.input.CreateUserUseCase;
+import aros.services.rms.core.user.port.output.UserRepositoryPort;
+
+@Configuration
+public class UserBeanConfig {
+    @Bean
+    public CreateUserUseCase createUserUseCase(
+        UserRepositoryPort userPort,
+        HashServicePort hashPort,
+        PasswordEncoderPort passwordPort,
+        RegistrationEmailUseCase registrationEmailUseCase
+    ) {
+        return new CreateUserService(
+            userPort,
+            hashPort,
+            registrationEmailUseCase,
+            passwordPort
+        );
+    }
+}

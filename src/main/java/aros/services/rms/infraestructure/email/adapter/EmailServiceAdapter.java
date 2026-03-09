@@ -21,11 +21,6 @@ public class EmailServiceAdapter implements EmailServicePort {
 
   @Override
   public void send(Email email) {
-    // String token = getToken();
-
-    // HttpHeaders headers = new HttpHeaders();
-    // headers.setBearerAuth(token);
-
     HttpEntity<Email> request = new HttpEntity<>(email);
     restTemplate.postForEntity(baseUrl + "/api/send", request, Void.class);
   }

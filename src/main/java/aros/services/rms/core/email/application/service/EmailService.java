@@ -2,12 +2,13 @@
 package aros.services.rms.core.email.application.service;
 
 import aros.services.rms.core.email.domain.Email;
+import aros.services.rms.core.email.port.input.RegistrationEmailUseCase;
 import aros.services.rms.core.email.port.input.TwoFactorAuthEmailUseCase;
 import aros.services.rms.core.email.port.output.EmailServicePort;
 import aros.services.rms.core.user.domain.UserEmail;
 import java.util.Map;
 
-public class EmailService implements TwoFactorAuthEmailUseCase {
+public class EmailService implements TwoFactorAuthEmailUseCase, RegistrationEmailUseCase {
   private final EmailServicePort emailPort;
 
   public EmailService(EmailServicePort emailPort) {
@@ -24,5 +25,17 @@ public class EmailService implements TwoFactorAuthEmailUseCase {
             Map.of("code", code, "expiry", "5 minutos"));
 
     this.emailPort.send(tfaEmail);
+  }
+
+  @Override
+  public void sendRegistrationMail(UserEmail destination, String message) {
+    Email regEmail = new Email(
+      destination.value(),
+      "admin@aros.service",
+      "notification",
+      Map.of("message", message)
+    );
+
+    this.emailPort.send(regEmail);
   }
 }

@@ -17,14 +17,17 @@ import aros.services.rms.infraestructure.auth.exception.JwtKeysMissingException;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /** Global exception handler that maps core exceptions to HTTP responses. */
 @RestControllerAdvice
+@Order(10)
 public class GlobalExceptionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -149,6 +152,15 @@ public class GlobalExceptionHandler {
     log.warn("Servicio no disponible: {}", e.getMessage());
     return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
         .body(new ErrorResponse(503, e.getMessage()));
+  }
+
+  // --- Authorization handlers ---
+
+  @ExceptionHandler(AuthorizationDeniedException.class)
+  public ResponseEntity<ErrorResponse> handleAccessDenied(AuthorizationDeniedException e) {
+    log.warn("accesso denegado: {}", e.getMessage());
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        .body(new ErrorResponse(HttpStatus.FORBIDDEN.value(), e.getMessage()));
   }
 
   // --- Generic catch-all handlers ---

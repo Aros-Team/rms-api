@@ -27,4 +27,14 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
   public Optional<User> findById(UserId id) {
     return this.internal.findById(id.value()).map((u) -> userMapper.toDomain(u));
   }
+
+  @Override
+  public User save(User user) {
+    return userMapper.toDomain(this.internal.save(userMapper.toEntity(user)));
+  }
+
+  @Override
+  public boolean existsByEmailOrDocument(String document, String email) {
+    return this.internal.existsByDocumentOrEmail(document, email);
+  }
 }
