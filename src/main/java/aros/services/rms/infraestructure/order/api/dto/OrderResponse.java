@@ -1,6 +1,7 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.order.api.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
 import aros.services.rms.core.product.domain.ProductOption;
@@ -8,17 +9,28 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Schema(description = "Response DTO para datos de una orden")
 public record OrderResponse(
-    Long id, LocalDateTime date, String status, Long tableId, List<OrderDetailResponse> details) {
+    @Schema(description = "ID de la orden", example = "1") Long id,
+    @Schema(description = "Fecha y hora de la orden", example = "2026-03-08T14:30:00") LocalDateTime date,
+    @Schema(description = "Estado de la orden", example = "QUEUE") String status,
+    @Schema(description = "ID de la mesa", example = "1") Long tableId,
+    @Schema(description = "Lista de productos en la orden") List<OrderDetailResponse> details) {
+  
+  @Schema(description = "Detalle de un producto en la orden")
   public record OrderDetailResponse(
-      Long id,
-      Long productId,
-      String productName,
-      Double unitPrice,
-      String instructions,
-      List<ProductOptionResponse> selectedOptions) {}
+      @Schema(description = "ID del detalle", example = "1") Long id,
+      @Schema(description = "ID del producto", example = "1") Long productId,
+      @Schema(description = "Nombre del producto", example = "Hamburguesa Clásica") String productName,
+      @Schema(description = "Precio unitario", example = "12.50") Double unitPrice,
+      @Schema(description = "Instrucciones especiales", example = "Sin cebolla") String instructions,
+      @Schema(description = "Opciones seleccionadas del producto") List<ProductOptionResponse> selectedOptions) {}
 
-  public record ProductOptionResponse(Long id, String name, String categoryName) {}
+  @Schema(description = "Opción de producto seleccionada")
+  public record ProductOptionResponse(
+      @Schema(description = "ID de la opción", example = "1") Long id,
+      @Schema(description = "Nombre de la opción", example = "Grande") String name,
+      @Schema(description = "Nombre de la categoría", example = "Tamaños") String categoryName) {}
 
   public static OrderResponse fromDomain(Order order) {
     if (order == null) return null;

@@ -1,23 +1,37 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.product.api.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
-/**
- * Request DTO for creating or updating a product.
- *
- * @param name the product name
- * @param basePrice the product base price
- * @param hasOptions whether the product supports customization options
- * @param categoryId the category id the product belongs to
- * @param areaId the preparation area id
- */
+@Schema(
+    description = "Request DTO for creating or updating a product",
+    example =
+        """
+        {
+          "name": "Hamburguesa Clásica",
+          "basePrice": 12.50,
+          "hasOptions": true,
+          "categoryId": 1,
+          "areaId": 1
+        }
+        """)
 public record ProductRequest(
-    @NotBlank(message = "Product name is required") String name,
-    @NotNull(message = "Base price is required") @Positive(message = "Base price must be positive")
+    @Schema(description = "Product name", example = "Hamburguesa Clásica")
+        @NotBlank(message = "Product name is required")
+        String name,
+    @Schema(description = "Product base price", example = "12.50")
+        @NotNull(message = "Base price is required")
+        @Positive(message = "Base price must be positive")
         Double basePrice,
-    @NotNull(message = "hasOptions flag is required") Boolean hasOptions,
-    @NotNull(message = "Category ID is required") Long categoryId,
-    @NotNull(message = "Area ID is required") Long areaId) {}
+    @Schema(description = "Whether product supports customization options", example = "true")
+        @NotNull(message = "hasOptions flag is required")
+        Boolean hasOptions,
+    @Schema(description = "Category ID the product belongs to", example = "1")
+        @NotNull(message = "Category ID is required")
+        Long categoryId,
+    @Schema(description = "Preparation area ID", example = "1")
+        @NotNull(message = "Area ID is required")
+        Long areaId) {}

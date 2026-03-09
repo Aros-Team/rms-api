@@ -1,31 +1,20 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.product.api.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import aros.services.rms.core.product.domain.Product;
 
-/**
- * Response DTO for product data.
- *
- * @param id the product id
- * @param name the product name
- * @param basePrice the product base price
- * @param hasOptions whether the product supports options
- * @param active whether the product is active
- * @param categoryId the category id
- * @param categoryName the category name
- * @param areaId the preparation area id
- */
+@Schema(description = "Response DTO for product data")
 public record ProductResponse(
-    Long id,
-    String name,
-    Double basePrice,
-    boolean hasOptions,
-    boolean active,
-    Long categoryId,
-    String categoryName,
-    Long areaId) {
+    @Schema(description = "Product ID", example = "1") Long id,
+    @Schema(description = "Product name", example = "Hamburguesa Clásica") String name,
+    @Schema(description = "Product base price", example = "12.50") Double basePrice,
+    @Schema(description = "Whether product supports options", example = "true") boolean hasOptions,
+    @Schema(description = "Whether product is active", example = "true") boolean active,
+    @Schema(description = "Category ID", example = "1") Long categoryId,
+    @Schema(description = "Category name", example = "Hamburguesas") String categoryName,
+    @Schema(description = "Preparation area ID", example = "1") Long areaId) {
 
-  /** Converts a domain Product to a ProductResponse DTO. */
   public static ProductResponse fromDomain(Product product) {
     if (product == null) return null;
     return new ProductResponse(

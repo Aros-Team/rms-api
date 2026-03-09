@@ -1,12 +1,18 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.table.api.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
-/**
- * Request DTO for changing a table's status.
- *
- * @param status the new status (AVAILABLE, OCCUPIED, RESERVED)
- */
+@Schema(
+    description = "Request DTO for changing a table's status",
+    example =
+        """
+        {
+          "status": "OCCUPIED"
+        }
+        """)
 public record ChangeStatusRequest(
-    @NotBlank(message = "Status is required") String status) {}
+    @Schema(description = "New status: AVAILABLE, OCCUPIED, or RESERVED", example = "OCCUPIED")
+        @NotBlank(message = "Status is required")
+        String status) {}

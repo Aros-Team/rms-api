@@ -1,19 +1,16 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.area.api.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import aros.services.rms.core.area.domain.Area;
 
-/**
- * Response DTO for area data.
- *
- * @param id the area id
- * @param name the area name
- * @param type the area type
- * @param enabled whether the area is enabled
- */
-public record AreaResponse(Long id, String name, String type, boolean enabled) {
+@Schema(description = "Response DTO for area data")
+public record AreaResponse(
+    @Schema(description = "Area ID", example = "1") Long id,
+    @Schema(description = "Area name", example = "Cocina Principal") String name,
+    @Schema(description = "Area type", example = "KITCHEN") String type,
+    @Schema(description = "Whether area is enabled", example = "true") boolean enabled) {
 
-  /** Converts a domain Area to an AreaResponse DTO. */
   public static AreaResponse fromDomain(Area area) {
     if (area == null) return null;
     return new AreaResponse(

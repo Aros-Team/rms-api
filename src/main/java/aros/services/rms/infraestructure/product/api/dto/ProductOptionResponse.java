@@ -1,20 +1,16 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.product.api.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import aros.services.rms.core.product.domain.ProductOption;
 
-/**
- * Response DTO for product option data.
- *
- * @param id the option id
- * @param name the option name
- * @param optionCategoryId the option category id
- * @param optionCategoryName the option category name
- */
+@Schema(description = "Response DTO para datos de opción de producto")
 public record ProductOptionResponse(
-    Long id, String name, Long optionCategoryId, String optionCategoryName) {
+    @Schema(description = "ID de la opción", example = "1") Long id,
+    @Schema(description = "Nombre de la opción", example = "Grande (1.5L)") String name,
+    @Schema(description = "ID de la categoría de opción", example = "1") Long optionCategoryId,
+    @Schema(description = "Nombre de la categoría de opción", example = "Tamaños") String optionCategoryName) {
 
-  /** Converts a domain ProductOption to a ProductOptionResponse DTO. */
   public static ProductOptionResponse fromDomain(ProductOption option) {
     if (option == null) return null;
     return new ProductOptionResponse(
