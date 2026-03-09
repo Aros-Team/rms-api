@@ -56,12 +56,7 @@ class CategoryUseCaseImplTest {
         Category.builder().id(1L).name("Entradas").description("Old").enabled(true).build();
     Category updateData = Category.builder().name("Fuertes").description("Main courses").build();
     Category saved =
-        Category.builder()
-            .id(1L)
-            .name("Fuertes")
-            .description("Main courses")
-            .enabled(true)
-            .build();
+        Category.builder().id(1L).name("Fuertes").description("Main courses").enabled(true).build();
 
     when(categoryRepositoryPort.findById(1L)).thenReturn(Optional.of(existing));
     when(categoryRepositoryPort.save(any(Category.class))).thenReturn(saved);

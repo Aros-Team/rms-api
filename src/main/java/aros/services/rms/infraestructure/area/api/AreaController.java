@@ -43,7 +43,10 @@ public class AreaController {
   @PostMapping
   public ResponseEntity<AreaResponse> create(@Valid @RequestBody AreaRequest request) {
     Area area =
-        Area.builder().name(request.name()).type(AreaType.valueOf(request.type().toUpperCase())).build();
+        Area.builder()
+            .name(request.name())
+            .type(AreaType.valueOf(request.type().toUpperCase()))
+            .build();
 
     Area created = areaUseCase.create(area);
     return new ResponseEntity<>(AreaResponse.fromDomain(created), HttpStatus.CREATED);
@@ -61,7 +64,10 @@ public class AreaController {
   public ResponseEntity<AreaResponse> update(
       @PathVariable Long id, @Valid @RequestBody AreaRequest request) {
     Area area =
-        Area.builder().name(request.name()).type(AreaType.valueOf(request.type().toUpperCase())).build();
+        Area.builder()
+            .name(request.name())
+            .type(AreaType.valueOf(request.type().toUpperCase()))
+            .build();
 
     Area updated = areaUseCase.update(id, area);
     return ResponseEntity.ok(AreaResponse.fromDomain(updated));

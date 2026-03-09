@@ -5,9 +5,7 @@ import aros.services.rms.core.category.domain.OptionCategory;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Output port for option category persistence operations.
- */
+/** Output port for option category persistence operations. */
 public interface OptionCategoryRepositoryPort {
   OptionCategory save(OptionCategory optionCategory);
 

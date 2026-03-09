@@ -5,5 +5,5 @@ import aros.services.rms.core.auth.application.exception.UserNotFoundException;
 import aros.services.rms.core.user.domain.UserEmail;
 
 public interface GetCurrentAuthUserInfoUseCase {
-    UserFullInfo getInfo(UserEmail email) throws UserNotFoundException;
+  UserFullInfo getInfo(UserEmail email) throws UserNotFoundException;
 }

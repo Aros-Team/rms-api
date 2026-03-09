@@ -9,8 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Domain model representing a preparation area in the restaurant (e.g., kitchen, bartender).
- * Areas can be enabled or disabled to control whether they receive new products.
+ * Domain model representing a preparation area in the restaurant (e.g., kitchen, bartender). Areas
+ * can be enabled or disabled to control whether they receive new products.
  */
 @Data
 @Builder

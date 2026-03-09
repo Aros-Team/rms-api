@@ -29,7 +29,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/option-categories")
 @RequiredArgsConstructor
-@Tag(name = "Option Categories", description = "Option category management for product customization")
+@Tag(
+    name = "Option Categories",
+    description = "Option category management for product customization")
 public class OptionCategoryController {
 
   private final OptionCategoryUseCase optionCategoryUseCase;

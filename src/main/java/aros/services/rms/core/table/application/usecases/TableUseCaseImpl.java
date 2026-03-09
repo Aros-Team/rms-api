@@ -45,7 +45,10 @@ public class TableUseCaseImpl implements TableUseCase {
 
   @Recover
   public Table recoverCreate(DataAccessException e, Table table) {
-    log.warn("BD no disponible - fallback para create(tableNumber={}): {}", table.getTableNumber(), e.getMessage());
+    log.warn(
+        "BD no disponible - fallback para create(tableNumber={}): {}",
+        table.getTableNumber(),
+        e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
@@ -125,7 +128,11 @@ public class TableUseCaseImpl implements TableUseCase {
 
   @Recover
   public Table recoverChangeStatus(DataAccessException e, Long id, TableStatus status) {
-    log.warn("BD no disponible - fallback para changeStatus(id={}, status={}): {}", id, status, e.getMessage());
+    log.warn(
+        "BD no disponible - fallback para changeStatus(id={}, status={}): {}",
+        id,
+        status,
+        e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 }

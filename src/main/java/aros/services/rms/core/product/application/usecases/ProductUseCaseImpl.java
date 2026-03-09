@@ -65,9 +65,7 @@ public class ProductUseCaseImpl implements ProductUseCase {
       backoff = @Backoff(delay = 1000))
   public Product update(Long id, Product product) {
     Product existing =
-        productRepositoryPort
-            .findById(id)
-            .orElseThrow(() -> new ProductNotFoundException(id));
+        productRepositoryPort.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
 
     validateAreaExists(product.getPreparationAreaId());
     validateCategoryExists(product.getCategory().getId());
@@ -100,9 +98,7 @@ public class ProductUseCaseImpl implements ProductUseCase {
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000))
   public Product findById(Long id) {
-    return productRepositoryPort
-        .findById(id)
-        .orElseThrow(() -> new ProductNotFoundException(id));
+    return productRepositoryPort.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
   }
 
   /** {@inheritDoc} Sets the product active flag to false (logical deletion). */
@@ -113,9 +109,7 @@ public class ProductUseCaseImpl implements ProductUseCase {
       backoff = @Backoff(delay = 1000))
   public Product disable(Long id) {
     Product existing =
-        productRepositoryPort
-            .findById(id)
-            .orElseThrow(() -> new ProductNotFoundException(id));
+        productRepositoryPort.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
 
     existing.setActive(false);
 
@@ -126,7 +120,10 @@ public class ProductUseCaseImpl implements ProductUseCase {
 
   @Recover
   public Product recoverCreate(DataAccessException e, Product product) {
-    log.warn("BD no disponible - fallback para create(product={}): {}", product.getName(), e.getMessage());
+    log.warn(
+        "BD no disponible - fallback para create(product={}): {}",
+        product.getName(),
+        e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 

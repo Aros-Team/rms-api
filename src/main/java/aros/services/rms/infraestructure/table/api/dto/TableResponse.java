@@ -1,8 +1,8 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.table.api.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import aros.services.rms.core.table.domain.Table;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Response DTO for table data")
 public record TableResponse(

@@ -1,11 +1,6 @@
 /* (C) 2026 */
 package aros.services.rms.core.auth.application.service;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Optional;
-
 import aros.services.rms.core.area.domain.Area;
 import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.auth.application.dto.AuthResult;
@@ -35,8 +30,16 @@ import aros.services.rms.core.twofactor.port.output.TwoFactorCodeRepositoryPort;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Optional;
 
-public class AuthService implements LoginUseCase, VerifyTwoFactorUseCase, RefreshTokensUseCase, GetCurrentAuthUserInfoUseCase {
+public class AuthService
+    implements LoginUseCase,
+        VerifyTwoFactorUseCase,
+        RefreshTokensUseCase,
+        GetCurrentAuthUserInfoUseCase {
   private final UserRepositoryPort userPort;
   private final DeviceRepositoryPort devicePort;
   private final TokenPort tokenPort;
@@ -74,7 +77,6 @@ public class AuthService implements LoginUseCase, VerifyTwoFactorUseCase, Refres
   @Override
   public AuthResult authenticate(Credentials credentials) throws InvalidCredentialsException {
     User user = this.userPort.findByEmail(credentials.username().value()).orElseThrow();
-
 
     System.out.println("--------------------------------------------");
     System.out.println(passwordPort.encode("123"));
@@ -124,19 +126,17 @@ public class AuthService implements LoginUseCase, VerifyTwoFactorUseCase, Refres
     return generateAuthResult(AuthResultType.SUCCESS, credentials.username().value(), user);
   }
 
-
   @Override
   public AuthResult refresh(String token) throws InvalidRefreshToken {
     String tokenHash = hashServicePort.hash(token);
-    RefreshToken refreshToken = refreshTokenPort.findByTokenHash(tokenHash)
-      .orElseThrow(InvalidRefreshToken::new);
+    RefreshToken refreshToken =
+        refreshTokenPort.findByTokenHash(tokenHash).orElseThrow(InvalidRefreshToken::new);
 
-    if (refreshToken.isExpired() ||  refreshToken.isRevoked()) {
+    if (refreshToken.isExpired() || refreshToken.isRevoked()) {
       throw new InvalidRefreshToken();
     }
 
-    User user = this.userPort.findById(refreshToken.getUserId())
-      .orElseThrow();
+    User user = this.userPort.findById(refreshToken.getUserId()).orElseThrow();
 
     refreshToken.revoke();
     this.refreshTokenPort.save(refreshToken);
@@ -146,11 +146,13 @@ public class AuthService implements LoginUseCase, VerifyTwoFactorUseCase, Refres
 
   @Override
   public UserFullInfo getInfo(UserEmail email) throws UserNotFoundException {
-    User user = userPort.findByEmail(email.value())
-        .orElseThrow(() -> new UserNotFoundException("User not found"));
+    User user =
+        userPort
+            .findByEmail(email.value())
+            .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-    List<Area> areas = areaPort.findByIdIn(user.getAssignedAreas()
-      .stream().map(a -> a.value()).toList());
+    List<Area> areas =
+        areaPort.findByIdIn(user.getAssignedAreas().stream().map(a -> a.value()).toList());
 
     return new UserFullInfo(
         user.getId(),
@@ -190,12 +192,7 @@ public class AuthService implements LoginUseCase, VerifyTwoFactorUseCase, Refres
     Instant expiresAt = Instant.now().plus(7, ChronoUnit.DAYS);
 
     RefreshToken refreshToken =
-        new RefreshToken(
-            null,
-            user.getId(),
-            refreshHash,
-            expiresAt,
-            Instant.now());
+        new RefreshToken(null, user.getId(), refreshHash, expiresAt, Instant.now());
 
     refreshTokenPort.save(refreshToken);
 

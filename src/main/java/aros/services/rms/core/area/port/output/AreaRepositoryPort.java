@@ -5,9 +5,7 @@ import aros.services.rms.core.area.domain.Area;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Output port for area persistence operations.
- */
+/** Output port for area persistence operations. */
 public interface AreaRepositoryPort {
   Area save(Area area);
 

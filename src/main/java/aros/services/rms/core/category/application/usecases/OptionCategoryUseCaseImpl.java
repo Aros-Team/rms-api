@@ -20,7 +20,8 @@ import org.springframework.retry.annotation.Retryable;
  */
 public class OptionCategoryUseCaseImpl implements OptionCategoryUseCase {
 
-  private static final org.slf4j.Logger log = LoggerFactory.getLogger(OptionCategoryUseCaseImpl.class);
+  private static final org.slf4j.Logger log =
+      LoggerFactory.getLogger(OptionCategoryUseCaseImpl.class);
   private final OptionCategoryRepositoryPort optionCategoryRepositoryPort;
   private final Logger logger;
 
@@ -82,12 +83,16 @@ public class OptionCategoryUseCaseImpl implements OptionCategoryUseCase {
 
   @Recover
   public OptionCategory recoverCreate(DataAccessException e, OptionCategory optionCategory) {
-    log.warn("BD no disponible - fallback para create(optionCategory={}): {}", optionCategory.getName(), e.getMessage());
+    log.warn(
+        "BD no disponible - fallback para create(optionCategory={}): {}",
+        optionCategory.getName(),
+        e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
   @Recover
-  public OptionCategory recoverUpdate(DataAccessException e, Long id, OptionCategory optionCategory) {
+  public OptionCategory recoverUpdate(
+      DataAccessException e, Long id, OptionCategory optionCategory) {
     log.warn("BD no disponible - fallback para update(id={}): {}", id, e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }

@@ -118,7 +118,10 @@ public class TakeOrderUseCaseImpl implements TakeOrderUseCase {
 
   @Recover
   public Order recoverExecute(DataAccessException e, TakeOrderCommand command) {
-    log.warn("BD no disponible - fallback para execute(tableId={}): {}", command.getTableId(), e.getMessage());
+    log.warn(
+        "BD no disponible - fallback para execute(tableId={}): {}",
+        command.getTableId(),
+        e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 }

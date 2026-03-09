@@ -52,8 +52,6 @@ public class AreaPersistenceAdapter implements AreaRepositoryPort {
 
   @Override
   public List<Area> findByIdIn(List<Long> ids) {
-    return areaRepository.findByIdIn(ids).stream()
-        .map(areaMapper::toDomain)
-        .toList();
+    return areaRepository.findByIdIn(ids).stream().map(areaMapper::toDomain).toList();
   }
 }

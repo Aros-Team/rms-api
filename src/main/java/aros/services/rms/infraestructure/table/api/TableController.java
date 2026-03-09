@@ -43,10 +43,7 @@ public class TableController {
   @PostMapping
   public ResponseEntity<TableResponse> create(@Valid @RequestBody TableRequest request) {
     Table table =
-        Table.builder()
-            .tableNumber(request.tableNumber())
-            .capacity(request.capacity())
-            .build();
+        Table.builder().tableNumber(request.tableNumber()).capacity(request.capacity()).build();
 
     Table created = tableUseCase.create(table);
     return new ResponseEntity<>(TableResponse.fromDomain(created), HttpStatus.CREATED);
@@ -63,10 +60,7 @@ public class TableController {
   public ResponseEntity<TableResponse> update(
       @PathVariable Long id, @Valid @RequestBody TableRequest request) {
     Table table =
-        Table.builder()
-            .tableNumber(request.tableNumber())
-            .capacity(request.capacity())
-            .build();
+        Table.builder().tableNumber(request.tableNumber()).capacity(request.capacity()).build();
 
     Table updated = tableUseCase.update(id, table);
     return ResponseEntity.ok(TableResponse.fromDomain(updated));
@@ -81,9 +75,7 @@ public class TableController {
   @GetMapping
   public ResponseEntity<List<TableResponse>> findAll() {
     List<TableResponse> responses =
-        tableUseCase.findAll().stream()
-            .map(TableResponse::fromDomain)
-            .collect(Collectors.toList());
+        tableUseCase.findAll().stream().map(TableResponse::fromDomain).collect(Collectors.toList());
     return ResponseEntity.ok(responses);
   }
 
@@ -102,8 +94,7 @@ public class TableController {
 
   @Operation(
       summary = "Change table status",
-      description =
-          "Changes the table status between AVAILABLE, OCCUPIED, and RESERVED.",
+      description = "Changes the table status between AVAILABLE, OCCUPIED, and RESERVED.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Table status changed successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid status value"),

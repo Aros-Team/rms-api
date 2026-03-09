@@ -1,8 +1,8 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.area.api.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import aros.services.rms.core.area.domain.Area;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Response DTO for area data")
 public record AreaResponse(

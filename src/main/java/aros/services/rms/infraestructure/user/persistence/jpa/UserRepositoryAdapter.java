@@ -5,7 +5,6 @@ import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserId;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import jakarta.transaction.Transactional;
-
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -22,7 +22,8 @@ import org.springframework.retry.annotation.Retryable;
  */
 public class ProductOptionUseCaseImpl implements ProductOptionUseCase {
 
-  private static final org.slf4j.Logger log = LoggerFactory.getLogger(ProductOptionUseCaseImpl.class);
+  private static final org.slf4j.Logger log =
+      LoggerFactory.getLogger(ProductOptionUseCaseImpl.class);
   private final ProductOptionRepositoryPort productOptionRepositoryPort;
   private final OptionCategoryRepositoryPort optionCategoryRepositoryPort;
   private final Logger logger;
@@ -92,7 +93,10 @@ public class ProductOptionUseCaseImpl implements ProductOptionUseCase {
 
   @Recover
   public ProductOption recoverCreate(DataAccessException e, ProductOption productOption) {
-    log.warn("BD no disponible - fallback para create(productOption={}): {}", productOption.getName(), e.getMessage());
+    log.warn(
+        "BD no disponible - fallback para create(productOption={}): {}",
+        productOption.getName(),
+        e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 

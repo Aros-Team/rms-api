@@ -25,7 +25,11 @@ public class JwtConfigValidator {
   }
 
   public void validate() {
-    if (!validated && (publicKey == null || publicKey.isBlank() || privateKey == null || privateKey.isBlank())) {
+    if (!validated
+        && (publicKey == null
+            || publicKey.isBlank()
+            || privateKey == null
+            || privateKey.isBlank())) {
       log.error(ERROR_MESSAGE);
       validated = true;
     }

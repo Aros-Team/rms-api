@@ -1,6 +1,7 @@
 /* (C) 2026 */
 package aros.services.rms.config;
 
+import aros.services.rms.infraestructure.common.config.JwtConfigValidator;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -27,8 +28,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import aros.services.rms.infraestructure.common.config.JwtConfigValidator;
 
 @Configuration
 @EnableWebSecurity
@@ -89,7 +88,13 @@ public class SecurityConfig {
     if (jwtConfigValidator.isConfigured()) {
       http.authorizeHttpRequests(
               auth ->
-                  auth.requestMatchers("/api/auth/login", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/actuator/health/**", "/actuator/health")
+                  auth.requestMatchers(
+                          "/api/auth/login",
+                          "/swagger-ui/**",
+                          "/swagger-ui.html",
+                          "/v3/api-docs/**",
+                          "/actuator/health/**",
+                          "/actuator/health")
                       .permitAll()
                       .anyRequest()
                       .authenticated())
@@ -97,7 +102,13 @@ public class SecurityConfig {
     } else {
       http.authorizeHttpRequests(
           auth ->
-              auth.requestMatchers("/api/auth/login", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/actuator/health/**", "/actuator/health")
+              auth.requestMatchers(
+                      "/api/auth/login",
+                      "/swagger-ui/**",
+                      "/swagger-ui.html",
+                      "/v3/api-docs/**",
+                      "/actuator/health/**",
+                      "/actuator/health")
                   .permitAll()
                   .anyRequest()
                   .permitAll());

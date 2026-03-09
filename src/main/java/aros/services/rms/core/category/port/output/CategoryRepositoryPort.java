@@ -5,9 +5,7 @@ import aros.services.rms.core.category.domain.Category;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Output port for category persistence operations.
- */
+/** Output port for category persistence operations. */
 public interface CategoryRepositoryPort {
   Category save(Category category);
 

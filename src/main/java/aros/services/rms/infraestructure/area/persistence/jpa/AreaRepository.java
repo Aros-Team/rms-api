@@ -12,5 +12,6 @@ public interface AreaRepository extends JpaRepository<Area, Long> {
 
   /** Finds an area by its name. */
   Optional<Area> findByName(String name);
+
   List<Area> findByIdIn(List<Long> ids);
 }

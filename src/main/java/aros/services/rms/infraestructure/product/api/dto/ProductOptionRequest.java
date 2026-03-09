@@ -16,8 +16,6 @@ import jakarta.validation.constraints.NotNull;
         """)
 public record ProductOptionRequest(
     @Schema(description = "Nombre de la opción", example = "Grande (1.5L)")
-        @NotBlank(message = "Option name is required")
-        String name,
+        @NotBlank(message = "Option name is required") String name,
     @Schema(description = "ID de la categoría de opción a la que pertenece", example = "1")
-        @NotNull(message = "Option category ID is required")
-        Long optionCategoryId) {}
+        @NotNull(message = "Option category ID is required") Long optionCategoryId) {}

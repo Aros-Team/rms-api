@@ -62,7 +62,8 @@ public class OrderQueryUseCaseImpl implements OrderQueryUseCase {
   }
 
   @Recover
-  public List<Order> recoverFindOrders(DataAccessException e, OrderStatus status, LocalDateTime startDate, LocalDateTime endDate) {
+  public List<Order> recoverFindOrders(
+      DataAccessException e, OrderStatus status, LocalDateTime startDate, LocalDateTime endDate) {
     log.warn("BD no disponible - fallback para findOrders: {}", e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }

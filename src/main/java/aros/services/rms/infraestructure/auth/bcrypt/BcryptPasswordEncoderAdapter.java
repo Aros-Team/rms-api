@@ -3,7 +3,6 @@ package aros.services.rms.infraestructure.auth.bcrypt;
 
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 

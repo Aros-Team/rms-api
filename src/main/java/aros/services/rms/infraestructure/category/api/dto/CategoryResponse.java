@@ -1,8 +1,8 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.category.api.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import aros.services.rms.core.category.domain.Category;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Response DTO for category data")
 public record CategoryResponse(

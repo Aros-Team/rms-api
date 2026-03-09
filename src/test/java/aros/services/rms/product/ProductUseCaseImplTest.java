@@ -108,8 +108,7 @@ class ProductUseCaseImplTest {
 
   @Test
   void shouldDisableProductSuccessfully() {
-    Product existing =
-        Product.builder().id(1L).name("Burger").active(true).basePrice(10.0).build();
+    Product existing = Product.builder().id(1L).name("Burger").active(true).basePrice(10.0).build();
     Product saved = Product.builder().id(1L).name("Burger").active(false).basePrice(10.0).build();
 
     when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(existing));

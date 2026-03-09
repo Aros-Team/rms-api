@@ -20,18 +20,12 @@ import jakarta.validation.constraints.Positive;
         """)
 public record ProductRequest(
     @Schema(description = "Product name", example = "Hamburguesa Clásica")
-        @NotBlank(message = "Product name is required")
-        String name,
+        @NotBlank(message = "Product name is required") String name,
     @Schema(description = "Product base price", example = "12.50")
-        @NotNull(message = "Base price is required")
-        @Positive(message = "Base price must be positive")
-        Double basePrice,
+        @NotNull(message = "Base price is required") @Positive(message = "Base price must be positive") Double basePrice,
     @Schema(description = "Whether product supports customization options", example = "true")
-        @NotNull(message = "hasOptions flag is required")
-        Boolean hasOptions,
+        @NotNull(message = "hasOptions flag is required") Boolean hasOptions,
     @Schema(description = "Category ID the product belongs to", example = "1")
-        @NotNull(message = "Category ID is required")
-        Long categoryId,
+        @NotNull(message = "Category ID is required") Long categoryId,
     @Schema(description = "Preparation area ID", example = "1")
-        @NotNull(message = "Area ID is required")
-        Long areaId) {}
+        @NotNull(message = "Area ID is required") Long areaId) {}

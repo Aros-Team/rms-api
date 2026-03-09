@@ -59,16 +59,18 @@ public class AuthController {
   @PostMapping("/login")
   public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request)
       throws InvalidCredentialsException {
-    Credentials credentials = new Credentials(
-        new UserEmail(request.username()), request.password(), request.deviceHash());
+    Credentials credentials =
+        new Credentials(
+            new UserEmail(request.username()), request.password(), request.deviceHash());
 
     AuthResult result = loginUseCase.authenticate(credentials);
 
-    AuthResponse response = new AuthResponse(
-        result.type().name(),
-        result.username(),
-        result.token().getAccess(),
-        result.token().getRefresh());
+    AuthResponse response =
+        new AuthResponse(
+            result.type().name(),
+            result.username(),
+            result.token().getAccess(),
+            result.token().getRefresh());
 
     return ResponseEntity.ok(response);
   }
@@ -85,19 +87,21 @@ public class AuthController {
       })
   @PostMapping("/verify")
   @OnlyTfaTOken
-  public ResponseEntity<AuthResponse> verifyTfa(@Valid @RequestBody VerifyTwoFactorRequest request,
-      @AuthenticationPrincipal Jwt jwt)
+  public ResponseEntity<AuthResponse> verifyTfa(
+      @Valid @RequestBody VerifyTwoFactorRequest request, @AuthenticationPrincipal Jwt jwt)
       throws InvalidCredentialsException {
-    TwoFactorCredentials credentials = new TwoFactorCredentials(
-        new UserEmail(jwt.getSubject()), request.code(), request.deviceHash());
+    TwoFactorCredentials credentials =
+        new TwoFactorCredentials(
+            new UserEmail(jwt.getSubject()), request.code(), request.deviceHash());
 
     AuthResult result = verifyTwoFactorUseCase.verify(credentials);
 
-    AuthResponse response = new AuthResponse(
-        result.type().name(),
-        result.username(),
-        result.token().getAccess(),
-        result.token().getRefresh());
+    AuthResponse response =
+        new AuthResponse(
+            result.type().name(),
+            result.username(),
+            result.token().getAccess(),
+            result.token().getRefresh());
 
     return ResponseEntity.ok(response);
   }
@@ -113,19 +117,20 @@ public class AuthController {
       })
   @PostMapping("/refresh")
   @OnlyRefreshToken
-  public ResponseEntity<AuthResponse> refresh(
-      @RequestHeader("Authorization") String token) throws InvalidRefreshToken {
+  public ResponseEntity<AuthResponse> refresh(@RequestHeader("Authorization") String token)
+      throws InvalidRefreshToken {
     if (token.startsWith("Bearer ")) {
       token = token.substring(7);
     }
 
     AuthResult result = refreshTokensUseCase.refresh(token);
 
-    AuthResponse response = new AuthResponse(
-        result.type().name(),
-        result.username(),
-        result.token().getAccess(),
-        result.token().getRefresh());
+    AuthResponse response =
+        new AuthResponse(
+            result.type().name(),
+            result.username(),
+            result.token().getAccess(),
+            result.token().getRefresh());
 
     return ResponseEntity.ok(response);
   }
@@ -142,11 +147,21 @@ public class AuthController {
       })
   @GetMapping
   @JustAccessToken
-  public ResponseEntity<UserFullInfoResponse> me(@AuthenticationPrincipal Jwt auth) throws UserNotFoundException {
+  public ResponseEntity<UserFullInfoResponse> me(@AuthenticationPrincipal Jwt auth)
+      throws UserNotFoundException {
     UserFullInfo uInfo = getUserInfoUseCase.getInfo(new UserEmail(auth.getSubject()));
 
-    UserFullInfoResponse uInfoResponse = new UserFullInfoResponse(
-      uInfo.id().value(), uInfo.document(), uInfo.name(), uInfo.email().value(), uInfo.password(), uInfo.address(), uInfo.phone(), uInfo.role(), uInfo.areas());
+    UserFullInfoResponse uInfoResponse =
+        new UserFullInfoResponse(
+            uInfo.id().value(),
+            uInfo.document(),
+            uInfo.name(),
+            uInfo.email().value(),
+            uInfo.password(),
+            uInfo.address(),
+            uInfo.phone(),
+            uInfo.role(),
+            uInfo.areas());
 
     return ResponseEntity.ok(uInfoResponse);
   }

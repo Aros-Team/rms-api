@@ -44,7 +44,10 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
 
   @Recover
   public Category recoverCreate(DataAccessException e, Category category) {
-    log.warn("BD no disponible - fallback para create(category={}): {}", category.getName(), e.getMessage());
+    log.warn(
+        "BD no disponible - fallback para create(category={}): {}",
+        category.getName(),
+        e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
@@ -56,9 +59,7 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
       backoff = @Backoff(delay = 1000))
   public Category update(Long id, Category category) {
     Category existing =
-        categoryRepositoryPort
-            .findById(id)
-            .orElseThrow(() -> new CategoryNotFoundException(id));
+        categoryRepositoryPort.findById(id).orElseThrow(() -> new CategoryNotFoundException(id));
 
     existing.setName(category.getName());
     existing.setDescription(category.getDescription());
@@ -97,9 +98,7 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000))
   public Category findById(Long id) {
-    return categoryRepositoryPort
-        .findById(id)
-        .orElseThrow(() -> new CategoryNotFoundException(id));
+    return categoryRepositoryPort.findById(id).orElseThrow(() -> new CategoryNotFoundException(id));
   }
 
   @Recover
@@ -116,9 +115,7 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
       backoff = @Backoff(delay = 1000))
   public Category toggleEnabled(Long id) {
     Category existing =
-        categoryRepositoryPort
-            .findById(id)
-            .orElseThrow(() -> new CategoryNotFoundException(id));
+        categoryRepositoryPort.findById(id).orElseThrow(() -> new CategoryNotFoundException(id));
 
     existing.setEnabled(!existing.isEnabled());
 

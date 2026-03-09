@@ -10,7 +10,6 @@ import java.time.Instant;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -63,7 +62,9 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getRequestURI();
-    return path.startsWith("/actuator") || path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs");
+    return path.startsWith("/actuator")
+        || path.startsWith("/swagger-ui")
+        || path.startsWith("/v3/api-docs");
   }
 
   private void logRequest(HttpServletRequest request, String requestId) {
@@ -80,7 +81,10 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
   }
 
   private void logResponse(
-      HttpServletRequest request, ContentCachingResponseWrapper response, long duration, String requestId) {
+      HttpServletRequest request,
+      ContentCachingResponseWrapper response,
+      long duration,
+      String requestId) {
 
     String level = response.getStatus() >= 500 ? "ERROR" : "INFO";
 
@@ -127,7 +131,6 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
   private String generateRequestId() {
     return String.format(
         "%s-%d",
-        Instant.now().toString().replace(":", "").replace(".", ""),
-        (int) (Math.random() * 1000));
+        Instant.now().toString().replace(":", "").replace(".", ""), (int) (Math.random() * 1000));
   }
 }

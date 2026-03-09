@@ -17,7 +17,11 @@ public class EmailService implements TwoFactorAuthEmailUseCase {
   @Override
   public void sendTwoFactorCode(UserEmail email, String code) {
     Email tfaEmail =
-        new Email(email.value(), "admin@aros.service", "two_factor", Map.of("code", code, "expiry", "5 minutos"));
+        new Email(
+            email.value(),
+            "admin@aros.service",
+            "two_factor",
+            Map.of("code", code, "expiry", "5 minutos"));
 
     this.emailPort.send(tfaEmail);
   }

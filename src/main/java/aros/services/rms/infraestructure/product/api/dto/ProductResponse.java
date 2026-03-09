@@ -1,8 +1,8 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.product.api.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import aros.services.rms.core.product.domain.Product;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Response DTO for product data")
 public record ProductResponse(

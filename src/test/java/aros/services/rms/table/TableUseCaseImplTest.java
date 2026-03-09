@@ -39,12 +39,7 @@ class TableUseCaseImplTest {
   void shouldCreateTableSuccessfully() {
     Table table = Table.builder().tableNumber(1).capacity(4).build();
     Table saved =
-        Table.builder()
-            .id(1L)
-            .tableNumber(1)
-            .capacity(4)
-            .status(TableStatus.AVAILABLE)
-            .build();
+        Table.builder().id(1L).tableNumber(1).capacity(4).status(TableStatus.AVAILABLE).build();
 
     when(tableRepositoryPort.save(any(Table.class))).thenReturn(saved);
 
@@ -58,20 +53,10 @@ class TableUseCaseImplTest {
   @Test
   void shouldUpdateTableSuccessfully() {
     Table existing =
-        Table.builder()
-            .id(1L)
-            .tableNumber(1)
-            .capacity(4)
-            .status(TableStatus.AVAILABLE)
-            .build();
+        Table.builder().id(1L).tableNumber(1).capacity(4).status(TableStatus.AVAILABLE).build();
     Table updateData = Table.builder().tableNumber(2).capacity(6).build();
     Table saved =
-        Table.builder()
-            .id(1L)
-            .tableNumber(2)
-            .capacity(6)
-            .status(TableStatus.AVAILABLE)
-            .build();
+        Table.builder().id(1L).tableNumber(2).capacity(6).status(TableStatus.AVAILABLE).build();
 
     when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(existing));
     when(tableRepositoryPort.save(any(Table.class))).thenReturn(saved);
@@ -94,19 +79,9 @@ class TableUseCaseImplTest {
   @Test
   void shouldChangeStatusSuccessfully() {
     Table existing =
-        Table.builder()
-            .id(1L)
-            .tableNumber(1)
-            .capacity(4)
-            .status(TableStatus.AVAILABLE)
-            .build();
+        Table.builder().id(1L).tableNumber(1).capacity(4).status(TableStatus.AVAILABLE).build();
     Table saved =
-        Table.builder()
-            .id(1L)
-            .tableNumber(1)
-            .capacity(4)
-            .status(TableStatus.OCCUPIED)
-            .build();
+        Table.builder().id(1L).tableNumber(1).capacity(4).status(TableStatus.OCCUPIED).build();
 
     when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(existing));
     when(tableRepositoryPort.save(any(Table.class))).thenReturn(saved);
@@ -119,19 +94,9 @@ class TableUseCaseImplTest {
   @Test
   void shouldChangeStatusToReserved() {
     Table existing =
-        Table.builder()
-            .id(1L)
-            .tableNumber(1)
-            .capacity(4)
-            .status(TableStatus.AVAILABLE)
-            .build();
+        Table.builder().id(1L).tableNumber(1).capacity(4).status(TableStatus.AVAILABLE).build();
     Table saved =
-        Table.builder()
-            .id(1L)
-            .tableNumber(1)
-            .capacity(4)
-            .status(TableStatus.RESERVED)
-            .build();
+        Table.builder().id(1L).tableNumber(1).capacity(4).status(TableStatus.RESERVED).build();
 
     when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(existing));
     when(tableRepositoryPort.save(any(Table.class))).thenReturn(saved);
@@ -144,17 +109,11 @@ class TableUseCaseImplTest {
   @Test
   void shouldThrowWhenChangingStatusWithNull() {
     Table existing =
-        Table.builder()
-            .id(1L)
-            .tableNumber(1)
-            .capacity(4)
-            .status(TableStatus.AVAILABLE)
-            .build();
+        Table.builder().id(1L).tableNumber(1).capacity(4).status(TableStatus.AVAILABLE).build();
 
     when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(existing));
 
-    assertThrows(
-        InvalidTableStatusException.class, () -> tableUseCase.changeStatus(1L, null));
+    assertThrows(InvalidTableStatusException.class, () -> tableUseCase.changeStatus(1L, null));
   }
 
   @Test
@@ -162,8 +121,7 @@ class TableUseCaseImplTest {
     when(tableRepositoryPort.findById(99L)).thenReturn(Optional.empty());
 
     assertThrows(
-        TableNotFoundException.class,
-        () -> tableUseCase.changeStatus(99L, TableStatus.OCCUPIED));
+        TableNotFoundException.class, () -> tableUseCase.changeStatus(99L, TableStatus.OCCUPIED));
   }
 
   @Test

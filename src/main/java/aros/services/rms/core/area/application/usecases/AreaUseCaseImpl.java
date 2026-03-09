@@ -51,7 +51,8 @@ public class AreaUseCaseImpl implements AreaUseCase {
 
   @Recover
   public Area recoverCreate(DataAccessException e, Area area) {
-    log.warn("BD no disponible - fallback para create(area={}): {}", area.getName(), e.getMessage());
+    log.warn(
+        "BD no disponible - fallback para create(area={}): {}", area.getName(), e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 

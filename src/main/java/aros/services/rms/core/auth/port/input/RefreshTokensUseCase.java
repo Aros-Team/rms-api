@@ -4,5 +4,5 @@ import aros.services.rms.core.auth.application.dto.AuthResult;
 import aros.services.rms.core.auth.application.exception.InvalidRefreshToken;
 
 public interface RefreshTokensUseCase {
-    public AuthResult refresh(String refreshTokenHash) throws InvalidRefreshToken;
+  AuthResult refresh(String refreshTokenHash) throws InvalidRefreshToken;
 }

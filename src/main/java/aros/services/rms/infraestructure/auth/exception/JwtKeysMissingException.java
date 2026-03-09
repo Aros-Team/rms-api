@@ -5,6 +5,7 @@ import aros.services.rms.infraestructure.common.exception.ExpectedStartupExcepti
 
 public class JwtKeysMissingException extends ExpectedStartupException {
   public JwtKeysMissingException() {
-    super("JWT keys not configured. Run './gradlew generate-jwt-keys' or 'task jwtkeys' to generate and add to .env file");
+    super(
+        "JWT keys not configured. Run './gradlew generate-jwt-keys' or 'task jwtkeys' to generate and add to .env file");
   }
 }

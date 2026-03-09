@@ -5,9 +5,7 @@ import aros.services.rms.core.product.domain.Product;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Output port for product persistence operations.
- */
+/** Output port for product persistence operations. */
 public interface ProductRepositoryPort {
   Product save(Product product);
 

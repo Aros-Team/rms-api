@@ -17,10 +17,7 @@ import jakarta.validation.constraints.NotBlank;
         """)
 public record LoginRequest(
     @Schema(description = "User email", example = "quintosteven590@gmail.com")
-        @NotBlank(message = "El username es requerido")
-        @Email(message = "Formato de email inválido")
-        String username,
+        @NotBlank(message = "El username es requerido") @Email(message = "Formato de email inválido") String username,
     @Schema(description = "User password", example = "123")
-        @NotBlank(message = "La contraseña es requerida")
-        String password,
+        @NotBlank(message = "La contraseña es requerida") String password,
     @Schema(description = "Device hash for 2FA", example = "device-123") String deviceHash) {}
