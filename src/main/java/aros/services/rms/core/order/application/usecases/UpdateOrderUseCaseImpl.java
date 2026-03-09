@@ -13,8 +13,14 @@ import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
+import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 
 /**
  * Implementación del caso de uso para actualizar órdenes. Permite cancelar o modificar órdenes en
@@ -22,6 +28,7 @@ import java.util.List;
  */
 public class UpdateOrderUseCaseImpl implements UpdateOrderUseCase {
 
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(UpdateOrderUseCaseImpl.class);
   private final OrderRepositoryPort orderRepositoryPort;
   private final TableRepositoryPort tableRepositoryPort;
   private final ProductRepositoryPort productRepositoryPort;
@@ -40,6 +47,10 @@ public class UpdateOrderUseCaseImpl implements UpdateOrderUseCase {
 
   /** {@inheritDoc} Cancela orden en QUEUE y libera la mesa. */
   @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
   public Order cancel(Long id) {
     Order order =
         orderRepositoryPort
@@ -64,6 +75,10 @@ public class UpdateOrderUseCaseImpl implements UpdateOrderUseCase {
 
   /** {@inheritDoc} Actualiza detalles de orden en QUEUE. Valida productos y opciones. */
   @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
   public Order update(Long id, TakeOrderCommand command) {
     Order order =
         orderRepositoryPort
@@ -114,5 +129,17 @@ public class UpdateOrderUseCaseImpl implements UpdateOrderUseCase {
 
     order.setDetails(newDetails);
     return orderRepositoryPort.save(order);
+  }
+
+  @Recover
+  public Order recoverCancel(DataAccessException e, Long id) {
+    log.warn("BD no disponible - fallback para cancel(id={}): {}", id, e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  @Recover
+  public Order recoverUpdate(DataAccessException e, Long id, TakeOrderCommand command) {
+    log.warn("BD no disponible - fallback para update(id={}): {}", id, e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 }

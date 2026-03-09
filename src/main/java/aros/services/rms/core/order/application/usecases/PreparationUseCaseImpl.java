@@ -5,6 +5,12 @@ import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.input.PreparationUseCase;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
+import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 
 /**
  * Implementación del caso de uso para pasar órdenes a preparación. Toma la orden más antigua de la
@@ -12,6 +18,7 @@ import aros.services.rms.core.order.port.output.OrderRepositoryPort;
  */
 public class PreparationUseCaseImpl implements PreparationUseCase {
 
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(PreparationUseCaseImpl.class);
   private final OrderRepositoryPort orderRepositoryPort;
 
   public PreparationUseCaseImpl(OrderRepositoryPort orderRepositoryPort) {
@@ -20,6 +27,10 @@ public class PreparationUseCaseImpl implements PreparationUseCase {
 
   /** {@inheritDoc} Busca la orden más antigua en QUEUE y cambia a PREPARING. */
   @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
   public Order processNextOrder() {
     Order order =
         orderRepositoryPort
@@ -28,5 +39,11 @@ public class PreparationUseCaseImpl implements PreparationUseCase {
 
     order.setStatus(OrderStatus.PREPARING);
     return orderRepositoryPort.save(order);
+  }
+
+  @Recover
+  public Order recoverProcessNextOrder(DataAccessException e) {
+    log.warn("BD no disponible - fallback para processNextOrder: {}", e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 }

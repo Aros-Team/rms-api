@@ -7,7 +7,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -17,13 +20,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class JwtServiceImpl implements JwtService {
 
+  private static final Logger log = LoggerFactory.getLogger(JwtServiceImpl.class);
+  private static final String JWT_NOT_CONFIGURED_ERROR =
+      "JWT keys not configured. Cannot generate token. Run './gradlew generate-jwt-keys' or 'task jwtkeys' to generate and add to .env file";
+
   private final JwtEncoder jwtEncoder;
   private final JwtDecoder jwtDecoder;
   private final String issuer;
 
   public JwtServiceImpl(
-      JwtEncoder jwtEncoder,
-      JwtDecoder jwtDecoder,
+      @Nullable JwtEncoder jwtEncoder,
+      @Nullable JwtDecoder jwtDecoder,
       @Value("${app.jwt.issuer:rms-api}") String issuer) {
     this.jwtEncoder = jwtEncoder;
     this.jwtDecoder = jwtDecoder;
@@ -32,6 +39,11 @@ public class JwtServiceImpl implements JwtService {
 
   @Override
   public String generateAccessToken(String username, UserRole role, List<AreaId> areas) {
+    if (jwtEncoder == null) {
+      log.error(JWT_NOT_CONFIGURED_ERROR);
+      throw new IllegalStateException("JWT not configured");
+    }
+
     Instant now = Instant.now();
 
     List<Long> areaIds =
@@ -53,6 +65,11 @@ public class JwtServiceImpl implements JwtService {
 
   @Override
   public String generateRefreshToken(String username) {
+    if (jwtEncoder == null) {
+      log.error(JWT_NOT_CONFIGURED_ERROR);
+      throw new IllegalStateException("JWT not configured");
+    }
+
     Instant now = Instant.now();
 
     JwtClaimsSet claims =
@@ -69,6 +86,11 @@ public class JwtServiceImpl implements JwtService {
 
   @Override
   public String generateTFAToken(String username) {
+    if (jwtEncoder == null) {
+      log.error(JWT_NOT_CONFIGURED_ERROR);
+      throw new IllegalStateException("JWT not configured");
+    }
+
     Instant now = Instant.now();
 
     JwtClaimsSet claims =
@@ -85,6 +107,9 @@ public class JwtServiceImpl implements JwtService {
 
   @Override
   public boolean validateToken(String token) {
+    if (jwtDecoder == null) {
+      return false;
+    }
     try {
       jwtDecoder.decode(token);
       return true;
@@ -95,17 +120,26 @@ public class JwtServiceImpl implements JwtService {
 
   @Override
   public String getUsernameFromToken(String token) {
+    if (jwtDecoder == null) {
+      return null;
+    }
     return jwtDecoder.decode(token).getSubject();
   }
 
   @Override
   public UserRole getRoleFromToken(String token) {
+    if (jwtDecoder == null) {
+      return null;
+    }
     String role = jwtDecoder.decode(token).getClaimAsString("role");
     return role != null ? UserRole.valueOf(role) : null;
   }
 
   @Override
   public List<AreaId> getAreasFromToken(String token) {
+    if (jwtDecoder == null) {
+      return Collections.emptyList();
+    }
     List<Long> areaIds = jwtDecoder.decode(token).getClaim("areaIds");
     if (areaIds == null) {
       return Collections.emptyList();

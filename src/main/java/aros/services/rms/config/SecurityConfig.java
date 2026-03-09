@@ -11,9 +11,9 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.Nullable;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,19 +28,29 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import aros.services.rms.infraestructure.common.config.JwtConfigValidator;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
-  @Value("${app.jwt.public-key}")
-  private String publicKeyBase64;
+  private final JwtConfigValidator jwtConfigValidator;
 
-  @Value("${app.jwt.private-key}")
-  private String privateKeyBase64;
+  public SecurityConfig(JwtConfigValidator jwtConfigValidator) {
+    this.jwtConfigValidator = jwtConfigValidator;
+  }
 
   @Bean
   public RSAKey rsaKey() throws Exception {
+    if (!jwtConfigValidator.isConfigured()) {
+      jwtConfigValidator.validate();
+      return null;
+    }
+
+    String publicKeyBase64 = jwtConfigValidator.getPublicKey();
+    String privateKeyBase64 = jwtConfigValidator.getPrivateKey();
+
     byte[] publicBytes = Base64.getDecoder().decode(publicKeyBase64);
     byte[] privateBytes = Base64.getDecoder().decode(privateKeyBase64);
 
@@ -54,12 +64,18 @@ public class SecurityConfig {
   }
 
   @Bean
-  public JwtDecoder jwtDecoder(RSAKey rsaKey) throws Exception {
+  public JwtDecoder jwtDecoder(@Nullable RSAKey rsaKey) throws Exception {
+    if (rsaKey == null) {
+      return null;
+    }
     return NimbusJwtDecoder.withPublicKey(rsaKey.toRSAPublicKey()).build();
   }
 
   @Bean
-  public JwtEncoder jwtEncoder(RSAKey rsaKey) {
+  public JwtEncoder jwtEncoder(@Nullable RSAKey rsaKey) {
+    if (rsaKey == null) {
+      return null;
+    }
     return new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(rsaKey)));
   }
 
@@ -68,14 +84,24 @@ public class SecurityConfig {
     http.csrf(csrf -> csrf.disable())
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .sessionManagement(
-            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers("/api/auth/login", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated())
-        .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+    if (jwtConfigValidator.isConfigured()) {
+      http.authorizeHttpRequests(
+              auth ->
+                  auth.requestMatchers("/api/auth/login", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/actuator/health/**", "/actuator/health")
+                      .permitAll()
+                      .anyRequest()
+                      .authenticated())
+          .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+    } else {
+      http.authorizeHttpRequests(
+          auth ->
+              auth.requestMatchers("/api/auth/login", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/actuator/health/**", "/actuator/health")
+                  .permitAll()
+                  .anyRequest()
+                  .permitAll());
+    }
 
     return http.build();
   }

@@ -8,6 +8,12 @@ import aros.services.rms.core.order.port.output.OrderRepositoryPort;
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
+import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 
 /**
  * Implementación del caso de uso para entregar órdenes al cliente. Marca la orden como entregada y
@@ -15,6 +21,7 @@ import aros.services.rms.core.table.port.output.TableRepositoryPort;
  */
 public class DeliveryUseCaseImpl implements DeliveryUseCase {
 
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(DeliveryUseCaseImpl.class);
   private final OrderRepositoryPort orderRepositoryPort;
   private final TableRepositoryPort tableRepositoryPort;
 
@@ -26,6 +33,10 @@ public class DeliveryUseCaseImpl implements DeliveryUseCase {
 
   /** {@inheritDoc} Cambia el estado de READY a DELIVERED y libera la mesa. */
   @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
   public Order markAsDelivered(Long id) {
     Order order =
         orderRepositoryPort
@@ -46,5 +57,11 @@ public class DeliveryUseCaseImpl implements DeliveryUseCase {
     }
 
     return savedOrder;
+  }
+
+  @Recover
+  public Order recoverMarkAsDelivered(DataAccessException e, Long id) {
+    log.warn("BD no disponible - fallback para markAsDelivered(id={}): {}", id, e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 }

@@ -3,6 +3,8 @@ package aros.services.rms.infraestructure.common.exception;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import aros.services.rms.core.area.application.exception.AreaAlreadyExistsException;
 import aros.services.rms.core.area.application.exception.AreaNotFoundException;
 import aros.services.rms.core.auth.application.exception.InvalidCredentialsException;
+import aros.services.rms.infraestructure.auth.exception.JwtKeysMissingException;
 import aros.services.rms.core.category.application.exception.CategoryNotFoundException;
 import aros.services.rms.core.category.application.exception.OptionCategoryNotFoundException;
 import aros.services.rms.core.order.application.exception.InvalidOrderStatusException;
@@ -25,6 +28,8 @@ import aros.services.rms.core.table.application.exception.TableNotFoundException
 /** Global exception handler that maps core exceptions to HTTP responses. */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+  private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
   // --- Order exceptions ---
 
@@ -133,5 +138,34 @@ public class GlobalExceptionHandler {
             Map.of(
                 "error", "Invalid credentials",
                 "message", "Usuario o contraseña incorrectos"));
+  }
+
+  @ExceptionHandler(JwtKeysMissingException.class)
+  public ResponseEntity<ErrorResponse> handleJwtKeysMissing(JwtKeysMissingException e) {
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(new ErrorResponse(500, e.getMessage()));
+  }
+
+  @ExceptionHandler(ServiceUnavailableException.class)
+  public ResponseEntity<ErrorResponse> handleServiceUnavailable(ServiceUnavailableException e) {
+    log.warn("Servicio no disponible: {}", e.getMessage());
+    return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+        .body(new ErrorResponse(503, e.getMessage()));
+  }
+
+  // --- Generic catch-all handlers ---
+
+  @ExceptionHandler(Exception.class)
+  public ResponseEntity<ErrorResponse> handleGenericException(Exception e) {
+    log.error("Error interno no esperado: mensaje={}, tipo={}", e.getMessage(), e.getClass().getName(), e);
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(new ErrorResponse(500, "Error interno del servidor"));
+  }
+
+  @ExceptionHandler(Throwable.class)
+  public ResponseEntity<ErrorResponse> handleThrowable(Throwable t) {
+    log.error("Error crítico del sistema: mensaje={}, tipo={}", t.getMessage(), t.getClass().getName(), t);
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(new ErrorResponse(500, "Error interno del servidor"));
   }
 }

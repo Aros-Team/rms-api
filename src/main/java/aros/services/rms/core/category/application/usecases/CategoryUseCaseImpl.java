@@ -6,7 +6,13 @@ import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.category.port.input.CategoryUseCase;
 import aros.services.rms.core.category.port.output.CategoryRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
 import java.util.List;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 
 /**
  * Implementation of product category management use cases. Handles CRUD operations and
@@ -14,6 +20,7 @@ import java.util.List;
  */
 public class CategoryUseCaseImpl implements CategoryUseCase {
 
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(CategoryUseCaseImpl.class);
   private final CategoryRepositoryPort categoryRepositoryPort;
   private final Logger logger;
 
@@ -24,6 +31,10 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
 
   /** {@inheritDoc} Creates a new product category with enabled status by default. */
   @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
   public Category create(Category category) {
     category.setEnabled(true);
     Category saved = categoryRepositoryPort.save(category);
@@ -31,8 +42,18 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
     return saved;
   }
 
+  @Recover
+  public Category recoverCreate(DataAccessException e, Category category) {
+    log.warn("BD no disponible - fallback para create(category={}): {}", category.getName(), e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
   /** {@inheritDoc} Updates name and description of an existing category. */
   @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
   public Category update(Long id, Category category) {
     Category existing =
         categoryRepositoryPort
@@ -47,22 +68,52 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
     return saved;
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public List<Category> findAll() {
-    return categoryRepositoryPort.findAll();
+  @Recover
+  public Category recoverUpdate(DataAccessException e, Long id, Category category) {
+    log.warn("BD no disponible - fallback para update(id={}): {}", id, e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
   /** {@inheritDoc} */
   @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public List<Category> findAll() {
+    return categoryRepositoryPort.findAll();
+  }
+
+  @Recover
+  public List<Category> recoverFindAll(DataAccessException e) {
+    log.warn("BD no disponible - fallback para findAll: {}", e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
   public Category findById(Long id) {
     return categoryRepositoryPort
         .findById(id)
         .orElseThrow(() -> new CategoryNotFoundException(id));
   }
 
+  @Recover
+  public Category recoverFindById(DataAccessException e, Long id) {
+    log.warn("BD no disponible - fallback para findById(id={}): {}", id, e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
   /** {@inheritDoc} Toggles the enabled flag of a product category. */
   @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
   public Category toggleEnabled(Long id) {
     Category existing =
         categoryRepositoryPort
@@ -74,5 +125,11 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
     Category saved = categoryRepositoryPort.save(existing);
     logger.info("Category toggled: id={}, enabled={}", saved.getId(), saved.isEnabled());
     return saved;
+  }
+
+  @Recover
+  public Category recoverToggleEnabled(DataAccessException e, Long id) {
+    log.warn("BD no disponible - fallback para toggleEnabled(id={}): {}", id, e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 }

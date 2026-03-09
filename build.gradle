@@ -36,6 +36,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.retry:spring-retry:2.0.10'
+	implementation 'org.springframework:spring-aspects'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -94,4 +97,23 @@ spotless {
 
     formatAnnotations()  // fixes formatting of type annotations, see below
   }
+}
+
+tasks.register("generate-jwt-keys") {
+    doLast {
+        def keyGen = java.security.KeyPairGenerator.getInstance("RSA")
+        keyGen.initialize(2048)
+        def keyPair = keyGen.generateKeyPair()
+
+        def publicKeyEncoded = Base64.encoder.encodeToString(keyPair.public.encoded)
+        def privateKeyEncoded = Base64.encoder.encodeToString(keyPair.private.encoded)
+
+        println ""
+        println "=== JWT Keys Generated ==="
+        println "Add these to your .env file:"
+        println ""
+        println "JWT_PUBLIC_KEY=$publicKeyEncoded"
+        println "JWT_PRIVATE_KEY=$privateKeyEncoded"
+        println ""
+    }
 }

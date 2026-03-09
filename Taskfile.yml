@@ -34,3 +34,7 @@ tasks:
       - docker compose down
       - '{{.GRADLEW}} clean'
       - docker compose up -d
+
+  jwtkeys:
+    cmds:
+      - '{{.GRADLEW}} generate-jwt-keys'

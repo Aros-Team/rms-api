@@ -10,7 +10,13 @@ import aros.services.rms.core.product.application.exception.ProductNotFoundExcep
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
 import java.util.List;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 
 /**
  * Implementation of product management use cases. Validates area and category existence before
@@ -18,6 +24,7 @@ import java.util.List;
  */
 public class ProductUseCaseImpl implements ProductUseCase {
 
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(ProductUseCaseImpl.class);
   private final ProductRepositoryPort productRepositoryPort;
   private final AreaRepositoryPort areaRepositoryPort;
   private final CategoryRepositoryPort categoryRepositoryPort;
@@ -36,6 +43,10 @@ public class ProductUseCaseImpl implements ProductUseCase {
 
   /** {@inheritDoc} Validates that the referenced area and category exist before creating. */
   @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
   public Product create(Product product) {
     validateAreaExists(product.getPreparationAreaId());
     validateCategoryExists(product.getCategory().getId());
@@ -48,6 +59,10 @@ public class ProductUseCaseImpl implements ProductUseCase {
 
   /** {@inheritDoc} Validates that the referenced area and category exist before updating. */
   @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
   public Product update(Long id, Product product) {
     Product existing =
         productRepositoryPort
@@ -70,12 +85,20 @@ public class ProductUseCaseImpl implements ProductUseCase {
 
   /** {@inheritDoc} */
   @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
   public List<Product> findAll() {
     return productRepositoryPort.findAll();
   }
 
   /** {@inheritDoc} */
   @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
   public Product findById(Long id) {
     return productRepositoryPort
         .findById(id)
@@ -84,6 +107,10 @@ public class ProductUseCaseImpl implements ProductUseCase {
 
   /** {@inheritDoc} Sets the product active flag to false (logical deletion). */
   @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
   public Product disable(Long id) {
     Product existing =
         productRepositoryPort
@@ -95,6 +122,36 @@ public class ProductUseCaseImpl implements ProductUseCase {
     Product saved = productRepositoryPort.save(existing);
     logger.info("Product disabled: id={}, name={}", saved.getId(), saved.getName());
     return saved;
+  }
+
+  @Recover
+  public Product recoverCreate(DataAccessException e, Product product) {
+    log.warn("BD no disponible - fallback para create(product={}): {}", product.getName(), e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  @Recover
+  public Product recoverUpdate(DataAccessException e, Long id, Product product) {
+    log.warn("BD no disponible - fallback para update(id={}): {}", id, e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  @Recover
+  public List<Product> recoverFindAll(DataAccessException e) {
+    log.warn("BD no disponible - fallback para findAll: {}", e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  @Recover
+  public Product recoverFindById(DataAccessException e, Long id) {
+    log.warn("BD no disponible - fallback para findById(id={}): {}", id, e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  @Recover
+  public Product recoverDisable(DataAccessException e, Long id) {
+    log.warn("BD no disponible - fallback para disable(id={}): {}", id, e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
   /** Validates that the area exists. */

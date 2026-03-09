@@ -1,6 +1,6 @@
 logging:
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n"
   level:
     root: WARN
     aros.services.rms: INFO
@@ -12,6 +12,7 @@ logging:
     com.zaxxer.hikari: WARN
     jakarta.persistence: WARN
     org.flywaydb: DEBUG
+    aros.services.rms.infraestructure.common.config.RequestLoggingFilter: DEBUG
     springframework:
       boot:
         autoconfigure:
@@ -24,22 +25,40 @@ spring:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:rmsdb}
     username: root
     password: ${DB_ROOT_PASSWORD}
+    hikari:
+      maximum-pool-size: 5
+      connection-timeout: 10000
+      max-lifetime: 1800000
+      connection-test-query: "SELECT 1"
+      idle-timeout: 300000
+      pool-name: RmsHikariPool
+      initialization-fail-timeout: -1
   jpa:
     hibernate:
-    ddl-auto: none
+      ddl-auto: none
     open-in-view: false
     show-sql: false
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        connection:
+          handling_mode: DELAYED_ACQUISITION_AND_RELEASE_AFTER_TRANSACTION
   flyway:
-    enabled: true
-    # url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?createDatabaseIfNotExist=true
-    # user: root
-    # password: ${DB_ROOT_PASSWORD}
-    locations: classpath:db/migration
-    baseline-on-migrate: true
-    # baseline-version: 0
-    # connect-retries: 10
-    # connect-retries-interval: 2
-    check-location: true
+    enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    db:
+      enabled: true
 
 
 springdoc:
@@ -47,6 +66,7 @@ springdoc:
     path: /swagger-ui.html
     url: /v3/api-docs
   api-docs:
+    enabled: true
     path: /v3/api-docs
 
 app:
@@ -54,7 +74,7 @@ app:
   jwt:
     issuer: rms-api
     expiration-minutes: 60
-    public-key: ${JWT_PUBLIC_KEY}
-    private-key: ${JWT_PRIVATE_KEY}
+    public-key: ${JWT_PUBLIC_KEY:}
+    private-key: ${JWT_PRIVATE_KEY:}
   email:
     base-url: https://mail.aros.services
