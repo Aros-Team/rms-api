@@ -27,19 +27,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
-@Tag(name = "Products", description = "Product management")
+@Tag(name = "Products", description = "Gestión del menú de productos del restaurante")
 public class ProductController {
 
   private final ProductUseCase productUseCase;
 
   @Operation(
-      summary = "Create new product",
+      summary = "Crear nuevo producto",
       description =
-          "Creates a new product linked to an area and category. The hasOptions flag determines if customization options can be associated.",
+          "Crea un nuevo producto vinculado a un área de preparación y categoría. "
+              + "El flag hasOptions determina si se pueden asociar opciones de personalización (tamaño, toppings, etc).",
       responses = {
-        @ApiResponse(responseCode = "201", description = "Product created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid input data"),
-        @ApiResponse(responseCode = "404", description = "Area or category not found")
+        @ApiResponse(responseCode = "201", description = "Producto creado exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
+        @ApiResponse(responseCode = "404", description = "Área o categoría no encontrada")
       })
   @PostMapping
   public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request) {
@@ -57,12 +58,12 @@ public class ProductController {
   }
 
   @Operation(
-      summary = "Update product",
-      description = "Updates an existing product's details.",
+      summary = "Actualizar producto",
+      description = "Actualiza los detalles de un producto existente (nombre, precio, categoría, área).",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Product updated successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid input data"),
-        @ApiResponse(responseCode = "404", description = "Product, area, or category not found")
+        @ApiResponse(responseCode = "200", description = "Producto actualizado exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
+        @ApiResponse(responseCode = "404", description = "Producto, área o categoría no encontrada")
       })
   @PutMapping("/{id}")
   public ResponseEntity<ProductResponse> update(
@@ -81,10 +82,10 @@ public class ProductController {
   }
 
   @Operation(
-      summary = "Get all products",
-      description = "Retrieves all products.",
+      summary = "Obtener todos los productos",
+      description = "Retorna lista de todos los productos activos e inactivos del menú.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Products retrieved successfully")
+        @ApiResponse(responseCode = "200", description = "Productos obtenidos exitosamente")
       })
   @GetMapping
   public ResponseEntity<List<ProductResponse>> findAll() {
@@ -96,11 +97,11 @@ public class ProductController {
   }
 
   @Operation(
-      summary = "Get product by ID",
-      description = "Retrieves a product by its identifier.",
+      summary = "Obtener producto por ID",
+      description = "Retorna un producto específico dado su identificador.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Product retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "Product not found")
+        @ApiResponse(responseCode = "200", description = "Producto obtenido exitosamente"),
+        @ApiResponse(responseCode = "404", description = "Producto no encontrado")
       })
   @GetMapping("/{id}")
   public ResponseEntity<ProductResponse> findById(@PathVariable Long id) {
@@ -109,12 +110,13 @@ public class ProductController {
   }
 
   @Operation(
-      summary = "Disable product",
+      summary = "Desactivar producto",
       description =
-          "Performs logical deletion by setting the product as inactive. No physical deletion is performed.",
+          "Realiza eliminación lógica estableciendo el producto como inactivo. "
+              + "No se realiza eliminación física.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Product disabled successfully"),
-        @ApiResponse(responseCode = "404", description = "Product not found")
+        @ApiResponse(responseCode = "200", description = "Producto desactivado exitosamente"),
+        @ApiResponse(responseCode = "404", description = "Producto no encontrado")
       })
   @PutMapping("/{id}/disable")
   public ResponseEntity<ProductResponse> disable(@PathVariable Long id) {

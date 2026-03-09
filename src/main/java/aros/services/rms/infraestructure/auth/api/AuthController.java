@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@Tag(name = "Auth", description = "Authentication and session management")
+@Tag(name = "Auth", description = "Gestión de autenticación y sesiones de usuarios")
 public class AuthController {
 
   private final LoginUseCase loginUseCase;
@@ -47,12 +47,14 @@ public class AuthController {
   private final GetCurrentAuthUserInfoUseCase getUserInfoUseCase;
 
   @Operation(
-      summary = "User login",
-      description = "Authenticates user with username and password. Returns access token and optionally requests 2FA verification.",
+      summary = "Iniciar sesión",
+      description =
+          "Autentica al usuario con email y contraseña. Retorna access token y refresh token. "
+              + "Si el usuario tiene 2FA habilitado, retorna tipo REQUIRE_2FA.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Login successful"),
-        @ApiResponse(responseCode = "400", description = "Invalid credentials"),
-        @ApiResponse(responseCode = "401", description = "Authentication failed")
+        @ApiResponse(responseCode = "200", description = "Login exitoso"),
+        @ApiResponse(responseCode = "400", description = "Credenciales inválidas"),
+        @ApiResponse(responseCode = "401", description = "Autenticación fallida")
       })
   @PostMapping("/login")
   public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request)
@@ -72,12 +74,14 @@ public class AuthController {
   }
 
   @Operation(
-      summary = "Verify two-factor authentication",
-      description = "Verifies the 2FA code sent to user's device. Requires a valid TFA token.",
+      summary = "Verificar autenticación de dos factores",
+      description =
+          "Verifica el código 2FA enviado al dispositivo del usuario. "
+              + "Requiere un token TFA válido obtenido del login.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "2FA verification successful"),
-        @ApiResponse(responseCode = "400", description = "Invalid or expired code"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
+        @ApiResponse(responseCode = "200", description = "Verificación 2FA exitosa"),
+        @ApiResponse(responseCode = "400", description = "Código inválido o expirado"),
+        @ApiResponse(responseCode = "401", description = "No autorizado")
       })
   @PostMapping("/verify")
   @OnlyTfaTOken
@@ -99,11 +103,13 @@ public class AuthController {
   }
 
   @Operation(
-      summary = "Refresh access token",
-      description = "Refreshes the access token using a valid refresh token.",
+      summary = "Refrescar token de acceso",
+      description =
+          "Renueva el access token usando un refresh token válido. "
+              + "El refresh token debe enviarse en el header Authorization.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
-        @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
+        @ApiResponse(responseCode = "200", description = "Token refrescado exitosamente"),
+        @ApiResponse(responseCode = "401", description = "Refresh token inválido o expirado")
       })
   @PostMapping("/refresh")
   @OnlyRefreshToken
@@ -125,12 +131,14 @@ public class AuthController {
   }
 
   @Operation(
-      summary = "Get current authenticated user",
-      description = "Retrieves the information of the currently authenticated user.",
+      summary = "Obtener usuario actual",
+      description =
+          "Retorna la información del usuario autenticado actualmente "
+              + "(obtenida del token JWT en el header Authorization).",
       responses = {
-        @ApiResponse(responseCode = "200", description = "User information retrieved successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "404", description = "User not found")
+        @ApiResponse(responseCode = "200", description = "Información del usuario obtenida"),
+        @ApiResponse(responseCode = "401", description = "No autorizado"),
+        @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
       })
   @GetMapping
   @JustAccessToken
