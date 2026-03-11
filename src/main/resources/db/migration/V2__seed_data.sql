@@ -11,7 +11,7 @@ INSERT INTO users (document, name, email, password, address, phone, role)
 VALUES (
     '1234567890',
     'Steven',
-    'quintosteven590@gmail.com',
+    'edwar5020@gmail.com',
     '$2a$10$UA3p51w/MeNyQBem5kXgFOWsEV14dS/oLZLx5d4RndiloCS.a/ory',
     'Test Address',
     '+1234567890',
@@ -20,4 +20,4 @@ VALUES (
 
 -- Assign areas to user
 INSERT INTO user_assigned_areas (user_id, area_id) 
-SELECT u.id, a.id FROM users u, areas a WHERE u.email = 'quintosteven590@gmail.com';
+SELECT u.id, a.id FROM users u, areas a WHERE u.email = 'edwar5020@gmail.com';

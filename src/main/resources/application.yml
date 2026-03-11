@@ -38,13 +38,12 @@ spring:
       ddl-auto: none
     open-in-view: false
     show-sql: false
-    defer-datasource-initialization: true
     properties:
       hibernate:
         connection:
           handling_mode: DELAYED_ACQUISITION_AND_RELEASE_AFTER_TRANSACTION
   flyway:
-    enabled: false
+    enabled: true
 
 management:
   endpoints:
