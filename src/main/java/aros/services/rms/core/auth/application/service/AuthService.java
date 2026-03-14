@@ -76,8 +76,10 @@ public class AuthService
 
   @Override
   public AuthResult authenticate(Credentials credentials) throws InvalidCredentialsException {
-    User user = this.userPort.findByEmail(credentials.username().value())
-        .orElseThrow(InvalidCredentialsException::new);
+    User user =
+        this.userPort
+            .findByEmail(credentials.username().value())
+            .orElseThrow(InvalidCredentialsException::new);
 
     if (!passwordPort.validate(credentials.password(), user.getPassword())) {
       throw new InvalidCredentialsException();

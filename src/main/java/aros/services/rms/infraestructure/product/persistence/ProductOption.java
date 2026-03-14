@@ -31,4 +31,8 @@ public class ProductOption {
   @ManyToOne
   @JoinColumn(name = "option_category_id")
   private OptionCategory category;
+
+  @ManyToOne
+  @JoinColumn(name = "product_id")
+  private Product product;
 }

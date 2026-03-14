@@ -5,6 +5,7 @@ import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
 import aros.services.rms.core.order.port.input.TakeOrderUseCase;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
+import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
@@ -95,6 +96,14 @@ public class TakeOrderUseCaseImpl implements TakeOrderUseCase {
         if (hasSelectedOptions) {
           selectedOptions =
               productOptionRepositoryPort.findAllById(detailCommand.getSelectedOptionIds());
+
+          // Validar que todas las opciones pertenezcan al producto específico
+          for (ProductOption option : selectedOptions) {
+            if (option.getProduct() == null
+                || !option.getProduct().getId().equals(product.getId())) {
+              throw new InvalidProductOptionException(product.getId(), option.getId());
+            }
+          }
         }
 
         OrderDetail detail =

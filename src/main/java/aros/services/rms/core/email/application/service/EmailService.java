@@ -29,12 +29,9 @@ public class EmailService implements TwoFactorAuthEmailUseCase, RegistrationEmai
 
   @Override
   public void sendRegistrationMail(UserEmail destination, String message) {
-    Email regEmail = new Email(
-      destination.value(),
-      "admin@aros.service",
-      "notification",
-      Map.of("message", message)
-    );
+    Email regEmail =
+        new Email(
+            destination.value(), "admin@aros.service", "notification", Map.of("message", message));
 
     this.emailPort.send(regEmail);
   }

@@ -39,6 +39,7 @@ public class ProductMapper {
         .id(entity.getId())
         .name(entity.getName())
         .category(categoryMapper.toOptionCategoryDomain(entity.getCategory()))
+        .product(entity.getProduct() != null ? toProductDomain(entity.getProduct()) : null)
         .build();
   }
 
@@ -71,6 +72,7 @@ public class ProductMapper {
         .id(domain.getId())
         .name(domain.getName())
         .category(categoryMapper.toOptionCategoryEntity(domain.getCategory()))
+        .product(domain.getProduct() != null ? toProductEntity(domain.getProduct()) : null)
         .build();
   }
 }

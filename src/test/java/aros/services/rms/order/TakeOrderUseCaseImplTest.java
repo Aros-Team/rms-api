@@ -16,6 +16,7 @@ import aros.services.rms.core.order.application.usecases.TakeOrderCommand;
 import aros.services.rms.core.order.application.usecases.TakeOrderUseCaseImpl;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
+import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
@@ -65,7 +66,8 @@ class TakeOrderUseCaseImplTest {
             .hasOptions(true)
             .category(Category.builder().id(1L).name("Food").build())
             .build();
-    ProductOption option = ProductOption.builder().id(1L).name("Extra Cheese").build();
+    ProductOption option =
+        ProductOption.builder().id(1L).name("Extra Cheese").product(product).build();
 
     when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
     when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
@@ -246,5 +248,98 @@ class TakeOrderUseCaseImplTest {
     assertEquals(TableStatus.AVAILABLE, table.getStatus());
     verify(tableRepositoryPort, times(2)).save(table);
     verify(orderRepositoryPort, never()).save(any(Order.class));
+  }
+
+  @Test
+  void shouldThrowAndReleaseTable_whenOptionIsNotValidForProduct() {
+    Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
+    Product burger =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .basePrice(10.0)
+            .hasOptions(true)
+            .category(Category.builder().id(1L).name("Food").build())
+            .build();
+    Product beverage =
+        Product.builder()
+            .id(2L)
+            .name("Beverage")
+            .basePrice(5.0)
+            .hasOptions(true)
+            .category(Category.builder().id(2L).name("Drinks").build())
+            .build();
+
+    // Opción válida para beverage, no para burger
+    ProductOption invalidOption =
+        ProductOption.builder().id(99L).name("Size Large").product(beverage).build();
+
+    when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(burger));
+    when(productOptionRepositoryPort.findAllById(List.of(99L))).thenReturn(List.of(invalidOption));
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(1L)
+            .details(
+                List.of(
+                    TakeOrderCommand.OrderDetailCommand.builder()
+                        .productId(1L)
+                        .instructions(null)
+                        .selectedOptionIds(List.of(99L))
+                        .build()))
+            .build();
+
+    InvalidProductOptionException exception =
+        assertThrows(InvalidProductOptionException.class, () -> takeOrderUseCase.execute(command));
+
+    assertEquals("Option 99 is not valid for product 1", exception.getMessage());
+    assertEquals(TableStatus.AVAILABLE, table.getStatus());
+    verify(tableRepositoryPort, times(2)).save(table);
+    verify(orderRepositoryPort, never()).save(any(Order.class));
+  }
+
+  @Test
+  void shouldTakeOrderSuccessfully_whenAllOptionsAreValidForProduct() {
+    Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
+    Product product =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .basePrice(10.0)
+            .hasOptions(true)
+            .category(Category.builder().id(1L).name("Food").build())
+            .build();
+
+    ProductOption option1 =
+        ProductOption.builder().id(1L).name("Extra Cheese").product(product).build();
+    ProductOption option2 = ProductOption.builder().id(2L).name("Bacon").product(product).build();
+
+    when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
+    when(productOptionRepositoryPort.findAllById(List.of(1L, 2L)))
+        .thenReturn(List.of(option1, option2));
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(1L)
+            .details(
+                List.of(
+                    TakeOrderCommand.OrderDetailCommand.builder()
+                        .productId(1L)
+                        .instructions("Well done")
+                        .selectedOptionIds(List.of(1L, 2L))
+                        .build()))
+            .build();
+
+    Order result = takeOrderUseCase.execute(command);
+
+    assertNotNull(result);
+    assertEquals(1, result.getDetails().size());
+    assertEquals(2, result.getDetails().get(0).getSelectedOptions().size());
+    verify(tableRepositoryPort, times(1)).save(table);
+    assertEquals(TableStatus.OCCUPIED, table.getStatus());
   }
 }

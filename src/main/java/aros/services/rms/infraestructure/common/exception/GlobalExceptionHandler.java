@@ -9,6 +9,7 @@ import aros.services.rms.core.category.application.exception.OptionCategoryNotFo
 import aros.services.rms.core.order.application.exception.InvalidOrderStatusException;
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.application.exception.TableNotAvailableException;
+import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.product.application.exception.ProductOptionNotFoundException;
 import aros.services.rms.core.table.application.exception.InvalidTableStatusException;
@@ -92,6 +93,12 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleProductOptionNotFound(
       ProductOptionNotFoundException e) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  @ExceptionHandler(InvalidProductOptionException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidProductOption(InvalidProductOptionException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
   }
 
   // --- Table exceptions ---
