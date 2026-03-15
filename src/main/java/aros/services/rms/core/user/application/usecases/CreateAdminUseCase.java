@@ -2,7 +2,7 @@
 package aros.services.rms.core.user.application.usecases;
 
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
-import aros.services.rms.core.email.application.service.EmailService;
+import aros.services.rms.core.email.port.input.RegistrationEmailUseCase;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.core.user.domain.UserRole;
@@ -22,7 +22,7 @@ public class CreateAdminUseCase {
   private final UserRepositoryPort userRepository;
   private final AdminRepositoryPort adminRepository;
   private final PasswordEncoderPort passwordEncoder;
-  private final EmailService emailService;
+  private final RegistrationEmailUseCase emailService;
 
   public record AdminConfig(String email, boolean isProduction) {}
 
@@ -32,11 +32,11 @@ public class CreateAdminUseCase {
       UserRepositoryPort userRepository,
       AdminRepositoryPort adminRepository,
       PasswordEncoderPort passwordEncoder,
-      EmailService emailService) {
+      RegistrationEmailUseCase registrationEmailUseCase) {
     this.userRepository = userRepository;
     this.adminRepository = adminRepository;
     this.passwordEncoder = passwordEncoder;
-    this.emailService = emailService;
+    this.emailService = registrationEmailUseCase;
   }
 
   @Transactional

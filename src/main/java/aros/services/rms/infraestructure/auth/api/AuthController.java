@@ -10,11 +10,14 @@ import aros.services.rms.core.auth.application.exception.InvalidRefreshToken;
 import aros.services.rms.core.auth.application.exception.UserNotFoundException;
 import aros.services.rms.core.auth.port.input.GetCurrentAuthUserInfoUseCase;
 import aros.services.rms.core.auth.port.input.LoginUseCase;
+import aros.services.rms.core.auth.port.input.PasswordResetUseCase;
 import aros.services.rms.core.auth.port.input.RefreshTokensUseCase;
 import aros.services.rms.core.auth.port.input.VerifyTwoFactorUseCase;
 import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.infraestructure.auth.api.dto.AuthResponse;
+import aros.services.rms.infraestructure.auth.api.dto.ForgotPasswordRequest;
 import aros.services.rms.infraestructure.auth.api.dto.LoginRequest;
+import aros.services.rms.infraestructure.auth.api.dto.ResetPasswordRequest;
 import aros.services.rms.infraestructure.auth.api.dto.UserFullInfoResponse;
 import aros.services.rms.infraestructure.auth.api.dto.VerifyTwoFactorRequest;
 import aros.services.rms.infraestructure.share.security.JustAccessToken;
@@ -25,6 +28,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -45,6 +49,7 @@ public class AuthController {
   private final VerifyTwoFactorUseCase verifyTwoFactorUseCase;
   private final RefreshTokensUseCase refreshTokensUseCase;
   private final GetCurrentAuthUserInfoUseCase getUserInfoUseCase;
+  private final PasswordResetUseCase passwordResetUseCase;
 
   @Operation(
       summary = "Iniciar sesión",
@@ -164,5 +169,34 @@ public class AuthController {
             uInfo.areas());
 
     return ResponseEntity.ok(uInfoResponse);
+  }
+
+  @Operation(
+      summary = "Solicitar recuperación de contraseña",
+      description =
+          "Envía un email con el token de recuperación de contraseña al correo electrónico proporcionado.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Email de recuperación enviado"),
+        @ApiResponse(responseCode = "400", description = "Email inválido")
+      })
+  @PostMapping("/forgot-password")
+  public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) throws UserNotFoundException {
+    passwordResetUseCase.requestPasswordReset(request.email());
+    return ResponseEntity.ok().build();
+  }
+
+  @Operation(
+      summary = "Restablecer contraseña",
+      description =
+          "Restablece la contraseña del usuario usando el token de recuperación enviado por email.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Contraseña actualizada exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Token inválido o expirado"),
+        @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+      })
+  @PostMapping("/reset-password")
+  public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+    passwordResetUseCase.resetPassword(request.token(), request.newPassword());
+    return ResponseEntity.status(HttpStatus.OK).build();
   }
 }

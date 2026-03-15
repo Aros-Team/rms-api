@@ -3,10 +3,14 @@ package aros.services.rms.config;
 
 import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.auth.application.service.AuthService;
+import aros.services.rms.core.auth.application.usecases.PasswordResetUseCaseImpl;
+import aros.services.rms.core.auth.port.input.PasswordResetUseCase;
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
+import aros.services.rms.core.auth.port.output.PasswordResetTokenRepositoryPort;
 import aros.services.rms.core.auth.port.output.RefreshTokenRepositoryPort;
 import aros.services.rms.core.auth.port.output.TokenPort;
 import aros.services.rms.core.device.port.output.DeviceRepositoryPort;
+import aros.services.rms.core.email.port.input.PasswordResetEmailUseCase;
 import aros.services.rms.core.email.port.input.TwoFactorAuthEmailUseCase;
 import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.twofactor.port.output.TfaCodeGeneratorPort;
@@ -30,6 +34,8 @@ public class AuthBeanConfig {
   private final HashServicePort hashServicePort;
   private final TfaCodeGeneratorPort tfaCodeGeneratorPort;
   private final AreaRepositoryPort areaPort;
+  private final PasswordResetTokenRepositoryPort passwordResetTokenRepositoryPort;
+  private final PasswordResetEmailUseCase passwordResetEmailUseCase;
 
   @Bean
   public AuthService authService() {
@@ -44,5 +50,15 @@ public class AuthBeanConfig {
         hashServicePort,
         tfaCodeGeneratorPort,
         areaPort);
+  }
+
+  @Bean
+  public PasswordResetUseCase passwordResetUseCase() {
+    return new PasswordResetUseCaseImpl(
+        userPort,
+        passwordResetTokenRepositoryPort,
+        passwordPort,
+        passwordResetEmailUseCase,
+        hashServicePort);
   }
 }

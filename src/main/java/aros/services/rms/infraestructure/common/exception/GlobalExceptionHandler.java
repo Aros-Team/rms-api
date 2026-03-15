@@ -4,6 +4,8 @@ package aros.services.rms.infraestructure.common.exception;
 import aros.services.rms.core.area.application.exception.AreaAlreadyExistsException;
 import aros.services.rms.core.area.application.exception.AreaNotFoundException;
 import aros.services.rms.core.auth.application.exception.InvalidCredentialsException;
+import aros.services.rms.core.auth.application.exception.PasswordResetTokenExpiredException;
+import aros.services.rms.core.auth.application.exception.PasswordResetTokenInvalidException;
 import aros.services.rms.core.category.application.exception.CategoryNotFoundException;
 import aros.services.rms.core.category.application.exception.OptionCategoryNotFoundException;
 import aros.services.rms.core.order.application.exception.InvalidOrderStatusException;
@@ -159,6 +161,22 @@ public class GlobalExceptionHandler {
     log.warn("Servicio no disponible: {}", e.getMessage());
     return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
         .body(new ErrorResponse(503, e.getMessage()));
+  }
+
+  // --- Password reset exceptions ---
+
+  @ExceptionHandler(PasswordResetTokenInvalidException.class)
+  public ResponseEntity<ErrorResponse> handlePasswordResetTokenInvalid(
+      PasswordResetTokenInvalidException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
+  }
+
+  @ExceptionHandler(PasswordResetTokenExpiredException.class)
+  public ResponseEntity<ErrorResponse> handlePasswordResetTokenExpired(
+      PasswordResetTokenExpiredException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
   }
 
   // --- Authorization handlers ---

@@ -2,6 +2,7 @@
 package aros.services.rms.config;
 
 import aros.services.rms.core.email.application.service.EmailService;
+import aros.services.rms.core.email.port.input.PasswordResetEmailUseCase;
 import aros.services.rms.core.email.port.input.RegistrationEmailUseCase;
 import aros.services.rms.core.email.port.input.TwoFactorAuthEmailUseCase;
 import aros.services.rms.core.email.port.output.EmailServicePort;
@@ -26,6 +27,11 @@ public class EmailBeanConfig {
 
   @Bean
   public RegistrationEmailUseCase registrationEmailUseCase() {
+    return this.service;
+  }
+
+  @Bean
+  public PasswordResetEmailUseCase passwordResetEmailUseCase() {
     return this.service;
   }
 }
