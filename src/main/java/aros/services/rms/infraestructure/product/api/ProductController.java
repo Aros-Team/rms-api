@@ -3,7 +3,10 @@ package aros.services.rms.infraestructure.product.api;
 
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.product.domain.Product;
+import aros.services.rms.core.product.domain.ProductOption;
+import aros.services.rms.core.product.port.input.ProductOptionUseCase;
 import aros.services.rms.core.product.port.input.ProductUseCase;
+import aros.services.rms.infraestructure.product.api.dto.ProductOptionResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductRequest;
 import aros.services.rms.infraestructure.product.api.dto.ProductResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProductController {
 
   private final ProductUseCase productUseCase;
+  private final ProductOptionUseCase productOptionUseCase;
 
   @Operation(
       summary = "Crear nuevo producto",
@@ -123,5 +127,26 @@ public class ProductController {
   public ResponseEntity<ProductResponse> disable(@PathVariable Long id) {
     Product product = productUseCase.disable(id);
     return ResponseEntity.ok(ProductResponse.fromDomain(product));
+  }
+
+  @Operation(
+      summary = "Obtener opciones de un producto",
+      description =
+          "Retorna las opciones de personalización asociadas a un producto específico. "
+              + "Usar este endpoint cuando el producto tiene hasOptions=true.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Opciones obtenidas exitosamente"),
+        @ApiResponse(responseCode = "404", description = "Producto no encontrado")
+      })
+  @GetMapping("/{id}/options")
+  public ResponseEntity<List<ProductOptionResponse>> findOptionsByProductId(@PathVariable Long id) {
+    // First verify the product exists
+    productUseCase.findById(id);
+    
+    List<ProductOptionResponse> responses =
+        productOptionUseCase.findByProductId(id).stream()
+            .map(ProductOptionResponse::fromDomain)
+            .collect(Collectors.toList());
+    return ResponseEntity.ok(responses);
   }
 }

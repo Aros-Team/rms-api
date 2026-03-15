@@ -44,4 +44,11 @@ public class ProductOptionPersistenceAdapter implements ProductOptionRepositoryP
         .map(productMapper::toProductOptionDomain)
         .collect(Collectors.toList());
   }
+
+  @Override
+  public List<ProductOption> findByProductId(Long productId) {
+    return productOptionRepository.findByProductId(productId).stream()
+        .map(productMapper::toProductOptionDomain)
+        .collect(Collectors.toList());
+  }
 }

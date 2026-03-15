@@ -91,6 +91,15 @@ public class ProductOptionUseCaseImpl implements ProductOptionUseCase {
         .orElseThrow(() -> new ProductOptionNotFoundException(id));
   }
 
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public List<ProductOption> findByProductId(Long productId) {
+    return productOptionRepositoryPort.findByProductId(productId);
+  }
+
   @Recover
   public ProductOption recoverCreate(DataAccessException e, ProductOption productOption) {
     log.warn(
@@ -115,6 +124,12 @@ public class ProductOptionUseCaseImpl implements ProductOptionUseCase {
   @Recover
   public ProductOption recoverFindById(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para findById(id={}): {}", id, e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  @Recover
+  public List<ProductOption> recoverFindByProductId(DataAccessException e, Long productId) {
+    log.warn("BD no disponible - fallback para findByProductId(productId={}): {}", productId, e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 

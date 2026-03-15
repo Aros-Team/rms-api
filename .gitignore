@@ -40,3 +40,6 @@ out/
 ### Documentation & Text Files ###
 *.md
 *.txt
+
+### Database Migrations ###
+src/main/resources/db/migration/V5__insert_products_data.sql

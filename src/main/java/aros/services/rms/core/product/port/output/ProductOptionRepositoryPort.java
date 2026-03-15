@@ -14,4 +14,6 @@ public interface ProductOptionRepositoryPort {
   List<ProductOption> findAllById(List<Long> ids);
 
   List<ProductOption> findAll();
+
+  List<ProductOption> findByProductId(Long productId);
 }

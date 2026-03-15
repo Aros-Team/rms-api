@@ -17,4 +17,6 @@ public interface ProductOptionUseCase {
   List<ProductOption> findAll();
 
   ProductOption findById(Long id);
+
+  List<ProductOption> findByProductId(Long productId);
 }

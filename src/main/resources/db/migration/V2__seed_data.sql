@@ -11,11 +11,11 @@ INSERT INTO users (document, name, email, password, address, phone, role)
 VALUES (
     '1234567890',
     'Steven',
-    'edwar5020@gmail.com',
+    'user@gmail.com',
     '$2a$10$UA3p51w/MeNyQBem5kXgFOWsEV14dS/oLZLx5d4RndiloCS.a/ory',
     'Test Address',
     '+1234567890',
-    'ADMIN'
+    'WORKER'
 );
 
 -- Assign areas to user
