@@ -70,6 +70,10 @@ springdoc:
 
 app:
   version: 0.1.0
+  env: ${APP_ENV:development}
+  admin:
+    email: ${ADMIN_EMAIL:}
+    dummy-email: ${DUMMY_EMAIL:}
   jwt:
     issuer: rms-api
     expiration-minutes: 60

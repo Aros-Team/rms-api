@@ -1,0 +1,158 @@
+/* (C) 2026 */
+package aros.services.rms.core.user.application.usecases;
+
+import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
+import aros.services.rms.core.email.application.service.EmailService;
+import aros.services.rms.core.user.domain.User;
+import aros.services.rms.core.user.domain.UserEmail;
+import aros.services.rms.core.user.domain.UserRole;
+import aros.services.rms.core.user.port.output.AdminRepositoryPort;
+import aros.services.rms.core.user.port.output.UserRepositoryPort;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class CreateAdminUseCase {
+
+  private static final Logger log = LoggerFactory.getLogger(CreateAdminUseCase.class);
+
+  private final UserRepositoryPort userRepository;
+  private final AdminRepositoryPort adminRepository;
+  private final PasswordEncoderPort passwordEncoder;
+  private final EmailService emailService;
+
+  public record AdminConfig(String email, boolean isProduction) {}
+
+  public record AdminCredentials(String email, String rawPassword, boolean isDevelopment) {}
+
+  public CreateAdminUseCase(
+      UserRepositoryPort userRepository,
+      AdminRepositoryPort adminRepository,
+      PasswordEncoderPort passwordEncoder,
+      EmailService emailService) {
+    this.userRepository = userRepository;
+    this.adminRepository = adminRepository;
+    this.passwordEncoder = passwordEncoder;
+    this.emailService = emailService;
+  }
+
+  @Transactional
+  public AdminCredentials execute(AdminConfig config) {
+    log.info("Starting administrator verification...");
+
+    if (config.isProduction()) {
+      log.info("Operation mode: production");
+      return createProductionAdmin(config.email());
+    } else {
+      log.info("Operation mode: development");
+      return createDevelopmentAdmin(config.email());
+    }
+  }
+
+  private AdminCredentials createProductionAdmin(String adminEmail) {
+    log.info("Administrator email: {}", adminEmail);
+
+    long adminCount = adminRepository.countByRole(UserRole.ADMIN);
+    if (adminCount > 0) {
+      log.info(
+          "Administrator creation not required. An ADMIN role user already exists in the database.");
+      return null;
+    }
+
+    log.info("No administrator found, creating new one...");
+
+    String rawPassword = GenerateSecurePassword.execute();
+    String hashedPassword = passwordEncoder.encode(rawPassword);
+
+    User admin =
+        new User(
+            null,
+            "00000000",
+            "Administrator",
+            new UserEmail(adminEmail),
+            hashedPassword,
+            "",
+            "",
+            UserRole.ADMIN,
+            List.of());
+
+    userRepository.save(admin);
+    log.info("Administrator created successfully");
+
+    sendEmail(adminEmail, rawPassword, false);
+
+    return new AdminCredentials(adminEmail, rawPassword, false);
+  }
+
+  private AdminCredentials createDevelopmentAdmin(String dummyEmail) {
+    log.info("Administrator email: {}", dummyEmail);
+    log.info("Generating new password for development mode...");
+
+    String rawPassword = GenerateSecurePassword.execute();
+    String hashedPassword = passwordEncoder.encode(rawPassword);
+
+    User admin =
+        new User(
+            null,
+            "00000000",
+            "Administrator",
+            new UserEmail(dummyEmail),
+            hashedPassword,
+            "",
+            "",
+            UserRole.ADMIN,
+            List.of());
+
+    log.info("Administrator created successfully (in memory, not persisted)");
+
+    sendEmail(dummyEmail, rawPassword, true);
+
+    return new AdminCredentials(dummyEmail, rawPassword, true);
+  }
+
+  private void sendEmail(String email, String password, boolean isDevelopment) {
+    log.info("Sending email with credentials...");
+
+    try {
+      String message;
+      if (isDevelopment) {
+        message =
+            String.format(
+                "⚠️ SECURITY WARNING - DEVELOPMENT MODE ⚠️%n%n"
+                    + "This email comes from the system in DEVELOPMENT mode.%n"
+                    + "If you are NOT authorized to receive this email,%n"
+                    + "please REPORT to technical support immediately.%n%n"
+                    + "=============================================%n%n"
+                    + "Administrator credentials (DEVELOPMENT):%n%n"
+                    + "Email: %s%n"
+                    + "Password: %s%n%n"
+                    + "=============================================%n%n"
+                    + "Note: These credentials are regenerated on each run.%n"
+                    + "DO NOT use in production.",
+                email, password);
+      } else {
+        message =
+            String.format(
+                "Welcome to the RMS system.%n%n"
+                    + "Your administrator credentials are:%n%n"
+                    + "Email: %s%n"
+                    + "Password: %s%n%n"
+                    + "Please change your password after the first login.",
+                email, password);
+      }
+
+      emailService.sendRegistrationMail(new UserEmail(email), message);
+      log.info("Email sent successfully");
+    } catch (Exception e) {
+      if (isDevelopment) {
+        log.warn("Email could not be sent (development mode - continuing): {}", e.getMessage());
+      } else {
+        log.error("Error sending email: {}", e.getMessage());
+        throw new IllegalStateException("Error sending email", e);
+      }
+    }
+  }
+}

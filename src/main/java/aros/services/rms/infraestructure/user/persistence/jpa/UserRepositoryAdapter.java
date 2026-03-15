@@ -3,6 +3,8 @@ package aros.services.rms.infraestructure.user.persistence.jpa;
 
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserId;
+import aros.services.rms.core.user.domain.UserRole;
+import aros.services.rms.core.user.port.output.AdminRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import jakarta.transaction.Transactional;
 import java.util.Optional;
@@ -13,7 +15,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 @Transactional
-public class UserRepositoryAdapter implements UserRepositoryPort {
+public class UserRepositoryAdapter implements UserRepositoryPort, AdminRepositoryPort {
   @Autowired private JpaUserRepository internal;
 
   @Autowired private UserPersistenceMapper userMapper;
@@ -36,5 +38,10 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
   @Override
   public boolean existsByEmailOrDocument(String document, String email) {
     return this.internal.existsByDocumentOrEmail(document, email);
+  }
+
+  @Override
+  public long countByRole(UserRole role) {
+    return this.internal.countByRole(role);
   }
 }
