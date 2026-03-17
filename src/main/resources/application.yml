@@ -2,8 +2,8 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n"
   level:
-    root: WARN
-    aros.services.rms: INFO
+    root: ${LOG_LEVEL_ROOT:WARN}
+    aros.services.rms: ${LOG_LEVEL_APP:INFO}
     org.springframework.web: WARN
     org.springframework.security: WARN
     org.hibernate: WARN
@@ -11,8 +11,8 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: ERROR
     com.zaxxer.hikari: WARN
     jakarta.persistence: WARN
-    org.flywaydb: DEBUG
-    aros.services.rms.infraestructure.common.config.RequestLoggingFilter: DEBUG
+    org.flywaydb: ${LOG_FLYWAY:DEBUG}
+    aros.services.rms.infraestructure.common.config.RequestLoggingFilter: ${LOG_REQUEST:DEBUG}
     springframework:
       boot:
         autoconfigure:
@@ -22,7 +22,7 @@ spring:
   application:
     name: rms
   datasource:
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?allowPublicKeyRetrieval=true&useSSL=false
     username: root
     password: ${DB_ROOT_PASSWORD}
     hikari:
@@ -62,11 +62,9 @@ management:
 
 springdoc:
   swagger-ui:
-    path: /swagger-ui.html
-    url: /v3/api-docs
+    enabled: ${SWAGGER_ENABLED:true}
   api-docs:
-    enabled: true
-    path: /v3/api-docs
+    enabled: ${SWAGGER_ENABLED:true}
 
 app:
   version: 0.1.0

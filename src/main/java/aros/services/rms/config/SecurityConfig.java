@@ -12,6 +12,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
@@ -34,7 +35,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+  private static final String PRODUCTION = "production";
+
   private final JwtConfigValidator jwtConfigValidator;
+
+  @Value("${app.env:development}")
+  private String appEnv;
 
   public SecurityConfig(JwtConfigValidator jwtConfigValidator) {
     this.jwtConfigValidator = jwtConfigValidator;
@@ -92,9 +98,6 @@ public class SecurityConfig {
                           "/api/auth/login",
                           "/api/auth/forgot-password",
                           "/api/auth/reset-password",
-                          "/swagger-ui/**",
-                          "/swagger-ui.html",
-                          "/v3/api-docs/**",
                           "/actuator/health/**",
                           "/actuator/health")
                       .permitAll()
@@ -106,8 +109,8 @@ public class SecurityConfig {
           auth ->
               auth.requestMatchers(
                       "/api/auth/login",
-                          "/api/auth/forgot-password",
-                          "/api/auth/reset-password",
+                      "/api/auth/forgot-password",
+                      "/api/auth/reset-password",
                       "/swagger-ui/**",
                       "/swagger-ui.html",
                       "/v3/api-docs/**",
@@ -124,7 +127,15 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+
+    boolean isProduction = PRODUCTION.equalsIgnoreCase(appEnv);
+
+    if (isProduction) {
+      config.setAllowedOriginPatterns(List.of("https://rms.aros.services"));
+    } else {
+      config.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+    }
+
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
     config.setAllowedHeaders(List.of("*"));
     config.setAllowCredentials(true);
