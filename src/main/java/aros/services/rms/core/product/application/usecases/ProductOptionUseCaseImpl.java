@@ -129,7 +129,10 @@ public class ProductOptionUseCaseImpl implements ProductOptionUseCase {
 
   @Recover
   public List<ProductOption> recoverFindByProductId(DataAccessException e, Long productId) {
-    log.warn("BD no disponible - fallback para findByProductId(productId={}): {}", productId, e.getMessage());
+    log.warn(
+        "BD no disponible - fallback para findByProductId(productId={}): {}",
+        productId,
+        e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 

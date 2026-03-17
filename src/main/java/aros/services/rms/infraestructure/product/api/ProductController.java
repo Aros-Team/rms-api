@@ -3,7 +3,6 @@ package aros.services.rms.infraestructure.product.api;
 
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.product.domain.Product;
-import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.port.input.ProductOptionUseCase;
 import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.infraestructure.product.api.dto.ProductOptionResponse;
@@ -142,7 +141,7 @@ public class ProductController {
   public ResponseEntity<List<ProductOptionResponse>> findOptionsByProductId(@PathVariable Long id) {
     // First verify the product exists
     productUseCase.findById(id);
-    
+
     List<ProductOptionResponse> responses =
         productOptionUseCase.findByProductId(id).stream()
             .map(ProductOptionResponse::fromDomain)

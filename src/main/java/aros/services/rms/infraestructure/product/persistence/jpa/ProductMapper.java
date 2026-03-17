@@ -40,7 +40,7 @@ public class ProductMapper {
         .name(entity.getName())
         .category(categoryMapper.toOptionCategoryDomain(entity.getCategory()))
         .product(entity.getProduct() != null ? toProductDomain(entity.getProduct()) : null)
-            .build();
+        .build();
   }
 
   /** Converts a Product domain model to a JPA entity. */
@@ -73,6 +73,6 @@ public class ProductMapper {
         .name(domain.getName())
         .category(categoryMapper.toOptionCategoryEntity(domain.getCategory()))
         .product(domain.getProduct() != null ? toProductEntity(domain.getProduct()) : null)
-            .build();
+        .build();
   }
 }
