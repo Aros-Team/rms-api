@@ -180,7 +180,8 @@ public class AuthController {
         @ApiResponse(responseCode = "400", description = "Email inválido")
       })
   @PostMapping("/forgot-password")
-  public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) throws UserNotFoundException {
+  public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request)
+      throws UserNotFoundException {
     passwordResetUseCase.requestPasswordReset(request.email());
     return ResponseEntity.ok().build();
   }

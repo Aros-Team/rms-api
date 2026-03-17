@@ -5,12 +5,7 @@ import aros.services.rms.core.user.domain.UserId;
 import java.time.Instant;
 
 public record PasswordResetToken(
-    Long id,
-    UserId userId,
-    String tokenHash,
-    Instant createdAt,
-    Instant expiresAt,
-    boolean used) {
+    Long id, UserId userId, String tokenHash, Instant createdAt, Instant expiresAt, boolean used) {
   public PasswordResetToken {
     if (tokenHash == null || tokenHash.isBlank()) {
       throw new IllegalArgumentException("Token hash is required");

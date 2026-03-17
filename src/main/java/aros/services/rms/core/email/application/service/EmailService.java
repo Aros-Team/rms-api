@@ -46,9 +46,7 @@ public class EmailService
             "admin@aros.service",
             "notification",
             // Map.of("token", resetToken, "expiry", "30 minutos")
-            Map.of("message", "Token de verificacion: " + resetToken)
-        );
-
+            Map.of("message", "Token de verificacion: " + resetToken));
 
     this.emailPort.send(resetEmail);
   }
