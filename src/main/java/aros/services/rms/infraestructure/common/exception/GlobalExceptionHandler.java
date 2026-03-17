@@ -188,6 +188,15 @@ public class GlobalExceptionHandler {
         .body(new ErrorResponse(HttpStatus.FORBIDDEN.value(), e.getMessage()));
   }
 
+  // --- User exceptions ---
+
+  @ExceptionHandler(aros.services.rms.core.user.application.exception.InvalidPasswordException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidPassword(
+      aros.services.rms.core.user.application.exception.InvalidPasswordException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
+  }
+
   // --- Generic catch-all handlers ---
 
   @ExceptionHandler(Exception.class)
