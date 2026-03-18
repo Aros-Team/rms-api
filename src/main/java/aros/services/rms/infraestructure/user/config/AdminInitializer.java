@@ -49,6 +49,7 @@ public class AdminInitializer implements CommandLineRunner {
       AdminCredentials credentials = createAdminUseCase.execute(config);
 
       if (credentials == null) {
+        log.info("Administrator already exists. Using stored credentials.");
         log.info("Initialization process completed");
         return;
       }
@@ -66,9 +67,10 @@ public class AdminInitializer implements CommandLineRunner {
         System.out.println("║  Password: " + credentials.rawPassword());
         System.out.println("╚═══════════════════════════════════════════════════════════╝");
 
-        log.warn("Credentials printed to console for security");
+        log.warn("Credentials printed to console. Save them, they won't be shown again.");
         log.info("Initialization process completed");
       } else {
+        log.info("Administrator created successfully");
         log.info("Initialization process completed");
       }
 

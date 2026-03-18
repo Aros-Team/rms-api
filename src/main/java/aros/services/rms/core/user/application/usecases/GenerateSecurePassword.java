@@ -2,32 +2,22 @@
 package aros.services.rms.core.user.application.usecases;
 
 import java.security.SecureRandom;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class GenerateSecurePassword {
 
-  private static final String UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  private static final String LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
-  private static final String DIGITS = "0123456789";
-  private static final String SYMBOLS = "!@#$%^&*()_+-=[]{}|;:,.<>?";
-  private static final int LENGTH = 16;
+  private static final String[] WORDS = {
+    "Admin", "Root", "User", "Chef", "Chef", "Boss", "Super", "Mega", "Admin", "Root",
+    "Master", "Super", "Chief", "Lead", "Head", "Chef", "Boss", "Super", "Admin", "Root"
+  };
+
+  private static final String SYMBOLS = "!@#+*$";
+  private static final SecureRandom random = new SecureRandom();
 
   public static String execute() {
-    String allChars = UPPERCASE + LOWERCASE + DIGITS + SYMBOLS;
-    SecureRandom random = new SecureRandom();
+    String word = WORDS[random.nextInt(WORDS.length)];
+    int number = 100 + random.nextInt(900);
+    char symbol = SYMBOLS.charAt(random.nextInt(SYMBOLS.length()));
 
-    Set<Character> password = new HashSet<>();
-    password.add(UPPERCASE.charAt(random.nextInt(UPPERCASE.length())));
-    password.add(LOWERCASE.charAt(random.nextInt(LOWERCASE.length())));
-    password.add(DIGITS.charAt(random.nextInt(DIGITS.length())));
-    password.add(SYMBOLS.charAt(random.nextInt(SYMBOLS.length())));
-
-    while (password.size() < LENGTH) {
-      password.add(allChars.charAt(random.nextInt(allChars.length())));
-    }
-
-    return password.stream().map(String::valueOf).collect(Collectors.joining());
+    return word + number + symbol;
   }
 }

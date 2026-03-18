@@ -9,6 +9,27 @@ This document provides guidelines for agents working on the RMS (Restaurant Mana
 - **Database**: MySQL 7.4
 - **Key Dependencies**: Spring Data JPA, Spring Security, Spring Validation, Spring WebMVC, Spring WebSocket, Lombok
 
+## Importante: Usar siempre Taskfile
+
+**Todos los comandos deben ejecutarse desde el Taskfile**. No usar `./gradlew` directamente excepto donde sea necesario.
+
+```bash
+# Desarrollo - iniciar la aplicación
+task run
+
+# Desarrollo - formatear código después de hacer cambios
+task format
+
+# Build con Docker
+task build
+
+# Tests
+task test
+
+# Limpiar
+task clean
+```
+
 ## Build Commands
 
 ### Standard Commands
@@ -61,6 +82,11 @@ docker compose down
 ```
 
 ## Code Style Guidelines
+
+**Después de cualquier cambio en código Java, ejecutar siempre:**
+```bash
+task format
+```
 
 ### General Principles
 - Use **Google style guide**

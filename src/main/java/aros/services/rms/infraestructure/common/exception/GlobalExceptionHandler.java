@@ -143,7 +143,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(InvalidCredentialsException.class)
   public ResponseEntity<Map<String, Object>> handleInvalidCredentials(
       InvalidCredentialsException ex) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
         .body(
             Map.of(
                 "error", "Invalid credentials",
@@ -190,7 +190,8 @@ public class GlobalExceptionHandler {
 
   // --- User exceptions ---
 
-  @ExceptionHandler(aros.services.rms.core.user.application.exception.InvalidPasswordException.class)
+  @ExceptionHandler(
+      aros.services.rms.core.user.application.exception.InvalidPasswordException.class)
   public ResponseEntity<ErrorResponse> handleInvalidPassword(
       aros.services.rms.core.user.application.exception.InvalidPasswordException e) {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)

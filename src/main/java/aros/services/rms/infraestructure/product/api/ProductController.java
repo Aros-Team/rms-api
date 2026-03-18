@@ -101,6 +101,19 @@ public class ProductController {
   }
 
   @Operation(
+      summary = "Obtener productos más vendidos",
+      description = "Retorna los productos más vendidos del restaurante.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Productos obtenidos exitosamente")
+      })
+  @GetMapping("/top-selling")
+  public ResponseEntity<List<ProductResponse>> getTopSelling() {
+    List<ProductResponse> responses =
+        List.of(); // TODO: Implementar lógica de productos más vendidos
+    return ResponseEntity.ok(responses);
+  }
+
+  @Operation(
       summary = "Obtener producto por ID",
       description = "Retorna un producto específico dado su identificador.",
       responses = {

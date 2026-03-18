@@ -89,7 +89,16 @@ public class CreateAdminUseCase {
 
   private AdminCredentials createDevelopmentAdmin(String dummyEmail) {
     log.info("Administrator email: {}", dummyEmail);
-    log.info("Generating new password for development mode...");
+
+    long adminCount = adminRepository.countByRole(UserRole.ADMIN);
+    boolean isFirstTime = adminCount == 0;
+
+    if (adminCount > 0) {
+      log.info("Administrator already exists in database, skipping creation.");
+      return null;
+    }
+
+    log.info("No administrator found, creating new one...");
 
     String rawPassword = GenerateSecurePassword.execute();
     String hashedPassword = passwordEncoder.encode(rawPassword);
@@ -106,19 +115,22 @@ public class CreateAdminUseCase {
             UserRole.ADMIN,
             List.of());
 
-    log.info("Administrator created successfully (in memory, not persisted)");
+    userRepository.save(admin);
+    log.info("Administrator created successfully and persisted in database");
 
-    sendEmail(dummyEmail, rawPassword, true);
+    if (isFirstTime) {
+      sendEmail(dummyEmail, rawPassword, true);
+    }
 
-    return new AdminCredentials(dummyEmail, rawPassword, true);
+    return new AdminCredentials(dummyEmail, rawPassword, isFirstTime);
   }
 
-  private void sendEmail(String email, String password, boolean isDevelopment) {
+  private void sendEmail(String email, String password, boolean isFirstTime) {
     log.info("Sending email with credentials...");
 
     try {
       String message;
-      if (isDevelopment) {
+      if (isFirstTime) {
         message =
             String.format(
                 "⚠️ SECURITY WARNING - DEVELOPMENT MODE ⚠️%n%n"
@@ -130,7 +142,7 @@ public class CreateAdminUseCase {
                     + "Email: %s%n"
                     + "Password: %s%n%n"
                     + "=============================================%n%n"
-                    + "Note: These credentials are regenerated on each run.%n"
+                    + "Note: Save these credentials. They will not be shown again.%n"
                     + "DO NOT use in production.",
                 email, password);
       } else {
@@ -147,7 +159,7 @@ public class CreateAdminUseCase {
       emailService.sendRegistrationMail(new UserEmail(email), message);
       log.info("Email sent successfully");
     } catch (Exception e) {
-      if (isDevelopment) {
+      if (isFirstTime) {
         log.warn("Email could not be sent (development mode - continuing): {}", e.getMessage());
       } else {
         log.error("Error sending email: {}", e.getMessage());

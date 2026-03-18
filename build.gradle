@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'aros.services'
-version = '0.1.0'
+version = project.hasProperty('appVersion') ? project.property('appVersion') : '0.1.0'
 description = 'Robust, scalable API that processes restaurant operations in real-time and transforms data into actionable business insights.'
 
 java {
