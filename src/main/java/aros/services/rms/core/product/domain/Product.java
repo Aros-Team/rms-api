@@ -23,4 +23,5 @@ public class Product {
   @Builder.Default private boolean active = true;
   private Category category;
   private Long preparationAreaId;
+  private String preparationAreaName;
 }

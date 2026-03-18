@@ -28,6 +28,8 @@ public class ProductMapper {
         .category(categoryMapper.toDomain(entity.getCategory()))
         .preparationAreaId(
             entity.getPreparationArea() != null ? entity.getPreparationArea().getId() : null)
+        .preparationAreaName(
+            entity.getPreparationArea() != null ? entity.getPreparationArea().getName() : null)
         .build();
   }
 
