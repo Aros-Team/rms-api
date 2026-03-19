@@ -6,8 +6,10 @@ import aros.services.rms.core.area.application.exception.AreaNotFoundException;
 import aros.services.rms.core.auth.application.exception.InvalidCredentialsException;
 import aros.services.rms.core.auth.application.exception.PasswordResetTokenExpiredException;
 import aros.services.rms.core.auth.application.exception.PasswordResetTokenInvalidException;
+import aros.services.rms.core.auth.application.exception.UserNotFoundException;
 import aros.services.rms.core.category.application.exception.CategoryNotFoundException;
 import aros.services.rms.core.category.application.exception.OptionCategoryNotFoundException;
+import aros.services.rms.core.email.application.exception.EmailServiceException;
 import aros.services.rms.core.order.application.exception.InvalidOrderStatusException;
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.application.exception.TableNotAvailableException;
@@ -150,6 +152,11 @@ public class GlobalExceptionHandler {
                 "message", "Usuario o contraseña incorrectos"));
   }
 
+  @ExceptionHandler(UserNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
   @ExceptionHandler(JwtKeysMissingException.class)
   public ResponseEntity<ErrorResponse> handleJwtKeysMissing(JwtKeysMissingException e) {
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -161,6 +168,15 @@ public class GlobalExceptionHandler {
     log.warn("Servicio no disponible: {}", e.getMessage());
     return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
         .body(new ErrorResponse(503, e.getMessage()));
+  }
+
+  @ExceptionHandler(EmailServiceException.class)
+  public ResponseEntity<ErrorResponse> handleEmailServiceException(EmailServiceException e) {
+    log.error("Email service error: {}", e.getMessage());
+    return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+        .body(
+            new ErrorResponse(
+                503, "Servicio de correo no disponible. Por favor, intente más tarde."));
   }
 
   // --- Password reset exceptions ---

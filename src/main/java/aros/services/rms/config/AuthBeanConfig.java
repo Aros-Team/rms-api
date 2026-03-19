@@ -9,6 +9,7 @@ import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
 import aros.services.rms.core.auth.port.output.PasswordResetTokenRepositoryPort;
 import aros.services.rms.core.auth.port.output.RefreshTokenRepositoryPort;
 import aros.services.rms.core.auth.port.output.TokenPort;
+import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.core.device.port.output.DeviceRepositoryPort;
 import aros.services.rms.core.email.port.input.PasswordResetEmailUseCase;
 import aros.services.rms.core.email.port.input.TwoFactorAuthEmailUseCase;
@@ -36,6 +37,7 @@ public class AuthBeanConfig {
   private final AreaRepositoryPort areaPort;
   private final PasswordResetTokenRepositoryPort passwordResetTokenRepositoryPort;
   private final PasswordResetEmailUseCase passwordResetEmailUseCase;
+  private final Logger logger;
 
   @Bean
   public AuthService authService() {
@@ -59,6 +61,7 @@ public class AuthBeanConfig {
         passwordResetTokenRepositoryPort,
         passwordPort,
         passwordResetEmailUseCase,
-        hashServicePort);
+        hashServicePort,
+        logger);
   }
 }

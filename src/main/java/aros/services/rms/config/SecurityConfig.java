@@ -97,6 +97,7 @@ public class SecurityConfig {
                   auth.requestMatchers(
                           "/api/auth/login",
                           "/api/auth/forgot-password",
+                          "/api/auth/resend-password",
                           "/api/auth/reset-password",
                           "/actuator/health/**",
                           "/actuator/health")
@@ -110,6 +111,7 @@ public class SecurityConfig {
               auth.requestMatchers(
                       "/api/auth/login",
                       "/api/auth/forgot-password",
+                      "/api/auth/resend-password",
                       "/api/auth/reset-password",
                       "/swagger-ui/**",
                       "/swagger-ui.html",
@@ -131,7 +133,8 @@ public class SecurityConfig {
     boolean isProduction = PRODUCTION.equalsIgnoreCase(appEnv);
 
     if (isProduction) {
-      config.setAllowedOriginPatterns(List.of("https://rms.aros.services"));
+      // config.setAllowedOriginPatterns(List.of("https://rms.aros.services"));
+      config.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
     } else {
       config.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
     }

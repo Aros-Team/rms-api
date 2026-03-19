@@ -8,6 +8,7 @@ import aros.services.rms.core.auth.domain.PasswordResetToken;
 import aros.services.rms.core.auth.port.input.PasswordResetUseCase;
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
 import aros.services.rms.core.auth.port.output.PasswordResetTokenRepositoryPort;
+import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.core.email.port.input.PasswordResetEmailUseCase;
 import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.user.domain.User;
@@ -25,22 +26,27 @@ public class PasswordResetUseCaseImpl implements PasswordResetUseCase {
   private final PasswordEncoderPort passwordEncoderPort;
   private final PasswordResetEmailUseCase emailUseCase;
   private final HashServicePort hashServicePort;
+  private final Logger logger;
 
   public PasswordResetUseCaseImpl(
       UserRepositoryPort userRepositoryPort,
       PasswordResetTokenRepositoryPort tokenRepositoryPort,
       PasswordEncoderPort passwordEncoderPort,
       PasswordResetEmailUseCase emailUseCase,
-      HashServicePort hashServicePort) {
+      HashServicePort hashServicePort,
+      Logger logger) {
     this.userRepositoryPort = userRepositoryPort;
     this.tokenRepositoryPort = tokenRepositoryPort;
     this.passwordEncoderPort = passwordEncoderPort;
     this.emailUseCase = emailUseCase;
     this.hashServicePort = hashServicePort;
+    this.logger = logger;
   }
 
   @Override
   public void requestPasswordReset(String email) throws UserNotFoundException {
+    logger.info("Password reset requested: email={}", email);
+
     User user =
         userRepositoryPort.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
 
@@ -57,11 +63,15 @@ public class PasswordResetUseCaseImpl implements PasswordResetUseCase {
 
     tokenRepositoryPort.save(token);
 
+    logger.info("Password reset token generated: userId={}, expiresAt={}", user.getId(), expiresAt);
+
     emailUseCase.sendPasswordResetEmail(user.getEmail(), rawToken);
   }
 
   @Override
   public void resetPassword(String token, String newPassword) {
+    logger.info("Password reset attempt started");
+
     String tokenHash = hashServicePort.hash(token);
 
     PasswordResetToken resetToken =
@@ -88,5 +98,7 @@ public class PasswordResetUseCaseImpl implements PasswordResetUseCase {
 
     PasswordResetToken usedToken = resetToken.markAsUsed();
     tokenRepositoryPort.save(usedToken);
+
+    logger.info("Password changed successfully: userId={}", user.getId());
   }
 }

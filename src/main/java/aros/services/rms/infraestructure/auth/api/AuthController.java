@@ -177,10 +177,30 @@ public class AuthController {
           "Envía un email con el token de recuperación de contraseña al correo electrónico proporcionado.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Email de recuperación enviado"),
-        @ApiResponse(responseCode = "400", description = "Email inválido")
+        @ApiResponse(responseCode = "400", description = "Email inválido"),
+        @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
+        @ApiResponse(responseCode = "503", description = "Servicio de correo no disponible")
       })
   @PostMapping("/forgot-password")
   public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request)
+      throws UserNotFoundException {
+    passwordResetUseCase.requestPasswordReset(request.email());
+    return ResponseEntity.ok().build();
+  }
+
+  @Operation(
+      summary = "Reenviar token de recuperación de contraseña",
+      description =
+          "Envía un nuevo email con un nuevo token de recuperación de contraseña. "
+              + "Invalida cualquier token anterior no usado.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Email de recuperación reenviado"),
+        @ApiResponse(responseCode = "400", description = "Email inválido"),
+        @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
+        @ApiResponse(responseCode = "503", description = "Servicio de correo no disponible")
+      })
+  @PostMapping("/resend-password")
+  public ResponseEntity<Void> resendPasswordReset(@Valid @RequestBody ForgotPasswordRequest request)
       throws UserNotFoundException {
     passwordResetUseCase.requestPasswordReset(request.email());
     return ResponseEntity.ok().build();

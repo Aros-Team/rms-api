@@ -8,13 +8,20 @@ import aros.services.rms.core.email.port.input.TwoFactorAuthEmailUseCase;
 import aros.services.rms.core.email.port.output.EmailServicePort;
 import aros.services.rms.core.user.domain.UserEmail;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
 
 public class EmailService
     implements TwoFactorAuthEmailUseCase, RegistrationEmailUseCase, PasswordResetEmailUseCase {
-  private final EmailServicePort emailPort;
 
-  public EmailService(EmailServicePort emailPort) {
+  private static final String UI_PRODUCTION = "https://rms.aros.services";
+  private static final String UI_DEVELOPMENT = "http://localhost:4200";
+
+  private final EmailServicePort emailPort;
+  private final String uiBaseUrl;
+
+  public EmailService(EmailServicePort emailPort, @Value("${app.env:development}") String appEnv) {
     this.emailPort = emailPort;
+    this.uiBaseUrl = "production".equalsIgnoreCase(appEnv) ? UI_PRODUCTION : UI_DEVELOPMENT;
   }
 
   @Override
@@ -40,13 +47,20 @@ public class EmailService
 
   @Override
   public void sendPasswordResetEmail(UserEmail destination, String resetToken) {
+    String resetLink = uiBaseUrl + "/reset-password?token=" + resetToken;
+
     Email resetEmail =
         new Email(
             destination.value(),
             "admin@aros.service",
-            "notification",
-            // Map.of("token", resetToken, "expiry", "30 minutos")
-            Map.of("message", "Token de verificacion: " + resetToken));
+            "password_reset",
+            Map.of(
+                "reset_link",
+                resetLink,
+                "expiry",
+                "30 minutos",
+                "message",
+                "Has solicitado restablecer tu contraseña en RMS. Haz clic en el siguiente enlace para completar el proceso:"));
 
     this.emailPort.send(resetEmail);
   }
