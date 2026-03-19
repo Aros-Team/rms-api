@@ -5,8 +5,10 @@ import aros.services.rms.core.email.port.input.RegistrationEmailUseCase;
 import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.user.application.usecases.ChangePasswordUseCaseImpl;
 import aros.services.rms.core.user.application.usecases.CreateUserService;
+import aros.services.rms.core.user.application.usecases.GetAllUsersUseCaseImpl;
 import aros.services.rms.core.user.port.input.ChangePasswordUseCase;
 import aros.services.rms.core.user.port.input.CreateUserUseCase;
+import aros.services.rms.core.user.port.input.GetAllUsersUseCase;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,5 +28,10 @@ public class UserBeanConfig {
   public ChangePasswordUseCase changePasswordUseCase(
       UserRepositoryPort userPort, PasswordEncoderPort passwordEncoderPort) {
     return new ChangePasswordUseCaseImpl(userPort, passwordEncoderPort);
+  }
+
+  @Bean
+  public GetAllUsersUseCase getAllUsersUseCase(UserRepositoryPort userPort) {
+    return new GetAllUsersUseCaseImpl(userPort);
   }
 }

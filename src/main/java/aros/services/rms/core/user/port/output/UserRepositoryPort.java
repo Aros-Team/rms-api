@@ -3,6 +3,7 @@ package aros.services.rms.core.user.port.output;
 
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserId;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepositoryPort {
@@ -11,6 +12,8 @@ public interface UserRepositoryPort {
   Optional<User> findById(UserId id);
 
   boolean existsByEmailOrDocument(String document, String email);
+
+  List<User> findAll();
 
   User save(User user);
 }

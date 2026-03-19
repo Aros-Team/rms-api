@@ -7,6 +7,7 @@ import aros.services.rms.core.user.domain.UserRole;
 import aros.services.rms.core.user.port.output.AdminRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,11 @@ public class UserRepositoryAdapter implements UserRepositoryPort, AdminRepositor
   @Override
   public boolean existsByEmailOrDocument(String document, String email) {
     return this.internal.existsByDocumentOrEmail(document, email);
+  }
+
+  @Override
+  public List<User> findAll() {
+    return this.internal.findAll().stream().map((u) -> userMapper.toDomain(u)).toList();
   }
 
   @Override
