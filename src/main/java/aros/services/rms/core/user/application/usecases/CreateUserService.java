@@ -56,7 +56,7 @@ public class CreateUserService implements CreateUserUseCase {
     this.registrationEmailUseCase.sendRegistrationMail(
         saved.getEmail(),
         String.format(
-            "Haz sido registrado en nuestro sistema, para ingresar haz uso de la siguiente contraseña: <b>%s</b>",
+            "Haz sido registrado en nuestro sistema, para ingresar haz uso de la siguiente contraseña: %s",
             password));
 
     return saved;
