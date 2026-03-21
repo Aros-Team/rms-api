@@ -133,8 +133,7 @@ public class SecurityConfig {
     boolean isProduction = PRODUCTION.equalsIgnoreCase(appEnv);
 
     if (isProduction) {
-      // config.setAllowedOriginPatterns(List.of("https://rms.aros.services"));
-      config.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+      config.setAllowedOriginPatterns(List.of("https://rms.aros.services"));
     } else {
       config.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
     }
