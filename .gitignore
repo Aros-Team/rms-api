@@ -45,6 +45,7 @@ out/
 
 ### Database Migrations ###
 src/main/resources/db/migration/V5__insert_products_data.sql
+src/main/resources/db/migration/V5__seed_data.sql
 
 ### Project Specific ###
 INVENTORY_SPEC.md

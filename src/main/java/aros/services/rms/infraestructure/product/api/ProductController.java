@@ -2,16 +2,19 @@
 package aros.services.rms.infraestructure.product.api;
 
 import aros.services.rms.core.category.domain.Category;
+import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.port.input.ProductOptionUseCase;
 import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.infraestructure.product.api.dto.ProductOptionResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductRequest;
 import aros.services.rms.infraestructure.product.api.dto.ProductResponse;
+import aros.services.rms.infraestructure.product.api.dto.RecipeItemRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +50,7 @@ public class ProductController {
       })
   @PostMapping
   public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request) {
+    List<ProductRecipe> recipe = mapRecipe(request.recipe());
     Product product =
         Product.builder()
             .name(request.name())
@@ -54,6 +58,7 @@ public class ProductController {
             .hasOptions(request.hasOptions())
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())
+            .recipe(recipe)
             .build();
 
     Product created = productUseCase.create(product);
@@ -72,6 +77,7 @@ public class ProductController {
   @PutMapping("/{id}")
   public ResponseEntity<ProductResponse> update(
       @PathVariable Long id, @Valid @RequestBody ProductRequest request) {
+    List<ProductRecipe> recipe = mapRecipe(request.recipe());
     Product product =
         Product.builder()
             .name(request.name())
@@ -79,6 +85,7 @@ public class ProductController {
             .hasOptions(request.hasOptions())
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())
+            .recipe(recipe)
             .build();
 
     Product updated = productUseCase.update(id, product);
@@ -160,5 +167,19 @@ public class ProductController {
             .map(ProductOptionResponse::fromDomain)
             .collect(Collectors.toList());
     return ResponseEntity.ok(responses);
+  }
+
+  private List<ProductRecipe> mapRecipe(List<RecipeItemRequest> recipeRequests) {
+    if (recipeRequests == null || recipeRequests.isEmpty()) {
+      return new ArrayList<>();
+    }
+    return recipeRequests.stream()
+        .map(
+            item ->
+                ProductRecipe.builder()
+                    .supplyVariantId(item.supplyVariantId())
+                    .requiredQuantity(item.requiredQuantity())
+                    .build())
+        .collect(Collectors.toList());
   }
 }

@@ -2,6 +2,8 @@
 package aros.services.rms.core.product.domain;
 
 import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.inventory.domain.OptionRecipe;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,4 +18,5 @@ public class ProductOption {
   private String name;
   private OptionCategory category;
   private Product product;
+  private List<OptionRecipe> recipe;
 }

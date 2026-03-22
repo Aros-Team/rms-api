@@ -1,6 +1,8 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.order.config;
 
+import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
+import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.order.application.usecases.DeliveryUseCaseImpl;
 import aros.services.rms.core.order.application.usecases.MarkAsReadyUseCaseImpl;
 import aros.services.rms.core.order.application.usecases.OrderQueryUseCaseImpl;
@@ -32,12 +34,16 @@ public class OrderConfigBeans {
       OrderRepositoryPort orderRepositoryPort,
       TableRepositoryPort tableRepositoryPort,
       ProductRepositoryPort productRepositoryPort,
-      ProductOptionRepositoryPort productOptionRepositoryPort) {
+      ProductOptionRepositoryPort productOptionRepositoryPort,
+      InventoryStockUseCase inventoryStockUseCase,
+      InventoryMovementUseCase inventoryMovementUseCase) {
     return new TakeOrderUseCaseImpl(
         orderRepositoryPort,
         tableRepositoryPort,
         productRepositoryPort,
-        productOptionRepositoryPort);
+        productOptionRepositoryPort,
+        inventoryStockUseCase,
+        inventoryMovementUseCase);
   }
 
   /** Crea bean para actualizar órdenes existentes. */
@@ -46,12 +52,16 @@ public class OrderConfigBeans {
       OrderRepositoryPort orderRepositoryPort,
       TableRepositoryPort tableRepositoryPort,
       ProductRepositoryPort productRepositoryPort,
-      ProductOptionRepositoryPort productOptionRepositoryPort) {
+      ProductOptionRepositoryPort productOptionRepositoryPort,
+      InventoryStockUseCase inventoryStockUseCase,
+      InventoryMovementUseCase inventoryMovementUseCase) {
     return new UpdateOrderUseCaseImpl(
         orderRepositoryPort,
         tableRepositoryPort,
         productRepositoryPort,
-        productOptionRepositoryPort);
+        productOptionRepositoryPort,
+        inventoryStockUseCase,
+        inventoryMovementUseCase);
   }
 
   /** Crea bean para pasar órdenes de cola a preparación. */

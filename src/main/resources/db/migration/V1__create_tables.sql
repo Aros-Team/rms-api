@@ -9,7 +9,8 @@ CREATE TABLE areas (
     enabled BOOLEAN NOT NULL DEFAULT TRUE
 );
 
--- Tabla usersCREATE TABLE users (
+-- Tabla users
+CREATE TABLE users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     document VARCHAR(255) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
@@ -29,7 +30,8 @@ CREATE TABLE user_assigned_areas (
     FOREIGN KEY (area_id) REFERENCES areas(id) ON DELETE CASCADE
 );
 
--- Tabla refresh_tokensCREATE TABLE refresh_tokens (
+-- Tabla refresh_tokens
+CREATE TABLE refresh_tokens (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     token_hash VARCHAR(255) NOT NULL,
@@ -80,7 +82,8 @@ CREATE TABLE tables (
     status VARCHAR(50) NOT NULL DEFAULT 'AVAILABLE'
 );
 
--- Tabla productsCREATE TABLE products (
+-- Tabla products
+CREATE TABLE products (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     base_price DECIMAL(10,2) NOT NULL,
@@ -108,7 +111,8 @@ CREATE TABLE orders (
     FOREIGN KEY (table_id) REFERENCES tables(id) ON DELETE SET NULL
 );
 
--- Tabla order_detailsCREATE TABLE order_details (
+-- Tabla order_details
+CREATE TABLE order_details (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     order_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
@@ -136,7 +140,8 @@ CREATE TABLE order_detail_options (
     FOREIGN KEY (option_id) REFERENCES product_options(id) ON DELETE CASCADE
 );
 
--- =============================================================================-- INVENTORY TABLES
+-- =============================================================================
+-- INVENTORY TABLES
 -- =============================================================================
 
 -- Categorías de insumos (ej: Proteínas, Vegetales, Lácteos)
@@ -178,7 +183,8 @@ CREATE TABLE storage_locations (
     name VARCHAR(255) NOT NULL UNIQUE
 );
 
--- Saldo actual de cada variante en cada ubicaciónCREATE TABLE inventory_stock (
+-- Saldo actual de cada variante en cada ubicación
+CREATE TABLE inventory_stock (
     id                  BIGINT         AUTO_INCREMENT PRIMARY KEY,
     supply_variant_id   BIGINT         NOT NULL,
     storage_location_id BIGINT         NOT NULL,
