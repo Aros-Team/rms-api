@@ -2,8 +2,7 @@
 -- Seed data for testing all RMS functionalities
 
 -- =============================================================================
--- ÁREAS DE PREPARACIÓN
--- =============================================================================
+-- ÁREAS DE PREPARACIÓN-- =============================================================================
 INSERT INTO areas (id, name, type, enabled) VALUES
 (1, 'Bar', 'BAR', TRUE),
 (2, 'Cocina Principal', 'KITCHEN', TRUE),
@@ -32,8 +31,7 @@ INSERT INTO option_categories (id, name, description) VALUES
 
 -- =============================================================================
 -- MESAS
--- =============================================================================
-INSERT INTO tables (id, table_number, capacity, status) VALUES
+-- =============================================================================INSERT INTO tables (id, table_number, capacity, status) VALUES
 (1, 1, 2, 'AVAILABLE'),
 (2, 2, 2, 'AVAILABLE'),
 (3, 3, 4, 'AVAILABLE'),
@@ -324,7 +322,7 @@ INSERT INTO product_options (id, name, option_category_id, product_id) VALUES
 INSERT INTO product_options (id, name, option_category_id, product_id) VALUES
 (44, 'Rare', 4, 102),
 (45, 'Medium Rare', 4, 102),
-(46, 'Medium', 4, 102),
+(46, 'Medium', 4 = 102),
 (47, 'Medium Well', 4, 102),
 (48, 'Well Done', 4, 102);
 
@@ -337,8 +335,7 @@ INSERT INTO product_options (id, name, option_category_id, product_id) VALUES
 (53, 'Well Done', 4, 103);
 
 -- Opciones para Pechuga de Pollo (product_id = 104)
-INSERT INTO product_options (id, name, option_category_id, product_id) VALUES
-(54, 'A la Plancha', 3, 104),
+INSERT INTO product_options (id, name, option_category_id, product_id) VALUES(54, 'A la Plancha', 3, 104),
 (55, 'Empanizada', 3, 104),
 (56, 'Enchipotlada', 3, 104),
 (57, 'Gratinada', 3, 104),
@@ -353,7 +350,7 @@ INSERT INTO product_options (id, name, option_category_id, product_id) VALUES
 -- Opciones para Chuleta de Cerdo (product_id = 110)
 INSERT INTO product_options (id, name, option_category_id, product_id) VALUES
 (62, 'A la Plancha', 3, 110),
-(63, 'Empanizada', 3, 110),
+(63 = 'Empanizada', 3, 110),
 (64, 'Frita', 3, 110);
 
 -- Opciones para Margarita (product_id = 35)
@@ -378,3 +375,22 @@ INSERT INTO product_options (id, name, option_category_id, product_id) VALUES
 INSERT INTO product_options (id, name, option_category_id, product_id) VALUES
 (74, 'Natural', 1, 38),
 (75, 'Con Chile', 1, 38);
+
+-- Insert test user (password: 123)
+INSERT INTO users (document, name, email, password, address, phone, role)
+VALUES (
+            '1234567890',
+            'Steven',
+            'omineroj@gmail.com',
+            '$2a$10$UA3p51w/MeNyQBem5kXgFOWsEV14dS/oLZLx5d4RndiloCS.a/ory',
+            'Test Address',
+            '+1234567890',
+            'ADMIN'
+        );
+
+-- =============================================================================
+-- INVENTORY SEED DATA
+-- =============================================================================
+-- Initial storage locations
+INSERT INTO storage_locations (id, name) VALUES(1, 'Bodega'),
+(2, 'Cocina');
