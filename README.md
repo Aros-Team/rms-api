@@ -1,7 +1,7 @@
 # Restaurant Management System (RMS)
 
 **API repository**
-**Version:** 0.1.0
+**Version:** 0.2.0
 
 Robust, scalable API that processes restaurant operations in real-time and transforms data into actionable business insights.
 
