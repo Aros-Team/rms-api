@@ -5,6 +5,10 @@ import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.category.port.output.CategoryRepositoryPort;
 import aros.services.rms.core.category.port.output.OptionCategoryRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
+import aros.services.rms.core.inventory.port.output.OptionRecipeRepositoryPort;
+import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
+import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import aros.services.rms.core.product.application.usecases.ProductOptionUseCaseImpl;
 import aros.services.rms.core.product.application.usecases.ProductUseCaseImpl;
 import aros.services.rms.core.product.port.input.ProductOptionUseCase;
@@ -26,9 +30,18 @@ public class ProductConfigBeans {
       ProductRepositoryPort productRepositoryPort,
       AreaRepositoryPort areaRepositoryPort,
       CategoryRepositoryPort categoryRepositoryPort,
+      ProductRecipeRepositoryPort productRecipeRepositoryPort,
+      SupplyVariantRepositoryPort supplyVariantRepositoryPort,
+      InventoryStockUseCase inventoryStockUseCase,
       Logger logger) {
     return new ProductUseCaseImpl(
-        productRepositoryPort, areaRepositoryPort, categoryRepositoryPort, logger);
+        productRepositoryPort,
+        areaRepositoryPort,
+        categoryRepositoryPort,
+        productRecipeRepositoryPort,
+        supplyVariantRepositoryPort,
+        inventoryStockUseCase,
+        logger);
   }
 
   /** Creates bean for product option management use case. */
@@ -36,8 +49,14 @@ public class ProductConfigBeans {
   public ProductOptionUseCase productOptionUseCase(
       ProductOptionRepositoryPort productOptionRepositoryPort,
       OptionCategoryRepositoryPort optionCategoryRepositoryPort,
+      OptionRecipeRepositoryPort optionRecipeRepositoryPort,
+      SupplyVariantRepositoryPort supplyVariantRepositoryPort,
       Logger logger) {
     return new ProductOptionUseCaseImpl(
-        productOptionRepositoryPort, optionCategoryRepositoryPort, logger);
+        productOptionRepositoryPort,
+        optionCategoryRepositoryPort,
+        optionRecipeRepositoryPort,
+        supplyVariantRepositoryPort,
+        logger);
   }
 }

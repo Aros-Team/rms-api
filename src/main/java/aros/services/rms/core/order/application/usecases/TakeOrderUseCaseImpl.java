@@ -1,6 +1,9 @@
 /* (C) 2026 */
 package aros.services.rms.core.order.application.usecases;
 
+import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
+import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
+import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
 import aros.services.rms.core.order.port.input.TakeOrderUseCase;
@@ -34,16 +37,22 @@ public class TakeOrderUseCaseImpl implements TakeOrderUseCase {
   private final TableRepositoryPort tableRepositoryPort;
   private final ProductRepositoryPort productRepositoryPort;
   private final ProductOptionRepositoryPort productOptionRepositoryPort;
+  private final InventoryStockUseCase inventoryStockUseCase;
+  private final InventoryMovementUseCase inventoryMovementUseCase;
 
   public TakeOrderUseCaseImpl(
       OrderRepositoryPort orderRepositoryPort,
       TableRepositoryPort tableRepositoryPort,
       ProductRepositoryPort productRepositoryPort,
-      ProductOptionRepositoryPort productOptionRepositoryPort) {
+      ProductOptionRepositoryPort productOptionRepositoryPort,
+      InventoryStockUseCase inventoryStockUseCase,
+      InventoryMovementUseCase inventoryMovementUseCase) {
     this.orderRepositoryPort = orderRepositoryPort;
     this.tableRepositoryPort = tableRepositoryPort;
     this.productRepositoryPort = productRepositoryPort;
     this.productOptionRepositoryPort = productOptionRepositoryPort;
+    this.inventoryStockUseCase = inventoryStockUseCase;
+    this.inventoryMovementUseCase = inventoryMovementUseCase;
   }
 
   /**
@@ -117,7 +126,27 @@ public class TakeOrderUseCaseImpl implements TakeOrderUseCase {
         order.getDetails().add(detail);
       }
 
-      return orderRepositoryPort.save(order);
+      // Check inventory availability before saving
+      for (OrderDetail detail : order.getDetails()) {
+        List<Long> selectedOptionIds =
+            detail.getSelectedOptions() != null
+                ? detail.getSelectedOptions().stream().map(ProductOption::getId).toList()
+                : List.of();
+
+        if (!inventoryStockUseCase.isAvailable(detail.getProduct().getId(), selectedOptionIds)) {
+          throw new InsufficientStockException(
+              detail.getProduct().getId(),
+              aros.services.rms.core.inventory.domain.MovementType.DEDUCTION,
+              "Insufficient stock for product: " + detail.getProduct().getName());
+        }
+      }
+
+      Order savedOrder = orderRepositoryPort.save(order);
+
+      // Deduct inventory after order is saved
+      inventoryMovementUseCase.deductForOrder(savedOrder.getId(), savedOrder.getDetails());
+
+      return savedOrder;
     } catch (Exception e) {
       table.setStatus(TableStatus.AVAILABLE);
       tableRepositoryPort.save(table);

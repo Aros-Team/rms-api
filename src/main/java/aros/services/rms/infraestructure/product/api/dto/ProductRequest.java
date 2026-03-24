@@ -2,9 +2,11 @@
 package aros.services.rms.infraestructure.product.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import java.util.List;
 
 @Schema(
     description = "Request DTO for creating or updating a product",
@@ -15,7 +17,13 @@ import jakarta.validation.constraints.Positive;
           "basePrice": 12.50,
           "hasOptions": true,
           "categoryId": 1,
-          "areaId": 1
+          "areaId": 1,
+          "recipe": [
+            {
+              "supplyVariantId": 1,
+              "requiredQuantity": 250.0
+            }
+          ]
         }
         """)
 public record ProductRequest(
@@ -28,4 +36,8 @@ public record ProductRequest(
     @Schema(description = "Category ID the product belongs to", example = "1")
         @NotNull(message = "Category ID is required") Long categoryId,
     @Schema(description = "Preparation area ID", example = "1")
-        @NotNull(message = "Area ID is required") Long areaId) {}
+        @NotNull(message = "Area ID is required") Long areaId,
+    @Schema(
+            description = "Recipe items (supply variants and quantities)",
+            example = "[{\"supplyVariantId\": 1, \"requiredQuantity\": 250.0}]")
+        @Valid List<RecipeItemRequest> recipe) {}
