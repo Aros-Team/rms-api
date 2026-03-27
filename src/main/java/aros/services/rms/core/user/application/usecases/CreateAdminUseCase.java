@@ -133,7 +133,7 @@ public class CreateAdminUseCase {
       if (isFirstTime) {
         message =
             String.format(
-                    "\n=============================================%n%n"
+                "\n=============================================%n%n"
                     + "Administrator credentials (DEVELOPMENT):%n%n"
                     + "Email: %s%n"
                     + "Password: %s%n%n"
