@@ -153,7 +153,6 @@ public class CreateAdminUseCase {
       }
 
       emailService.sendRegistrationMail(new UserEmail(email), message);
-      log.info("Email sent successfully");
     } catch (Exception e) {
       if (isFirstTime) {
         log.warn("Email could not be sent (development mode - continuing): {}", e.getMessage());

@@ -6,11 +6,38 @@ import java.security.SecureRandom;
 public class GenerateSecurePassword {
 
   private static final String[] WORDS = {
-    "Admin", "Root", "User", "Chef", "Chef", "Boss", "Super", "Mega", "Admin", "Root",
-    "Master", "Super", "Chief", "Lead", "Head", "Chef", "Boss", "Super", "Admin", "Root"
+    "Table", "Table", "Table", "Table", "Table",
+    "Chair", "Chair", "Chair", "Chair",
+    "Plate", "Plate", "Plate",
+    "Glass", "Glass", "Glass",
+    "Fork", "Knife", "Spoon",
+    "Menu", "Menu", "Menu",
+    "Order", "Order", "Order",
+    "Check", "Check", "Bill",
+    "Toast", "Toast", "Salad",
+    "Soup", "Soup", "Bread",
+    "Rice", "Pasta", "Beans",
+    "Steak", "Steak", "Grill",
+    "Roast", "Steam", "Bake",
+    "Slice", "Dice", "Mix",
+    "Pour", "Fill", "Pour",
+    "Seat", "Serve", "Cater",
+    "Cook", "Prep", "Brew",
+    "Dish", "Dish", "Chef",
+    "Menu", "Order", "Table",
+    "Guest", "Visit", "Dine",
+    "Lunch", "Dinner", "Brunch",
+    "Taste", "Flavor", "Aroma",
+    "Spice", "Herb", "Sauce",
+    "Sauté", "Broil", "Roast",
+    "Slice", "Chop", "Blend",
+    "Whisk", "Fold", "Knead",
+    "Rise", "Proof", "Heat",
+    "Cool", "Chill", "Freeze",
+    "Mince", "Grind", "Crush"
   };
 
-  private static final String SYMBOLS = "!@#+*$";
+  private static final String SYMBOLS = "!@#+*$%&";
   private static final SecureRandom random = new SecureRandom();
 
   public static String execute() {
