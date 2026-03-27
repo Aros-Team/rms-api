@@ -4,6 +4,10 @@ package aros.services.rms.core.product.application.usecases;
 import aros.services.rms.core.category.application.exception.OptionCategoryNotFoundException;
 import aros.services.rms.core.category.port.output.OptionCategoryRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFoundException;
+import aros.services.rms.core.inventory.domain.OptionRecipe;
+import aros.services.rms.core.inventory.port.output.OptionRecipeRepositoryPort;
+import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import aros.services.rms.core.product.application.exception.ProductOptionNotFoundException;
 import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.port.input.ProductOptionUseCase;
@@ -26,14 +30,20 @@ public class ProductOptionUseCaseImpl implements ProductOptionUseCase {
       LoggerFactory.getLogger(ProductOptionUseCaseImpl.class);
   private final ProductOptionRepositoryPort productOptionRepositoryPort;
   private final OptionCategoryRepositoryPort optionCategoryRepositoryPort;
+  private final OptionRecipeRepositoryPort optionRecipeRepositoryPort;
+  private final SupplyVariantRepositoryPort supplyVariantRepositoryPort;
   private final Logger logger;
 
   public ProductOptionUseCaseImpl(
       ProductOptionRepositoryPort productOptionRepositoryPort,
       OptionCategoryRepositoryPort optionCategoryRepositoryPort,
+      OptionRecipeRepositoryPort optionRecipeRepositoryPort,
+      SupplyVariantRepositoryPort supplyVariantRepositoryPort,
       Logger logger) {
     this.productOptionRepositoryPort = productOptionRepositoryPort;
     this.optionCategoryRepositoryPort = optionCategoryRepositoryPort;
+    this.optionRecipeRepositoryPort = optionRecipeRepositoryPort;
+    this.supplyVariantRepositoryPort = supplyVariantRepositoryPort;
     this.logger = logger;
   }
 
@@ -46,6 +56,22 @@ public class ProductOptionUseCaseImpl implements ProductOptionUseCase {
     validateOptionCategoryExists(productOption.getCategory().getId());
 
     ProductOption saved = productOptionRepositoryPort.save(productOption);
+
+    if (productOption.getRecipe() != null && !productOption.getRecipe().isEmpty()) {
+      validateSupplyVariantsExist(productOption.getRecipe());
+      List<OptionRecipe> recipesToSave =
+          productOption.getRecipe().stream()
+              .map(
+                  recipe ->
+                      OptionRecipe.builder()
+                          .optionId(saved.getId())
+                          .supplyVariantId(recipe.getSupplyVariantId())
+                          .requiredQuantity(recipe.getRequiredQuantity())
+                          .build())
+              .toList();
+      optionRecipeRepositoryPort.saveAll(recipesToSave);
+    }
+
     logger.info("ProductOption created: id={}, name={}", saved.getId(), saved.getName());
     return saved;
   }
@@ -67,6 +93,25 @@ public class ProductOptionUseCaseImpl implements ProductOptionUseCase {
     existing.setCategory(productOption.getCategory());
 
     ProductOption saved = productOptionRepositoryPort.save(existing);
+
+    // Delete existing recipes and replace with new ones (or empty if null)
+    optionRecipeRepositoryPort.deleteByOptionId(id);
+
+    if (productOption.getRecipe() != null && !productOption.getRecipe().isEmpty()) {
+      validateSupplyVariantsExist(productOption.getRecipe());
+      List<OptionRecipe> recipesToSave =
+          productOption.getRecipe().stream()
+              .map(
+                  recipe ->
+                      OptionRecipe.builder()
+                          .optionId(saved.getId())
+                          .supplyVariantId(recipe.getSupplyVariantId())
+                          .requiredQuantity(recipe.getRequiredQuantity())
+                          .build())
+              .toList();
+      optionRecipeRepositoryPort.saveAll(recipesToSave);
+    }
+
     logger.info("ProductOption updated: id={}, name={}", saved.getId(), saved.getName());
     return saved;
   }
@@ -140,6 +185,15 @@ public class ProductOptionUseCaseImpl implements ProductOptionUseCase {
   private void validateOptionCategoryExists(Long optionCategoryId) {
     if (optionCategoryId == null || !optionCategoryRepositoryPort.existsById(optionCategoryId)) {
       throw new OptionCategoryNotFoundException(optionCategoryId);
+    }
+  }
+
+  /** Validates that all supply variant IDs in the recipe exist. */
+  private void validateSupplyVariantsExist(List<OptionRecipe> recipes) {
+    for (OptionRecipe recipe : recipes) {
+      if (!supplyVariantRepositoryPort.existsById(recipe.getSupplyVariantId())) {
+        throw new SupplyVariantNotFoundException(recipe.getSupplyVariantId());
+      }
     }
   }
 }

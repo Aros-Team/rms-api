@@ -49,4 +49,12 @@ public interface ProductUseCase {
    * @return the disabled product
    */
   Product disable(Long id);
+
+  /**
+   * Retrieves all available products (active with sufficient stock in Cocina). Products without a
+   * recipe are considered available.
+   *
+   * @return list of available products
+   */
+  List<Product> findAllAvailable();
 }
