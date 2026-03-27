@@ -79,7 +79,126 @@ docker compose up -d
 
 # Stop all containers
 docker compose down
+
+# View container logs
+docker compose logs -f
+
+# Rebuild containers (after code changes)
+docker compose up -d --build
+
+# Stop and remove containers, networks, and volumes
+docker compose down -v
 ```
+
+## Docker Best Practices
+
+### Image Building
+- Usar **multi-stage builds** para imágenes más pequeñas y seguras
+- Minimizar el número de capas: agrupar instrucciones similares (`RUN`, `COPY`)
+- Orden de instrucciones: lo que cambia menos primero (dependencias antes que código)
+- Usar `.dockerignore` para excluir archivos innecesarios del contexto de build
+- No instalar herramientas de desarrollo en la imagen final
+
+### Multi-Stage Build Example
+```dockerfile
+# Build stage
+FROM eclipse-temurin:21-jdk AS build
+WORKDIR /app
+COPY . .
+RUN ./gradlew assemble
+
+# Runtime stage
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+COPY --from=build /app/build/libs/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+### Image Layers
+- Cada instrucción en un Dockerfile crea una nueva capa
+- Capas que cambian frecuentemente (código fuente) deben ir al final
+- Capas estáticas (dependencias, JDK) deben ir al principio
+- Usar `docker history` para inspeccionar las capas de una imagen
+
+### Build Cache
+- El orden de instrucciones afecta el cache: poner lo que cambia menos primero
+- Invalidar cache: `COPY`, `RUN` con dependencias cambiadas
+- Saltar cache con `--no-cache` solo cuando sea necesario
+
+### Container Security
+- No ejecutar como root: usar `USER` instruction
+- Usar imágenes oficiales y verificadas (eclipse-temurin, postgres)
+- No exponer credenciales en variables de entorno (usar secrets)
+- Imágenes distroless para producción
+- Escanear imágenes con `docker scout` o `trivy`
+
+### Docker Compose
+
+#### Estructura Recomendada
+```yaml
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=db
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  db:
+    image: mysql:7.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql_data:
+```
+
+#### Mejores Prácticas
+- Usar `depends_on` con `condition: service_healthy` para dependencias
+- Definir `healthcheck` en todos los servicios
+- Usar variables de entorno desde `.env` (nunca hardcodear)
+- Usar redes personalizadas para aislar servicios
+- Named volumes para persistencia de datos
+
+### Persistencia de Datos
+- Usar **named volumes** para datos que deben persistir
+- Usar **bind mounts** solo para desarrollo (código fuente)
+- No persistir datos en volúmenes temporales
+- backup Regular de volúmenes importantes
+
+### Publishing Ports
+- Usar formato `"host:container"` para puertos exposés
+- Solo exponer puertos necesarios
+- En desarrollo: mapear a puertos locales diferentes si hay conflictos
+
+### Recursos de Referencia
+- [Dockerfile Best Practices](https://docs.docker.com/get-started/docker-concepts/building-images/writing-a-dockerfile/)
+- [Multi-stage Builds](https://docs.docker.com/get-started/docker-concepts/building-images/multi-stage-builds/)
+- [Image Layers](https://docs.docker.com/get-started/docker-concepts/building-images/understanding-image-layers/)
+- [Using Build Cache](https://docs.docker.com/get-started/docker-concepts/building-images/using-the-build-cache/)
+- [Docker Compose Best Practices](https://docs.docker.com/guides/docker-compose/)
+- [Containerize an application](https://docs.docker.com/get-started/workshop/02_our_app/)
+- [Persist the DB](https://docs.docker.com/get-started/workshop/05_persisting_data/)
 
 ## Code Style Guidelines
 
