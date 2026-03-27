@@ -5,5 +5,7 @@ import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.port.dto.CreateUserInfo;
 
 public interface CreateUserUseCase {
-  User create(CreateUserInfo info) throws UserAlreadyExistsException;
+  CreateUserResult create(CreateUserInfo info) throws UserAlreadyExistsException;
+
+  record CreateUserResult(User user, String rawPassword) {}
 }

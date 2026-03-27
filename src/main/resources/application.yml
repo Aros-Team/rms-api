@@ -23,8 +23,8 @@ spring:
     name: rms
   datasource:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?allowPublicKeyRetrieval=true&useSSL=false
-    username: root
-    password: ${DB_ROOT_PASSWORD}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
     hikari:
       maximum-pool-size: 5
       connection-timeout: 10000
