@@ -243,6 +243,60 @@ src/main/java/aros/services/rms/
         └── swagger/        # SwaggerConfig
 ```
 
+### Dependency Rules (Hexagonal Architecture)
+
+**REGLA CRÍTICA: Core NO puede depender de Infrastructure**
+
+- **Core** debe ser completamente agnóstico a cualquier framework (Spring, Hibernate, etc.)
+- **Core** define la lógica de negocio pura
+- **Infrastructure** es la implementación de los puertos (ports) definidos en core
+- Solo `infraestructure/` puede importar dependencias de Spring Boot
+- El flujo de dependencias es: `core <- infraestructure` (core no conoce a infraestructure)
+
+**En Core está permitido:**
+- Clases de dominio (entities, value objects)
+- Puertos de entrada (input ports - use cases)
+- Puertos de salida (output ports - interfaces/repository contracts)
+- Excepciones de negocio
+- Interfaces de Logger (sin implementación)
+
+**En Core PROHIBIDO:**
+- Anotaciones Spring (`@Service`, `@Repository`, `@Component`, etc.)
+- Importaciones de `org.springframework.*`
+- Implementaciones de JPA (`@Entity`, `@Table`, `@Column`, etc.)
+- Referencias a infrastructure
+
+**En Infrastructure está permitido:**
+- Implementaciones de puertos de core
+- Anotaciones Spring
+- JPA entities
+- Controllers
+- Configuración de frameworks
+
+### Use Case Naming Conventions
+
+**Los nombres de use cases deben ser autoexplicativos y específicos:**
+
+| Evitar (vago) | Usar (específico) |
+|---------------|-------------------|
+| `ProcessOrder` | `TakeOrder`, `CancelOrder`, `CompleteOrder` |
+| `ManageTable` | `ReserveTable`, `ReleaseTable`, `UpdateTableStatus` |
+| `HandlePayment` | `ProcessPayment`, `RefundPayment` |
+| `UserService` | `CreateUser`, `AuthenticateUser`, `UpdateUserProfile` |
+
+**Estructura de nombres:**
+- `{Verbo}{Entidad}` para acciones de negocio
+- El verbo debe ser específico: `Take`, `Cancel`, `Reserve`, `Process`
+- NO usar verbos vagos: `Handle`, `Manage`, `Process`, `Do`
+
+**Ejemplos de buenos nombres:**
+- `TakeOrderUseCase`
+- `CancelOrderUseCase`
+- `ReserveTableUseCase`
+- `ProcessPaymentUseCase`
+- `CreateMenuItemUseCase`
+- `UpdateTableStatusUseCase`
+
 ### Imports
 - Use explicit imports (no wildcard `.*` except for static imports)
 - Order: java > javax > org > com > all other packages
