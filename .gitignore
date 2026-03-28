@@ -1,18 +1,21 @@
 HELP.md
+.project
 deploy.sh
 .env
 .env.deploy
-.gradle
+.gradle/
 build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
+
+# Gradle Wrapper - solo Properties debe versionarse, NO el jar
+gradle/wrapper/*.jar
+!gradle/wrapper/gradle-wrapper.properties
 
 ### STS ###
 .apt_generated
 .classpath
 .factorypath
 .project
+.project_hidden_message
 .settings
 .springBeans
 .sts4-cache
