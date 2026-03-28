@@ -18,6 +18,9 @@ import aros.services.rms.core.product.application.exception.ProductNotFoundExcep
 import aros.services.rms.core.product.application.usecases.ProductUseCaseImpl;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
+import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
+import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +36,9 @@ class ProductUseCaseImplTest {
   @Mock private AreaRepositoryPort areaRepositoryPort;
   @Mock private CategoryRepositoryPort categoryRepositoryPort;
   @Mock private Logger logger;
+  @Mock private ProductRecipeRepositoryPort productRecipeRepositoryPort;
+  @Mock private SupplyVariantRepositoryPort supplyVariantRepositoryPort;
+  @Mock private InventoryStockUseCase inventoryStockUseCase;
 
   private ProductUseCaseImpl productUseCase;
 
@@ -40,7 +46,13 @@ class ProductUseCaseImplTest {
   void setUp() {
     productUseCase =
         new ProductUseCaseImpl(
-            productRepositoryPort, areaRepositoryPort, categoryRepositoryPort, logger);
+            productRepositoryPort,
+            areaRepositoryPort,
+            categoryRepositoryPort,
+            productRecipeRepositoryPort,
+            supplyVariantRepositoryPort,
+            inventoryStockUseCase,
+            logger);
   }
 
   @Test
