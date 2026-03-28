@@ -261,7 +261,8 @@ public class GlobalExceptionHandler {
         return handleIllegalState(ex);
       }
     }
-    log.error("Retry agotado sin recovery: causa={}", cause != null ? cause.getMessage() : "unknown", e);
+    log.error(
+        "Retry agotado sin recovery: causa={}", cause != null ? cause.getMessage() : "unknown", e);
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
         .body(new ErrorResponse(500, "Error interno del servidor"));
   }

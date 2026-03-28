@@ -45,7 +45,8 @@ public class InventoryMovementMapper {
             .build();
 
     if (domain.getSupplyVariantId() != null) {
-      entity.setSupplyVariant(SupplyVariantEntity.builder().id(domain.getSupplyVariantId()).build());
+      entity.setSupplyVariant(
+          SupplyVariantEntity.builder().id(domain.getSupplyVariantId()).build());
     }
 
     if (domain.getFromStorageLocationId() != null) {

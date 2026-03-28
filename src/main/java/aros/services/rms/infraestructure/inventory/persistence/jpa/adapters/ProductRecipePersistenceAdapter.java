@@ -4,7 +4,6 @@ package aros.services.rms.infraestructure.inventory.persistence.jpa.adapters;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.infraestructure.inventory.persistence.ProductRecipeEntity;
-import aros.services.rms.infraestructure.inventory.persistence.SupplyVariantEntity;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.ProductRecipeMapper;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.ProductRecipeRepository;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.SupplyVariantRepository;
@@ -39,8 +38,7 @@ public class ProductRecipePersistenceAdapter implements ProductRecipeRepositoryP
                           .orElseThrow(
                               () ->
                                   new IllegalArgumentException(
-                                      "SupplyVariant not found: "
-                                          + recipe.getSupplyVariantId())));
+                                      "SupplyVariant not found: " + recipe.getSupplyVariantId())));
                   return entity;
                 })
             .collect(Collectors.toList());

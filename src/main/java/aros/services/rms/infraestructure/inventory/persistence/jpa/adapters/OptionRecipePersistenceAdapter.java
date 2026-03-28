@@ -38,8 +38,7 @@ public class OptionRecipePersistenceAdapter implements OptionRecipeRepositoryPor
                           .orElseThrow(
                               () ->
                                   new IllegalArgumentException(
-                                      "SupplyVariant not found: "
-                                          + recipe.getSupplyVariantId())));
+                                      "SupplyVariant not found: " + recipe.getSupplyVariantId())));
                   return entity;
                 })
             .collect(Collectors.toList());
