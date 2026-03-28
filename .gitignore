@@ -6,10 +6,6 @@ deploy.sh
 .gradle/
 build/
 
-# Gradle Wrapper - solo Properties debe versionarse, NO el jar
-gradle/wrapper/*.jar
-!gradle/wrapper/gradle-wrapper.properties
-
 ### STS ###
 .apt_generated
 .classpath
