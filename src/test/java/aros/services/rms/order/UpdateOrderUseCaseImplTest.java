@@ -13,6 +13,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.category.domain.Category;
+import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
+import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.order.application.usecases.TakeOrderCommand;
 import aros.services.rms.core.order.application.usecases.UpdateOrderUseCaseImpl;
 import aros.services.rms.core.order.domain.Order;
@@ -25,8 +27,6 @@ import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
-import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
-import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,7 +58,7 @@ class UpdateOrderUseCaseImplTest {
   @BeforeEach
   void setUp() {
     when(inventoryStockUseCase.isAvailable(any(), any())).thenReturn(true);
-    
+
     updateOrderUseCase =
         new UpdateOrderUseCaseImpl(
             orderRepositoryPort,

@@ -14,13 +14,13 @@ import aros.services.rms.core.category.application.exception.CategoryNotFoundExc
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.category.port.output.CategoryRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
+import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
+import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.product.application.usecases.ProductUseCaseImpl;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
-import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
-import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
-import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
