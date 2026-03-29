@@ -13,6 +13,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.category.domain.Category;
+import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
+import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.order.application.usecases.TakeOrderCommand;
 import aros.services.rms.core.order.application.usecases.UpdateOrderUseCaseImpl;
 import aros.services.rms.core.order.domain.Order;
@@ -32,8 +34,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class UpdateOrderUseCaseImplTest {
 
   @Mock private OrderRepositoryPort orderRepositoryPort;
@@ -44,16 +49,24 @@ class UpdateOrderUseCaseImplTest {
 
   @Mock private ProductOptionRepositoryPort productOptionRepositoryPort;
 
+  @Mock private InventoryStockUseCase inventoryStockUseCase;
+
+  @Mock private InventoryMovementUseCase inventoryMovementUseCase;
+
   private UpdateOrderUseCaseImpl updateOrderUseCase;
 
   @BeforeEach
   void setUp() {
+    when(inventoryStockUseCase.isAvailable(any(), any())).thenReturn(true);
+
     updateOrderUseCase =
         new UpdateOrderUseCaseImpl(
             orderRepositoryPort,
             tableRepositoryPort,
             productRepositoryPort,
-            productOptionRepositoryPort);
+            productOptionRepositoryPort,
+            inventoryStockUseCase,
+            inventoryMovementUseCase);
   }
 
   // ==================== CANCEL TESTS ====================

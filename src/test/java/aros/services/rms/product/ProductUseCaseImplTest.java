@@ -14,6 +14,9 @@ import aros.services.rms.core.category.application.exception.CategoryNotFoundExc
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.category.port.output.CategoryRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
+import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
+import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.product.application.usecases.ProductUseCaseImpl;
 import aros.services.rms.core.product.domain.Product;
@@ -33,6 +36,9 @@ class ProductUseCaseImplTest {
   @Mock private AreaRepositoryPort areaRepositoryPort;
   @Mock private CategoryRepositoryPort categoryRepositoryPort;
   @Mock private Logger logger;
+  @Mock private ProductRecipeRepositoryPort productRecipeRepositoryPort;
+  @Mock private SupplyVariantRepositoryPort supplyVariantRepositoryPort;
+  @Mock private InventoryStockUseCase inventoryStockUseCase;
 
   private ProductUseCaseImpl productUseCase;
 
@@ -40,7 +46,13 @@ class ProductUseCaseImplTest {
   void setUp() {
     productUseCase =
         new ProductUseCaseImpl(
-            productRepositoryPort, areaRepositoryPort, categoryRepositoryPort, logger);
+            productRepositoryPort,
+            areaRepositoryPort,
+            categoryRepositoryPort,
+            productRecipeRepositoryPort,
+            supplyVariantRepositoryPort,
+            inventoryStockUseCase,
+            logger);
   }
 
   @Test

@@ -28,6 +28,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -43,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Tag(name = "Auth", description = "Gestión de autenticación y sesiones de usuarios")
+@Slf4j
 public class AuthController {
 
   private final LoginUseCase loginUseCase;
@@ -64,6 +66,7 @@ public class AuthController {
   @PostMapping("/login")
   public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request)
       throws InvalidCredentialsException {
+    log.info("User attempting login: email={}", request.username());
     Credentials credentials =
         new Credentials(
             new UserEmail(request.username()), request.password(), request.deviceHash());
@@ -77,6 +80,7 @@ public class AuthController {
             result.token().getAccess(),
             result.token().getRefresh());
 
+    log.info("User login successful: email={}, type={}", request.username(), result.type().name());
     return ResponseEntity.ok(response);
   }
 
@@ -95,6 +99,7 @@ public class AuthController {
   public ResponseEntity<AuthResponse> verifyTfa(
       @Valid @RequestBody VerifyTwoFactorRequest request, @AuthenticationPrincipal Jwt jwt)
       throws InvalidCredentialsException {
+    log.info("User verifying 2FA: email={}", jwt.getSubject());
     TwoFactorCredentials credentials =
         new TwoFactorCredentials(
             new UserEmail(jwt.getSubject()), request.code(), request.deviceHash());
@@ -108,6 +113,7 @@ public class AuthController {
             result.token().getAccess(),
             result.token().getRefresh());
 
+    log.info("2FA verified successfully: email={}", jwt.getSubject());
     return ResponseEntity.ok(response);
   }
 
@@ -124,6 +130,7 @@ public class AuthController {
   @OnlyRefreshToken
   public ResponseEntity<AuthResponse> refresh(@RequestHeader("Authorization") String token)
       throws InvalidRefreshToken {
+    log.info("User refreshing token");
     if (token.startsWith("Bearer ")) {
       token = token.substring(7);
     }
@@ -137,6 +144,7 @@ public class AuthController {
             result.token().getAccess(),
             result.token().getRefresh());
 
+    log.info("Token refreshed successfully: email={}", result.username());
     return ResponseEntity.ok(response);
   }
 
@@ -154,6 +162,7 @@ public class AuthController {
   @JustAccessToken
   public ResponseEntity<UserFullInfoResponse> me(@AuthenticationPrincipal Jwt auth)
       throws UserNotFoundException {
+    log.info("Getting current user info: email={}", auth.getSubject());
     UserFullInfo uInfo = getUserInfoUseCase.getInfo(new UserEmail(auth.getSubject()));
 
     UserFullInfoResponse uInfoResponse =
@@ -184,6 +193,7 @@ public class AuthController {
   @PostMapping("/forgot-password")
   public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request)
       throws UserNotFoundException {
+    log.info("Password reset requested: email={}", request.email());
     passwordResetUseCase.requestPasswordReset(request.email());
     return ResponseEntity.ok().build();
   }
@@ -202,6 +212,7 @@ public class AuthController {
   @PostMapping("/resend-password")
   public ResponseEntity<Void> resendPasswordReset(@Valid @RequestBody ForgotPasswordRequest request)
       throws UserNotFoundException {
+    log.info("Password reset resent: email={}", request.email());
     passwordResetUseCase.requestPasswordReset(request.email());
     return ResponseEntity.ok().build();
   }
@@ -217,6 +228,7 @@ public class AuthController {
       })
   @PostMapping("/reset-password")
   public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+    log.info("Password reset completed");
     passwordResetUseCase.resetPassword(request.token(), request.newPassword());
     return ResponseEntity.status(HttpStatus.OK).build();
   }

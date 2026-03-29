@@ -133,17 +133,13 @@ public class CreateAdminUseCase {
       if (isFirstTime) {
         message =
             String.format(
-                "⚠️ SECURITY WARNING - DEVELOPMENT MODE ⚠️%n%n"
-                    + "This email comes from the system in DEVELOPMENT mode.%n"
-                    + "If you are NOT authorized to receive this email,%n"
-                    + "please REPORT to technical support immediately.%n%n"
-                    + "=============================================%n%n"
+                "\n=============================================%n%n"
                     + "Administrator credentials (DEVELOPMENT):%n%n"
                     + "Email: %s%n"
                     + "Password: %s%n%n"
                     + "=============================================%n%n"
                     + "Note: Save these credentials. They will not be shown again.%n"
-                    + "DO NOT use in production.",
+                    + "DO NOT use in production.\n",
                 email, password);
       } else {
         message =
@@ -157,7 +153,6 @@ public class CreateAdminUseCase {
       }
 
       emailService.sendRegistrationMail(new UserEmail(email), message);
-      log.info("Email sent successfully");
     } catch (Exception e) {
       if (isFirstTime) {
         log.warn("Email could not be sent (development mode - continuing): {}", e.getMessage());

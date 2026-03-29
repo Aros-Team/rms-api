@@ -1,6 +1,26 @@
 # RMS Changelog
 
-## [0.1.0] - 2026-03-17
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [v0.2.1] - 2026-03-28
+
+### Added
+
+- Security configuration updates
+
+## [v0.2.0] - 2026-03-20
+
+### Added
+
+- **Order Management**:
+  - Complete order lifecycle: QUEUE → PREPARING → READY → DELIVERED (+ CANCELLED)
+  - Order details with product options
+  - Multi-area order preparation tracking
+
+## [v0.1.0] - 2026-03-17y
 
 ### added
 
@@ -10,11 +30,6 @@
   - Two-Factor Authentication (2FA) support
   - Role-based access control (ADMIN, WORKER)
   - Device management for persistent sessions
-
-- **Order Management**:
-  - Complete order lifecycle: QUEUE → PREPARING → READY → DELIVERED (+ CANCELLED)
-  - Order details with product options
-  - Multi-area order preparation tracking
 
 - **Domain Modules** (Hexagonal Architecture):
   - **Area**: Preparation areas management (Bar, Kitchen, Grill)
@@ -41,7 +56,7 @@
   - Spring Boot 4.0.3 with Java 21
   - Gradle configuration with version from APP_VERSION env var
 
-## [0.0.1] - 2026-02-24
+## [v0.0.1] - 2026-02-24
 
 ### added
 

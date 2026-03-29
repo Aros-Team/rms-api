@@ -6,369 +6,264 @@ This document provides guidelines for agents working on the RMS (Restaurant Mana
 
 - **Framework**: Spring Boot 4.0.3 with Java 21
 - **Build Tool**: Gradle 9.3.x
-- **Database**: MySQL 7.4
-- **Key Dependencies**: Spring Data JPA, Spring Security, Spring Validation, Spring WebMVC, Spring WebSocket, Lombok
-
-## Importante: Usar siempre Taskfile
-
-**Todos los comandos deben ejecutarse desde el Taskfile**. No usar `./gradlew` directamente excepto donde sea necesario.
-
-```bash
-# Desarrollo - iniciar la aplicación
-task run
-
-# Desarrollo - formatear código después de hacer cambios
-task format
-
-# Build con Docker
-task build
-
-# Tests
-task test
-
-# Limpiar
-task clean
-```
+- **Database**: MySQL 8.0
+- **Key Dependencies**: Spring Data JPA, Spring Security, Spring Validation, Spring WebMVC, Spring WebSocket, Lombok, Flyway, MapStruct
 
 ## Build Commands
 
-### Standard Commands
+### Using Taskfile (Recommended for Development)
 ```bash
-# Run the application (starts Docker containers + Spring Boot)
+# Start app (Docker + Spring Boot)
 task run
 
-# Build project and generate Docker image
+# Build and create Docker image
 task build
+
+# Format code
+task format
+
+# Run tests
+task test
+
+# Clean and restart
+task clean
+```
+
+### Using Gradle Directly
+```bash
+# Build JAR without tests
+./gradlew assemble
+
+# Run Spring Boot
+./gradlew bootRun
+
+# Build Docker image
+./gradlew bootJar
+docker build -t rms-api:latest .
 
 # Clean build directory
 ./gradlew clean
-
-# Build without tests
-./gradlew assemble
 ```
 
-### Testing Commands
+## Testing Commands
+
+**Always run after Java changes:**
 ```bash
 # Run all tests
 ./gradlew test
 
-# Run a single test class
-./gradlew test --tests "aros.services.rms.RmsApplicationTests"
+# Run single test class
+./gradlew test --tests "ClassNameTests"
 
-# Run a specific test method
-./gradlew test --tests "aros.services.rms.RmsApplicationTests.contextLoads"
+# Run single test method
+./gradlew test --tests "ClassNameTests.methodName"
+
+# Run with specific Spring profile
+./gradlew test -Dspring.profiles.active=dev
 
 # Run tests with verbose output
 ./gradlew test --info
 ```
 
-### Running the Application
-```bash
-# Run Spring Boot application (requires Docker containers)
-./gradlew bootRun
+## Code Style
 
-# Build and run JAR
-./gradlew bootJar
-java -jar build/libs/rms-0.1.0.jar
-```
-
-### Docker Commands
-```bash
-# Start only the database
-docker compose up -d
-
-# Stop all containers
-docker compose down
-```
-
-## Code Style Guidelines
-
-**Después de cualquier cambio en código Java, ejecutar siempre:**
+**Always run after Java changes:**
 ```bash
 task format
 ```
 
-### General Principles
-- Use **Google style guide**
-- Follow **Spring Boot conventions** and Java 21 best practices
-- Keep methods short and focused (single responsibility)
-- Write meaningful commit messages
+### Formatting Rules
+- **Formatter**: Google Java Format via Spotless
+- **Import Order**: java > javax > org > com > all other packages
+- **No wildcard imports** (except static imports)
+- **No unused imports**
+- **Format annotations** before formatting code
 
 ### Naming Conventions
-- **Classes**: PascalCase (e.g., `OrderService`, `MenuItemController`)
-- **Methods**: camelCase (e.g., `findById`, `processOrder`)
-- **Variables**: camelCase (e.g., `orderList`, `maxItems`)
-- **Constants**: UPPER_SNAKE_CASE (e.g., `MAX_RETRY_COUNT`)
-- **Packages**: lowercase with dots (e.g., `aros.services.rms.controller`)
-
-### Package Structure (Hexagonal Architecture)
-```
-src/main/java/aros/services/rms/
-├── core/
-│   ├── common/
-│   │   └── logger/           # Logger interface (core agnostic)
-│   └── {domain}/
-│       ├── application/
-│       │   ├── usecases/    # Use case implementations
-│       │   └── exception/   # Domain exceptions
-│       ├── domain/          # Domain models
-│       └── port/            # Input/Output interfaces
-└── infraestructure/
-    ├── {module}/
-    │   ├── api/            # Controllers & DTOs
-    │   ├── persistence/    # JPA entities & repositories
-    │   └── config/         # Module-specific beans
-    └── common/             # Shared config
-        ├── exception/      # GlobalExceptionHandler
-        ├── logger/         # LoggerImpl
-        └── swagger/        # SwaggerConfig
-```
-
-### Imports
-- Use explicit imports (no wildcard `.*` except for static imports)
-- Order: java > javax > org > com > all other packages
+- **Classes**: PascalCase (`OrderService`, `MenuItemController`)
+- **Methods**: camelCase (`findById`, `processOrder`)
+- **Variables**: camelCase (`orderList`, `maxItems`)
+- **Constants**: UPPER_SNAKE_CASE (`MAX_RETRY_COUNT`)
+- **Packages**: lowercase with dots (`aros.services.rms.controller`)
 
 ### Types and Generics
-- Use generics for collections: `List<Order>` not `List`
+- Use generics: `List<Order>` not `List`
 - Prefer interfaces: `List<T>` not `ArrayList<T>`
 - Use `Optional` for nullable return values
 - Use `var` when type is obvious
 
-### Error Handling
-- Las excepciones de negocio se definen en `core/` (ver sección Exception Handling)
-- El manejo HTTP está en `infraestructure/common/`
-- Return appropriate HTTP status codes (200, 201, 400, 404, 500)
-- Never expose stack traces to clients
+## Architecture (Hexagonal)
 
-### Lombok Usage
-- Use `@Data` for simple DTOs/entities
-- Use `@Builder` for complex objects
-- Use `@Builder.Default` for fields with initial values
-- **Use `@Slf4j` only in infrastructure layer** (never in core)
-- Use `@AllArgsConstructor` and `@NoArgsConstructor` as needed
+```
+src/main/java/aros/services/rms/
+├── core/
+│   ├── common/logger/           # Logger interface (no Spring)
+│   └── {domain}/
+│       ├── application/usecases/ # Business logic
+│       ├── application/exception/
+│       ├── domain/              # Entities, Value Objects
+│       └── port/               # Input/Output interfaces
+└── infraestructure/
+    ├── {module}/api/            # Controllers, DTOs
+    ├── {module}/persistence/    # JPA entities, Repositories
+    └── common/                  # Global config
+```
 
-### Testing
-- Use `@MockBean` for mocking dependencies
-- Name test classes: `ClassNameTests`
+## Dependency Rules
 
-### Database/JPA
-- Use `@Entity` and `@Table` for entities
-- Define relationships with `@OneToMany`, `@ManyToOne`, etc.
-- Use repository interfaces extending `JpaRepository`
-- Prefer JPQL over native queries when possible
+**CRITICAL: Core must NOT depend on Infrastructure**
 
-### Security
-- Use Spring Security for authentication/authorization
-- Never hardcode secrets; use environment variables
-- Validate all inputs with `@Valid` and Bean Validation
+### Core Layer (Business Logic - Framework Agnostic)
+- Domain entities and value objects
+- Input ports (use case interfaces)
+- Output ports (repository interfaces)
+- Business exceptions
+- Logger interface (no implementation)
+
+**PROHIBITED in Core:**
+- Spring annotations (`@Service`, `@Repository`, `@Component`)
+- JPA annotations (`@Entity`, `@Table`)
+- Any `org.springframework.*` imports
+
+### Infrastructure Layer (Framework Implementations)
+- Use case implementations
+- JPA repositories
+- Controllers
+- Logger implementation
+- GlobalExceptionHandler
+
+## Use Case Naming
+
+Use specific, action-oriented names:
+
+| Avoid | Use |
+|-------|-----|
+| `ProcessOrder` | `TakeOrder`, `CancelOrder`, `CompleteOrder` |
+| `ManageTable` | `ReserveTable`, `ReleaseTable`, `UpdateTableStatus` |
+| `UserService` | `CreateUser`, `AuthenticateUser`, `UpdateUserProfile` |
+
+**Pattern**: `{Verb}{Entity}UseCase` (e.g., `TakeOrderUseCase`)
+
+## Lombok Usage
+
+- `@Data`: Simple DTOs/entities
+- `@Builder`: Complex objects
+- `@Builder.Default`: Fields with initial values
+- `@Slf4j`: **Only in infrastructure layer** (never in core)
+- `@AllArgsConstructor`, `@NoArgsConstructor`: As needed
 
 ## Environment Variables
 
-Create a `.env` file (see `.env.example`):
+### Development (.env)
 ```bash
-DB_ROOT_PASSWORD=your_password
-DB_NAME=rms
+DB_HOST=localhost
 DB_PORT=3306
+DB_NAME=rmsdb
+DB_USERNAME=root
+DB_PASSWORD=your_password
 ```
 
-## Database Configuration
-
-The application expects MySQL at `localhost:3306`. Start with:
+### Production (Cloud Run)
 ```bash
-docker compose up -d
+SPRING_PROFILES_ACTIVE=prod
+CLOUD_SQL_INSTANCE=project:region:instance
+DB_NAME=rmsdb
+DB_USERNAME=iam_user
+# No DB_PASSWORD needed (IAM authentication)
 ```
+
+## Spring Profiles
+
+| Profile | File | Use Case |
+|---------|------|----------|
+| default | application.yml | Common config |
+| dev | application-dev.yml | Local development (TCP/IP) |
+| prod | application-prod.yml | Cloud Run with IAM |
+
+**Note**: Profile files override base configuration. Use `SPRING_PROFILES_ACTIVE=prod` in production.
 
 ## Exception Handling
 
-### Reglas
-- Todas las excepciones de negocio se definen en `core/{domain}/application/exception/`
-- Las excepciones son clases simples que extienden `RuntimeException`
-- **NO** usar anotaciones Spring (@ResponseStatus) en core
-- El manejo HTTP se define en `infraestructure/common/exception/GlobalExceptionHandler.java`
+### Business Exceptions (Core)
+- Location: `core/{domain}/application/exception/`
+- Extend `RuntimeException`
+- NO Spring annotations in core
 
-### Nomenclatura
-- `{Entity}NotFoundException` - para 404 (ej: `OrderNotFoundException`)
-- `{Entity}AlreadyExistsException` - para 409 (ej: `TableAlreadyExistsException`)
-- `Invalid{Entity}Exception` - para 400 (ej: `InvalidOrderException`)
-- `{Business}Exception` - para errores de negocio genéricos
+### HTTP Handling (Infrastructure)
+- Location: `infraestructure/common/exception/GlobalExceptionHandler.java`
+- Single `@RestControllerAdvice` for all exceptions
 
-### Ejemplo
-```java
-// core/order/application/exception/OrderNotFoundException.java
-public class OrderNotFoundException extends RuntimeException {
-    public OrderNotFoundException(Long id) {
-        super("Order not found: " + id);
-    }
-}
-```
-
-```java
-// infraestructure/common/exception/GlobalExceptionHandler.java
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-    @ExceptionHandler(OrderNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleOrderNotFound(OrderNotFoundException e) {
-        return new ErrorResponse(404, e.getMessage());
-    }
-}
-```
+### Naming Convention
+- `{Entity}NotFoundException` → 404
+- `{Entity}AlreadyExistsException` → 409
+- `Invalid{Entity}Exception` → 400
+- `{Business}Exception` → 500
 
 ## Logging
 
-### Reglas
-- **Core NO usa** `@Slf4j` ni `System.out`
-- Usar interfaz `Logger` definida en `core/common/logger/Logger.java`
-- Implementación en `infraestructure/common/logger/LoggerImpl.java`
-- Inyectar `Logger` en use cases que requieran logging
+### Rules
+- **Core**: Use `Logger` interface (no implementation)
+- **Infrastructure**: Implement `Logger` with `@Slf4j`
+- Inject logger into use cases that need it
 
-### Niveles
-- **ERROR**: Excepciones, fallos de negocio
-- **INFO**: Acciones de negocio (creación, actualización, cambios de estado)
-- **DEBUG**: Detalles de validación, datos de entrada
+### Log Levels
+- **ERROR**: Exceptions, business failures
+- **INFO**: Business actions (create, update, state changes)
+- **DEBUG**: Validation details, input data
 
-### Nomenclatura de mensajes
-- Usar formato: `Acción: entidad=id, detalle={}`
-- Ejemplo: `Order cancelled: id=123, reason=client_request`
-
-### Interfaz Logger (core)
-```java
-// core/common/logger/Logger.java
-public interface Logger {
-    void info(String message, Object... args);
-    void error(String message, Exception exception);
-    void error(String message, Exception exception, Object... args);
-    void debug(String message, Object... args);
-}
+### Message Format
 ```
-
-### Implementación (infra)
-```java
-// infraestructure/common/logger/LoggerImpl.java
-@Slf4j
-@Component
-public class LoggerImpl implements Logger {
-    @Override
-    public void info(String message, Object... args) {
-        log.info(message, args);
-    }
-    // ...
-}
-```
-
-### Uso en Use Cases
-```java
-public class TakeOrderUseCaseImpl implements TakeOrderUseCase {
-    private final Logger logger;
-    
-    public Order execute(TakeOrderCommand command) {
-        // ... lógica
-        logger.info("Order created: id={}, tableId={}", order.getId(), table.getId());
-    }
-}
+Action: entity=id, detail={}
+Example: "Order cancelled: id=123, reason=client_request"
 ```
 
 ## Swagger / OpenAPI
 
-### Dependencia
-```groovy
-implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
-```
+### Rules
+- Every `@RestController` needs `@Tag`
+- Every endpoint needs `@Operation` with summary and description
+- Use `@ApiResponse` to document possible response codes
+- Group endpoints by domain using tags
 
-### Reglas
-- Toda clase `@RestController` debe tener `@Tag` con descripción
-- Todo endpoint debe tener `@Operation` con summary y description
-- Usar `@ApiResponse` para documentar códigos de respuesta posibles
-- Agrupar endpoints por dominio usando tags
-- Configuración global en `infraestructure/common/swagger/SwaggerConfig.java`
+## Database
 
-### Ejemplo
-```java
-@RestController
-@RequestMapping("/api/v1/orders")
-@Tag(name = "Orders", description = "Gestión del ciclo de vida de órdenes")
-public class OrderController {
-    
-    @Operation(
-        summary = "Crear nueva orden", 
-        description = "Crea una orden en estado QUEUE. Requiere mesa disponible.",
-        responses = {
-            @ApiResponse(responseCode = "201", description = "Orden creada exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
-            @ApiResponse(responseCode = "404", description = "Mesa no encontrada"),
-            @ApiResponse(responseCode = "409", description = "Mesa no disponible")
-        }
-    )
-    @PostMapping
-    public ResponseEntity<OrderResponse> takeOrder(@Valid @RequestBody TakeOrderRequest request) {
-        // ...
-    }
-}
-```
+- Use `@Entity` and `@Table` for JPA entities
+- Define relationships with `@OneToMany`, `@ManyToOne`
+- Extend `JpaRepository` for repositories
+- Prefer JPQL over native queries
+- Use Flyway for migrations (do not use `ddl-auto`)
 
-## Controller Advice
+## Security
 
-### Ubicación
-- `infraestructure/common/exception/GlobalExceptionHandler.java`
+- Use Spring Security for authentication/authorization
+- NEVER hardcode secrets - use environment variables
+- Validate all inputs with `@Valid` and Bean Validation
+- Never expose stack traces to clients
 
-### Reglas
-- Un único `@RestControllerAdvice` para toda la aplicación
-- Mapear excepciones de core a códigos HTTP apropiados
-- Usar record `ErrorResponse` para estructura consistente de errores
-- **NO** exponer stack traces en respuestas
+## Concurrency
 
-### Códigos HTTP estándar
-| Código | Uso |
-|--------|-----|
-| 400 | Bad Request - datos inválidos |
-| 404 | Not Found - entidad no encontrada |
-| 409 | Conflict - estado inválido para la operación |
-| 500 | Internal Server Error - errores inesperados |
+For atomic operations requiring race condition prevention:
+- Use `@Lock(LockModeType.PESSIMISTIC_WRITE)` in repository
+- Method must be within `@Transactional` in adapter
 
-## Concurrency / Race Conditions
+## Dependency Management
 
-### Reglas
-- Para operaciones que deben ser atómicas y prevenir race conditions, usar `@Lock` en el repository
-- Usar `PESSIMISTIC_WRITE` para operaciones de actualización
-- El método debe estar dentro de una transacción (`@Transactional` en adapter)
+- DO NOT change dependency versions without research
+- Check [Maven Repository](https://mvnrepository.com/) for GA versions
+- Verify compatibility with Spring Boot and Java 21
+- Test locally before committing
 
-### Ejemplo
-```java
-// infraestructure/order/persistence/jpa/OrderRepository.java
-@Lock(LockModeType.PESSIMISTIC_WRITE)
-@Query("SELECT o FROM Order o WHERE o.status = :status ORDER BY o.date ASC LIMIT 1")
-Optional<Order> findFirstByStatusOrderByDateAsc(@Param("status") OrderStatus status);
-```
+## Common Errors
 
-## Errores Comunes
+- **Port in use**: Check for running instances
+- **DB connection failed**: Ensure Docker containers are running
+- **Test failures**: Verify database is accessible and configured
 
-- **Port already in use**: Check if another instance is running
-- **Database connection failed**: Ensure Docker containers are running
-- **Test failures**: Check database is accessible and properly configured
-
-## Useful Gradle Commands
+## Useful Commands
 
 ```bash
 ./gradlew dependencies   # Check dependencies
-./gradlew projects       # Show project structure
-./gradlew properties     # Show properties
+./gradlew projects      # Show project structure
+./gradlew properties    # Show properties
+./gradlew generate-jwt-keys  # Generate JWT key pair
 ```
-
-## Gestión de Dependencias
-
-### Reglas Obligatorias
-- **NO cambiar versiones de dependencias** sin investigar primero en internet las versiones estables disponibles
-- Antes de actualizar una dependencia, buscar en [Maven Repository](https://mvnrepository.com/) las versiones GA (General Availability)
-- Verificar compatibilidad con Spring Boot y Java actual
-- No asumir que versiones más nuevas son mejores - priorizar estabilidad
-
-### Proceso para Actualizar
-1. Investigar versiones estables en Maven Repository
-2. Verificar changelog/release notes
-3. Probar en entorno local antes de commit
-4. Documentar el cambio en commit message
-
-### Dependencias Críticas
-- Spring Boot: gestionar desde plugin `id 'org.springframework.boot'`
-- springdoc-openapi: debe ser compatible con la versión de Spring Boot
-- Lombok: versión gestionada por Spring Boot BOM

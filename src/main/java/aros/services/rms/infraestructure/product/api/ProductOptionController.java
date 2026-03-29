@@ -2,14 +2,17 @@
 package aros.services.rms.infraestructure.product.api;
 
 import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.inventory.domain.OptionRecipe;
 import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.port.input.ProductOptionUseCase;
 import aros.services.rms.infraestructure.product.api.dto.ProductOptionRequest;
 import aros.services.rms.infraestructure.product.api.dto.ProductOptionResponse;
+import aros.services.rms.infraestructure.product.api.dto.RecipeItemRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -43,10 +46,12 @@ public class ProductOptionController {
   @PostMapping
   public ResponseEntity<ProductOptionResponse> create(
       @Valid @RequestBody ProductOptionRequest request) {
+    List<OptionRecipe> recipe = mapRecipe(request.recipe());
     ProductOption option =
         ProductOption.builder()
             .name(request.name())
             .category(OptionCategory.builder().id(request.optionCategoryId()).build())
+            .recipe(recipe)
             .build();
 
     ProductOption created = productOptionUseCase.create(option);
@@ -63,10 +68,12 @@ public class ProductOptionController {
   @PutMapping("/{id}")
   public ResponseEntity<ProductOptionResponse> update(
       @PathVariable Long id, @Valid @RequestBody ProductOptionRequest request) {
+    List<OptionRecipe> recipe = mapRecipe(request.recipe());
     ProductOption option =
         ProductOption.builder()
             .name(request.name())
             .category(OptionCategory.builder().id(request.optionCategoryId()).build())
+            .recipe(recipe)
             .build();
 
     ProductOption updated = productOptionUseCase.update(id, option);
@@ -99,5 +106,19 @@ public class ProductOptionController {
   public ResponseEntity<ProductOptionResponse> findById(@PathVariable Long id) {
     ProductOption option = productOptionUseCase.findById(id);
     return ResponseEntity.ok(ProductOptionResponse.fromDomain(option));
+  }
+
+  private List<OptionRecipe> mapRecipe(List<RecipeItemRequest> recipeRequests) {
+    if (recipeRequests == null || recipeRequests.isEmpty()) {
+      return new ArrayList<>();
+    }
+    return recipeRequests.stream()
+        .map(
+            item ->
+                OptionRecipe.builder()
+                    .supplyVariantId(item.supplyVariantId())
+                    .requiredQuantity(item.requiredQuantity())
+                    .build())
+        .collect(Collectors.toList());
   }
 }

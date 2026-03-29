@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:mysql:///${DB_NAME}?cloudSqlInstance=${CLOUD_SQL_INSTANCE}&socketFactory=com.google.cloud.sql.mysql.SocketFactory&enableSSL=false
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 5
+      connection-timeout: 10000
+      max-lifetime: 1800000
+      connection-test-query: "SELECT 1"
+      pool-name: RmsHikariPool
+      initialization-fail-timeout: -1

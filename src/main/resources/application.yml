@@ -21,10 +21,13 @@ logging:
 spring:
   application:
     name: rms
+  profiles:
+    active: ${APP_ENV:dev}
   datasource:
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?allowPublicKeyRetrieval=true&useSSL=false
-    username: root
-    password: ${DB_ROOT_PASSWORD}
+    url: ${DB_URL:}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 5
       connection-timeout: 10000

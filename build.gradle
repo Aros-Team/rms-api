@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'aros.services'
-version = project.hasProperty('appVersion') ? project.property('appVersion') : '0.1.0'
+version = project.hasProperty('appVersion') ? project.property('appVersion') : '0.2.1'
 description = 'Robust, scalable API that processes restaurant operations in real-time and transforms data into actionable business insights.'
 
 java {
@@ -43,6 +43,7 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.mysql:mysql-connector-j'
+	implementation 'com.google.cloud.sql:mysql-socket-factory-connector-j-8:1.28.2'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation "org.mockito:mockito-core:5.+"

@@ -10,6 +10,10 @@ import aros.services.rms.core.auth.application.exception.UserNotFoundException;
 import aros.services.rms.core.category.application.exception.CategoryNotFoundException;
 import aros.services.rms.core.category.application.exception.OptionCategoryNotFoundException;
 import aros.services.rms.core.email.application.exception.EmailServiceException;
+import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
+import aros.services.rms.core.inventory.application.exception.StorageLocationNotFoundException;
+import aros.services.rms.core.inventory.application.exception.SupplyNotFoundException;
+import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFoundException;
 import aros.services.rms.core.order.application.exception.InvalidOrderStatusException;
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.application.exception.TableNotAvailableException;
@@ -25,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.ExhaustedRetryException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -115,6 +120,30 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(InvalidTableStatusException.class)
   public ResponseEntity<ErrorResponse> handleInvalidTableStatus(InvalidTableStatusException e) {
     return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
+  // --- Inventory exceptions ---
+
+  @ExceptionHandler(InsufficientStockException.class)
+  public ResponseEntity<ErrorResponse> handleInsufficientStock(InsufficientStockException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
+  @ExceptionHandler(SupplyVariantNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleSupplyVariantNotFound(
+      SupplyVariantNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  @ExceptionHandler(SupplyNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleSupplyNotFound(SupplyNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  @ExceptionHandler(StorageLocationNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleStorageLocationNotFound(
+      StorageLocationNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
   }
 
   // --- Validation exceptions ---
@@ -212,6 +241,30 @@ public class GlobalExceptionHandler {
       aros.services.rms.core.user.application.exception.InvalidPasswordException e) {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(new ErrorResponse(400, e.getMessage()));
+  }
+
+  // --- Spring Retry ---
+
+  @ExceptionHandler(ExhaustedRetryException.class)
+  public ResponseEntity<ErrorResponse> handleExhaustedRetry(ExhaustedRetryException e) {
+    Throwable cause = e.getCause();
+    if (cause instanceof RuntimeException runtimeException) {
+      // Re-dispatch to the appropriate handler by rethrowing the real cause
+      // We handle known business exceptions explicitly here
+      if (cause instanceof InsufficientStockException ex) {
+        return handleInsufficientStock(ex);
+      }
+      if (cause instanceof IllegalArgumentException ex) {
+        return handleIllegalArgument(ex);
+      }
+      if (cause instanceof IllegalStateException ex) {
+        return handleIllegalState(ex);
+      }
+    }
+    log.error(
+        "Retry agotado sin recovery: causa={}", cause != null ? cause.getMessage() : "unknown", e);
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(new ErrorResponse(500, "Error interno del servidor"));
   }
 
   // --- Generic catch-all handlers ---

@@ -55,19 +55,6 @@ public class AdminInitializer implements CommandLineRunner {
       }
 
       if (credentials.isDevelopment()) {
-        log.warn("════════════════════════════════════════════════════════════════════");
-        log.warn("DEVELOPMENT MODE ACTIVE - DO NOT USE IN PRODUCTION");
-        log.warn("════════════════════════════════════════════════════════════════════");
-
-        System.out.println("╔═══════════════════════════════════════════════════════════╗");
-        System.out.println("║           ADMINISTRATOR CREDENTIALS                       ║");
-        System.out.println("║           (FOR DEVELOPMENT ONLY - DO NOT USE IN PROD)    ║");
-        System.out.println("╠═══════════════════════════════════════════════════════════╣");
-        System.out.println("║  Email:    " + credentials.email());
-        System.out.println("║  Password: " + credentials.rawPassword());
-        System.out.println("╚═══════════════════════════════════════════════════════════╝");
-
-        log.warn("Credentials printed to console. Save them, they won't be shown again.");
         log.info("Initialization process completed");
       } else {
         log.info("Administrator created successfully");

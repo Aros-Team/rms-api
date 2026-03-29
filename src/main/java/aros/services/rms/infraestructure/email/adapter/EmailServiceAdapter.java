@@ -21,15 +21,28 @@ public class EmailServiceAdapter implements EmailServicePort {
 
   private final RestTemplate restTemplate;
   private final String baseUrl;
+  private final String dummyEmail;
 
   public EmailServiceAdapter(
-      RestTemplate restTemplate, @Value("${app.email.base-url}") String baseUrl) {
+      RestTemplate restTemplate,
+      @Value("${app.email.base-url}") String baseUrl,
+      @Value("${app.admin.dummy-email:}") String dummyEmail) {
     this.restTemplate = restTemplate;
     this.baseUrl = baseUrl;
+    this.dummyEmail = dummyEmail;
   }
 
   @Override
   public void send(Email email) {
+    if (dummyEmail != null && !dummyEmail.isBlank() && dummyEmail.equalsIgnoreCase(email.getTo())) {
+      log.warn(
+          "Email not sent - recipient matches DUMMY_EMAIL (development mode). to={}, template={}, data={}",
+          email.getTo(),
+          email.getTemplate(),
+          email.getData());
+      return;
+    }
+
     HttpEntity<Email> request = new HttpEntity<>(email);
     RestClientException lastException = null;
 

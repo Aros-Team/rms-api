@@ -6,11 +6,18 @@ import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.category.application.exception.CategoryNotFoundException;
 import aros.services.rms.core.category.port.output.CategoryRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFoundException;
+import aros.services.rms.core.inventory.domain.ProductRecipe;
+import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
+import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
+import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -28,20 +35,32 @@ public class ProductUseCaseImpl implements ProductUseCase {
   private final ProductRepositoryPort productRepositoryPort;
   private final AreaRepositoryPort areaRepositoryPort;
   private final CategoryRepositoryPort categoryRepositoryPort;
+  private final ProductRecipeRepositoryPort productRecipeRepositoryPort;
+  private final SupplyVariantRepositoryPort supplyVariantRepositoryPort;
+  private final InventoryStockUseCase inventoryStockUseCase;
   private final Logger logger;
 
   public ProductUseCaseImpl(
       ProductRepositoryPort productRepositoryPort,
       AreaRepositoryPort areaRepositoryPort,
       CategoryRepositoryPort categoryRepositoryPort,
+      ProductRecipeRepositoryPort productRecipeRepositoryPort,
+      SupplyVariantRepositoryPort supplyVariantRepositoryPort,
+      InventoryStockUseCase inventoryStockUseCase,
       Logger logger) {
     this.productRepositoryPort = productRepositoryPort;
     this.areaRepositoryPort = areaRepositoryPort;
     this.categoryRepositoryPort = categoryRepositoryPort;
+    this.productRecipeRepositoryPort = productRecipeRepositoryPort;
+    this.supplyVariantRepositoryPort = supplyVariantRepositoryPort;
+    this.inventoryStockUseCase = inventoryStockUseCase;
     this.logger = logger;
   }
 
-  /** {@inheritDoc} Validates that the referenced area and category exist before creating. */
+  /**
+   * {@inheritDoc} Validates that the referenced area and category exist before creating. If recipe
+   * items are provided, validates that each supplyVariantId exists.
+   */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -53,11 +72,30 @@ public class ProductUseCaseImpl implements ProductUseCase {
 
     product.setActive(true);
     Product saved = productRepositoryPort.save(product);
+
+    if (product.getRecipe() != null && !product.getRecipe().isEmpty()) {
+      validateSupplyVariantsExist(product.getRecipe());
+      List<ProductRecipe> recipesToSave =
+          product.getRecipe().stream()
+              .map(
+                  recipe ->
+                      ProductRecipe.builder()
+                          .productId(saved.getId())
+                          .supplyVariantId(recipe.getSupplyVariantId())
+                          .requiredQuantity(recipe.getRequiredQuantity())
+                          .build())
+              .toList();
+      productRecipeRepositoryPort.saveAll(recipesToSave);
+    }
+
     logger.info("Product created: id={}, name={}", saved.getId(), saved.getName());
     return saved;
   }
 
-  /** {@inheritDoc} Validates that the referenced area and category exist before updating. */
+  /**
+   * {@inheritDoc} Validates that the referenced area and category exist before updating. If recipe
+   * items are provided, validates supplyVariantIds and replaces existing recipe.
+   */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -77,6 +115,25 @@ public class ProductUseCaseImpl implements ProductUseCase {
     existing.setPreparationAreaId(product.getPreparationAreaId());
 
     Product saved = productRepositoryPort.save(existing);
+
+    // Delete existing recipes and replace with new ones (or empty if null)
+    productRecipeRepositoryPort.deleteByProductId(id);
+
+    if (product.getRecipe() != null && !product.getRecipe().isEmpty()) {
+      validateSupplyVariantsExist(product.getRecipe());
+      List<ProductRecipe> recipesToSave =
+          product.getRecipe().stream()
+              .map(
+                  recipe ->
+                      ProductRecipe.builder()
+                          .productId(saved.getId())
+                          .supplyVariantId(recipe.getSupplyVariantId())
+                          .requiredQuantity(recipe.getRequiredQuantity())
+                          .build())
+              .toList();
+      productRecipeRepositoryPort.saveAll(recipesToSave);
+    }
+
     logger.info("Product updated: id={}, name={}", saved.getId(), saved.getName());
     return saved;
   }
@@ -151,6 +208,41 @@ public class ProductUseCaseImpl implements ProductUseCase {
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public List<Product> findAllAvailable() {
+    List<Product> allProducts = productRepositoryPort.findAll();
+    List<Product> availableProducts = new ArrayList<>();
+
+    for (Product product : allProducts) {
+      if (!product.isActive()) {
+        continue;
+      }
+
+      // Products without a recipe are considered available
+      if (product.getRecipe() == null || product.getRecipe().isEmpty()) {
+        availableProducts.add(product);
+        continue;
+      }
+
+      // Check if product has sufficient stock in Cocina
+      if (inventoryStockUseCase.isAvailable(product.getId(), Collections.emptyList())) {
+        availableProducts.add(product);
+      }
+    }
+
+    return availableProducts;
+  }
+
+  @Recover
+  public List<Product> recoverFindAllAvailable(DataAccessException e) {
+    log.warn("BD no disponible - fallback para findAllAvailable: {}", e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
   /** Validates that the area exists. */
   private void validateAreaExists(Long areaId) {
     if (areaId == null || !areaRepositoryPort.existsById(areaId)) {
@@ -162,6 +254,15 @@ public class ProductUseCaseImpl implements ProductUseCase {
   private void validateCategoryExists(Long categoryId) {
     if (categoryId == null || !categoryRepositoryPort.existsById(categoryId)) {
       throw new CategoryNotFoundException(categoryId);
+    }
+  }
+
+  /** Validates that all supply variant IDs in the recipe exist. */
+  private void validateSupplyVariantsExist(List<ProductRecipe> recipes) {
+    for (ProductRecipe recipe : recipes) {
+      if (!supplyVariantRepositoryPort.existsById(recipe.getSupplyVariantId())) {
+        throw new SupplyVariantNotFoundException(recipe.getSupplyVariantId());
+      }
     }
   }
 }

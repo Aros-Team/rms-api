@@ -70,7 +70,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
   private void logRequest(HttpServletRequest request, String requestId) {
     Map<String, String> headers = getHeaders(request);
 
-    log.info(
+    log.debug(
         "REQUEST | id={} | method={} | uri={} | query={} | clientIp={} | headers={}",
         requestId,
         request.getMethod(),
@@ -86,10 +86,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
       long duration,
       String requestId) {
 
-    String level = response.getStatus() >= 500 ? "ERROR" : "INFO";
-
-    if (log.isInfoEnabled() || response.getStatus() >= 500) {
-      log.info(
+    if (log.isDebugEnabled()) {
+      log.debug(
           "RESPONSE | id={} | method={} | uri={} | status={} | duration={}ms",
           requestId,
           request.getMethod(),
