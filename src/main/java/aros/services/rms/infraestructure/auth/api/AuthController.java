@@ -44,7 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@Tag(name = "Auth", description = "Gestión de autenticación y sesiones de usuarios")
+@Tag(name = "Auth", description = "User authentication and session management")
 public class AuthController {
 
   private final LoginUseCase loginUseCase;
@@ -54,14 +54,14 @@ public class AuthController {
   private final PasswordResetUseCase passwordResetUseCase;
 
   @Operation(
-      summary = "Iniciar sesión",
+      summary = "User login",
       description =
-          "Autentica al usuario con email y contraseña. Retorna access token y refresh token. "
-              + "Si el usuario tiene 2FA habilitado, retorna tipo REQUIRE_2FA.",
+          "Authenticates user with email and password. Returns access token and refresh token. "
+              + "If user has 2FA enabled, returns REQUIRE_2FA type.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Login exitoso"),
-        @ApiResponse(responseCode = "400", description = "Credenciales inválidas"),
-        @ApiResponse(responseCode = "401", description = "Autenticación fallida")
+        @ApiResponse(responseCode = "200", description = "Login successful"),
+        @ApiResponse(responseCode = "400", description = "Invalid credentials"),
+        @ApiResponse(responseCode = "401", description = "Authentication failed")
       })
   @PostMapping("/login")
   public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request)
@@ -87,14 +87,14 @@ public class AuthController {
   }
 
   @Operation(
-      summary = "Verificar autenticación de dos factores",
+      summary = "Verify two-factor authentication",
       description =
-          "Verifica el código 2FA enviado al dispositivo del usuario. "
-              + "Requiere un token TFA válido obtenido del login.",
+          "Verifies the 2FA code sent to user's device. "
+              + "Requires a valid TFA token obtained from login.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Verificación 2FA exitosa"),
-        @ApiResponse(responseCode = "400", description = "Código inválido o expirado"),
-        @ApiResponse(responseCode = "401", description = "No autorizado")
+        @ApiResponse(responseCode = "200", description = "2FA verification successful"),
+        @ApiResponse(responseCode = "400", description = "Invalid or expired code"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
       })
   @PostMapping("/verify")
   @OnlyTfaTOken
@@ -118,13 +118,13 @@ public class AuthController {
   }
 
   @Operation(
-      summary = "Refrescar token de acceso",
+      summary = "Refresh access token",
       description =
-          "Renueva el access token usando un refresh token válido. "
-              + "El refresh token debe enviarse en el header Authorization.",
+          "Renews the access token using a valid refresh token. "
+              + "The refresh token must be sent in the Authorization header.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Token refrescado exitosamente"),
-        @ApiResponse(responseCode = "401", description = "Refresh token inválido o expirado")
+        @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
+        @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
       })
   @PostMapping("/refresh")
   @OnlyRefreshToken
@@ -146,14 +146,14 @@ public class AuthController {
   }
 
   @Operation(
-      summary = "Obtener usuario actual",
+      summary = "Get current user",
       description =
-          "Retorna la información del usuario autenticado actualmente "
-              + "(obtenida del token JWT en el header Authorization).",
+          "Returns the authenticated user's information "
+              + "(obtained from the JWT token in the Authorization header).",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Información del usuario obtenida"),
-        @ApiResponse(responseCode = "401", description = "No autorizado"),
-        @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+        @ApiResponse(responseCode = "200", description = "User information retrieved"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "User not found")
       })
   @GetMapping
   @JustAccessToken
@@ -177,12 +177,12 @@ public class AuthController {
   }
 
   @Operation(
-      summary = "Solicitar recuperación de contraseña",
+      summary = "Request password reset",
       description =
-          "Envía un email con el token de recuperación de contraseña al correo electrónico proporcionado.",
+          "Sends a password reset email with recovery token to the provided email address.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Email de recuperación enviado"),
-        @ApiResponse(responseCode = "400", description = "Email inválido")
+        @ApiResponse(responseCode = "200", description = "Recovery email sent"),
+        @ApiResponse(responseCode = "400", description = "Invalid email")
       })
   @PostMapping("/forgot-password")
   public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request)
@@ -192,13 +192,13 @@ public class AuthController {
   }
 
   @Operation(
-      summary = "Restablecer contraseña",
+      summary = "Reset password",
       description =
-          "Restablece la contraseña del usuario usando el token de recuperación enviado por email.",
+          "Resets user password using the recovery token sent by email.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Contraseña actualizada exitosamente"),
-        @ApiResponse(responseCode = "400", description = "Token inválido o expirado"),
-        @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+        @ApiResponse(responseCode = "200", description = "Password updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid or expired token"),
+        @ApiResponse(responseCode = "404", description = "User not found")
       })
   @PostMapping("/reset-password")
   public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
