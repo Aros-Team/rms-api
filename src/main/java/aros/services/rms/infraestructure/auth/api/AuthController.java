@@ -1,7 +1,9 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.auth.api;
 
+import aros.services.rms.core.auth.application.dto.AuthFinalResult;
 import aros.services.rms.core.auth.application.dto.AuthResult;
+import aros.services.rms.core.auth.application.dto.AuthResultType;
 import aros.services.rms.core.auth.application.dto.Credentials;
 import aros.services.rms.core.auth.application.dto.TwoFactorCredentials;
 import aros.services.rms.core.auth.application.dto.UserFullInfo;
@@ -69,15 +71,19 @@ public class AuthController {
             new UserEmail(request.username()), request.password(), request.deviceHash());
 
     AuthResult result = loginUseCase.authenticate(credentials);
+    AuthResponse response = null;
 
-    AuthResponse response =
-        new AuthResponse(
-            result.type().name(),
-            result.username(),
-            result.token().getAccess(),
-            result.token().getRefresh());
+    if (result instanceof AuthResult.Success rs) {
+      response =
+          new AuthResponse(rs.type().name(), rs.username(), rs.acessToken(), rs.refreshToken());
+    } else if (result instanceof AuthResult.RequiresTFA rs) {
+      response = new AuthResponse(rs.type().name(), rs.username(), rs.acessToken(), null);
+    }
 
-    return ResponseEntity.ok(response);
+    return switch (response) {
+      case null -> ResponseEntity.internalServerError().build();
+      default -> ResponseEntity.ok(response);
+    };
   }
 
   @Operation(
@@ -99,14 +105,14 @@ public class AuthController {
         new TwoFactorCredentials(
             new UserEmail(jwt.getSubject()), request.code(), request.deviceHash());
 
-    AuthResult result = verifyTwoFactorUseCase.verify(credentials);
+    AuthFinalResult result = verifyTwoFactorUseCase.verify(credentials);
 
     AuthResponse response =
         new AuthResponse(
-            result.type().name(),
+            AuthResultType.SUCCESS.name(),
             result.username(),
-            result.token().getAccess(),
-            result.token().getRefresh());
+            result.acessToken(),
+            result.refreshToken());
 
     return ResponseEntity.ok(response);
   }
@@ -128,14 +134,13 @@ public class AuthController {
       token = token.substring(7);
     }
 
-    AuthResult result = refreshTokensUseCase.refresh(token);
-
+    AuthFinalResult result = refreshTokensUseCase.refresh(token);
     AuthResponse response =
         new AuthResponse(
-            result.type().name(),
+            AuthResultType.SUCCESS.name(),
             result.username(),
-            result.token().getAccess(),
-            result.token().getRefresh());
+            result.acessToken(),
+            result.refreshToken());
 
     return ResponseEntity.ok(response);
   }
@@ -180,7 +185,8 @@ public class AuthController {
         @ApiResponse(responseCode = "400", description = "Email inválido")
       })
   @PostMapping("/forgot-password")
-  public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) throws UserNotFoundException {
+  public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request)
+      throws UserNotFoundException {
     passwordResetUseCase.requestPasswordReset(request.email());
     return ResponseEntity.ok().build();
   }

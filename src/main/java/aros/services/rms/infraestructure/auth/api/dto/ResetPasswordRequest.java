@@ -18,5 +18,4 @@ public record ResetPasswordRequest(
     @Schema(description = "Password reset token", example = "550e8400-e29b-41d4-a716-446655440000")
         @NotBlank(message = "El token es requerido") String token,
     @Schema(description = "New password", example = "newpassword123")
-        @NotBlank(message = "La nueva contraseña es requerida")
-        @Size(min = 1, message = "La contraseña no puede estar vacía") String newPassword) {}
+        @NotBlank(message = "La nueva contraseña es requerida") @Size(min = 1, message = "La contraseña no puede estar vacía") String newPassword) {}

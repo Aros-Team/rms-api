@@ -1,5 +1,5 @@
 /* (C) 2026 */
-package aros.services.rms.core.auth.application.usecases;
+package aros.services.rms.core.auth.application.service;
 
 import aros.services.rms.core.auth.application.exception.PasswordResetTokenExpiredException;
 import aros.services.rms.core.auth.application.exception.PasswordResetTokenInvalidException;
@@ -11,13 +11,12 @@ import aros.services.rms.core.auth.port.output.PasswordResetTokenRepositoryPort;
 import aros.services.rms.core.email.port.input.PasswordResetEmailUseCase;
 import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.user.domain.User;
-import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
-public class PasswordResetUseCaseImpl implements PasswordResetUseCase {
+public class PasswordResetService implements PasswordResetUseCase {
 
   private static final int TOKEN_EXPIRATION_MINUTES = 30;
 
@@ -27,7 +26,7 @@ public class PasswordResetUseCaseImpl implements PasswordResetUseCase {
   private final PasswordResetEmailUseCase emailUseCase;
   private final HashServicePort hashServicePort;
 
-  public PasswordResetUseCaseImpl(
+  public PasswordResetService(
       UserRepositoryPort userRepositoryPort,
       PasswordResetTokenRepositoryPort tokenRepositoryPort,
       PasswordEncoderPort passwordEncoderPort,
@@ -42,23 +41,23 @@ public class PasswordResetUseCaseImpl implements PasswordResetUseCase {
 
   @Override
   public void requestPasswordReset(String email) throws UserNotFoundException {
-    User user =  userRepositoryPort.findByEmail(email)
-      .orElseThrow(() -> new UserNotFoundException(email));
+    User user =
+        userRepositoryPort.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
 
-      tokenRepositoryPort.deleteByUserId(user.getId());
+    tokenRepositoryPort.deleteByUserId(user.getId());
 
-      String rawToken = UUID.randomUUID().toString();
-      String tokenHash = hashServicePort.hash(rawToken);
+    String rawToken = UUID.randomUUID().toString();
+    String tokenHash = hashServicePort.hash(rawToken);
 
-      Instant now = Instant.now();
-      Instant expiresAt = now.plus(TOKEN_EXPIRATION_MINUTES, ChronoUnit.MINUTES);
+    Instant now = Instant.now();
+    Instant expiresAt = now.plus(TOKEN_EXPIRATION_MINUTES, ChronoUnit.MINUTES);
 
-      PasswordResetToken token =
-          new PasswordResetToken(null, user.getId(), tokenHash, now, expiresAt, false);
+    PasswordResetToken token =
+        new PasswordResetToken(null, user.getId(), tokenHash, now, expiresAt, false);
 
-      tokenRepositoryPort.save(token);
+    tokenRepositoryPort.save(token);
 
-      emailUseCase.sendPasswordResetEmail(user.getEmail(), rawToken);
+    emailUseCase.sendPasswordResetEmail(user.getEmail(), rawToken);
   }
 
   @Override
@@ -66,7 +65,9 @@ public class PasswordResetUseCaseImpl implements PasswordResetUseCase {
     String tokenHash = hashServicePort.hash(token);
 
     PasswordResetToken resetToken =
-        tokenRepositoryPort.findByTokenHash(tokenHash).orElseThrow(PasswordResetTokenInvalidException::new);
+        tokenRepositoryPort
+            .findByTokenHash(tokenHash)
+            .orElseThrow(PasswordResetTokenInvalidException::new);
 
     if (resetToken.used()) {
       throw new PasswordResetTokenInvalidException("El token ya ha sido utilizado");
@@ -77,7 +78,9 @@ public class PasswordResetUseCaseImpl implements PasswordResetUseCase {
     }
 
     User user =
-        userRepositoryPort.findById(resetToken.userId()).orElseThrow(PasswordResetTokenInvalidException::new);
+        userRepositoryPort
+            .findById(resetToken.userId())
+            .orElseThrow(PasswordResetTokenInvalidException::new);
 
     String encodedPassword = passwordEncoderPort.encode(newPassword);
     user.changePassword(encodedPassword);
