@@ -1,5 +1,5 @@
 /* (C) 2026 */
-package aros.services.rms.core.auth.application.usecases;
+package aros.services.rms.core.auth.application.service;
 
 import aros.services.rms.core.auth.application.exception.PasswordResetTokenExpiredException;
 import aros.services.rms.core.auth.application.exception.PasswordResetTokenInvalidException;
@@ -17,7 +17,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
-public class PasswordResetUseCaseImpl implements PasswordResetUseCase {
+public class PasswordResetService implements PasswordResetUseCase {
 
   private static final int TOKEN_EXPIRATION_MINUTES = 30;
 
@@ -28,7 +28,7 @@ public class PasswordResetUseCaseImpl implements PasswordResetUseCase {
   private final HashServicePort hashServicePort;
   private final Logger logger;
 
-  public PasswordResetUseCaseImpl(
+  public PasswordResetService(
       UserRepositoryPort userRepositoryPort,
       PasswordResetTokenRepositoryPort tokenRepositoryPort,
       PasswordEncoderPort passwordEncoderPort,
@@ -48,7 +48,9 @@ public class PasswordResetUseCaseImpl implements PasswordResetUseCase {
     logger.info("Password reset requested: email={}", email);
 
     User user =
-        userRepositoryPort.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
+        userRepositoryPort.findByEmail(email).orElseThrow(() -> new UserNotFoundException(
+          "the user with email " + email + " couldn't be found"
+        ));
 
     tokenRepositoryPort.deleteByUserId(user.getId());
 
