@@ -80,7 +80,7 @@ public class LoginService implements LoginUseCase {
     Instant expiresAt = Instant.now().plus(7, ChronoUnit.DAYS);
 
     RefreshToken refreshToken =
-        new RefreshToken(null, user.getId(), refreshHash, expiresAt, Instant.now());
+        new RefreshToken(null, user.getId(), refreshHash, expiresAt, false, Instant.now());
 
     refreshTokenPort.save(refreshToken);
 

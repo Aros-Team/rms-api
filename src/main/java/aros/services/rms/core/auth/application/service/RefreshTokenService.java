@@ -1,7 +1,7 @@
 package aros.services.rms.core.auth.application.service;
 
 import aros.services.rms.core.auth.application.dto.AuthFinalResult;
-import aros.services.rms.core.auth.application.exception.InvalidRefreshToken;
+import aros.services.rms.core.auth.application.exception.InvalidRefreshTokenException;
 import aros.services.rms.core.auth.domain.RefreshToken;
 import aros.services.rms.core.auth.port.input.RefreshTokensUseCase;
 import aros.services.rms.core.auth.port.output.RefreshTokenRepositoryPort;
@@ -33,13 +33,16 @@ public class RefreshTokenService implements RefreshTokensUseCase {
   }
 
   @Override
-  public AuthFinalResult refresh(String token) throws InvalidRefreshToken {
+  public AuthFinalResult refresh(String token) throws InvalidRefreshTokenException {
     String tokenHash = hashPort.hash(token);
     RefreshToken refreshToken =
-        refreshTokenPort.findByTokenHash(tokenHash).orElseThrow(InvalidRefreshToken::new);
+        refreshTokenPort.findByTokenHash(tokenHash).orElseThrow(InvalidRefreshTokenException::new);
 
+    System.out.println("** Hass ==> " + tokenHash);
+    System.out.println("** Rovoked ==> " + refreshToken.isRevoked());
+      
     if (refreshToken.isExpired() || refreshToken.isRevoked()) {
-      throw new InvalidRefreshToken();
+      throw new InvalidRefreshTokenException("The token was expired or was already used");
     }
 
     User user = this.userPort.findById(refreshToken.getUserId()).orElseThrow();
@@ -53,7 +56,7 @@ public class RefreshTokenService implements RefreshTokensUseCase {
 
     RefreshToken refreshTokenDomain =
         new RefreshToken(
-            null, user.getId(), refreshHash, Instant.now().plus(7, ChronoUnit.DAYS), Instant.now());
+            null, user.getId(), refreshHash, Instant.now().plus(7, ChronoUnit.DAYS), false, Instant.now());
 
     refreshTokenPort.save(refreshTokenDomain);
 

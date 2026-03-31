@@ -42,7 +42,9 @@ public class PasswordResetService implements PasswordResetUseCase {
   @Override
   public void requestPasswordReset(String email) throws UserNotFoundException {
     User user =
-        userRepositoryPort.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
+        userRepositoryPort.findByEmail(email).orElseThrow(() -> new UserNotFoundException(
+          "the user with email " + email + " couldn't be found"
+        ));
 
     tokenRepositoryPort.deleteByUserId(user.getId());
 

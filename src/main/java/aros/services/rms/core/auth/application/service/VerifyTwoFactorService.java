@@ -81,7 +81,7 @@ public class VerifyTwoFactorService implements VerifyTwoFactorUseCase {
 
     RefreshToken refreshTokenDomain =
         new RefreshToken(
-            null, user.getId(), refreshHash, now.plus(7, ChronoUnit.DAYS), Instant.now());
+            null, user.getId(), refreshHash, now.plus(7, ChronoUnit.DAYS), false, Instant.now());
 
     refreshTokenPort.save(refreshTokenDomain);
 

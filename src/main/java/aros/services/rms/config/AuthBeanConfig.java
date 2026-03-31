@@ -2,10 +2,12 @@
 package aros.services.rms.config;
 
 import aros.services.rms.core.area.port.output.AreaRepositoryPort;
+import aros.services.rms.core.auth.application.service.GetCurrentUserService;
 import aros.services.rms.core.auth.application.service.LoginService;
 import aros.services.rms.core.auth.application.service.PasswordResetService;
 import aros.services.rms.core.auth.application.service.RefreshTokenService;
 import aros.services.rms.core.auth.application.service.VerifyTwoFactorService;
+import aros.services.rms.core.auth.port.input.GetCurrentAuthUserInfoUseCase;
 import aros.services.rms.core.auth.port.input.LoginUseCase;
 import aros.services.rms.core.auth.port.input.PasswordResetUseCase;
 import aros.services.rms.core.auth.port.input.RefreshTokensUseCase;
@@ -76,5 +78,10 @@ public class AuthBeanConfig {
         passwordPort,
         passwordResetEmailUseCase,
         hashServicePort);
+  }
+
+  @Bean
+  public GetCurrentAuthUserInfoUseCase getCurrentAuthUserInfoUseCase() {
+    return new GetCurrentUserService(userPort, areaPort);
   }
 }

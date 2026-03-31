@@ -8,7 +8,7 @@ import aros.services.rms.core.auth.application.dto.Credentials;
 import aros.services.rms.core.auth.application.dto.TwoFactorCredentials;
 import aros.services.rms.core.auth.application.dto.UserFullInfo;
 import aros.services.rms.core.auth.application.exception.InvalidCredentialsException;
-import aros.services.rms.core.auth.application.exception.InvalidRefreshToken;
+import aros.services.rms.core.auth.application.exception.InvalidRefreshTokenException;
 import aros.services.rms.core.auth.application.exception.UserNotFoundException;
 import aros.services.rms.core.auth.port.input.GetCurrentAuthUserInfoUseCase;
 import aros.services.rms.core.auth.port.input.LoginUseCase;
@@ -129,7 +129,7 @@ public class AuthController {
   @PostMapping("/refresh")
   @OnlyRefreshToken
   public ResponseEntity<AuthResponse> refresh(@RequestHeader("Authorization") String token)
-      throws InvalidRefreshToken {
+      throws InvalidRefreshTokenException {
     if (token.startsWith("Bearer ")) {
       token = token.substring(7);
     }
