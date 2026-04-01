@@ -10,6 +10,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.common.notification.port.output.NotificationPort;
 import aros.services.rms.core.order.application.usecases.MarkAsReadyUseCaseImpl;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
@@ -25,12 +27,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class MarkAsReadyUseCaseImplTest {
 
   @Mock private OrderRepositoryPort orderRepositoryPort;
+  @Mock private NotificationPort notificationPort;
+  @Mock private Logger logger;
 
   private MarkAsReadyUseCaseImpl markAsReadyUseCase;
 
   @BeforeEach
   void setUp() {
-    markAsReadyUseCase = new MarkAsReadyUseCaseImpl(orderRepositoryPort);
+    markAsReadyUseCase = new MarkAsReadyUseCaseImpl(orderRepositoryPort, notificationPort, logger);
   }
 
   @Test
@@ -47,6 +51,7 @@ class MarkAsReadyUseCaseImplTest {
     assertEquals(OrderStatus.READY, result.getStatus());
     verify(orderRepositoryPort, times(1)).findById(1L);
     verify(orderRepositoryPort, times(1)).save(order);
+    verify(notificationPort, times(1)).notify("/topic/orders/ready", order);
   }
 
   @Test

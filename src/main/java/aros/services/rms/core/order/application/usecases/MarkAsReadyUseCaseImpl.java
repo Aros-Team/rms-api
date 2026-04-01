@@ -1,12 +1,13 @@
 /* (C) 2026 */
 package aros.services.rms.core.order.application.usecases;
 
+import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.common.notification.port.output.NotificationPort;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.input.MarkAsReadyUseCase;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
 import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
-import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -18,11 +19,17 @@ import org.springframework.retry.annotation.Retryable;
  */
 public class MarkAsReadyUseCaseImpl implements MarkAsReadyUseCase {
 
-  private static final org.slf4j.Logger log = LoggerFactory.getLogger(MarkAsReadyUseCaseImpl.class);
-  private final OrderRepositoryPort orderRepositoryPort;
+  private static final String READY_DESTINATION = "/topic/orders/ready";
 
-  public MarkAsReadyUseCaseImpl(OrderRepositoryPort orderRepositoryPort) {
+  private final OrderRepositoryPort orderRepositoryPort;
+  private final NotificationPort notificationPort;
+  private final Logger logger;
+
+  public MarkAsReadyUseCaseImpl(
+      OrderRepositoryPort orderRepositoryPort, NotificationPort notificationPort, Logger logger) {
     this.orderRepositoryPort = orderRepositoryPort;
+    this.notificationPort = notificationPort;
+    this.logger = logger;
   }
 
   /** {@inheritDoc} Cambia el estado de PREPARING a READY. */
@@ -42,12 +49,18 @@ public class MarkAsReadyUseCaseImpl implements MarkAsReadyUseCase {
     }
 
     order.setStatus(OrderStatus.READY);
-    return orderRepositoryPort.save(order);
+    Order saved = orderRepositoryPort.save(order);
+
+    // Notificación fire-and-forget (el adapter captura excepciones internamente)
+    notificationPort.notify(READY_DESTINATION, saved);
+    logger.info("Order marked as ready: id={}, destination={}", id, READY_DESTINATION);
+
+    return saved;
   }
 
   @Recover
   public Order recoverMarkAsReady(DataAccessException e, Long id) {
-    log.warn("BD no disponible - fallback para markAsReady(id={}): {}", id, e.getMessage());
+    logger.info("BD no disponible - fallback para markAsReady(id={}): {}", id, e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 }

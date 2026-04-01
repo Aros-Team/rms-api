@@ -72,8 +72,11 @@ public class OrderConfigBeans {
 
   /** Crea bean para marcar órdenes como listas (READY). */
   @Bean
-  public MarkAsReadyUseCase markAsReadyUseCase(OrderRepositoryPort orderRepositoryPort) {
-    return new MarkAsReadyUseCaseImpl(orderRepositoryPort);
+  public MarkAsReadyUseCase markAsReadyUseCase(
+      OrderRepositoryPort orderRepositoryPort,
+      aros.services.rms.core.common.notification.port.output.NotificationPort notificationPort,
+      aros.services.rms.core.common.logger.Logger logger) {
+    return new MarkAsReadyUseCaseImpl(orderRepositoryPort, notificationPort, logger);
   }
 
   /** Crea bean para entregar órdenes al cliente. */
