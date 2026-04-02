@@ -3,6 +3,7 @@ package aros.services.rms.infraestructure.inventory.persistence;
 
 import aros.services.rms.core.inventory.domain.MovementType;
 import aros.services.rms.infraestructure.order.persistence.Order;
+import aros.services.rms.infraestructure.purchase.persistence.PurchaseOrderEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -56,6 +57,10 @@ public class InventoryMovementEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "reference_order_id")
   private Order referenceOrder;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "reference_purchase_order_id")
+  private PurchaseOrderEntity referencePurchaseOrder;
 
   @Column(name = "created_at", nullable = false, updatable = false)
   @Builder.Default

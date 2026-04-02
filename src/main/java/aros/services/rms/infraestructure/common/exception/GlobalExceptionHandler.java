@@ -20,6 +20,10 @@ import aros.services.rms.core.order.application.exception.TableNotAvailableExcep
 import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.product.application.exception.ProductOptionNotFoundException;
+import aros.services.rms.core.purchase.application.exception.InvalidPurchaseItemException;
+import aros.services.rms.core.purchase.application.exception.PurchaseOrderNotFoundException;
+import aros.services.rms.core.purchase.application.exception.SupplierInactiveException;
+import aros.services.rms.core.purchase.application.exception.SupplierNotFoundException;
 import aros.services.rms.core.table.application.exception.InvalidTableStatusException;
 import aros.services.rms.core.table.application.exception.TableNotFoundException;
 import aros.services.rms.infraestructure.auth.exception.JwtKeysMissingException;
@@ -144,6 +148,30 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleStorageLocationNotFound(
       StorageLocationNotFoundException e) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  // --- Purchase exceptions ---
+
+  @ExceptionHandler(SupplierNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleSupplierNotFound(SupplierNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  @ExceptionHandler(PurchaseOrderNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handlePurchaseOrderNotFound(
+      PurchaseOrderNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  @ExceptionHandler(SupplierInactiveException.class)
+  public ResponseEntity<ErrorResponse> handleSupplierInactive(SupplierInactiveException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
+  @ExceptionHandler(InvalidPurchaseItemException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidPurchaseItem(InvalidPurchaseItemException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
   }
 
   // --- Validation exceptions ---
