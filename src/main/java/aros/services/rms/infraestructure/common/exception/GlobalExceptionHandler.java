@@ -12,7 +12,10 @@ import aros.services.rms.core.category.application.exception.OptionCategoryNotFo
 import aros.services.rms.core.email.application.exception.EmailServiceException;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.application.exception.StorageLocationNotFoundException;
+import aros.services.rms.core.inventory.application.exception.SupplyAlreadyExistsException;
+import aros.services.rms.core.inventory.application.exception.SupplyCategoryAlreadyExistsException;
 import aros.services.rms.core.inventory.application.exception.SupplyNotFoundException;
+import aros.services.rms.core.inventory.application.exception.SupplyVariantAlreadyExistsException;
 import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFoundException;
 import aros.services.rms.core.order.application.exception.InvalidOrderStatusException;
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
@@ -137,6 +140,23 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleSupplyVariantNotFound(
       SupplyVariantNotFoundException e) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  @ExceptionHandler(SupplyVariantAlreadyExistsException.class)
+  public ResponseEntity<ErrorResponse> handleSupplyVariantAlreadyExists(
+      SupplyVariantAlreadyExistsException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
+  @ExceptionHandler(SupplyAlreadyExistsException.class)
+  public ResponseEntity<ErrorResponse> handleSupplyAlreadyExists(SupplyAlreadyExistsException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
+  @ExceptionHandler(SupplyCategoryAlreadyExistsException.class)
+  public ResponseEntity<ErrorResponse> handleSupplyCategoryAlreadyExists(
+      SupplyCategoryAlreadyExistsException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
   }
 
   @ExceptionHandler(SupplyNotFoundException.class)
