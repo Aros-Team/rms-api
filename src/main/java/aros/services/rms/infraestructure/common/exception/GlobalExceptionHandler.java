@@ -2,6 +2,8 @@
 package aros.services.rms.infraestructure.common.exception;
 
 import aros.services.rms.core.area.application.exception.AreaAlreadyExistsException;
+import aros.services.rms.core.daymenu.application.exception.InvalidDayMenuProductException;
+import aros.services.rms.core.daymenu.application.exception.UnauthenticatedOperationException;
 import aros.services.rms.core.area.application.exception.AreaNotFoundException;
 import aros.services.rms.core.auth.application.exception.InvalidCredentialsException;
 import aros.services.rms.core.auth.application.exception.PasswordResetTokenExpiredException;
@@ -96,6 +98,22 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleOptionCategoryNotFound(
       OptionCategoryNotFoundException e) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  // --- Day Menu exceptions ---
+
+  @ExceptionHandler(InvalidDayMenuProductException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidDayMenuProduct(
+      InvalidDayMenuProductException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
+  }
+
+  @ExceptionHandler(UnauthenticatedOperationException.class)
+  public ResponseEntity<ErrorResponse> handleUnauthenticatedOperation(
+      UnauthenticatedOperationException e) {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        .body(new ErrorResponse(401, e.getMessage()));
   }
 
   // --- Product exceptions ---
