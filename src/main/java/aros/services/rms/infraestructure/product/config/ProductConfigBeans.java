@@ -51,12 +51,14 @@ public class ProductConfigBeans {
       OptionCategoryRepositoryPort optionCategoryRepositoryPort,
       OptionRecipeRepositoryPort optionRecipeRepositoryPort,
       SupplyVariantRepositoryPort supplyVariantRepositoryPort,
+      ProductRepositoryPort productRepositoryPort,
       Logger logger) {
     return new ProductOptionUseCaseImpl(
         productOptionRepositoryPort,
         optionCategoryRepositoryPort,
         optionRecipeRepositoryPort,
         supplyVariantRepositoryPort,
+        productRepositoryPort,
         logger);
   }
 }
