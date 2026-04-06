@@ -1,9 +1,7 @@
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
     username: ${DB_USERNAME}
-    password: ""
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    password: ${DB_PASSWORD}
     hikari:
       maximum-pool-size: 5
       connection-timeout: 10000
@@ -11,3 +9,8 @@ spring:
       connection-test-query: "SELECT 1"
       pool-name: RmsHikariPool
       initialization-fail-timeout: -1
+  cloud:
+    gcp:
+      sql:
+        instance-connection-name: ${CLOUD_SQL_INSTANCE}
+        database-name: ${DB_NAME}
