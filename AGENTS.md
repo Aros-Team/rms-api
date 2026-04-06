@@ -1,23 +1,8 @@
-# AGENTS.md - Agentic Coding Guidelines
-
-This document provides guidelines for agents working on the RMS (Restaurant Management System) API codebase.
-
-## Project Overview
-
-- **Framework**: Spring Boot 4.0.3 with Java 21
-- **Build Tool**: Gradle 9.3.x
-- **Database**: MySQL 8.0
-- **Key Dependencies**: Spring Data JPA, Spring Security, Spring Validation, Spring WebMVC, Spring WebSocket, Lombok, Flyway, MapStruct
-
-## Build Commands
 
 ### Using Taskfile (Recommended for Development)
 ```bash
 # Start app (Docker + Spring Boot)
 task run
-
-# Build and create Docker image
-task build
 
 # Format code
 task format
@@ -28,43 +13,6 @@ task test
 # Clean and restart
 task clean
 ```
-
-### Using Gradle Directly
-```bash
-# Build JAR without tests
-./gradlew assemble
-
-# Run Spring Boot
-./gradlew bootRun
-
-# Build Docker image
-./gradlew bootJar
-docker build -t rms-api:latest .
-
-# Clean build directory
-./gradlew clean
-```
-
-## Testing Commands
-
-**Always run after Java changes:**
-```bash
-# Run all tests
-./gradlew test
-
-# Run single test class
-./gradlew test --tests "ClassNameTests"
-
-# Run single test method
-./gradlew test --tests "ClassNameTests.methodName"
-
-# Run with specific Spring profile
-./gradlew test -Dspring.profiles.active=dev
-
-# Run tests with verbose output
-./gradlew test --info
-```
-
 ## Code Style
 
 **Always run after Java changes:**
@@ -94,23 +42,7 @@ task format
 
 ## Architecture (Hexagonal)
 
-```
-src/main/java/aros/services/rms/
-├── core/
-│   ├── common/logger/           # Logger interface (no Spring)
-│   └── {domain}/
-│       ├── application/usecases/ # Business logic
-│       ├── application/exception/
-│       ├── domain/              # Entities, Value Objects
-│       └── port/               # Input/Output interfaces
-└── infraestructure/
-    ├── {module}/api/            # Controllers, DTOs
-    ├── {module}/persistence/    # JPA entities, Repositories
-    └── common/                  # Global config
-```
-
 ## Dependency Rules
-
 **CRITICAL: Core must NOT depend on Infrastructure**
 
 ### Core Layer (Business Logic - Framework Agnostic)
@@ -126,11 +58,6 @@ src/main/java/aros/services/rms/
 - Any `org.springframework.*` imports
 
 ### Infrastructure Layer (Framework Implementations)
-- Use case implementations
-- JPA repositories
-- Controllers
-- Logger implementation
-- GlobalExceptionHandler
 
 ## Use Case Naming
 
@@ -253,17 +180,4 @@ For atomic operations requiring race condition prevention:
 - Verify compatibility with Spring Boot and Java 21
 - Test locally before committing
 
-## Common Errors
-
-- **Port in use**: Check for running instances
-- **DB connection failed**: Ensure Docker containers are running
-- **Test failures**: Verify database is accessible and configured
-
-## Useful Commands
-
-```bash
-./gradlew dependencies   # Check dependencies
-./gradlew projects      # Show project structure
-./gradlew properties    # Show properties
-./gradlew generate-jwt-keys  # Generate JWT key pair
-```
+## Never use build comands.
