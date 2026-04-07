@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/${DB_NAME}
+    username: root
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 5
+      connection-timeout: 10000
+      max-lifetime: 1800000
+      connection-test-query: "SELECT 1"
+      pool-name: RmsHikariPool
+      initialization-fail-timeout: -1
+
+app:
+  env: development
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n"
+  level:
+    root: WARN
+    aros.services.rms: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate: WARN
+    org.hibernate.SQL: WARN
+    com.zaxxer.hikari: WARN
+    jakarta.persistence: WARN
+    org.flywaydb: ERROR
+    aros.services.rms.infraestructure.common.config.RequestLoggingFilter: WARN
+    springframework:
+      boot:
+        autoconfigure:
+          flyway: WARN
+
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
