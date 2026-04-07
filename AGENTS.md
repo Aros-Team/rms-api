@@ -1,50 +1,22 @@
-
-### Using Taskfile (Recommended for Development)
+**Try use task comands**
 ```bash
 # Start app (Docker + Spring Boot)
 task run
-
-# Format code
-task format
-
 # Run tests
 task test
-
 # Clean and restart
 task clean
 ```
-## Code Style
-
+---
 **Always run after Java changes:**
 ```bash
 task format
 ```
-
-### Formatting Rules
-- **Formatter**: Google Java Format via Spotless
-- **Import Order**: java > javax > org > com > all other packages
-- **No wildcard imports** (except static imports)
-- **No unused imports**
-- **Format annotations** before formatting code
-
-### Naming Conventions
-- **Classes**: PascalCase (`OrderService`, `MenuItemController`)
-- **Methods**: camelCase (`findById`, `processOrder`)
-- **Variables**: camelCase (`orderList`, `maxItems`)
-- **Constants**: UPPER_SNAKE_CASE (`MAX_RETRY_COUNT`)
-- **Packages**: lowercase with dots (`aros.services.rms.controller`)
-
-### Types and Generics
-- Use generics: `List<Order>` not `List`
-- Prefer interfaces: `List<T>` not `ArrayList<T>`
-- Use `Optional` for nullable return values
-- Use `var` when type is obvious
-
-## Architecture (Hexagonal)
-
-## Dependency Rules
+---
+**Project Architecture: Hexagonal**
+---
 **CRITICAL: Core must NOT depend on Infrastructure**
-
+---
 ### Core Layer (Business Logic - Framework Agnostic)
 - Domain entities and value objects
 - Input ports (use case interfaces)
