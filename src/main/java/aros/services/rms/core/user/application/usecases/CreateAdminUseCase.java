@@ -53,11 +53,11 @@ public class CreateAdminUseCase {
   }
 
   private AdminCredentials createProductionAdmin(String adminEmail) {
-    log.info("Administrator email: {}", adminEmail);
+    log.debug("Administrator email: {}", adminEmail);
 
     long adminCount = adminRepository.countByRole(UserRole.ADMIN);
     if (adminCount > 0) {
-      log.info(
+      log.warn(
           "Administrator creation not required. An ADMIN role user already exists in the database.");
       return null;
     }
@@ -88,13 +88,13 @@ public class CreateAdminUseCase {
   }
 
   private AdminCredentials createDevelopmentAdmin(String dummyEmail) {
-    log.info("Administrator email: {}", dummyEmail);
+    log.debug("Administrator email: {}", dummyEmail);
 
     long adminCount = adminRepository.countByRole(UserRole.ADMIN);
     boolean isFirstTime = adminCount == 0;
 
     if (adminCount > 0) {
-      log.info("Administrator already exists in database, skipping creation.");
+      log.warn("Administrator already exists in database, skipping creation.");
       return null;
     }
 
