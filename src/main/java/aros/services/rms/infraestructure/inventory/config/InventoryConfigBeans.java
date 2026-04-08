@@ -3,19 +3,23 @@ package aros.services.rms.infraestructure.inventory.config;
 
 import aros.services.rms.core.inventory.application.usecases.InventoryMovementUseCaseImpl;
 import aros.services.rms.core.inventory.application.usecases.InventoryStockUseCaseImpl;
-import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.inventory.port.output.InventoryMovementRepositoryPort;
 import aros.services.rms.core.inventory.port.output.InventoryStockRepositoryPort;
 import aros.services.rms.core.inventory.port.output.OptionRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.StorageLocationRepositoryPort;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 /**
- * Configuration of beans for the inventory module. Registers inventory stock and movement use
- * cases.
+ * Configuration of beans for the inventory module.
+ *
+ * <p>InventoryMovementUseCaseImpl is registered as a plain bean (no @Transactional). The
+ * transactional wrapper is InventoryMovementService, which is annotated with @Primary so Spring
+ * injects it wherever InventoryMovementUseCase is required.
  */
 @Configuration
 public class InventoryConfigBeans {
@@ -34,9 +38,12 @@ public class InventoryConfigBeans {
         storageLocationRepositoryPort);
   }
 
-  /** Creates bean for inventory movement use case. */
-  @Bean
-  public InventoryMovementUseCase inventoryMovementUseCase(
+  /**
+   * Registers the core inventory movement use case impl as a named bean. It has no @Transactional
+   * — transaction boundaries are managed by InventoryMovementService.
+   */
+  @Bean("inventoryMovementUseCaseImpl")
+  public InventoryMovementUseCaseImpl inventoryMovementUseCaseImpl(
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
       OptionRecipeRepositoryPort optionRecipeRepositoryPort,
       InventoryStockRepositoryPort inventoryStockRepositoryPort,

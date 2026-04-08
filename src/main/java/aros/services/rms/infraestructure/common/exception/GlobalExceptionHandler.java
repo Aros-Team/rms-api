@@ -2,6 +2,8 @@
 package aros.services.rms.infraestructure.common.exception;
 
 import aros.services.rms.core.area.application.exception.AreaAlreadyExistsException;
+import aros.services.rms.core.daymenu.application.exception.InvalidDayMenuProductException;
+import aros.services.rms.core.daymenu.application.exception.UnauthenticatedOperationException;
 import aros.services.rms.core.area.application.exception.AreaNotFoundException;
 import aros.services.rms.core.auth.application.exception.InvalidCredentialsException;
 import aros.services.rms.core.auth.application.exception.PasswordResetTokenExpiredException;
@@ -12,7 +14,10 @@ import aros.services.rms.core.category.application.exception.OptionCategoryNotFo
 import aros.services.rms.core.email.application.exception.EmailServiceException;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.application.exception.StorageLocationNotFoundException;
+import aros.services.rms.core.inventory.application.exception.SupplyAlreadyExistsException;
+import aros.services.rms.core.inventory.application.exception.SupplyCategoryAlreadyExistsException;
 import aros.services.rms.core.inventory.application.exception.SupplyNotFoundException;
+import aros.services.rms.core.inventory.application.exception.SupplyVariantAlreadyExistsException;
 import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFoundException;
 import aros.services.rms.core.order.application.exception.InvalidOrderStatusException;
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
@@ -20,6 +25,10 @@ import aros.services.rms.core.order.application.exception.TableNotAvailableExcep
 import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.product.application.exception.ProductOptionNotFoundException;
+import aros.services.rms.core.purchase.application.exception.InvalidPurchaseItemException;
+import aros.services.rms.core.purchase.application.exception.PurchaseOrderNotFoundException;
+import aros.services.rms.core.purchase.application.exception.SupplierInactiveException;
+import aros.services.rms.core.purchase.application.exception.SupplierNotFoundException;
 import aros.services.rms.core.table.application.exception.InvalidTableStatusException;
 import aros.services.rms.core.table.application.exception.TableNotFoundException;
 import aros.services.rms.infraestructure.auth.exception.JwtKeysMissingException;
@@ -91,6 +100,22 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
   }
 
+  // --- Day Menu exceptions ---
+
+  @ExceptionHandler(InvalidDayMenuProductException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidDayMenuProduct(
+      InvalidDayMenuProductException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
+  }
+
+  @ExceptionHandler(UnauthenticatedOperationException.class)
+  public ResponseEntity<ErrorResponse> handleUnauthenticatedOperation(
+      UnauthenticatedOperationException e) {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        .body(new ErrorResponse(401, e.getMessage()));
+  }
+
   // --- Product exceptions ---
 
   @ExceptionHandler(ProductNotFoundException.class)
@@ -135,6 +160,23 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
   }
 
+  @ExceptionHandler(SupplyVariantAlreadyExistsException.class)
+  public ResponseEntity<ErrorResponse> handleSupplyVariantAlreadyExists(
+      SupplyVariantAlreadyExistsException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
+  @ExceptionHandler(SupplyAlreadyExistsException.class)
+  public ResponseEntity<ErrorResponse> handleSupplyAlreadyExists(SupplyAlreadyExistsException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
+  @ExceptionHandler(SupplyCategoryAlreadyExistsException.class)
+  public ResponseEntity<ErrorResponse> handleSupplyCategoryAlreadyExists(
+      SupplyCategoryAlreadyExistsException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
   @ExceptionHandler(SupplyNotFoundException.class)
   public ResponseEntity<ErrorResponse> handleSupplyNotFound(SupplyNotFoundException e) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
@@ -144,6 +186,30 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleStorageLocationNotFound(
       StorageLocationNotFoundException e) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  // --- Purchase exceptions ---
+
+  @ExceptionHandler(SupplierNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleSupplierNotFound(SupplierNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  @ExceptionHandler(PurchaseOrderNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handlePurchaseOrderNotFound(
+      PurchaseOrderNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  @ExceptionHandler(SupplierInactiveException.class)
+  public ResponseEntity<ErrorResponse> handleSupplierInactive(SupplierInactiveException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
+  @ExceptionHandler(InvalidPurchaseItemException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidPurchaseItem(InvalidPurchaseItemException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
   }
 
   // --- Validation exceptions ---

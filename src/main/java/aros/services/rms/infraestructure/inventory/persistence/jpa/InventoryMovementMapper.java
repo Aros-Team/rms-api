@@ -6,6 +6,7 @@ import aros.services.rms.infraestructure.inventory.persistence.InventoryMovement
 import aros.services.rms.infraestructure.inventory.persistence.StorageLocationEntity;
 import aros.services.rms.infraestructure.inventory.persistence.SupplyVariantEntity;
 import aros.services.rms.infraestructure.order.persistence.Order;
+import aros.services.rms.infraestructure.purchase.persistence.PurchaseOrderEntity;
 import org.springframework.stereotype.Component;
 
 /** Mapper between InventoryMovement domain model and InventoryMovementEntity JPA entity. */
@@ -29,6 +30,10 @@ public class InventoryMovementMapper {
         .movementType(entity.getMovementType())
         .referenceOrderId(
             entity.getReferenceOrder() != null ? entity.getReferenceOrder().getId() : null)
+        .referencePurchaseOrderId(
+            entity.getReferencePurchaseOrder() != null
+                ? entity.getReferencePurchaseOrder().getId()
+                : null)
         .createdAt(entity.getCreatedAt())
         .build();
   }
@@ -61,6 +66,11 @@ public class InventoryMovementMapper {
 
     if (domain.getReferenceOrderId() != null) {
       entity.setReferenceOrder(Order.builder().id(domain.getReferenceOrderId()).build());
+    }
+
+    if (domain.getReferencePurchaseOrderId() != null) {
+      entity.setReferencePurchaseOrder(
+          PurchaseOrderEntity.builder().id(domain.getReferencePurchaseOrderId()).build());
     }
 
     return entity;

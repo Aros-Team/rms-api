@@ -9,4 +9,6 @@ public record AuthResponse(
     @Schema(description = "User email/username", example = "user@example.com") String username,
     @Schema(description = "JWT access token", example = "eyJhbGciOiJSUzI1Ni...") String accessToken,
     @Schema(description = "JWT refresh token", example = "eyJhbGciOiJSUzI1Ni...")
-        String refreshToken) {}
+        String refreshToken) {
+  //
+}

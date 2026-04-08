@@ -22,5 +22,6 @@ public class InventoryMovement {
   private BigDecimal quantity;
   private MovementType movementType;
   private Long referenceOrderId;
+  private Long referencePurchaseOrderId;
   private LocalDateTime createdAt;
 }

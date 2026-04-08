@@ -13,6 +13,7 @@ import java.util.List;
         """
         {
           "name": "Grande (1.5L)",
+          "productId": 11,
           "optionCategoryId": 1,
           "recipe": [
             {
@@ -25,6 +26,8 @@ import java.util.List;
 public record ProductOptionRequest(
     @Schema(description = "Nombre de la opción", example = "Grande (1.5L)")
         @NotBlank(message = "Option name is required") String name,
+    @Schema(description = "ID del producto al que pertenece esta opción", example = "11")
+        @NotNull(message = "Product ID is required") Long productId,
     @Schema(description = "ID de la categoría de opción a la que pertenece", example = "1")
         @NotNull(message = "Option category ID is required") Long optionCategoryId,
     @Schema(

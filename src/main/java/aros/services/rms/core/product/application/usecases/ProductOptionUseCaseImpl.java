@@ -8,10 +8,12 @@ import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFo
 import aros.services.rms.core.inventory.domain.OptionRecipe;
 import aros.services.rms.core.inventory.port.output.OptionRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
+import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.product.application.exception.ProductOptionNotFoundException;
 import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.port.input.ProductOptionUseCase;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
+import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
 import java.util.List;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,7 @@ public class ProductOptionUseCaseImpl implements ProductOptionUseCase {
   private final OptionCategoryRepositoryPort optionCategoryRepositoryPort;
   private final OptionRecipeRepositoryPort optionRecipeRepositoryPort;
   private final SupplyVariantRepositoryPort supplyVariantRepositoryPort;
+  private final ProductRepositoryPort productRepositoryPort;
   private final Logger logger;
 
   public ProductOptionUseCaseImpl(
@@ -39,11 +42,13 @@ public class ProductOptionUseCaseImpl implements ProductOptionUseCase {
       OptionCategoryRepositoryPort optionCategoryRepositoryPort,
       OptionRecipeRepositoryPort optionRecipeRepositoryPort,
       SupplyVariantRepositoryPort supplyVariantRepositoryPort,
+      ProductRepositoryPort productRepositoryPort,
       Logger logger) {
     this.productOptionRepositoryPort = productOptionRepositoryPort;
     this.optionCategoryRepositoryPort = optionCategoryRepositoryPort;
     this.optionRecipeRepositoryPort = optionRecipeRepositoryPort;
     this.supplyVariantRepositoryPort = supplyVariantRepositoryPort;
+    this.productRepositoryPort = productRepositoryPort;
     this.logger = logger;
   }
 
@@ -54,6 +59,7 @@ public class ProductOptionUseCaseImpl implements ProductOptionUseCase {
       backoff = @Backoff(delay = 1000))
   public ProductOption create(ProductOption productOption) {
     validateOptionCategoryExists(productOption.getCategory().getId());
+    validateProductExists(productOption.getProduct().getId());
 
     ProductOption saved = productOptionRepositoryPort.save(productOption);
 
@@ -185,6 +191,13 @@ public class ProductOptionUseCaseImpl implements ProductOptionUseCase {
   private void validateOptionCategoryExists(Long optionCategoryId) {
     if (optionCategoryId == null || !optionCategoryRepositoryPort.existsById(optionCategoryId)) {
       throw new OptionCategoryNotFoundException(optionCategoryId);
+    }
+  }
+
+  /** Validates that the product exists. */
+  private void validateProductExists(Long productId) {
+    if (productId == null || !productRepositoryPort.existsById(productId)) {
+      throw new ProductNotFoundException(productId);
     }
   }
 

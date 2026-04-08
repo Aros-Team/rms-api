@@ -51,6 +51,10 @@ public class ProductOptionController {
         ProductOption.builder()
             .name(request.name())
             .category(OptionCategory.builder().id(request.optionCategoryId()).build())
+            .product(
+                aros.services.rms.core.product.domain.Product.builder()
+                    .id(request.productId())
+                    .build())
             .recipe(recipe)
             .build();
 
@@ -73,6 +77,10 @@ public class ProductOptionController {
         ProductOption.builder()
             .name(request.name())
             .category(OptionCategory.builder().id(request.optionCategoryId()).build())
+            .product(
+                aros.services.rms.core.product.domain.Product.builder()
+                    .id(request.productId())
+                    .build())
             .recipe(recipe)
             .build();
 

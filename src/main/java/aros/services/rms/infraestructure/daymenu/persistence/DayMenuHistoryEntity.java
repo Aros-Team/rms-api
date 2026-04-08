@@ -1,0 +1,44 @@
+/* (C) 2026 */
+package aros.services.rms.infraestructure.daymenu.persistence;
+
+import aros.services.rms.infraestructure.product.persistence.Product;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/** JPA entity representing an archived day menu entry. */
+@Entity
+@Table(name = "day_menu_history")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class DayMenuHistoryEntity {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+
+  @ManyToOne
+  @JoinColumn(name = "product_id", nullable = false)
+  private Product product;
+
+  @Column(name = "valid_from", nullable = false)
+  private LocalDateTime validFrom;
+
+  @Column(name = "valid_until", nullable = false)
+  private LocalDateTime validUntil;
+
+  @Column(name = "created_by", nullable = false)
+  private String createdBy;
+}

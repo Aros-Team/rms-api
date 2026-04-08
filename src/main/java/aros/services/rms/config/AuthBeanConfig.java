@@ -2,9 +2,16 @@
 package aros.services.rms.config;
 
 import aros.services.rms.core.area.port.output.AreaRepositoryPort;
-import aros.services.rms.core.auth.application.service.AuthService;
-import aros.services.rms.core.auth.application.usecases.PasswordResetUseCaseImpl;
+import aros.services.rms.core.auth.application.service.GetCurrentUserService;
+import aros.services.rms.core.auth.application.service.LoginService;
+import aros.services.rms.core.auth.application.service.PasswordResetService;
+import aros.services.rms.core.auth.application.service.RefreshTokenService;
+import aros.services.rms.core.auth.application.service.VerifyTwoFactorService;
+import aros.services.rms.core.auth.port.input.GetCurrentAuthUserInfoUseCase;
+import aros.services.rms.core.auth.port.input.LoginUseCase;
 import aros.services.rms.core.auth.port.input.PasswordResetUseCase;
+import aros.services.rms.core.auth.port.input.RefreshTokensUseCase;
+import aros.services.rms.core.auth.port.input.VerifyTwoFactorUseCase;
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
 import aros.services.rms.core.auth.port.output.PasswordResetTokenRepositoryPort;
 import aros.services.rms.core.auth.port.output.RefreshTokenRepositoryPort;
@@ -40,28 +47,44 @@ public class AuthBeanConfig {
   private final Logger logger;
 
   @Bean
-  public AuthService authService() {
-    return new AuthService(
+  public LoginUseCase loginUseCase() {
+    return new LoginService(
+        passwordPort,
         userPort,
         devicePort,
-        tokenPort,
-        passwordPort,
-        emailPort,
-        tfaPort,
-        refreshTokenPort,
-        hashServicePort,
         tfaCodeGeneratorPort,
-        areaPort);
+        tfaPort,
+        emailPort,
+        hashServicePort,
+        refreshTokenPort,
+        tokenPort);
+  }
+
+  @Bean
+  public RefreshTokensUseCase refreshTokensUseCase() {
+    return new RefreshTokenService(
+        hashServicePort, userPort, refreshTokenPort, tokenPort, hashServicePort);
+  }
+
+  @Bean
+  public VerifyTwoFactorUseCase verifyTwoFactorUseCase() {
+    return new VerifyTwoFactorService(
+        userPort, hashServicePort, tfaPort, devicePort, refreshTokenPort, tokenPort);
   }
 
   @Bean
   public PasswordResetUseCase passwordResetUseCase() {
-    return new PasswordResetUseCaseImpl(
+    return new PasswordResetService(
         userPort,
         passwordResetTokenRepositoryPort,
         passwordPort,
         passwordResetEmailUseCase,
         hashServicePort,
         logger);
+  }
+
+  @Bean
+  public GetCurrentAuthUserInfoUseCase getCurrentAuthUserInfoUseCase() {
+    return new GetCurrentUserService(userPort, areaPort);
   }
 }
