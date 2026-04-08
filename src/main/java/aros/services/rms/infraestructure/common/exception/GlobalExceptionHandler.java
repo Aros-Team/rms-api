@@ -320,11 +320,17 @@ public class GlobalExceptionHandler {
       if (cause instanceof InsufficientStockException ex) {
         return handleInsufficientStock(ex);
       }
+      if (cause instanceof StorageLocationNotFoundException ex) {
+        return handleStorageLocationNotFound(ex);
+      }
       if (cause instanceof IllegalArgumentException ex) {
         return handleIllegalArgument(ex);
       }
       if (cause instanceof IllegalStateException ex) {
         return handleIllegalState(ex);
+      }
+      if (cause instanceof InvalidProductOptionException ex) {
+        return handleInvalidProductOption(ex);
       }
     }
     log.error(

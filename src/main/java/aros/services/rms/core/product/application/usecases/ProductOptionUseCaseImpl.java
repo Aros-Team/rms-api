@@ -59,7 +59,10 @@ public class ProductOptionUseCaseImpl implements ProductOptionUseCase {
       backoff = @Backoff(delay = 1000))
   public ProductOption create(ProductOption productOption) {
     validateOptionCategoryExists(productOption.getCategory().getId());
-    validateProductExists(productOption.getProduct().getId());
+
+    if (productOption.getProduct() != null && productOption.getProduct().getId() != null) {
+      validateProductExists(productOption.getProduct().getId());
+    }
 
     ProductOption saved = productOptionRepositoryPort.save(productOption);
 

@@ -52,9 +52,11 @@ public class ProductOptionController {
             .name(request.name())
             .category(OptionCategory.builder().id(request.optionCategoryId()).build())
             .product(
-                aros.services.rms.core.product.domain.Product.builder()
-                    .id(request.productId())
-                    .build())
+                request.productId() != null
+                    ? aros.services.rms.core.product.domain.Product.builder()
+                        .id(request.productId())
+                        .build()
+                    : null)
             .recipe(recipe)
             .build();
 
