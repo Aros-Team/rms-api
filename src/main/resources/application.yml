@@ -12,6 +12,9 @@ app:
   email:
     base-url: ${MAIL_URL}
 
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
+
 spring:
   application:
     name: rms
