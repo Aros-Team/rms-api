@@ -36,11 +36,13 @@ public class PurchaseOrderItemMapper {
             .build();
 
     if (domain.getPurchaseOrderId() != null) {
-      entity.setPurchaseOrder(PurchaseOrderEntity.builder().id(domain.getPurchaseOrderId()).build());
+      entity.setPurchaseOrder(
+          PurchaseOrderEntity.builder().id(domain.getPurchaseOrderId()).build());
     }
 
     if (domain.getSupplyVariantId() != null) {
-      entity.setSupplyVariant(SupplyVariantEntity.builder().id(domain.getSupplyVariantId()).build());
+      entity.setSupplyVariant(
+          SupplyVariantEntity.builder().id(domain.getSupplyVariantId()).build());
     }
 
     return entity;

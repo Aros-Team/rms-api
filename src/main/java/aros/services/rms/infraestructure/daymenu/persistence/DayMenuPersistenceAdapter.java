@@ -30,9 +30,7 @@ public class DayMenuPersistenceAdapter implements DayMenuRepositoryPort {
         productRepository
             .findById(dayMenu.getProductId())
             .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "Product not found: " + dayMenu.getProductId()));
+                () -> new IllegalArgumentException("Product not found: " + dayMenu.getProductId()));
     var entity = dayMenuMapper.toEntity(dayMenu, product);
     return dayMenuMapper.toDomain(dayMenuJpaRepository.save(entity));
   }

@@ -9,10 +9,8 @@ import aros.services.rms.core.inventory.port.output.InventoryStockRepositoryPort
 import aros.services.rms.core.inventory.port.output.OptionRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.StorageLocationRepositoryPort;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 /**
  * Configuration of beans for the inventory module.
@@ -39,8 +37,8 @@ public class InventoryConfigBeans {
   }
 
   /**
-   * Registers the core inventory movement use case impl as a named bean. It has no @Transactional
-   * — transaction boundaries are managed by InventoryMovementService.
+   * Registers the core inventory movement use case impl as a named bean. It has no @Transactional —
+   * transaction boundaries are managed by InventoryMovementService.
    */
   @Bean("inventoryMovementUseCaseImpl")
   public InventoryMovementUseCaseImpl inventoryMovementUseCaseImpl(

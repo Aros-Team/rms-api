@@ -8,13 +8,13 @@ import aros.services.rms.core.purchase.port.input.CreateSupplierUseCase;
 import aros.services.rms.core.purchase.port.input.GetSuppliersUseCase;
 import aros.services.rms.core.purchase.port.input.UpdateSupplierUseCase;
 import aros.services.rms.core.purchase.port.output.SupplierRepositoryPort;
+import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
 import java.util.List;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
-import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
 
 /**
  * Implementation of supplier use cases: create, update and list.
@@ -31,8 +31,7 @@ public class CreateSupplierUseCaseImpl
   private final SupplierRepositoryPort supplierRepositoryPort;
   private final Logger logger;
 
-  public CreateSupplierUseCaseImpl(
-      SupplierRepositoryPort supplierRepositoryPort, Logger logger) {
+  public CreateSupplierUseCaseImpl(SupplierRepositoryPort supplierRepositoryPort, Logger logger) {
     this.supplierRepositoryPort = supplierRepositoryPort;
     this.logger = logger;
   }
@@ -58,7 +57,8 @@ public class CreateSupplierUseCaseImpl
 
   @Recover
   public Supplier recoverCreate(DataAccessException e, Supplier supplier) {
-    log.warn("DB unavailable - fallback create(supplier={}): {}", supplier.getName(), e.getMessage());
+    log.warn(
+        "DB unavailable - fallback create(supplier={}): {}", supplier.getName(), e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
@@ -85,7 +85,11 @@ public class CreateSupplierUseCaseImpl
     existing.setActive(supplier.isActive());
 
     var saved = supplierRepositoryPort.save(existing);
-    logger.info("Supplier updated: id={}, name={}, active={}", saved.getId(), saved.getName(), saved.isActive());
+    logger.info(
+        "Supplier updated: id={}, name={}, active={}",
+        saved.getId(),
+        saved.getName(),
+        saved.isActive());
     return saved;
   }
 

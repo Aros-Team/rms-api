@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
- * Use case implementation for updating the active day menu. Archives the previous entry and
- * creates a new one atomically (transaction managed by the infrastructure layer).
+ * Use case implementation for updating the active day menu. Archives the previous entry and creates
+ * a new one atomically (transaction managed by the infrastructure layer).
  */
 public class UpdateDayMenuUseCaseImpl implements UpdateDayMenuUseCase {
 

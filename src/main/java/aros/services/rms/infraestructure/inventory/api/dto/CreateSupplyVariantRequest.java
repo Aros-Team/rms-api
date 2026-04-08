@@ -24,12 +24,8 @@ import java.math.BigDecimal;
         """)
 public record CreateSupplyVariantRequest(
     @Schema(description = "Supply (insumo) ID — must already exist", example = "3")
-        @NotNull(message = "supplyId is required")
-        Long supplyId,
+        @NotNull(message = "supplyId is required") Long supplyId,
     @Schema(description = "Unit of measure ID — get from GET /api/v1/supplies/units", example = "2")
-        @NotNull(message = "unitId is required")
-        Long unitId,
+        @NotNull(message = "unitId is required") Long unitId,
     @Schema(description = "Quantity per unit presentation (e.g. 0.500 for 500g)", example = "0.500")
-        @NotNull(message = "quantity is required")
-        @DecimalMin(value = "0.001", message = "quantity must be greater than 0")
-        BigDecimal quantity) {}
+        @NotNull(message = "quantity is required") @DecimalMin(value = "0.001", message = "quantity must be greater than 0") BigDecimal quantity) {}

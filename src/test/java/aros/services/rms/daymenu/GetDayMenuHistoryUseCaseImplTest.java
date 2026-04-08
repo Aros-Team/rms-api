@@ -35,8 +35,7 @@ class GetDayMenuHistoryUseCaseImplTest {
 
   @Test
   void shouldReturnEmptyPageWhenHistoryIsEmpty() {
-    when(dayMenuHistoryRepositoryPort.findAll(any(Pageable.class)))
-        .thenReturn(Page.empty());
+    when(dayMenuHistoryRepositoryPort.findAll(any(Pageable.class))).thenReturn(Page.empty());
 
     var result = useCase.getHistory(PageRequest.of(0, 10));
 
@@ -47,10 +46,24 @@ class GetDayMenuHistoryUseCaseImplTest {
   @Test
   void shouldReturnPaginatedHistoryRecords() {
     var now = LocalDateTime.now();
-    var records = List.of(
-        DayMenuHistory.builder().id(2L).productId(2L).productName("Menú B").validFrom(now.minusDays(1)).validUntil(now).createdBy("chef").build(),
-        DayMenuHistory.builder().id(1L).productId(1L).productName("Menú A").validFrom(now.minusDays(2)).validUntil(now.minusDays(1)).createdBy("admin").build()
-    );
+    var records =
+        List.of(
+            DayMenuHistory.builder()
+                .id(2L)
+                .productId(2L)
+                .productName("Menú B")
+                .validFrom(now.minusDays(1))
+                .validUntil(now)
+                .createdBy("chef")
+                .build(),
+            DayMenuHistory.builder()
+                .id(1L)
+                .productId(1L)
+                .productName("Menú A")
+                .validFrom(now.minusDays(2))
+                .validUntil(now.minusDays(1))
+                .createdBy("admin")
+                .build());
     var page = new PageImpl<>(records, PageRequest.of(0, 10), 2);
 
     when(dayMenuHistoryRepositoryPort.findAll(any(Pageable.class))).thenReturn(page);

@@ -13,7 +13,12 @@ public class RefreshToken {
   private Instant createdAt;
 
   public RefreshToken(
-      RefreshTokenId id, UserId userId, String tokenHash, Instant expiresAt, boolean revoked, Instant createdAt) {
+      RefreshTokenId id,
+      UserId userId,
+      String tokenHash,
+      Instant expiresAt,
+      boolean revoked,
+      Instant createdAt) {
     this.id = id;
     this.userId = userId;
     this.tokenHash = tokenHash;

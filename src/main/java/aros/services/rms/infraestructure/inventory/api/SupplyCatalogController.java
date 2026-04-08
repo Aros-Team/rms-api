@@ -45,7 +45,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/supplies")
 @RequiredArgsConstructor
-@Tag(name = "Supply Catalog", description = "Catalog management for supplies, variants and categories")
+@Tag(
+    name = "Supply Catalog",
+    description = "Catalog management for supplies, variants and categories")
 public class SupplyCatalogController {
 
   private final SupplyRepository supplyRepository;
@@ -89,8 +91,7 @@ public class SupplyCatalogController {
       throw new SupplyCategoryAlreadyExistsException(request.name());
     }
     var saved =
-        supplyCategoryRepository.save(
-            SupplyCategoryEntity.builder().name(request.name()).build());
+        supplyCategoryRepository.save(SupplyCategoryEntity.builder().name(request.name()).build());
     return new ResponseEntity<>(SupplyCategoryResponse.fromEntity(saved), HttpStatus.CREATED);
   }
 
@@ -100,7 +101,8 @@ public class SupplyCatalogController {
 
   @Operation(
       summary = "List units of measure",
-      description = "Returns all units of measure. Use to populate the unit selector when creating a variant.",
+      description =
+          "Returns all units of measure. Use to populate the unit selector when creating a variant.",
       responses = {@ApiResponse(responseCode = "200", description = "OK")})
   @GetMapping("/units")
   public ResponseEntity<List<UnitOfMeasureResponse>> findAllUnits() {
@@ -117,7 +119,8 @@ public class SupplyCatalogController {
 
   @Operation(
       summary = "List supplies",
-      description = "Returns all supplies. Filter by categoryId and/or name (partial, case-insensitive).",
+      description =
+          "Returns all supplies. Filter by categoryId and/or name (partial, case-insensitive).",
       responses = {@ApiResponse(responseCode = "200", description = "OK")})
   @GetMapping
   @Transactional(readOnly = true)
@@ -248,7 +251,8 @@ public class SupplyCatalogController {
 
     // Check uniqueness: same supply + unit + quantity
     if (supplyVariantRepository
-        .findBySupplyIdAndUnitIdAndQuantity(request.supplyId(), request.unitId(), request.quantity())
+        .findBySupplyIdAndUnitIdAndQuantity(
+            request.supplyId(), request.unitId(), request.quantity())
         .isPresent()) {
       throw new SupplyVariantAlreadyExistsException(
           request.supplyId(), request.unitId(), request.quantity().toPlainString());
@@ -257,7 +261,11 @@ public class SupplyCatalogController {
     // Persist variant
     var saved =
         supplyVariantRepository.save(
-            SupplyVariantEntity.builder().supply(supply).unit(unit).quantity(request.quantity()).build());
+            SupplyVariantEntity.builder()
+                .supply(supply)
+                .unit(unit)
+                .quantity(request.quantity())
+                .build());
 
     // Initialize stock to zero in Bodega and Cocina
     initStockIfLocationExists(saved, "Bodega");

@@ -10,8 +10,10 @@ import java.math.BigDecimal;
 public record PurchaseOrderItemResponse(
     @Schema(description = "Item ID", example = "10") Long id,
     @Schema(description = "Supply variant ID", example = "3") Long supplyVariantId,
-    @Schema(description = "Quantity ordered / invoiced", example = "10.000") BigDecimal quantityOrdered,
-    @Schema(description = "Quantity received in good condition", example = "8.000") BigDecimal quantityReceived,
+    @Schema(description = "Quantity ordered / invoiced", example = "10.000")
+        BigDecimal quantityOrdered,
+    @Schema(description = "Quantity received in good condition", example = "8.000")
+        BigDecimal quantityReceived,
     @Schema(description = "Unit price paid", example = "15000.00") BigDecimal unitPrice) {
 
   /** Converts a PurchaseOrderItem domain object to a response DTO. */

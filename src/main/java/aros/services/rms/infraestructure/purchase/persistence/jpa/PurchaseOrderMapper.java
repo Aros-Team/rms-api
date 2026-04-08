@@ -60,8 +60,7 @@ public class PurchaseOrderMapper {
     }
 
     if (domain.getItems() != null) {
-      var items =
-          domain.getItems().stream().map(itemMapper::toEntity).collect(Collectors.toList());
+      var items = domain.getItems().stream().map(itemMapper::toEntity).collect(Collectors.toList());
       // set back-reference so JPA cascade works correctly
       items.forEach(item -> item.setPurchaseOrder(entity));
       entity.setItems(items);
