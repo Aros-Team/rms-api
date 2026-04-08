@@ -100,7 +100,8 @@ public class SecurityConfig {
                           "/api/auth/resend-password",
                           "/api/auth/reset-password",
                           "/actuator/health/**",
-                          "/actuator/health")
+                          "/actuator/health",
+                          "/actuator/prometheus/**")
                       .permitAll()
                       .anyRequest()
                       .authenticated())
@@ -117,7 +118,8 @@ public class SecurityConfig {
                       "/swagger-ui.html",
                       "/v3/api-docs/**",
                       "/actuator/health/**",
-                      "/actuator/health")
+                      "/actuator/health",
+                      "/actuator/prometheus/**")
                   .permitAll()
                   .anyRequest()
                   .permitAll());

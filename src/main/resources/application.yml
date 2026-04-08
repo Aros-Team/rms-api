@@ -32,10 +32,12 @@ spring:
     validate-on-migrate: false
 
 management:
+  server:
+    port: 8081
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,prometheus,info
   endpoint:
     health:
       show-details: always
@@ -44,4 +46,8 @@ management:
   health:
     db:
       enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 
