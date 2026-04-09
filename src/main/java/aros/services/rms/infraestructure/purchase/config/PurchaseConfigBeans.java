@@ -2,14 +2,14 @@
 package aros.services.rms.infraestructure.purchase.config;
 
 import aros.services.rms.core.common.logger.Logger;
-import aros.services.rms.core.inventory.application.usecases.InventoryMovementUseCaseImpl;
+import aros.services.rms.core.inventory.application.service.InventoryMovementService;
 import aros.services.rms.core.inventory.port.output.InventoryMovementRepositoryPort;
 import aros.services.rms.core.inventory.port.output.InventoryStockRepositoryPort;
 import aros.services.rms.core.inventory.port.output.StorageLocationRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
-import aros.services.rms.core.purchase.application.usecases.CreateSupplierUseCaseImpl;
-import aros.services.rms.core.purchase.application.usecases.GetPurchaseHistoryUseCaseImpl;
-import aros.services.rms.core.purchase.application.usecases.RegisterPurchaseOrderUseCaseImpl;
+import aros.services.rms.core.purchase.application.service.CreateSupplierService;
+import aros.services.rms.core.purchase.application.service.GetPurchaseHistoryService;
+import aros.services.rms.core.purchase.application.service.RegisterPurchaseOrderService;
 import aros.services.rms.core.purchase.port.input.GetPurchaseHistoryUseCase;
 import aros.services.rms.core.purchase.port.input.RegisterPurchaseOrderUseCase;
 import aros.services.rms.core.purchase.port.output.PurchaseOrderRepositoryPort;
@@ -32,9 +32,9 @@ public class PurchaseConfigBeans {
    * directly as CreateSupplierUseCaseImpl — no separate port beans needed.
    */
   @Bean("supplierUseCaseImpl")
-  public CreateSupplierUseCaseImpl supplierUseCaseImpl(
+  public CreateSupplierService supplierUseCaseImpl(
       SupplierRepositoryPort supplierRepositoryPort, Logger logger) {
-    return new CreateSupplierUseCaseImpl(supplierRepositoryPort, logger);
+    return new CreateSupplierService(supplierRepositoryPort, logger);
   }
 
   /**
@@ -50,9 +50,9 @@ public class PurchaseConfigBeans {
       StorageLocationRepositoryPort storageLocationRepositoryPort,
       InventoryStockRepositoryPort inventoryStockRepositoryPort,
       InventoryMovementRepositoryPort inventoryMovementRepositoryPort,
-      @Qualifier("inventoryMovementUseCaseImpl") InventoryMovementUseCaseImpl inventoryMovementHelper,
+      @Qualifier("inventoryMovementUseCaseImpl") InventoryMovementService inventoryMovementHelper,
       Logger logger) {
-    return new RegisterPurchaseOrderUseCaseImpl(
+    return new RegisterPurchaseOrderService(
         supplierRepositoryPort,
         purchaseOrderRepositoryPort,
         supplyVariantRepositoryPort,
@@ -68,6 +68,6 @@ public class PurchaseConfigBeans {
   public GetPurchaseHistoryUseCase getPurchaseHistoryUseCase(
       PurchaseOrderRepositoryPort purchaseOrderRepositoryPort,
       SupplierRepositoryPort supplierRepositoryPort) {
-    return new GetPurchaseHistoryUseCaseImpl(purchaseOrderRepositoryPort, supplierRepositoryPort);
+    return new GetPurchaseHistoryService(purchaseOrderRepositoryPort, supplierRepositoryPort);
   }
 }

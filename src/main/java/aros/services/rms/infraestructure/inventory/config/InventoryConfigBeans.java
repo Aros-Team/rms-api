@@ -1,8 +1,8 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.inventory.config;
 
-import aros.services.rms.core.inventory.application.usecases.InventoryMovementUseCaseImpl;
-import aros.services.rms.core.inventory.application.usecases.InventoryStockUseCaseImpl;
+import aros.services.rms.core.inventory.application.service.InventoryMovementService;
+import aros.services.rms.core.inventory.application.service.InventoryStockService;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.inventory.port.output.InventoryMovementRepositoryPort;
 import aros.services.rms.core.inventory.port.output.InventoryStockRepositoryPort;
@@ -31,7 +31,7 @@ public class InventoryConfigBeans {
       OptionRecipeRepositoryPort optionRecipeRepositoryPort,
       InventoryStockRepositoryPort inventoryStockRepositoryPort,
       StorageLocationRepositoryPort storageLocationRepositoryPort) {
-    return new InventoryStockUseCaseImpl(
+    return new InventoryStockService(
         productRecipeRepositoryPort,
         optionRecipeRepositoryPort,
         inventoryStockRepositoryPort,
@@ -43,13 +43,13 @@ public class InventoryConfigBeans {
    * — transaction boundaries are managed by InventoryMovementService.
    */
   @Bean("inventoryMovementUseCaseImpl")
-  public InventoryMovementUseCaseImpl inventoryMovementUseCaseImpl(
+  public InventoryMovementService inventoryMovementUseCaseImpl(
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
       OptionRecipeRepositoryPort optionRecipeRepositoryPort,
       InventoryStockRepositoryPort inventoryStockRepositoryPort,
       InventoryMovementRepositoryPort inventoryMovementRepositoryPort,
       StorageLocationRepositoryPort storageLocationRepositoryPort) {
-    return new InventoryMovementUseCaseImpl(
+    return new InventoryMovementService(
         productRecipeRepositoryPort,
         optionRecipeRepositoryPort,
         inventoryStockRepositoryPort,

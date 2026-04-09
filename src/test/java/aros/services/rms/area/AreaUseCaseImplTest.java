@@ -12,7 +12,7 @@ import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.area.application.exception.AreaAlreadyExistsException;
 import aros.services.rms.core.area.application.exception.AreaNotFoundException;
-import aros.services.rms.core.area.application.usecases.AreaUseCaseImpl;
+import aros.services.rms.core.area.application.service.AreaService;
 import aros.services.rms.core.area.domain.Area;
 import aros.services.rms.core.area.domain.AreaType;
 import aros.services.rms.core.area.port.output.AreaRepositoryPort;
@@ -31,11 +31,11 @@ class AreaUseCaseImplTest {
   @Mock private AreaRepositoryPort areaRepositoryPort;
   @Mock private Logger logger;
 
-  private AreaUseCaseImpl areaUseCase;
+  private AreaService areaUseCase;
 
   @BeforeEach
   void setUp() {
-    areaUseCase = new AreaUseCaseImpl(areaRepositoryPort, logger);
+    areaUseCase = new AreaService(areaRepositoryPort, logger);
   }
 
   @Test

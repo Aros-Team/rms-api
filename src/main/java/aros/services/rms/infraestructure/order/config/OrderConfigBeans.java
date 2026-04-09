@@ -3,12 +3,12 @@ package aros.services.rms.infraestructure.order.config;
 
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
-import aros.services.rms.core.order.application.usecases.DeliveryUseCaseImpl;
-import aros.services.rms.core.order.application.usecases.MarkAsReadyUseCaseImpl;
-import aros.services.rms.core.order.application.usecases.OrderQueryUseCaseImpl;
-import aros.services.rms.core.order.application.usecases.PreparationUseCaseImpl;
-import aros.services.rms.core.order.application.usecases.TakeOrderUseCaseImpl;
-import aros.services.rms.core.order.application.usecases.UpdateOrderUseCaseImpl;
+import aros.services.rms.core.order.application.service.DeliveryService;
+import aros.services.rms.core.order.application.service.MarkAsReadyService;
+import aros.services.rms.core.order.application.service.OrderQueryService;
+import aros.services.rms.core.order.application.service.PreparationService;
+import aros.services.rms.core.order.application.service.TakeOrderService;
+import aros.services.rms.core.order.application.service.UpdateOrderService;
 import aros.services.rms.core.order.port.input.DeliveryUseCase;
 import aros.services.rms.core.order.port.input.MarkAsReadyUseCase;
 import aros.services.rms.core.order.port.input.OrderQueryUseCase;
@@ -30,14 +30,14 @@ public class OrderConfigBeans {
 
   /** Crea bean para tomar nuevas órdenes. */
   @Bean
-  public TakeOrderUseCaseImpl takeOrderUseCaseImpl(
+  public TakeOrderService takeOrderUseCaseImpl(
       OrderRepositoryPort orderRepositoryPort,
       TableRepositoryPort tableRepositoryPort,
       ProductRepositoryPort productRepositoryPort,
       ProductOptionRepositoryPort productOptionRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
       InventoryMovementUseCase inventoryMovementUseCase) {
-    return new TakeOrderUseCaseImpl(
+    return new TakeOrderService(
         orderRepositoryPort,
         tableRepositoryPort,
         productRepositoryPort,
@@ -55,7 +55,7 @@ public class OrderConfigBeans {
       ProductOptionRepositoryPort productOptionRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
       InventoryMovementUseCase inventoryMovementUseCase) {
-    return new UpdateOrderUseCaseImpl(
+    return new UpdateOrderService(
         orderRepositoryPort,
         tableRepositoryPort,
         productRepositoryPort,
@@ -67,25 +67,25 @@ public class OrderConfigBeans {
   /** Crea bean para pasar órdenes de cola a preparación. */
   @Bean
   public PreparationUseCase preparationUseCase(OrderRepositoryPort orderRepositoryPort) {
-    return new PreparationUseCaseImpl(orderRepositoryPort);
+    return new PreparationService(orderRepositoryPort);
   }
 
   /** Crea bean para marcar órdenes como listas (READY). */
   @Bean
   public MarkAsReadyUseCase markAsReadyUseCase(OrderRepositoryPort orderRepositoryPort) {
-    return new MarkAsReadyUseCaseImpl(orderRepositoryPort);
+    return new MarkAsReadyService(orderRepositoryPort);
   }
 
   /** Crea bean para entregar órdenes al cliente. */
   @Bean
   public DeliveryUseCase deliveryUseCase(
       OrderRepositoryPort orderRepositoryPort, TableRepositoryPort tableRepositoryPort) {
-    return new DeliveryUseCaseImpl(orderRepositoryPort, tableRepositoryPort);
+    return new DeliveryService(orderRepositoryPort, tableRepositoryPort);
   }
 
   /** Crea bean para consultar órdenes. */
   @Bean
   public OrderQueryUseCase orderQueryUseCase(OrderRepositoryPort orderRepositoryPort) {
-    return new OrderQueryUseCaseImpl(orderRepositoryPort);
+    return new OrderQueryService(orderRepositoryPort);
   }
 }

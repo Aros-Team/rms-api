@@ -11,7 +11,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import aros.services.rms.core.order.application.usecases.DeliveryUseCaseImpl;
+import aros.services.rms.core.order.application.service.DeliveryService;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
@@ -32,11 +32,11 @@ class DeliveryUseCaseImplTest {
 
   @Mock private TableRepositoryPort tableRepositoryPort;
 
-  private DeliveryUseCaseImpl deliveryUseCase;
+  private DeliveryService deliveryUseCase;
 
   @BeforeEach
   void setUp() {
-    deliveryUseCase = new DeliveryUseCaseImpl(orderRepositoryPort, tableRepositoryPort);
+    deliveryUseCase = new DeliveryService(orderRepositoryPort, tableRepositoryPort);
   }
 
   @Test

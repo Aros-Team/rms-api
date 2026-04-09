@@ -11,7 +11,7 @@ import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.core.daymenu.application.exception.InvalidDayMenuProductException;
-import aros.services.rms.core.daymenu.application.usecases.UpdateDayMenuUseCaseImpl;
+import aros.services.rms.core.daymenu.application.service.UpdateDayMenuService;
 import aros.services.rms.core.daymenu.domain.DayMenu;
 import aros.services.rms.core.daymenu.domain.DayMenuHistory;
 import aros.services.rms.core.daymenu.port.output.DayMenuHistoryRepositoryPort;
@@ -35,12 +35,12 @@ class UpdateDayMenuUseCaseImplTest {
   @Mock private DayMenuHistoryRepositoryPort dayMenuHistoryRepositoryPort;
   @Mock private Logger logger;
 
-  private UpdateDayMenuUseCaseImpl useCase;
+  private UpdateDayMenuService useCase;
 
   @BeforeEach
   void setUp() {
     useCase =
-        new UpdateDayMenuUseCaseImpl(
+        new UpdateDayMenuService(
             productRepositoryPort, dayMenuRepositoryPort, dayMenuHistoryRepositoryPort, logger);
   }
 

@@ -15,8 +15,8 @@ import static org.mockito.Mockito.when;
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
-import aros.services.rms.core.order.application.usecases.TakeOrderCommand;
-import aros.services.rms.core.order.application.usecases.UpdateOrderUseCaseImpl;
+import aros.services.rms.core.order.application.dto.TakeOrderCommand;
+import aros.services.rms.core.order.application.service.UpdateOrderService;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
@@ -53,14 +53,14 @@ class UpdateOrderUseCaseImplTest {
 
   @Mock private InventoryMovementUseCase inventoryMovementUseCase;
 
-  private UpdateOrderUseCaseImpl updateOrderUseCase;
+  private UpdateOrderService updateOrderUseCase;
 
   @BeforeEach
   void setUp() {
     when(inventoryStockUseCase.isAvailable(any(), any())).thenReturn(true);
 
     updateOrderUseCase =
-        new UpdateOrderUseCaseImpl(
+        new UpdateOrderService(
             orderRepositoryPort,
             tableRepositoryPort,
             productRepositoryPort,

@@ -2,9 +2,9 @@
 package aros.services.rms.infraestructure.daymenu.config;
 
 import aros.services.rms.core.common.logger.Logger;
-import aros.services.rms.core.daymenu.application.usecases.GetCurrentDayMenuUseCaseImpl;
-import aros.services.rms.core.daymenu.application.usecases.GetDayMenuHistoryUseCaseImpl;
-import aros.services.rms.core.daymenu.application.usecases.UpdateDayMenuUseCaseImpl;
+import aros.services.rms.core.daymenu.application.service.GetCurrentDayMenuService;
+import aros.services.rms.core.daymenu.application.service.GetDayMenuHistoryService;
+import aros.services.rms.core.daymenu.application.service.UpdateDayMenuService;
 import aros.services.rms.core.daymenu.port.input.GetCurrentDayMenuUseCase;
 import aros.services.rms.core.daymenu.port.input.GetDayMenuHistoryUseCase;
 import aros.services.rms.core.daymenu.port.input.UpdateDayMenuUseCase;
@@ -24,19 +24,19 @@ public class DayMenuConfigBeans {
       DayMenuRepositoryPort dayMenuRepositoryPort,
       DayMenuHistoryRepositoryPort dayMenuHistoryRepositoryPort,
       Logger logger) {
-    return new UpdateDayMenuUseCaseImpl(
+    return new UpdateDayMenuService(
         productRepositoryPort, dayMenuRepositoryPort, dayMenuHistoryRepositoryPort, logger);
   }
 
   @Bean
   public GetCurrentDayMenuUseCase getCurrentDayMenuUseCase(
       DayMenuRepositoryPort dayMenuRepositoryPort) {
-    return new GetCurrentDayMenuUseCaseImpl(dayMenuRepositoryPort);
+    return new GetCurrentDayMenuService(dayMenuRepositoryPort);
   }
 
   @Bean
   public GetDayMenuHistoryUseCase getDayMenuHistoryUseCase(
       DayMenuHistoryRepositoryPort dayMenuHistoryRepositoryPort) {
-    return new GetDayMenuHistoryUseCaseImpl(dayMenuHistoryRepositoryPort);
+    return new GetDayMenuHistoryService(dayMenuHistoryRepositoryPort);
   }
 }

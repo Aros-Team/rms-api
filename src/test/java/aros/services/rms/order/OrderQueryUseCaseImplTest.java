@@ -9,7 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import aros.services.rms.core.order.application.usecases.OrderQueryUseCaseImpl;
+import aros.services.rms.core.order.application.service.OrderQueryService;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
@@ -26,11 +26,11 @@ class OrderQueryUseCaseImplTest {
 
   @Mock private OrderRepositoryPort orderRepositoryPort;
 
-  private OrderQueryUseCaseImpl orderQueryUseCase;
+  private OrderQueryService orderQueryUseCase;
 
   @BeforeEach
   void setUp() {
-    orderQueryUseCase = new OrderQueryUseCaseImpl(orderRepositoryPort);
+    orderQueryUseCase = new OrderQueryService(orderRepositoryPort);
   }
 
   @Test

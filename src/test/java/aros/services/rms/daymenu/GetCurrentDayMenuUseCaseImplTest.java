@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import aros.services.rms.core.daymenu.application.usecases.GetCurrentDayMenuUseCaseImpl;
+import aros.services.rms.core.daymenu.application.service.GetCurrentDayMenuService;
 import aros.services.rms.core.daymenu.domain.DayMenu;
 import aros.services.rms.core.daymenu.port.output.DayMenuRepositoryPort;
 import java.time.LocalDateTime;
@@ -21,11 +21,11 @@ class GetCurrentDayMenuUseCaseImplTest {
 
   @Mock private DayMenuRepositoryPort dayMenuRepositoryPort;
 
-  private GetCurrentDayMenuUseCaseImpl useCase;
+  private GetCurrentDayMenuService useCase;
 
   @BeforeEach
   void setUp() {
-    useCase = new GetCurrentDayMenuUseCaseImpl(dayMenuRepositoryPort);
+    useCase = new GetCurrentDayMenuService(dayMenuRepositoryPort);
   }
 
   @Test

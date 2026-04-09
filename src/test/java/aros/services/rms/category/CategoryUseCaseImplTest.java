@@ -10,7 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.category.application.exception.CategoryNotFoundException;
-import aros.services.rms.core.category.application.usecases.CategoryUseCaseImpl;
+import aros.services.rms.core.category.application.service.CategoryService;
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.category.port.output.CategoryRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
@@ -28,11 +28,11 @@ class CategoryUseCaseImplTest {
   @Mock private CategoryRepositoryPort categoryRepositoryPort;
   @Mock private Logger logger;
 
-  private CategoryUseCaseImpl categoryUseCase;
+  private CategoryService categoryUseCase;
 
   @BeforeEach
   void setUp() {
-    categoryUseCase = new CategoryUseCaseImpl(categoryRepositoryPort, logger);
+    categoryUseCase = new CategoryService(categoryRepositoryPort, logger);
   }
 
   @Test

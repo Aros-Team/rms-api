@@ -1,7 +1,7 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.order.api;
 
-import aros.services.rms.core.order.application.usecases.TakeOrderCommand;
+import aros.services.rms.core.order.application.dto.TakeOrderCommand;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.input.DeliveryUseCase;

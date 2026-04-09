@@ -1,7 +1,7 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.area.config;
 
-import aros.services.rms.core.area.application.usecases.AreaUseCaseImpl;
+import aros.services.rms.core.area.application.service.AreaService;
 import aros.services.rms.core.area.port.input.AreaUseCase;
 import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
@@ -15,6 +15,6 @@ public class AreaConfigBeans {
   /** Creates bean for area management use case. */
   @Bean
   public AreaUseCase areaUseCase(AreaRepositoryPort areaRepositoryPort, Logger logger) {
-    return new AreaUseCaseImpl(areaRepositoryPort, logger);
+    return new AreaService(areaRepositoryPort, logger);
   }
 }

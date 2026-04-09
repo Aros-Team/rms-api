@@ -10,7 +10,7 @@ import static org.mockito.Mockito.when;
 import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.core.table.application.exception.InvalidTableStatusException;
 import aros.services.rms.core.table.application.exception.TableNotFoundException;
-import aros.services.rms.core.table.application.usecases.TableUseCaseImpl;
+import aros.services.rms.core.table.application.service.TableService;
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
@@ -28,11 +28,11 @@ class TableUseCaseImplTest {
   @Mock private TableRepositoryPort tableRepositoryPort;
   @Mock private Logger logger;
 
-  private TableUseCaseImpl tableUseCase;
+  private TableService tableUseCase;
 
   @BeforeEach
   void setUp() {
-    tableUseCase = new TableUseCaseImpl(tableRepositoryPort, logger);
+    tableUseCase = new TableService(tableRepositoryPort, logger);
   }
 
   @Test
