@@ -1,8 +1,10 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.purchase.api;
 
-import aros.services.rms.core.purchase.application.usecases.CreateSupplierUseCaseImpl;
 import aros.services.rms.core.purchase.domain.Supplier;
+import aros.services.rms.core.purchase.port.input.CreateSupplierUseCase;
+import aros.services.rms.core.purchase.port.input.GetSuppliersUseCase;
+import aros.services.rms.core.purchase.port.input.UpdateSupplierUseCase;
 import aros.services.rms.infraestructure.purchase.api.dto.SupplierRequest;
 import aros.services.rms.infraestructure.purchase.api.dto.SupplierResponse;
 import aros.services.rms.infraestructure.purchase.api.dto.SupplierUpdateRequest;
@@ -13,6 +15,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,7 +33,14 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Suppliers", description = "Supplier and distributor management")
 public class SupplierController {
 
-  private final CreateSupplierUseCaseImpl supplierUseCase;
+  @Qualifier("createSupplierUseCase")
+  private final CreateSupplierUseCase createSupplierUseCase;
+
+  @Qualifier("updateSupplierUseCase")
+  private final UpdateSupplierUseCase updateSupplierUseCase;
+
+  @Qualifier("getSuppliersUseCase")
+  private final GetSuppliersUseCase getSuppliersUseCase;
 
   @Operation(
       summary = "Create supplier",
@@ -41,9 +51,8 @@ public class SupplierController {
       })
   @PostMapping
   public ResponseEntity<SupplierResponse> create(@Valid @RequestBody SupplierRequest request) {
-    // Map request to domain object; active defaults to true inside the use case
     var supplier = Supplier.builder().name(request.name()).contact(request.contact()).build();
-    var created = supplierUseCase.create(supplier);
+    var created = createSupplierUseCase.create(supplier);
     return new ResponseEntity<>(SupplierResponse.fromDomain(created), HttpStatus.CREATED);
   }
 
@@ -60,14 +69,13 @@ public class SupplierController {
   @PutMapping("/{id}")
   public ResponseEntity<SupplierResponse> update(
       @PathVariable Long id, @Valid @RequestBody SupplierUpdateRequest request) {
-    // Map request to domain object; active flag comes explicitly from the client
     var supplier =
         Supplier.builder()
             .name(request.name())
             .contact(request.contact())
             .active(request.active())
             .build();
-    var updated = supplierUseCase.update(id, supplier);
+    var updated = updateSupplierUseCase.update(id, supplier);
     return ResponseEntity.ok(SupplierResponse.fromDomain(updated));
   }
 
@@ -80,7 +88,7 @@ public class SupplierController {
   @GetMapping
   public ResponseEntity<List<SupplierResponse>> findAll() {
     List<SupplierResponse> responses =
-        supplierUseCase.findAll().stream()
+        getSuppliersUseCase.findAll().stream()
             .map(SupplierResponse::fromDomain)
             .collect(Collectors.toList());
     return ResponseEntity.ok(responses);

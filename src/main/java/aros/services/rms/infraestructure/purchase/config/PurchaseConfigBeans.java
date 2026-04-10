@@ -10,8 +10,11 @@ import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import aros.services.rms.core.purchase.application.service.CreateSupplierService;
 import aros.services.rms.core.purchase.application.service.GetPurchaseHistoryService;
 import aros.services.rms.core.purchase.application.service.RegisterPurchaseOrderService;
+import aros.services.rms.core.purchase.port.input.CreateSupplierUseCase;
 import aros.services.rms.core.purchase.port.input.GetPurchaseHistoryUseCase;
+import aros.services.rms.core.purchase.port.input.GetSuppliersUseCase;
 import aros.services.rms.core.purchase.port.input.RegisterPurchaseOrderUseCase;
+import aros.services.rms.core.purchase.port.input.UpdateSupplierUseCase;
 import aros.services.rms.core.purchase.port.output.PurchaseOrderRepositoryPort;
 import aros.services.rms.core.purchase.port.output.SupplierRepositoryPort;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,20 +24,33 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Spring bean configuration for the purchase module.
  *
- * <p>CreateSupplierUseCaseImpl is registered as a single named bean. The controller injects it
- * directly by concrete type to avoid Spring ambiguity when the impl satisfies multiple interfaces.
+ * <p>Supplier operations are exposed through three separate beans, one per use case interface.
+ * Each bean returns the same CreateSupplierService instance since it implements all three.
  */
 @Configuration
 public class PurchaseConfigBeans {
 
-  /**
-   * Single bean for all supplier operations (create, update, list). The controller injects this
-   * directly as CreateSupplierUseCaseImpl — no separate port beans needed.
-   */
-  @Bean("supplierUseCaseImpl")
-  public CreateSupplierService supplierUseCaseImpl(
+  private CreateSupplierService createSupplierServiceInstance(
       SupplierRepositoryPort supplierRepositoryPort, Logger logger) {
     return new CreateSupplierService(supplierRepositoryPort, logger);
+  }
+
+  @Bean("createSupplierUseCase")
+  public CreateSupplierUseCase createSupplierUseCase(
+      SupplierRepositoryPort supplierRepositoryPort, Logger logger) {
+    return createSupplierServiceInstance(supplierRepositoryPort, logger);
+  }
+
+  @Bean("updateSupplierUseCase")
+  public UpdateSupplierUseCase updateSupplierUseCase(
+      SupplierRepositoryPort supplierRepositoryPort, Logger logger) {
+    return createSupplierServiceInstance(supplierRepositoryPort, logger);
+  }
+
+  @Bean("getSuppliersUseCase")
+  public GetSuppliersUseCase getSuppliersUseCase(
+      SupplierRepositoryPort supplierRepositoryPort, Logger logger) {
+    return createSupplierServiceInstance(supplierRepositoryPort, logger);
   }
 
   /**
