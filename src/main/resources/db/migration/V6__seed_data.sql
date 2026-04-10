@@ -23,5 +23,5 @@ INSERT INTO units_of_measure (name, abbreviation) VALUES
     ('Latas',        'lat');
 
 INSERT INTO storage_locations (name) VALUES
-    ('Bodega Principal'),   -- id 1
+    ('Bodega'),   -- id 1
     ('Cocina');             -- id 2
