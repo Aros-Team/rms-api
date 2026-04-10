@@ -24,8 +24,8 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Spring bean configuration for the purchase module.
  *
- * <p>Supplier operations are exposed through three separate beans, one per use case interface.
- * Each bean returns the same CreateSupplierService instance since it implements all three.
+ * <p>Supplier operations are exposed through three separate beans, one per use case interface. Each
+ * bean returns the same CreateSupplierService instance since it implements all three.
  */
 @Configuration
 public class PurchaseConfigBeans {

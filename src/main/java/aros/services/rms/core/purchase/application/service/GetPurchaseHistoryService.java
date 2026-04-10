@@ -1,7 +1,6 @@
 /* (C) 2026 */
 package aros.services.rms.core.purchase.application.service;
 
-import aros.services.rms.core.purchase.application.exception.PurchaseOrderNotFoundException;
 import aros.services.rms.core.purchase.application.exception.SupplierNotFoundException;
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
 import aros.services.rms.core.purchase.port.input.GetPurchaseHistoryUseCase;

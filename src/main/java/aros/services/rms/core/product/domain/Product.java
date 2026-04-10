@@ -27,4 +27,5 @@ public class Product {
   private Long preparationAreaId;
   private String preparationAreaName;
   private List<ProductRecipe> recipe;
+  private List<Long> optionIds;
 }

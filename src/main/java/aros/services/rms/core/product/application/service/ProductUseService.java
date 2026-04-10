@@ -14,6 +14,7 @@ import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.port.input.ProductUseCase;
+import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ public class ProductUseService implements ProductUseCase {
   private final ProductRecipeRepositoryPort productRecipeRepositoryPort;
   private final SupplyVariantRepositoryPort supplyVariantRepositoryPort;
   private final InventoryStockUseCase inventoryStockUseCase;
+  private final ProductOptionRepositoryPort productOptionRepositoryPort;
   private final Logger logger;
 
   public ProductUseService(
@@ -47,6 +49,7 @@ public class ProductUseService implements ProductUseCase {
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
       SupplyVariantRepositoryPort supplyVariantRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
+      ProductOptionRepositoryPort productOptionRepositoryPort,
       Logger logger) {
     this.productRepositoryPort = productRepositoryPort;
     this.areaRepositoryPort = areaRepositoryPort;
@@ -54,6 +57,7 @@ public class ProductUseService implements ProductUseCase {
     this.productRecipeRepositoryPort = productRecipeRepositoryPort;
     this.supplyVariantRepositoryPort = supplyVariantRepositoryPort;
     this.inventoryStockUseCase = inventoryStockUseCase;
+    this.productOptionRepositoryPort = productOptionRepositoryPort;
     this.logger = logger;
   }
 
@@ -89,6 +93,11 @@ public class ProductUseService implements ProductUseCase {
     }
 
     logger.info("Product created: id={}, name={}", saved.getId(), saved.getName());
+
+    if (product.getOptionIds() != null && !product.getOptionIds().isEmpty()) {
+      productOptionRepositoryPort.associateOptionsToProduct(saved.getId(), product.getOptionIds());
+    }
+
     return saved;
   }
 
@@ -135,6 +144,12 @@ public class ProductUseService implements ProductUseCase {
     }
 
     logger.info("Product updated: id={}, name={}", saved.getId(), saved.getName());
+
+    productOptionRepositoryPort.removeAllOptionsFromProduct(id);
+    if (product.getOptionIds() != null && !product.getOptionIds().isEmpty()) {
+      productOptionRepositoryPort.associateOptionsToProduct(saved.getId(), product.getOptionIds());
+    }
+
     return saved;
   }
 

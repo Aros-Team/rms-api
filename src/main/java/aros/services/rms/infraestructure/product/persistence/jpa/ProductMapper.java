@@ -19,6 +19,9 @@ public class ProductMapper {
   public Product toProductDomain(
       aros.services.rms.infraestructure.product.persistence.Product entity) {
     if (entity == null) return null;
+
+    // Note: optionIds are not loaded here to avoid LazyInitializationException.
+    // They are only populated when explicitly needed (e.g., after association operations).
     return Product.builder()
         .id(entity.getId())
         .name(entity.getName())
@@ -41,7 +44,6 @@ public class ProductMapper {
         .id(entity.getId())
         .name(entity.getName())
         .category(categoryMapper.toOptionCategoryDomain(entity.getCategory()))
-        .product(entity.getProduct() != null ? toProductDomain(entity.getProduct()) : null)
         .build();
   }
 
@@ -74,7 +76,6 @@ public class ProductMapper {
         .id(domain.getId())
         .name(domain.getName())
         .category(categoryMapper.toOptionCategoryEntity(domain.getCategory()))
-        .product(domain.getProduct() != null ? toProductEntity(domain.getProduct()) : null)
         .build();
   }
 }

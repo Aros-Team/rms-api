@@ -58,6 +58,7 @@ public class ProductController {
             .hasOptions(request.hasOptions())
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())
+            .optionIds(request.optionIds())
             .recipe(recipe)
             .build();
 
@@ -85,6 +86,7 @@ public class ProductController {
             .hasOptions(request.hasOptions())
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())
+            .optionIds(request.optionIds())
             .recipe(recipe)
             .build();
 

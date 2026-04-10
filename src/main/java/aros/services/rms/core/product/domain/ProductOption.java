@@ -17,6 +17,5 @@ public class ProductOption {
   private Long id;
   private String name;
   private OptionCategory category;
-  private Product product;
   private List<OptionRecipe> recipe;
 }

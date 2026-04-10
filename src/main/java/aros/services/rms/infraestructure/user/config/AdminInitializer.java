@@ -1,15 +1,14 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.user.config;
 
+import aros.services.rms.core.user.application.service.CreateAdminService;
+import aros.services.rms.core.user.application.service.CreateAdminService.AdminConfig;
+import aros.services.rms.core.user.application.service.CreateAdminService.AdminCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-
-import aros.services.rms.core.user.application.service.CreateAdminService;
-import aros.services.rms.core.user.application.service.CreateAdminService.AdminConfig;
-import aros.services.rms.core.user.application.service.CreateAdminService.AdminCredentials;
 
 @Component
 public class AdminInitializer implements CommandLineRunner {

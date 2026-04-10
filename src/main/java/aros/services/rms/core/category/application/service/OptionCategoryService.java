@@ -20,8 +20,7 @@ import org.springframework.retry.annotation.Retryable;
  */
 public class OptionCategoryService implements OptionCategoryUseCase {
 
-  private static final org.slf4j.Logger log =
-      LoggerFactory.getLogger(OptionCategoryService.class);
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(OptionCategoryService.class);
   private final OptionCategoryRepositoryPort optionCategoryRepositoryPort;
   private final Logger logger;
 

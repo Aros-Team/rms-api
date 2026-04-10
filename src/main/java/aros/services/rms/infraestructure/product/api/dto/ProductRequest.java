@@ -18,6 +18,7 @@ import java.util.List;
           "hasOptions": true,
           "categoryId": 1,
           "areaId": 1,
+          "optionIds": [1, 2, 3],
           "recipe": [
             {
               "supplyVariantId": 1,
@@ -37,6 +38,10 @@ public record ProductRequest(
         @NotNull(message = "Category ID is required") Long categoryId,
     @Schema(description = "Preparation area ID", example = "1")
         @NotNull(message = "Area ID is required") Long areaId,
+    @Schema(
+            description = "IDs of existing product options to associate with this product",
+            example = "[1, 2, 3]")
+        List<Long> optionIds,
     @Schema(
             description = "Recipe items (supply variants and quantities)",
             example = "[{\"supplyVariantId\": 1, \"requiredQuantity\": 250.0}]")

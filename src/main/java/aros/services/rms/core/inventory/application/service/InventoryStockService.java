@@ -60,7 +60,8 @@ public class InventoryStockService implements InventoryStockUseCase {
 
     // Get storage location IDs - both locations must exist for inventory checks to work
     Long cocinaId = getStorageLocationId("Cocina");
-    Long bodegaId = getStorageLocationId("Bodega"); // throws StorageLocationNotFoundException if missing
+    Long bodegaId =
+        getStorageLocationId("Bodega"); // throws StorageLocationNotFoundException if missing
 
     // Check availability for each required variant
     for (Map.Entry<Long, BigDecimal> entry : requiredVariants.entrySet()) {

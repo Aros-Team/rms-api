@@ -107,10 +107,10 @@ public class TakeOrderService implements TakeOrderUseCase {
           selectedOptions =
               productOptionRepositoryPort.findAllById(detailCommand.getSelectedOptionIds());
 
-          // Validar que todas las opciones pertenezcan al producto específico
+          // Validar que todas las opciones estén asociadas al producto específico
           for (ProductOption option : selectedOptions) {
-            if (option.getProduct() == null
-                || !option.getProduct().getId().equals(product.getId())) {
+            if (!productOptionRepositoryPort.isOptionAssociatedWithProduct(
+                product.getId(), option.getId())) {
               throw new InvalidProductOptionException(product.getId(), option.getId());
             }
           }

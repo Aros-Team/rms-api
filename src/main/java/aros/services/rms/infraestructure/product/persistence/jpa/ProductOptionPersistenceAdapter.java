@@ -3,6 +3,7 @@ package aros.services.rms.infraestructure.product.persistence.jpa;
 
 import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -50,5 +51,25 @@ public class ProductOptionPersistenceAdapter implements ProductOptionRepositoryP
     return productOptionRepository.findByProductId(productId).stream()
         .map(productMapper::toProductOptionDomain)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  @Transactional
+  public void associateOptionsToProduct(Long productId, List<Long> optionIds) {
+    for (Long optionId : optionIds) {
+      productOptionRepository.associateOptionToProduct(productId, optionId);
+    }
+  }
+
+  @Override
+  @Transactional
+  public void removeAllOptionsFromProduct(Long productId) {
+    productOptionRepository.removeAllOptionsFromProduct(productId);
+  }
+
+  @Override
+  public boolean isOptionAssociatedWithProduct(Long productId, Long optionId) {
+    Long count = productOptionRepository.isOptionAssociatedWithProduct(productId, optionId);
+    return count != null && count > 0;
   }
 }

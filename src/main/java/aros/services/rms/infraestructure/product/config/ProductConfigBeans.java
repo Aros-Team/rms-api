@@ -33,6 +33,7 @@ public class ProductConfigBeans {
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
       SupplyVariantRepositoryPort supplyVariantRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
+      ProductOptionRepositoryPort productOptionRepositoryPort,
       Logger logger) {
     return new ProductUseService(
         productRepositoryPort,
@@ -41,6 +42,7 @@ public class ProductConfigBeans {
         productRecipeRepositoryPort,
         supplyVariantRepositoryPort,
         inventoryStockUseCase,
+        productOptionRepositoryPort,
         logger);
   }
 
@@ -51,14 +53,12 @@ public class ProductConfigBeans {
       OptionCategoryRepositoryPort optionCategoryRepositoryPort,
       OptionRecipeRepositoryPort optionRecipeRepositoryPort,
       SupplyVariantRepositoryPort supplyVariantRepositoryPort,
-      ProductRepositoryPort productRepositoryPort,
       Logger logger) {
     return new ProductOptionService(
         productOptionRepositoryPort,
         optionCategoryRepositoryPort,
         optionRecipeRepositoryPort,
         supplyVariantRepositoryPort,
-        productRepositoryPort,
         logger);
   }
 }

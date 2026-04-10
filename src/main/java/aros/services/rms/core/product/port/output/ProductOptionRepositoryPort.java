@@ -16,4 +16,10 @@ public interface ProductOptionRepositoryPort {
   List<ProductOption> findAll();
 
   List<ProductOption> findByProductId(Long productId);
+
+  void associateOptionsToProduct(Long productId, List<Long> optionIds);
+
+  void removeAllOptionsFromProduct(Long productId);
+
+  boolean isOptionAssociatedWithProduct(Long productId, Long optionId);
 }

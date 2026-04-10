@@ -88,7 +88,9 @@ public class PurchaseOrderController {
       responses = {
         @ApiResponse(responseCode = "200", description = "Purchase orders retrieved successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid date format"),
-        @ApiResponse(responseCode = "404", description = "Supplier not found (when filtering by supplierId)")
+        @ApiResponse(
+            responseCode = "404",
+            description = "Supplier not found (when filtering by supplierId)")
       })
   @GetMapping
   public ResponseEntity<List<PurchaseOrderResponse>> findAll(

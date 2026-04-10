@@ -17,9 +17,6 @@ import jakarta.validation.constraints.Size;
         """)
 public record SupplierRequest(
     @Schema(description = "Supplier name", example = "Distribuidora El Mayorista")
-        @NotBlank(message = "Supplier name is required")
-        @Size(max = 255, message = "Name must not exceed 255 characters")
-        String name,
+        @NotBlank(message = "Supplier name is required") @Size(max = 255, message = "Name must not exceed 255 characters") String name,
     @Schema(description = "Contact phone or email", example = "3001234567")
-        @Size(max = 255, message = "Contact must not exceed 255 characters")
-        String contact) {}
+        @Size(max = 255, message = "Contact must not exceed 255 characters") String contact) {}

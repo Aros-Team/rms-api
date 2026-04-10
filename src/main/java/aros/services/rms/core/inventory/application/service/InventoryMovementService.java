@@ -85,10 +85,12 @@ public class InventoryMovementService implements InventoryMovementUseCase {
 
       // Register movements only for quantities actually deducted
       if (cocinaDeducted.compareTo(BigDecimal.ZERO) > 0) {
-        registerMovement(variantId, cocinaId, null, cocinaDeducted, MovementType.DEDUCTION, orderId, null);
+        registerMovement(
+            variantId, cocinaId, null, cocinaDeducted, MovementType.DEDUCTION, orderId, null);
       }
       if (remaining.compareTo(BigDecimal.ZERO) > 0) {
-        registerMovement(variantId, bodegaId, null, remaining, MovementType.DEDUCTION, orderId, null);
+        registerMovement(
+            variantId, bodegaId, null, remaining, MovementType.DEDUCTION, orderId, null);
       }
     }
   }
@@ -120,7 +122,8 @@ public class InventoryMovementService implements InventoryMovementUseCase {
 
       // Register ENTRY movements for the revert
       if (bodegaReturned.compareTo(BigDecimal.ZERO) > 0) {
-        registerMovement(variantId, null, bodegaId, bodegaReturned, MovementType.ENTRY, orderId, null);
+        registerMovement(
+            variantId, null, bodegaId, bodegaReturned, MovementType.ENTRY, orderId, null);
       }
       if (remaining.compareTo(BigDecimal.ZERO) > 0) {
         registerMovement(variantId, null, cocinaId, remaining, MovementType.ENTRY, orderId, null);

@@ -46,8 +46,23 @@ class UpdateDayMenuUseCaseImplTest {
 
   @Test
   void shouldCreateFirstDayMenuWhenNoPreviousExists() {
-    var product = Product.builder().id(1L).name("Menú Especial").basePrice(15.0).hasOptions(true).active(true).build();
-    var saved = DayMenu.builder().id(1L).productId(1L).productName("Menú Especial").productBasePrice(15.0).validFrom(LocalDateTime.now()).createdBy("admin").build();
+    var product =
+        Product.builder()
+            .id(1L)
+            .name("Menú Especial")
+            .basePrice(15.0)
+            .hasOptions(true)
+            .active(true)
+            .build();
+    var saved =
+        DayMenu.builder()
+            .id(1L)
+            .productId(1L)
+            .productName("Menú Especial")
+            .productBasePrice(15.0)
+            .validFrom(LocalDateTime.now())
+            .createdBy("admin")
+            .build();
 
     when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
     when(dayMenuRepositoryPort.findActive()).thenReturn(Optional.empty());
@@ -64,13 +79,37 @@ class UpdateDayMenuUseCaseImplTest {
 
   @Test
   void shouldArchivePreviousAndCreateNewDayMenu() {
-    var product = Product.builder().id(2L).name("Nuevo Menú").basePrice(18.0).hasOptions(true).active(true).build();
-    var existing = DayMenu.builder().id(1L).productId(1L).productName("Menú Anterior").productBasePrice(12.0).validFrom(LocalDateTime.now().minusDays(1)).createdBy("chef").build();
-    var saved = DayMenu.builder().id(2L).productId(2L).productName("Nuevo Menú").productBasePrice(18.0).validFrom(LocalDateTime.now()).createdBy("admin").build();
+    var product =
+        Product.builder()
+            .id(2L)
+            .name("Nuevo Menú")
+            .basePrice(18.0)
+            .hasOptions(true)
+            .active(true)
+            .build();
+    var existing =
+        DayMenu.builder()
+            .id(1L)
+            .productId(1L)
+            .productName("Menú Anterior")
+            .productBasePrice(12.0)
+            .validFrom(LocalDateTime.now().minusDays(1))
+            .createdBy("chef")
+            .build();
+    var saved =
+        DayMenu.builder()
+            .id(2L)
+            .productId(2L)
+            .productName("Nuevo Menú")
+            .productBasePrice(18.0)
+            .validFrom(LocalDateTime.now())
+            .createdBy("admin")
+            .build();
 
     when(productRepositoryPort.findById(2L)).thenReturn(Optional.of(product));
     when(dayMenuRepositoryPort.findActive()).thenReturn(Optional.of(existing));
-    when(dayMenuHistoryRepositoryPort.save(any(DayMenuHistory.class))).thenReturn(DayMenuHistory.builder().id(1L).build());
+    when(dayMenuHistoryRepositoryPort.save(any(DayMenuHistory.class)))
+        .thenReturn(DayMenuHistory.builder().id(1L).build());
     when(dayMenuRepositoryPort.save(any(DayMenu.class))).thenReturn(saved);
 
     var result = useCase.update(2L, "admin");
@@ -99,7 +138,14 @@ class UpdateDayMenuUseCaseImplTest {
 
   @Test
   void shouldThrowInvalidDayMenuProductWhenHasOptionsFalse() {
-    var product = Product.builder().id(3L).name("Sin Opciones").basePrice(10.0).hasOptions(false).active(true).build();
+    var product =
+        Product.builder()
+            .id(3L)
+            .name("Sin Opciones")
+            .basePrice(10.0)
+            .hasOptions(false)
+            .active(true)
+            .build();
     when(productRepositoryPort.findById(3L)).thenReturn(Optional.of(product));
 
     assertThrows(InvalidDayMenuProductException.class, () -> useCase.update(3L, "admin"));
@@ -108,12 +154,28 @@ class UpdateDayMenuUseCaseImplTest {
 
   @Test
   void shouldNotPersistWhenHistorySaveFails() {
-    var product = Product.builder().id(2L).name("Nuevo").basePrice(18.0).hasOptions(true).active(true).build();
-    var existing = DayMenu.builder().id(1L).productId(1L).productName("Anterior").productBasePrice(12.0).validFrom(LocalDateTime.now().minusDays(1)).createdBy("chef").build();
+    var product =
+        Product.builder()
+            .id(2L)
+            .name("Nuevo")
+            .basePrice(18.0)
+            .hasOptions(true)
+            .active(true)
+            .build();
+    var existing =
+        DayMenu.builder()
+            .id(1L)
+            .productId(1L)
+            .productName("Anterior")
+            .productBasePrice(12.0)
+            .validFrom(LocalDateTime.now().minusDays(1))
+            .createdBy("chef")
+            .build();
 
     when(productRepositoryPort.findById(2L)).thenReturn(Optional.of(product));
     when(dayMenuRepositoryPort.findActive()).thenReturn(Optional.of(existing));
-    when(dayMenuHistoryRepositoryPort.save(any(DayMenuHistory.class))).thenThrow(new RuntimeException("DB error"));
+    when(dayMenuHistoryRepositoryPort.save(any(DayMenuHistory.class)))
+        .thenThrow(new RuntimeException("DB error"));
 
     assertThrows(RuntimeException.class, () -> useCase.update(2L, "admin"));
     verify(dayMenuRepositoryPort, never()).deleteActive();
