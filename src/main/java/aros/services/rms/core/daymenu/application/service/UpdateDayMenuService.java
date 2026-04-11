@@ -2,7 +2,6 @@
 package aros.services.rms.core.daymenu.application.service;
 
 import aros.services.rms.core.common.logger.Logger;
-import aros.services.rms.core.daymenu.application.exception.InvalidDayMenuProductException;
 import aros.services.rms.core.daymenu.domain.DayMenu;
 import aros.services.rms.core.daymenu.domain.DayMenuHistory;
 import aros.services.rms.core.daymenu.port.input.UpdateDayMenuUseCase;
@@ -43,10 +42,6 @@ public class UpdateDayMenuService implements UpdateDayMenuUseCase {
             .findById(productId)
             .filter(Product::isActive)
             .orElseThrow(() -> new ProductNotFoundException(productId));
-
-    if (!product.isHasOptions()) {
-      throw new InvalidDayMenuProductException(productId);
-    }
 
     LocalDateTime now = LocalDateTime.now();
 
