@@ -10,7 +10,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -29,8 +28,8 @@ public class JwtServiceImpl implements JwtService {
   private final String issuer;
 
   public JwtServiceImpl(
-      @Nullable JwtEncoder jwtEncoder,
-      @Nullable JwtDecoder jwtDecoder,
+      JwtEncoder jwtEncoder,
+      JwtDecoder jwtDecoder,
       @Value("${app.jwt.issuer:rms-api}") String issuer) {
     this.jwtEncoder = jwtEncoder;
     this.jwtDecoder = jwtDecoder;

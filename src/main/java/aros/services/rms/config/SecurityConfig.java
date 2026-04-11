@@ -41,9 +41,10 @@ public class SecurityConfig {
   @Value("${app.env:development}")
   private String appEnv;
 
-  public SecurityConfig(JwtConfigValidator jwtConfigValidator, CorsConfigurationSource cors) {
+  public SecurityConfig(
+      JwtConfigValidator jwtConfigValidator, CorsConfigurationSource corsConfigurationSource) {
     this.jwtConfigValidator = jwtConfigValidator;
-    this.corsConfigurationSource = cors;
+    this.corsConfigurationSource = corsConfigurationSource;
   }
 
   @Bean
@@ -99,6 +100,9 @@ public class SecurityConfig {
                           "/api/auth/forgot-password",
                           "/api/auth/resend-password",
                           "/api/auth/reset-password",
+                          "/swagger-ui/**",
+                          "/swagger-ui.html",
+                          "/v3/api-docs/**",
                           "/actuator/health/**",
                           "/actuator/health")
                       .permitAll()

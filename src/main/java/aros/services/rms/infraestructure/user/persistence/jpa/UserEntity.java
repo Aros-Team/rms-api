@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.user.persistence.jpa;
 import aros.services.rms.core.user.domain.UserRole;
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -34,7 +35,7 @@ public class UserEntity {
 
   private UserRole role;
 
-  @ManyToMany
+  @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
       name = "user_assigned_areas",
       joinColumns = @JoinColumn(name = "user_id"),

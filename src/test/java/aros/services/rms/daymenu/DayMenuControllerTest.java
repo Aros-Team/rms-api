@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -19,7 +20,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -85,7 +86,8 @@ class DayMenuControllerTest {
         .perform(
             put("/api/v1/day-menu")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"productId\": 5}"))
+                .content("{\"productId\": 5}")
+                .with(csrf()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.productId").value(5L));
   }
@@ -97,7 +99,8 @@ class DayMenuControllerTest {
         .perform(
             put("/api/v1/day-menu")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"productId\": null}"))
+                .content("{\"productId\": null}")
+                .with(csrf()))
         .andExpect(status().isBadRequest());
   }
 

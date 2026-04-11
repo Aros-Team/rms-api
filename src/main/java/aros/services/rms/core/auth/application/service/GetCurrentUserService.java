@@ -1,43 +1,38 @@
 package aros.services.rms.core.auth.application.service;
 
-import aros.services.rms.core.area.domain.Area;
-import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.auth.application.dto.UserFullInfo;
 import aros.services.rms.core.auth.application.exception.UserNotFoundException;
 import aros.services.rms.core.auth.port.input.GetCurrentAuthUserInfoUseCase;
-import aros.services.rms.core.user.domain.User;
+import aros.services.rms.core.auth.port.output.CurrentUserPort;
 import aros.services.rms.core.user.domain.UserEmail;
-import aros.services.rms.core.user.port.output.UserRepositoryPort;
-import java.util.List;
+import aros.services.rms.core.user.domain.UserWithAreas;
 
 public class GetCurrentUserService implements GetCurrentAuthUserInfoUseCase {
-  private final UserRepositoryPort userPort;
-  private final AreaRepositoryPort areaPort;
+  private final CurrentUserPort currentUserPort;
 
-  public GetCurrentUserService(UserRepositoryPort userPort, AreaRepositoryPort areaPort) {
-    this.userPort = userPort;
-    this.areaPort = areaPort;
+  public GetCurrentUserService(CurrentUserPort currentUserPort) {
+    this.currentUserPort = currentUserPort;
   }
 
   @Override
   public UserFullInfo getInfo(UserEmail email) throws UserNotFoundException {
-    User user =
-        userPort
-            .findByEmail(email.value())
-            .orElseThrow(() -> new UserNotFoundException("User not found"));
+    UserWithAreas userWithAreas =
+        this.currentUserPort
+            .fetchCurrentUserInfo()
+            .orElseThrow(() -> new UserNotFoundException("Not found"));
 
-    List<Area> areas =
-        areaPort.findByIdIn(user.getAssignedAreas().stream().map(a -> a.value()).toList());
+    UserFullInfo userFullInfo =
+        new UserFullInfo(
+            userWithAreas.id(),
+            userWithAreas.document(),
+            userWithAreas.name(),
+            userWithAreas.email(),
+            userWithAreas.password(),
+            userWithAreas.address(),
+            userWithAreas.phone(),
+            userWithAreas.role(),
+            userWithAreas.assignedAreas());
 
-    return new UserFullInfo(
-        user.getId(),
-        user.getDocument(),
-        user.getName(),
-        user.getEmail(),
-        user.getPassword(),
-        user.getAddress(),
-        user.getPhone(),
-        user.getRole(),
-        areas);
+    return userFullInfo;
   }
 }

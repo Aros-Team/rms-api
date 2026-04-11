@@ -3,28 +3,48 @@ package aros.services.rms.infraestructure.user.persistence.jpa;
 
 import aros.services.rms.core.area.domain.AreaId;
 import aros.services.rms.core.user.domain.User;
+import aros.services.rms.core.user.domain.UserWithAreas;
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
+import aros.services.rms.infraestructure.area.persistence.jpa.AreaMapper;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface UserPersistenceMapper {
+@Mapper(
+    componentModel = MappingConstants.ComponentModel.SPRING,
+    uses = {AreaMapper.class})
+public abstract class UserPersistenceMapper {
+
+  @Autowired protected AreaMapper areaMapper;
 
   @Mapping(source = "id", target = "id.value")
   @Mapping(source = "email", target = "email.value")
   @Mapping(source = "assignedAreas", target = "assignedAreas", qualifiedByName = "entityToAreaId")
-  User toDomain(UserEntity entity);
+  public abstract User toDomain(UserEntity entity);
+
+  @Mapping(source = "id", target = "id.value")
+  @Mapping(source = "email", target = "email.value")
+  @Mapping(source = "assignedAreas", target = "assignedAreas", qualifiedByName = "entityToArea")
+  public abstract UserWithAreas toUserWithAreas(UserEntity entity);
 
   @Mapping(source = "id.value", target = "id")
   @Mapping(source = "email.value", target = "email")
   @Mapping(source = "assignedAreas", target = "assignedAreas", qualifiedByName = "areaIdToEntity")
-  UserEntity toEntity(User domain);
+  public abstract UserEntity toEntity(User domain);
+
+  @Named("entityToArea")
+  List<aros.services.rms.core.area.domain.Area> entityToArea(List<Area> entities) {
+    if (entities == null) {
+      return null;
+    }
+    return entities.stream().map(e -> this.areaMapper.toDomain(e)).toList();
+  }
 
   @Named("entityToAreaId")
-  default List<AreaId> entityToAreaId(List<Area> entities) {
+  List<AreaId> entityToAreaId(List<Area> entities) {
     if (entities == null) {
       return null;
     }
@@ -32,7 +52,7 @@ public interface UserPersistenceMapper {
   }
 
   @Named("areaIdToEntity")
-  default List<Area> areaIdToEntity(List<AreaId> areaIds) {
+  List<Area> areaIdToEntity(List<AreaId> areaIds) {
     if (areaIds == null) {
       return null;
     }
