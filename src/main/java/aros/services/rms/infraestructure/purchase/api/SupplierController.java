@@ -1,7 +1,7 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.purchase.api;
 
-import aros.services.rms.core.purchase.application.usecases.CreateSupplierUseCaseImpl;
+import aros.services.rms.core.purchase.application.service.CreateSupplierService;
 import aros.services.rms.core.purchase.domain.Supplier;
 import aros.services.rms.infraestructure.purchase.api.dto.SupplierRequest;
 import aros.services.rms.infraestructure.purchase.api.dto.SupplierResponse;
@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Suppliers", description = "Supplier and distributor management")
 public class SupplierController {
 
-  private final CreateSupplierUseCaseImpl supplierUseCase;
+  private final CreateSupplierService supplierUseCase;
 
   @Operation(
       summary = "Create supplier",

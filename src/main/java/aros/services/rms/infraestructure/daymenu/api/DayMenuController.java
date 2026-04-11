@@ -88,8 +88,7 @@ public class DayMenuController {
       })
   @GetMapping("/history")
   public ResponseEntity<Page<DayMenuHistoryResponse>> getHistory(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "10") int size) {
+      @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
     if (page < 0) {
       throw new IllegalArgumentException("El parámetro page debe ser mayor o igual a 0");
     }
@@ -97,7 +96,8 @@ public class DayMenuController {
       throw new IllegalArgumentException("El parámetro size debe estar entre 1 y 100");
     }
     var pageable = PageRequest.of(page, size);
-    var result = getDayMenuHistoryUseCase.getHistory(pageable).map(DayMenuHistoryResponse::fromDomain);
+    var result =
+        getDayMenuHistoryUseCase.getHistory(pageable).map(DayMenuHistoryResponse::fromDomain);
     return ResponseEntity.ok(result);
   }
 }

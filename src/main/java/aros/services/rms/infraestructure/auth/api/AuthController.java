@@ -225,8 +225,7 @@ public class AuthController {
 
   @Operation(
       summary = "Reset password",
-      description =
-          "Resets user password using the recovery token sent by email.",
+      description = "Resets user password using the recovery token sent by email.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Password updated successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid or expired token"),

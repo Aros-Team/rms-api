@@ -28,8 +28,7 @@ import org.springframework.retry.annotation.Retryable;
  */
 public class ProductOptionService implements ProductOptionUseCase {
 
-  private static final org.slf4j.Logger log =
-      LoggerFactory.getLogger(ProductOptionService.class);
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(ProductOptionService.class);
   private final ProductOptionRepositoryPort productOptionRepositoryPort;
   private final OptionCategoryRepositoryPort optionCategoryRepositoryPort;
   private final OptionRecipeRepositoryPort optionRecipeRepositoryPort;

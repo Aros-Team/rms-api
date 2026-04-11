@@ -40,7 +40,7 @@ public class RefreshTokenService implements RefreshTokensUseCase {
 
     System.out.println("** Hass ==> " + tokenHash);
     System.out.println("** Rovoked ==> " + refreshToken.isRevoked());
-      
+
     if (refreshToken.isExpired() || refreshToken.isRevoked()) {
       throw new InvalidRefreshTokenException("The token was expired or was already used");
     }
@@ -56,7 +56,12 @@ public class RefreshTokenService implements RefreshTokensUseCase {
 
     RefreshToken refreshTokenDomain =
         new RefreshToken(
-            null, user.getId(), refreshHash, Instant.now().plus(7, ChronoUnit.DAYS), false, Instant.now());
+            null,
+            user.getId(),
+            refreshHash,
+            Instant.now().plus(7, ChronoUnit.DAYS),
+            false,
+            Instant.now());
 
     refreshTokenPort.save(refreshTokenDomain);
 

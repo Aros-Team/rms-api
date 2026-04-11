@@ -19,7 +19,12 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
-  
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.annotationProcessorPath = configurations.annotationProcessor
+    options.incremental = false
+    // options.compilerArgs += ['--enable-preview']
 }
 
 repositories {
@@ -27,26 +32,36 @@ repositories {
 }
 
 dependencies {
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+
 	implementation "org.springframework.boot:spring-boot-starter-flyway"
 	implementation 'org.flywaydb:flyway-mysql'
 
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-security-test'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
+	// testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
+    // testImplementation 'org.springframework.test:spring-test'
 	implementation 'org.springframework.retry:spring-retry:2.0.10'
 	implementation 'org.springframework:spring-aspects'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
-	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	implementation 'com.google.cloud.sql:mysql-socket-factory-connector-j-8:1.28.2'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation "org.mockito:mockito-core:5.+"
-	testImplementation "org.mockito:mockito-junit-jupiter:5.+"
+	
+	// testImplementation "org.mockito:mockito-core:5.+"
+	// testImplementation "org.mockito:mockito-junit-jupiter:5.+"
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 	implementation "org.springframework.boot:spring-boot-starter-oauth2-resource-server"
@@ -54,10 +69,7 @@ dependencies {
 	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 
-}
-
-tasks.named('test') {
-	useJUnitPlatform()
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 }
 
 // to load .env files
@@ -71,6 +83,14 @@ if (envFile.exists()) {
             def value = parts[1].trim()
             envVars[key] = value
         }
+    }
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+
+    envVars.each { key, value ->
+        environment key, value
     }
 }
 

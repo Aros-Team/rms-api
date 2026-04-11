@@ -14,12 +14,15 @@ import java.util.stream.Collectors;
 public record PurchaseOrderResponse(
     @Schema(description = "Purchase order ID", example = "5") Long id,
     @Schema(description = "Supplier ID", example = "1") Long supplierId,
-    @Schema(description = "ID of the user who registered the purchase", example = "2") Long registeredById,
+    @Schema(description = "ID of the user who registered the purchase", example = "2")
+        Long registeredById,
     @Schema(description = "Date and time the purchase occurred") LocalDateTime purchasedAt,
-    @Schema(description = "Total amount paid to the supplier", example = "120000.00") BigDecimal totalAmount,
+    @Schema(description = "Total amount paid to the supplier", example = "120000.00")
+        BigDecimal totalAmount,
     @Schema(description = "Optional notes") String notes,
     @Schema(description = "Timestamp when the record was created") LocalDateTime createdAt,
-    @Schema(description = "Line items of the purchase order") List<PurchaseOrderItemResponse> items) {
+    @Schema(description = "Line items of the purchase order")
+        List<PurchaseOrderItemResponse> items) {
 
   /** Converts a PurchaseOrder domain object to a response DTO. */
   public static PurchaseOrderResponse fromDomain(PurchaseOrder order) {

@@ -26,9 +26,7 @@ public class DayMenuHistoryPersistenceAdapter implements DayMenuHistoryRepositor
         productRepository
             .findById(history.getProductId())
             .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "Product not found: " + history.getProductId()));
+                () -> new IllegalArgumentException("Product not found: " + history.getProductId()));
     var entity = dayMenuMapper.toHistoryEntity(history, product);
     return dayMenuMapper.toHistoryDomain(dayMenuHistoryJpaRepository.save(entity));
   }

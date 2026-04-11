@@ -18,7 +18,6 @@ import aros.services.rms.core.purchase.domain.PurchaseOrderItem;
 import aros.services.rms.core.purchase.port.input.RegisterPurchaseOrderUseCase;
 import aros.services.rms.core.purchase.port.output.PurchaseOrderRepositoryPort;
 import aros.services.rms.core.purchase.port.output.SupplierRepositoryPort;
-
 import java.math.BigDecimal;
 
 /**
@@ -29,6 +28,7 @@ import java.math.BigDecimal;
  * this use case and ensures all DB operations run in a single transaction.
  *
  * <p>Responsibilities:
+ *
  * <ol>
  *   <li>Validate supplier exists and is active.
  *   <li>Validate each item's supply variant exists.

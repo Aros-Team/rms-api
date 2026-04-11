@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.user.persistence.jpa;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserId;
 import aros.services.rms.core.user.domain.UserRole;
+import aros.services.rms.core.user.domain.UserWithAreas;
 import aros.services.rms.core.user.port.output.AdminRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import jakarta.transaction.Transactional;
@@ -24,6 +25,11 @@ public class UserRepositoryAdapter implements UserRepositoryPort, AdminRepositor
   @Override
   public Optional<User> findByEmail(String email) {
     return this.internal.findByEmail(email).map((u) -> userMapper.toDomain(u));
+  }
+
+  @Override
+  public Optional<UserWithAreas> findByEmailWithAreas(String email) {
+    return this.internal.findByEmailWithAreas(email).map(u -> userMapper.toUserWithAreas(u));
   }
 
   @Override

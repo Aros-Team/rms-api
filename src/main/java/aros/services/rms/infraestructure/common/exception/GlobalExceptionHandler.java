@@ -2,8 +2,6 @@
 package aros.services.rms.infraestructure.common.exception;
 
 import aros.services.rms.core.area.application.exception.AreaAlreadyExistsException;
-import aros.services.rms.core.daymenu.application.exception.InvalidDayMenuProductException;
-import aros.services.rms.core.daymenu.application.exception.UnauthenticatedOperationException;
 import aros.services.rms.core.area.application.exception.AreaNotFoundException;
 import aros.services.rms.core.auth.application.exception.InvalidCredentialsException;
 import aros.services.rms.core.auth.application.exception.PasswordResetTokenExpiredException;
@@ -11,6 +9,8 @@ import aros.services.rms.core.auth.application.exception.PasswordResetTokenInval
 import aros.services.rms.core.auth.application.exception.UserNotFoundException;
 import aros.services.rms.core.category.application.exception.CategoryNotFoundException;
 import aros.services.rms.core.category.application.exception.OptionCategoryNotFoundException;
+import aros.services.rms.core.daymenu.application.exception.InvalidDayMenuProductException;
+import aros.services.rms.core.daymenu.application.exception.UnauthenticatedOperationException;
 import aros.services.rms.core.email.application.exception.EmailServiceException;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.application.exception.StorageLocationNotFoundException;
