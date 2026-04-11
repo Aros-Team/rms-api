@@ -10,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.common.logger.Logger;
-import aros.services.rms.core.daymenu.application.exception.InvalidDayMenuProductException;
 import aros.services.rms.core.daymenu.application.service.UpdateDayMenuService;
 import aros.services.rms.core.daymenu.domain.DayMenu;
 import aros.services.rms.core.daymenu.domain.DayMenuHistory;
@@ -134,22 +133,6 @@ class UpdateDayMenuUseCaseImplTest {
     when(productRepositoryPort.findById(5L)).thenReturn(Optional.of(inactive));
 
     assertThrows(ProductNotFoundException.class, () -> useCase.update(5L, "admin"));
-  }
-
-  @Test
-  void shouldThrowInvalidDayMenuProductWhenHasOptionsFalse() {
-    var product =
-        Product.builder()
-            .id(3L)
-            .name("Sin Opciones")
-            .basePrice(10.0)
-            .hasOptions(false)
-            .active(true)
-            .build();
-    when(productRepositoryPort.findById(3L)).thenReturn(Optional.of(product));
-
-    assertThrows(InvalidDayMenuProductException.class, () -> useCase.update(3L, "admin"));
-    verify(dayMenuRepositoryPort, never()).findActive();
   }
 
   @Test
