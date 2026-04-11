@@ -20,6 +20,7 @@ import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.product.application.service.ProductUseService;
 import aros.services.rms.core.product.domain.Product;
+import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +40,7 @@ class ProductUseCaseImplTest {
   @Mock private ProductRecipeRepositoryPort productRecipeRepositoryPort;
   @Mock private SupplyVariantRepositoryPort supplyVariantRepositoryPort;
   @Mock private InventoryStockUseCase inventoryStockUseCase;
+  @Mock private ProductOptionRepositoryPort productOptionRepositoryPort;
 
   private ProductUseService productUseCase;
 
@@ -52,6 +54,7 @@ class ProductUseCaseImplTest {
             productRecipeRepositoryPort,
             supplyVariantRepositoryPort,
             inventoryStockUseCase,
+            productOptionRepositoryPort,
             logger);
   }
 

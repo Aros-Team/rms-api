@@ -79,12 +79,12 @@ class TakeOrderUseCaseImplTest {
             .hasOptions(true)
             .category(Category.builder().id(1L).name("Food").build())
             .build();
-    ProductOption option =
-        ProductOption.builder().id(1L).name("Extra Cheese").product(product).build();
+    ProductOption option = ProductOption.builder().id(1L).name("Extra Cheese").build();
 
     when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
     when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
     when(productOptionRepositoryPort.findAllById(List.of(1L))).thenReturn(List.of(option));
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 1L)).thenReturn(true);
     when(orderRepositoryPort.save(any(Order.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -284,8 +284,7 @@ class TakeOrderUseCaseImplTest {
             .build();
 
     // Opción válida para beverage, no para burger
-    ProductOption invalidOption =
-        ProductOption.builder().id(99L).name("Size Large").product(beverage).build();
+    ProductOption invalidOption = ProductOption.builder().id(99L).name("Size Large").build();
 
     when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
     when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(burger));
@@ -324,9 +323,8 @@ class TakeOrderUseCaseImplTest {
             .category(Category.builder().id(1L).name("Food").build())
             .build();
 
-    ProductOption option1 =
-        ProductOption.builder().id(1L).name("Extra Cheese").product(product).build();
-    ProductOption option2 = ProductOption.builder().id(2L).name("Bacon").product(product).build();
+    ProductOption option1 = ProductOption.builder().id(1L).name("Extra Cheese").build();
+    ProductOption option2 = ProductOption.builder().id(2L).name("Bacon").build();
 
     when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
     when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
@@ -334,6 +332,8 @@ class TakeOrderUseCaseImplTest {
         .thenReturn(List.of(option1, option2));
     when(orderRepositoryPort.save(any(Order.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 1L)).thenReturn(true);
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 2L)).thenReturn(true);
 
     TakeOrderCommand command =
         TakeOrderCommand.builder()
