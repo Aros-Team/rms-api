@@ -9,6 +9,7 @@ import aros.services.rms.core.auth.port.input.PasswordResetUseCase;
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
 import aros.services.rms.core.auth.port.output.PasswordResetTokenRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.email.port.input.PasswordResetEmailUseCase;
 import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.user.domain.User;
@@ -27,6 +28,7 @@ public class PasswordResetService implements PasswordResetUseCase {
   private final PasswordResetEmailUseCase emailUseCase;
   private final HashServicePort hashServicePort;
   private final Logger logger;
+  private final BusinessMetricsPort metricsPort;
 
   public PasswordResetService(
       UserRepositoryPort userRepositoryPort,
@@ -34,13 +36,15 @@ public class PasswordResetService implements PasswordResetUseCase {
       PasswordEncoderPort passwordEncoderPort,
       PasswordResetEmailUseCase emailUseCase,
       HashServicePort hashServicePort,
-      Logger logger) {
+      Logger logger,
+      BusinessMetricsPort metricsPort) {
     this.userRepositoryPort = userRepositoryPort;
     this.tokenRepositoryPort = tokenRepositoryPort;
     this.passwordEncoderPort = passwordEncoderPort;
     this.emailUseCase = emailUseCase;
     this.hashServicePort = hashServicePort;
     this.logger = logger;
+    this.metricsPort = metricsPort;
   }
 
   @Override
@@ -71,6 +75,7 @@ public class PasswordResetService implements PasswordResetUseCase {
     logger.info("Password reset token generated: userId={}, expiresAt={}", user.getId(), expiresAt);
 
     emailUseCase.sendPasswordResetEmail(user.getEmail(), rawToken);
+    metricsPort.recordPasswordReset("requested");
   }
 
   @Override
@@ -105,5 +110,6 @@ public class PasswordResetService implements PasswordResetUseCase {
     tokenRepositoryPort.save(usedToken);
 
     logger.info("Password changed successfully: userId={}", user.getId());
+    metricsPort.recordPasswordReset("completed");
   }
 }

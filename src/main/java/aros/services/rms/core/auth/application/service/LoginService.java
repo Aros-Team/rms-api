@@ -8,6 +8,7 @@ import aros.services.rms.core.auth.port.input.LoginUseCase;
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
 import aros.services.rms.core.auth.port.output.RefreshTokenRepositoryPort;
 import aros.services.rms.core.auth.port.output.TokenPort;
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.device.domain.Device;
 import aros.services.rms.core.device.port.output.DeviceRepositoryPort;
 import aros.services.rms.core.email.port.input.TwoFactorAuthEmailUseCase;
@@ -31,6 +32,7 @@ public class LoginService implements LoginUseCase {
   private final HashServicePort hashServicePort;
   private final RefreshTokenRepositoryPort refreshTokenPort;
   private final TokenPort tokenPort;
+  private final BusinessMetricsPort metricsPort;
 
   public LoginService(
       PasswordEncoderPort passwordPort,
@@ -41,7 +43,8 @@ public class LoginService implements LoginUseCase {
       TwoFactorAuthEmailUseCase emailPort,
       HashServicePort hashServicePort,
       RefreshTokenRepositoryPort refreshTokenPort,
-      TokenPort tokenPort) {
+      TokenPort tokenPort,
+      BusinessMetricsPort metricsPort) {
     this.passwordPort = passwordPort;
     this.userPort = userPort;
     this.devicePort = devicePort;
@@ -51,16 +54,24 @@ public class LoginService implements LoginUseCase {
     this.hashServicePort = hashServicePort;
     this.refreshTokenPort = refreshTokenPort;
     this.tokenPort = tokenPort;
+    this.metricsPort = metricsPort;
   }
 
   @Override
   public AuthResult authenticate(Credentials credentials) throws InvalidCredentialsException {
-    User user =
-        this.userPort
-            .findByEmail(credentials.username().value())
-            .orElseThrow(InvalidCredentialsException::new);
+    User user;
+    try {
+      user =
+          this.userPort
+              .findByEmail(credentials.username().value())
+              .orElseThrow(InvalidCredentialsException::new);
+    } catch (InvalidCredentialsException e) {
+      metricsPort.recordLoginAttempt("failure");
+      throw e;
+    }
 
     if (!passwordPort.validate(credentials.password(), user.getPassword())) {
+      metricsPort.recordLoginAttempt("failure");
       throw new InvalidCredentialsException();
     }
 
@@ -75,6 +86,7 @@ public class LoginService implements LoginUseCase {
   }
 
   private AuthResult.Success authenticateFull(User user) {
+    metricsPort.recordLoginAttempt("success");
     AuthResult.Success result = createSuccess(user);
     String refreshHash = hashServicePort.hash(result.refreshToken());
     Instant expiresAt = Instant.now().plus(7, ChronoUnit.DAYS);
@@ -88,6 +100,7 @@ public class LoginService implements LoginUseCase {
   }
 
   private AuthResult.RequiresTFA authenticateRequireTFA(User user) {
+    metricsPort.recordLoginAttempt("tfa_required");
     String code = tfaCodeGeneratorPort.generateCode(6);
     TwoFactorCode TFACode = createVerificationCode(user, code);
 

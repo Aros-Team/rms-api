@@ -56,4 +56,13 @@ management:
     web:
       server:
         enabled: true
+    tags:
+      application: rms
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 2000ms, 3000ms
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
 
