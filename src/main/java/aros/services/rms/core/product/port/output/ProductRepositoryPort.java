@@ -13,5 +13,7 @@ public interface ProductRepositoryPort {
 
   List<Product> findAll();
 
+  List<Product> findByCategoryIds(List<Long> categoryIds);
+
   boolean existsById(Long id);
 }

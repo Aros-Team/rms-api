@@ -57,4 +57,12 @@ public interface ProductUseCase {
    * @return list of available products
    */
   List<Product> findAllAvailable();
+
+  /**
+   * Retrieves products filtered by category ids.
+   *
+   * @param categoryIds list of category ids to filter by
+   * @return list of products in the specified categories
+   */
+  List<Product> findByCategoryIds(List<Long> categoryIds);
 }

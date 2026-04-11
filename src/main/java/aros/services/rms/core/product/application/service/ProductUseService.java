@@ -258,6 +258,25 @@ public class ProductUseService implements ProductUseCase {
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /** {@inheritDoc} */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public List<Product> findByCategoryIds(List<Long> categoryIds) {
+    if (categoryIds == null || categoryIds.isEmpty()) {
+      return productRepositoryPort.findAll();
+    }
+    return productRepositoryPort.findByCategoryIds(categoryIds);
+  }
+
+  @Recover
+  public List<Product> recoverFindByCategoryIds(DataAccessException e, List<Long> categoryIds) {
+    log.warn("BD no disponible - fallback para findByCategoryIds: {}", e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
   /** Validates that the area exists. */
   private void validateAreaExists(Long areaId) {
     if (areaId == null || !areaRepositoryPort.existsById(areaId)) {

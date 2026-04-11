@@ -42,4 +42,11 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
   public boolean existsById(Long id) {
     return productRepository.existsById(id);
   }
+
+  @Override
+  public List<Product> findByCategoryIds(List<Long> categoryIds) {
+    return productRepository.findByCategoryIdIn(categoryIds).stream()
+        .map(productMapper::toProductDomain)
+        .collect(Collectors.toList());
+  }
 }
