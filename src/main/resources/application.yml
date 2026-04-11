@@ -1,3 +1,7 @@
+server:
+  address: 0.0.0.0
+  port: 8080
+
 app:
   version: 0.2.9
   env: ${APP_ENV}
@@ -32,22 +36,24 @@ spring:
     validate-on-migrate: false
 
 management:
-  server:
-    port: 8081
   endpoints:
     web:
       exposure:
         include: health,prometheus,info
+      base-path: /
+      path-mapping:
+        prometheus: metrics
   endpoint:
-    health:
-      show-details: always
-      probes:
-        enabled: true
+    prometheus:
+      enabled: true
   health:
     db:
       enabled: true
   metrics:
     export:
       prometheus:
+        enabled: true
+    web:
+      server:
         enabled: true
 

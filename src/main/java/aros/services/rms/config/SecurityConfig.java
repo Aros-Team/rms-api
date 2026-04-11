@@ -99,9 +99,9 @@ public class SecurityConfig {
                           "/api/auth/forgot-password",
                           "/api/auth/resend-password",
                           "/api/auth/reset-password",
-                          "/actuator/health/**",
-                          "/actuator/health",
-                          "/actuator/prometheus/**")
+                          "/health/**",
+                          "/health",
+                          "/metrics/**")
                       .permitAll()
                       .anyRequest()
                       .authenticated())
@@ -117,9 +117,9 @@ public class SecurityConfig {
                       "/swagger-ui/**",
                       "/swagger-ui.html",
                       "/v3/api-docs/**",
-                      "/actuator/health/**",
-                      "/actuator/health",
-                      "/actuator/prometheus/**")
+                      "/health/**",
+                      "/health",
+                      "/metrics/**")
                   .permitAll()
                   .anyRequest()
                   .permitAll());
