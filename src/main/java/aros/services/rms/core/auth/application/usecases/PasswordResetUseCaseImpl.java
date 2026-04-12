@@ -4,6 +4,7 @@ package aros.services.rms.core.auth.application.usecases;
 import aros.services.rms.core.auth.application.exception.PasswordResetTokenExpiredException;
 import aros.services.rms.core.auth.application.exception.PasswordResetTokenInvalidException;
 import aros.services.rms.core.auth.application.exception.UserNotFoundException;
+import aros.services.rms.core.user.application.exception.InvalidPasswordException;
 import aros.services.rms.core.auth.domain.PasswordResetToken;
 import aros.services.rms.core.auth.port.input.PasswordResetUseCase;
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
@@ -105,7 +106,7 @@ public class PasswordResetUseCaseImpl implements PasswordResetUseCase {
                         "El token de recuperación no es válido"));
 
     if (!PASSWORD_PATTERN.matcher(newPassword).matches()) {
-      throw new PasswordResetTokenInvalidException(
+      throw new InvalidPasswordException(
           "La nueva contraseña debe tener mínimo 8 caracteres, incluir al menos una mayúscula, una minúscula, un número y un símbolo (@$!%*?&)");
     }
 
