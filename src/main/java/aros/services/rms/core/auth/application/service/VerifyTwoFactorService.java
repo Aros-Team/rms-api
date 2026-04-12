@@ -1,6 +1,6 @@
 package aros.services.rms.core.auth.application.service;
 
-import aros.services.rms.core.auth.application.dto.AuthFinalResult;
+import aros.services.rms.core.auth.application.dto.AuthResult;
 import aros.services.rms.core.auth.application.dto.TwoFactorCredentials;
 import aros.services.rms.core.auth.application.exception.InvalidCredentialsException;
 import aros.services.rms.core.auth.domain.RefreshToken;
@@ -42,8 +42,7 @@ public class VerifyTwoFactorService implements VerifyTwoFactorUseCase {
   }
 
   @Override
-  public AuthFinalResult verify(TwoFactorCredentials credentials)
-      throws InvalidCredentialsException {
+  public AuthResult verify(TwoFactorCredentials credentials) throws InvalidCredentialsException {
     User user =
         userPort
             .findByEmail(credentials.username().value())
@@ -72,7 +71,7 @@ public class VerifyTwoFactorService implements VerifyTwoFactorUseCase {
     return generateAuthResult(credentials.username().value(), user);
   }
 
-  private AuthFinalResult generateAuthResult(String username, User user) {
+  private AuthResult generateAuthResult(String username, User user) {
     String accessToken = tokenPort.generateAccessToken(user);
     String refreshToken = tokenPort.generateRefreshToken(user);
 
@@ -85,6 +84,6 @@ public class VerifyTwoFactorService implements VerifyTwoFactorUseCase {
 
     refreshTokenPort.save(refreshTokenDomain);
 
-    return new AuthFinalResult(username, accessToken, refreshToken);
+    return new AuthResult.Success(username, accessToken, refreshToken);
   }
 }

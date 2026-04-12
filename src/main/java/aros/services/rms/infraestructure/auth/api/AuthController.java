@@ -1,7 +1,6 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.auth.api;
 
-import aros.services.rms.core.auth.application.dto.AuthFinalResult;
 import aros.services.rms.core.auth.application.dto.AuthResult;
 import aros.services.rms.core.auth.application.dto.AuthResultType;
 import aros.services.rms.core.auth.application.dto.Credentials;
@@ -111,17 +110,19 @@ public class AuthController {
         new TwoFactorCredentials(
             new UserEmail(jwt.getSubject()), request.code(), request.deviceHash());
 
-    AuthFinalResult result = verifyTwoFactorUseCase.verify(credentials);
+    AuthResult result = verifyTwoFactorUseCase.verify(credentials);
 
-    AuthResponse response =
-        new AuthResponse(
-            AuthResultType.SUCCESS.name(),
-            result.username(),
-            result.acessToken(),
-            result.refreshToken());
+    AuthResponse response = null;
+    if (result instanceof AuthResult.Success sr) {
+      response =
+          new AuthResponse(
+              AuthResultType.SUCCESS.name(), sr.username(), sr.acessToken(), sr.refreshToken());
+    }
 
-    log.info("2FA verified successfully: email={}", jwt.getSubject());
-    return ResponseEntity.ok(response);
+    return switch (response) {
+      case null -> ResponseEntity.internalServerError().build();
+      default -> ResponseEntity.ok(response);
+    };
   }
 
   @Operation(
@@ -142,16 +143,18 @@ public class AuthController {
       token = token.substring(7);
     }
 
-    AuthFinalResult result = refreshTokensUseCase.refresh(token);
-    AuthResponse response =
-        new AuthResponse(
-            AuthResultType.SUCCESS.name(),
-            result.username(),
-            result.acessToken(),
-            result.refreshToken());
+    AuthResult result = refreshTokensUseCase.refresh(token);
+    AuthResponse response = null;
+    if (result instanceof AuthResult.Success sr) {
+      response =
+          new AuthResponse(
+              AuthResultType.SUCCESS.name(), sr.username(), sr.acessToken(), sr.refreshToken());
+    }
 
-    log.info("Token refreshed successfully: email={}", result.username());
-    return ResponseEntity.ok(response);
+    return switch (response) {
+      case null -> ResponseEntity.internalServerError().build();
+      default -> ResponseEntity.ok(response);
+    };
   }
 
   @Operation(
