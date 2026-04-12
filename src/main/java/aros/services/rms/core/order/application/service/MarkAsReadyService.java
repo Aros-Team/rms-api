@@ -1,6 +1,7 @@
 /* (C) 2026 */
 package aros.services.rms.core.order.application.service;
 
+import aros.services.rms.core.common.notification.port.output.NotificationPort;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.input.MarkAsReadyUseCase;
@@ -18,11 +19,16 @@ import org.springframework.retry.annotation.Retryable;
  */
 public class MarkAsReadyService implements MarkAsReadyUseCase {
 
+  private static final String READY_DESTINATION = "/topic/orders/ready";
   private static final org.slf4j.Logger log = LoggerFactory.getLogger(MarkAsReadyService.class);
-  private final OrderRepositoryPort orderRepositoryPort;
 
-  public MarkAsReadyService(OrderRepositoryPort orderRepositoryPort) {
+  private final OrderRepositoryPort orderRepositoryPort;
+  private final NotificationPort notificationPort;
+
+  public MarkAsReadyService(
+      OrderRepositoryPort orderRepositoryPort, NotificationPort notificationPort) {
     this.orderRepositoryPort = orderRepositoryPort;
+    this.notificationPort = notificationPort;
   }
 
   /** {@inheritDoc} Cambia el estado de PREPARING a READY. */
@@ -42,7 +48,13 @@ public class MarkAsReadyService implements MarkAsReadyUseCase {
     }
 
     order.setStatus(OrderStatus.READY);
-    return orderRepositoryPort.save(order);
+    Order savedOrder = orderRepositoryPort.save(order);
+
+    // Publish order ready notification
+    notificationPort.notify(READY_DESTINATION, savedOrder);
+    log.info("Order marked as ready: id={}, destination={}", savedOrder.getId(), READY_DESTINATION);
+
+    return savedOrder;
   }
 
   @Recover
