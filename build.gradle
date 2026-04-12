@@ -72,23 +72,20 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 }
 
-// ============================================================
-// Load .env file for bootRun
-// Note: Due to DevTools fork issues, use application-dev.yml with hardcoded values
-// This is loaded via spring.profiles.active in application.yml
-// ============================================================
+// to load .env files
 def envFile = new File(project.projectDir, ".env")
 def envVars = [:]
 if (envFile.exists()) {
     envFile.readLines().each { line ->
         if (line && !line.startsWith('#') && line.contains('=')) {
             def parts = line.split('=', 2)
-            envVars[parts[0].trim()] = parts[1].trim()
+            def key = parts[0].trim()
+            def value = parts[1].trim()
+            envVars[key] = value
         }
     }
 }
 
-<<<<<<< Updated upstream
 tasks.named('test') {
 	useJUnitPlatform()
 
@@ -103,8 +100,6 @@ bootRun {
     }
 }
 
-=======
->>>>>>> Stashed changes
 // formater config
 
 spotless {

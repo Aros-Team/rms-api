@@ -136,6 +136,36 @@ class UpdateDayMenuUseCaseImplTest {
   }
 
   @Test
+  void shouldAllowProductWithoutOptions() {
+    var product =
+        Product.builder()
+            .id(3L)
+            .name("Sin Opciones")
+            .basePrice(10.0)
+            .hasOptions(false)
+            .active(true)
+            .build();
+    var saved =
+        DayMenu.builder()
+            .id(3L)
+            .productId(3L)
+            .productName("Sin Opciones")
+            .productBasePrice(10.0)
+            .validFrom(LocalDateTime.now())
+            .createdBy("admin")
+            .build();
+
+    when(productRepositoryPort.findById(3L)).thenReturn(Optional.of(product));
+    when(dayMenuRepositoryPort.findActive()).thenReturn(Optional.empty());
+    when(dayMenuRepositoryPort.save(any(DayMenu.class))).thenReturn(saved);
+
+    var result = useCase.update(3L, "admin");
+
+    assertNotNull(result);
+    assertEquals(3L, result.getProductId());
+  }
+
+  @Test
   void shouldNotPersistWhenHistorySaveFails() {
     var product =
         Product.builder()
