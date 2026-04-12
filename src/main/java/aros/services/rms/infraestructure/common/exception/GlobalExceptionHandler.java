@@ -174,11 +174,15 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(InvalidCredentialsException.class)
   public ResponseEntity<Map<String, Object>> handleInvalidCredentials(
       InvalidCredentialsException ex) {
+    String message = ex.getMessage();
+    if (message == null || message.isBlank()) {
+      message = "Credenciales inválidas. Verifique su correo electrónico y contraseña";
+    }
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
         .body(
             Map.of(
-                "error", "Invalid credentials",
-                "message", "Usuario o contraseña incorrectos"));
+                "error", "Credenciales inválidas",
+                "message", message));
   }
 
   @ExceptionHandler(UserNotFoundException.class)
@@ -239,6 +243,38 @@ public class GlobalExceptionHandler {
       aros.services.rms.core.user.application.exception.InvalidPasswordException.class)
   public ResponseEntity<ErrorResponse> handleInvalidPassword(
       aros.services.rms.core.user.application.exception.InvalidPasswordException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
+  }
+
+  @ExceptionHandler(
+      aros.services.rms.core.user.application.exception.UserNotFoundByEmailException.class)
+  public ResponseEntity<ErrorResponse> handleUserNotFoundByEmail(
+      aros.services.rms.core.user.application.exception.UserNotFoundByEmailException e) {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        .body(new ErrorResponse(401, e.getMessage()));
+  }
+
+  @ExceptionHandler(
+      aros.services.rms.core.user.application.exception.UserInactiveException.class)
+  public ResponseEntity<ErrorResponse> handleUserInactive(
+      aros.services.rms.core.user.application.exception.UserInactiveException e) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        .body(new ErrorResponse(403, e.getMessage()));
+  }
+
+  @ExceptionHandler(
+      aros.services.rms.core.user.application.exception.UserDeletedException.class)
+  public ResponseEntity<ErrorResponse> handleUserDeleted(
+      aros.services.rms.core.user.application.exception.UserDeletedException e) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        .body(new ErrorResponse(403, e.getMessage()));
+  }
+
+  @ExceptionHandler(
+      aros.services.rms.core.user.application.exception.SamePasswordException.class)
+  public ResponseEntity<ErrorResponse> handleSamePassword(
+      aros.services.rms.core.user.application.exception.SamePasswordException e) {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(new ErrorResponse(400, e.getMessage()));
   }

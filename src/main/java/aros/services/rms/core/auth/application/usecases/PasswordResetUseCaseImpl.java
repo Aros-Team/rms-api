@@ -16,10 +16,14 @@ import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class PasswordResetUseCaseImpl implements PasswordResetUseCase {
 
   private static final int TOKEN_EXPIRATION_MINUTES = 30;
+
+  private static final Pattern PASSWORD_PATTERN =
+      Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$");
 
   private final UserRepositoryPort userRepositoryPort;
   private final PasswordResetTokenRepositoryPort tokenRepositoryPort;
@@ -77,20 +81,33 @@ public class PasswordResetUseCaseImpl implements PasswordResetUseCase {
     PasswordResetToken resetToken =
         tokenRepositoryPort
             .findByTokenHash(tokenHash)
-            .orElseThrow(PasswordResetTokenInvalidException::new);
+            .orElseThrow(
+                () ->
+                    new PasswordResetTokenInvalidException(
+                        "El token de recuperación no es válido"));
 
     if (resetToken.used()) {
-      throw new PasswordResetTokenInvalidException("El token ya ha sido utilizado");
+      throw new PasswordResetTokenInvalidException(
+          "El token de recuperación ya ha sido utilizado. Solicita uno nuevo");
     }
 
     if (resetToken.isExpired()) {
-      throw new PasswordResetTokenExpiredException();
+      throw new PasswordResetTokenExpiredException(
+          "El token de recuperación ha expirado. Solicita uno nuevo");
     }
 
     User user =
         userRepositoryPort
             .findById(resetToken.userId())
-            .orElseThrow(PasswordResetTokenInvalidException::new);
+            .orElseThrow(
+                () ->
+                    new PasswordResetTokenInvalidException(
+                        "El token de recuperación no es válido"));
+
+    if (!PASSWORD_PATTERN.matcher(newPassword).matches()) {
+      throw new PasswordResetTokenInvalidException(
+          "La nueva contraseña debe tener mínimo 8 caracteres, incluir al menos una mayúscula, una minúscula, un número y un símbolo (@$!%*?&)");
+    }
 
     String encodedPassword = passwordEncoderPort.encode(newPassword);
     user.changePassword(encodedPassword);

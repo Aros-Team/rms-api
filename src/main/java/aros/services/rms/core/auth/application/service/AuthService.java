@@ -27,6 +27,8 @@ import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.twofactor.domain.TwoFactorCode;
 import aros.services.rms.core.twofactor.port.output.TfaCodeGeneratorPort;
 import aros.services.rms.core.twofactor.port.output.TwoFactorCodeRepositoryPort;
+import aros.services.rms.core.user.application.exception.UserDeletedException;
+import aros.services.rms.core.user.application.exception.UserInactiveException;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
@@ -79,10 +81,18 @@ public class AuthService
     User user =
         this.userPort
             .findByEmail(credentials.username().value())
-            .orElseThrow(InvalidCredentialsException::new);
+            .orElseThrow(() -> new InvalidCredentialsException("El correo electrónico no existe en el sistema"));
+
+    if (user.getDeletedAt() != null) {
+      throw new UserDeletedException();
+    }
+
+    if (!user.getActive()) {
+      throw new UserInactiveException();
+    }
 
     if (!passwordPort.validate(credentials.password(), user.getPassword())) {
-      throw new InvalidCredentialsException();
+      throw new InvalidCredentialsException("La contraseña es incorrecta");
     }
 
     Optional<Device> deviceOpt =
