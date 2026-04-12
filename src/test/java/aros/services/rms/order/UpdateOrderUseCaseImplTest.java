@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.category.domain.Category;
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.order.application.dto.TakeOrderCommand;
@@ -53,6 +54,8 @@ class UpdateOrderUseCaseImplTest {
 
   @Mock private InventoryMovementUseCase inventoryMovementUseCase;
 
+  @Mock private BusinessMetricsPort metricsPort;
+
   private UpdateOrderService updateOrderUseCase;
 
   @BeforeEach
@@ -66,7 +69,8 @@ class UpdateOrderUseCaseImplTest {
             productRepositoryPort,
             productOptionRepositoryPort,
             inventoryStockUseCase,
-            inventoryMovementUseCase);
+            inventoryMovementUseCase,
+            metricsPort);
   }
 
   // ==================== CANCEL TESTS ====================

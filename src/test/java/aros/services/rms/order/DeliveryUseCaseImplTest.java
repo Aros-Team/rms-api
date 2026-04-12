@@ -11,6 +11,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.order.application.service.DeliveryService;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
@@ -32,11 +33,13 @@ class DeliveryUseCaseImplTest {
 
   @Mock private TableRepositoryPort tableRepositoryPort;
 
+  @Mock private BusinessMetricsPort metricsPort;
+
   private DeliveryService deliveryUseCase;
 
   @BeforeEach
   void setUp() {
-    deliveryUseCase = new DeliveryService(orderRepositoryPort, tableRepositoryPort);
+    deliveryUseCase = new DeliveryService(orderRepositoryPort, tableRepositoryPort, metricsPort);
   }
 
   @Test

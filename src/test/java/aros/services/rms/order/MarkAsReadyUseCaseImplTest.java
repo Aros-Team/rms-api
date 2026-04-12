@@ -10,6 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.order.application.service.MarkAsReadyService;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
@@ -26,11 +27,13 @@ class MarkAsReadyUseCaseImplTest {
 
   @Mock private OrderRepositoryPort orderRepositoryPort;
 
+  @Mock private BusinessMetricsPort metricsPort;
+
   private MarkAsReadyService markAsReadyUseCase;
 
   @BeforeEach
   void setUp() {
-    markAsReadyUseCase = new MarkAsReadyService(orderRepositoryPort);
+    markAsReadyUseCase = new MarkAsReadyService(orderRepositoryPort, metricsPort);
   }
 
   @Test
