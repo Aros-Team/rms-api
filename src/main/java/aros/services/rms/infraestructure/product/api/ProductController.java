@@ -97,8 +97,9 @@ public class ProductController {
 
   @Operation(
       summary = "Obtener todos los productos",
-      description = "Retorna lista de todos los productos activos e inactivos del menú. "
-          + "Puede filtrarse por categoría usando el parámetro 'categories' (IDs separados por coma).",
+      description =
+          "Retorna lista de todos los productos activos e inactivos del menú. "
+              + "Puede filtrarse por categoría usando el parámetro 'categories' (IDs separados por coma).",
       responses = {
         @ApiResponse(responseCode = "200", description = "Productos obtenidos exitosamente")
       })
@@ -107,13 +108,15 @@ public class ProductController {
       @RequestParam(required = false) List<Long> categories) {
     List<ProductResponse> responses;
     if (categories == null || categories.isEmpty()) {
-      responses = productUseCase.findAll().stream()
-          .map(ProductResponse::fromDomain)
-          .collect(Collectors.toList());
+      responses =
+          productUseCase.findAll().stream()
+              .map(ProductResponse::fromDomain)
+              .collect(Collectors.toList());
     } else {
-      responses = productUseCase.findByCategoryIds(categories).stream()
-          .map(ProductResponse::fromDomain)
-          .collect(Collectors.toList());
+      responses =
+          productUseCase.findByCategoryIds(categories).stream()
+              .map(ProductResponse::fromDomain)
+              .collect(Collectors.toList());
     }
     return ResponseEntity.ok(responses);
   }

@@ -1,0 +1,166 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(rate(rms_order_delivered_total{application=\"rms\"}[5m])) * 60",
+          "legendFormat": "Entregadas/min",
+          "refId": "A"
+        }
+      ],
+      "title": "Órdenes Entregadas",
+      "description": "Tasa de órdenes entregadas exitosamente por minuto",
+      "type": "stat",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "displayName": "Entregadas/min"
+          }
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(rate(rms_order_delivered_total{application=\"rms\"}[5m])) / sum(rate(rms_order_created_total{application=\"rms\", status=\"success\"}[5m])) * 100",
+          "legendFormat": "% Éxito",
+          "refId": "A"
+        }
+      ],
+      "title": "Ratio de Éxito",
+      "description": "Porcentaje de órdenes creadas que fueron entregadas exitosamente",
+      "type": "gauge",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "green", "value": 85 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi" },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum by (to) (rate(rms_order_status_transition_total{application=\"rms\"}[5m])) * 60",
+          "legendFormat": "{{to}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Transiciones por Estado",
+      "description": "Distribución de órdenes transicionando a cada estado (órdenes/min)",
+      "type": "barchart",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "axisCenteredZero": false
+          }
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right" },
+        "tooltip": { "mode": "multi" }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(rms_kitchen_latency_seconds_bucket{application=\"rms\"}[5m])))",
+          "legendFormat": "Cocina p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(rms_kitchen_latency_seconds_bucket{application=\"rms\"}[5m])))",
+          "legendFormat": "Cocina p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(rms_notification_latency_seconds_bucket{application=\"rms\"}[5m])))",
+          "legendFormat": "Notificación p50",
+          "refId": "C"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(rms_notification_latency_seconds_bucket{application=\"rms\"}[5m])))",
+          "legendFormat": "Notificación p95",
+          "refId": "D"
+        }
+      ],
+      "title": "Latencias (percentiles)",
+      "description": "Tiempo de latencia en cocina y notificación. p50=mediana, p95=95% más rápido",
+      "type": "timeseries",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      }
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["rms", "ordenes"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "RMS - Órdenes",
+  "uid": "rms-ordenes",
+  "version": 1
+}

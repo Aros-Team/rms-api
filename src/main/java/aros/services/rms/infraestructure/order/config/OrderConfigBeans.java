@@ -1,6 +1,7 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.order.config;
 
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.order.application.service.DeliveryService;
@@ -36,14 +37,16 @@ public class OrderConfigBeans {
       ProductRepositoryPort productRepositoryPort,
       ProductOptionRepositoryPort productOptionRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
-      InventoryMovementUseCase inventoryMovementUseCase) {
+      InventoryMovementUseCase inventoryMovementUseCase,
+      BusinessMetricsPort metricsPort) {
     return new TakeOrderService(
         orderRepositoryPort,
         tableRepositoryPort,
         productRepositoryPort,
         productOptionRepositoryPort,
         inventoryStockUseCase,
-        inventoryMovementUseCase);
+        inventoryMovementUseCase,
+        metricsPort);
   }
 
   /** Crea bean para actualizar órdenes existentes. */
@@ -54,33 +57,39 @@ public class OrderConfigBeans {
       ProductRepositoryPort productRepositoryPort,
       ProductOptionRepositoryPort productOptionRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
-      InventoryMovementUseCase inventoryMovementUseCase) {
+      InventoryMovementUseCase inventoryMovementUseCase,
+      BusinessMetricsPort metricsPort) {
     return new UpdateOrderService(
         orderRepositoryPort,
         tableRepositoryPort,
         productRepositoryPort,
         productOptionRepositoryPort,
         inventoryStockUseCase,
-        inventoryMovementUseCase);
+        inventoryMovementUseCase,
+        metricsPort);
   }
 
   /** Crea bean para pasar órdenes de cola a preparación. */
   @Bean
-  public PreparationUseCase preparationUseCase(OrderRepositoryPort orderRepositoryPort) {
-    return new PreparationService(orderRepositoryPort);
+  public PreparationUseCase preparationUseCase(
+      OrderRepositoryPort orderRepositoryPort, BusinessMetricsPort metricsPort) {
+    return new PreparationService(orderRepositoryPort, metricsPort);
   }
 
   /** Crea bean para marcar órdenes como listas (READY). */
   @Bean
-  public MarkAsReadyUseCase markAsReadyUseCase(OrderRepositoryPort orderRepositoryPort) {
-    return new MarkAsReadyService(orderRepositoryPort);
+  public MarkAsReadyUseCase markAsReadyUseCase(
+      OrderRepositoryPort orderRepositoryPort, BusinessMetricsPort metricsPort) {
+    return new MarkAsReadyService(orderRepositoryPort, metricsPort);
   }
 
   /** Crea bean para entregar órdenes al cliente. */
   @Bean
   public DeliveryUseCase deliveryUseCase(
-      OrderRepositoryPort orderRepositoryPort, TableRepositoryPort tableRepositoryPort) {
-    return new DeliveryService(orderRepositoryPort, tableRepositoryPort);
+      OrderRepositoryPort orderRepositoryPort,
+      TableRepositoryPort tableRepositoryPort,
+      BusinessMetricsPort metricsPort) {
+    return new DeliveryService(orderRepositoryPort, tableRepositoryPort, metricsPort);
   }
 
   /** Crea bean para consultar órdenes. */

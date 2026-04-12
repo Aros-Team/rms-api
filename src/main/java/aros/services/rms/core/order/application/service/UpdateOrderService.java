@@ -1,6 +1,7 @@
 /* (C) 2026 */
 package aros.services.rms.core.order.application.service;
 
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
@@ -39,6 +40,7 @@ public class UpdateOrderService implements UpdateOrderUseCase {
   private final ProductOptionRepositoryPort productOptionRepositoryPort;
   private final InventoryStockUseCase inventoryStockUseCase;
   private final InventoryMovementUseCase inventoryMovementUseCase;
+  private final BusinessMetricsPort metricsPort;
 
   public UpdateOrderService(
       OrderRepositoryPort orderRepositoryPort,
@@ -46,13 +48,15 @@ public class UpdateOrderService implements UpdateOrderUseCase {
       ProductRepositoryPort productRepositoryPort,
       ProductOptionRepositoryPort productOptionRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
-      InventoryMovementUseCase inventoryMovementUseCase) {
+      InventoryMovementUseCase inventoryMovementUseCase,
+      BusinessMetricsPort metricsPort) {
     this.orderRepositoryPort = orderRepositoryPort;
     this.tableRepositoryPort = tableRepositoryPort;
     this.productRepositoryPort = productRepositoryPort;
     this.productOptionRepositoryPort = productOptionRepositoryPort;
     this.inventoryStockUseCase = inventoryStockUseCase;
     this.inventoryMovementUseCase = inventoryMovementUseCase;
+    this.metricsPort = metricsPort;
   }
 
   /** {@inheritDoc} Cancela orden en QUEUE y libera la mesa. */
@@ -80,6 +84,7 @@ public class UpdateOrderService implements UpdateOrderUseCase {
       tableRepositoryPort.save(table);
     }
 
+    metricsPort.recordOrderCancellation("user_request");
     return savedOrder;
   }
 

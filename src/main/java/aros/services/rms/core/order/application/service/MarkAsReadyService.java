@@ -1,11 +1,13 @@
 /* (C) 2026 */
 package aros.services.rms.core.order.application.service;
 
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.input.MarkAsReadyUseCase;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
 import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
+import java.time.LocalDateTime;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.retry.annotation.Backoff;
@@ -20,9 +22,12 @@ public class MarkAsReadyService implements MarkAsReadyUseCase {
 
   private static final org.slf4j.Logger log = LoggerFactory.getLogger(MarkAsReadyService.class);
   private final OrderRepositoryPort orderRepositoryPort;
+  private final BusinessMetricsPort metricsPort;
 
-  public MarkAsReadyService(OrderRepositoryPort orderRepositoryPort) {
+  public MarkAsReadyService(
+      OrderRepositoryPort orderRepositoryPort, BusinessMetricsPort metricsPort) {
     this.orderRepositoryPort = orderRepositoryPort;
+    this.metricsPort = metricsPort;
   }
 
   /** {@inheritDoc} Cambia el estado de PREPARING a READY. */
@@ -41,8 +46,14 @@ public class MarkAsReadyService implements MarkAsReadyUseCase {
       throw new IllegalStateException("Order can only be marked as ready when in PREPARING status");
     }
 
+    LocalDateTime readyAt = LocalDateTime.now();
     order.setStatus(OrderStatus.READY);
-    return orderRepositoryPort.save(order);
+    Order savedOrder = orderRepositoryPort.save(order);
+
+    metricsPort.recordOrderStatusTransition("PREPARING", "READY");
+    metricsPort.recordNotificationLatency(order.getId(), order.getDate(), readyAt);
+
+    return savedOrder;
   }
 
   @Recover

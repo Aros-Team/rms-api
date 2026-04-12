@@ -1,19 +1,23 @@
+server:
+  address: 0.0.0.0
+  port: 8080
+
 app:
   version: 0.2.9
   env: ${APP_ENV:development}
   admin:
-    email: ${ADMIN_EMAIL:admin@aros.services}
-    dummy-email: ${DUMMY_EMAIL:}
+    email: ${ADMIN_EMAIL}
+    dummy-email: ${DUMMY_EMAIL}
   jwt:
     issuer: rms-api
     expiration-minutes: 60
-    public-key: ${JWT_PUBLIC_KEY:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAml7zrZvXl5neCEA4Y3q1s0lzstKbXZ6frhZ69io2GlNZspqbMHwZYVGU2cv0S5mrfiHdOkvt52FLQAT3Os/1PGCQA1WkMckdb1DUyJ467b/g2+ctkIBf1pgtbMwN8n6zevgHv86p4BEVbikzhNIscZb15J34T8WcbNOlAZhKWpLMh3V770U9DD9fvAQqy/acp+kQgNCCA0VCkCJdw/UYccjxhngwe2yG+ntfJERGTgtaUqeHbkmdwCqg6MPiIvg62T++asuTC+Fwszde8aDnW7k1IGDqOwuc0XV4n9hZvst9/s3TXhNUejTW6lk7PZVRLrvHN+AEVmXnmlbgo0nvowIDAQAB}
-    private-key: ${JWT_PRIVATE_KEY:MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCaXvOtm9eXmd4IQDhjerWzSXOy0ptdnp+uFnr2KjYaU1mympswfBlhUZTZy/RLmat+Id06S+3nYUtABPc6z/U8YJADVaQxyR1vUNTInjrtv+Db5y2QgF/WmC1szA3yfrN6+Ae/zqngERVuKTOE0ixxlvXknfhPxZxs06UBmEpaksyHdXvvRT0MP1+8BCrL9pyn6RCA0IIDRUKQIl3D9RhxyPGGeDB7bIb6e18kREZOC1pSp4duSZ3AKqDow+Ii+DrZP75qy5ML4XCzN17xoOdbuTUgYOo7C5zRdXif2Fm+y33+zdNeE1R6NNbqWTs9lVEuu8c34ARWZeeaVuCjSe+jAgMBAAECggEACEkPYCKMrDzcb2nu/Nvhs7k+BfuKzjgMzv2y5NJ4K+qMVms46B3JCPGlgRkSyBn72926b34Sy0fsD4gUsunlejOelyc6FFf8hfR7Lzda51bUnUjnp6lUO4LYcU30c678OB3m4JMZiAaytUJt2vOi4gfds8MMyE9NaYPkh9TiLME94qaU5eB7iu29x0shimKTP5QwZkAsoonVB8pZ6KhnLaIr5VAzL7/esXde8Lhpan7/mJ4ZRvkD0kyrw8lJANQvdBhlYJOUCyqRSDM9syKq2uu50KdO0KCoJd71WQB0wg8KdNCucNbItv13Ovb8seQ4H7djszKoJX57dj/LgEeEyQKBgQC3HfXe4tJVhPewZ/69Y52b1ws2sgsotu92ebLSUnddbEM04fYLQdyXJ2O+ZMZ+MzwHQlse3z1AEvqALFtPt68rb9XGsltSaRpylUoZpwZRfkRdAgTQ/ToolZb2hgjUUxgvXNy9LJeLUELSdA4AILrvHT876ThEfMI4jwDxco23uQKBgQDX0AKTXz5dJUyCdRsXWGaRFsZ9h0KcGAJshRrQw7677bwQct283Q5bqJWwGQUtT4IQGTxw7FRlS6DbmVydeSLUqKInrw2g1PNIS6qvaYIYkdVLqfotQqj4CNfn4pXvIY2kmFMskkNg0LSKIC43hNxGMtrMjBdUtWLXRjH2m8FYOwKBgAuknQiB9Yu4e6M8yYazOcc54h2lLm51Sz6GOGeFFM/c3V0UbPeERYla2M23TKOjkFKJ1o9c9GEJk+HocBnefQXPA5Gxr3rK8gKNGXwOEanG1IPxZ+r93t/LuyCLny4Y5nXEesiQeEZEYStOc8FwU1J20pl1l71LDXJZLV8swHQJAoGBAIP8embJHCn5UsaCelQXw3q+lBxXadxvLqRR72l4HaFvrtHcflIwW8Sg4RM26hyhAKl51aY2UxM0YqeLLsI8QJoQnENq4wnW0wcHB9eJzn/aSLmitheSKiavuePehtYeDjN42X1r4ntGiPPk5H8d6V2hYoEwuGAdItsH2iy5a1DbAoGAGc10vVgXUgdXJsf3bct3gP0lb5VbKow3vqUsv8JU2xagpQb00a/EcwlCGMzwv276biM5C5GJD3V2GYDBWtL+j6V4Sf232g3uFmDD2a+ls2ntqHwpT1MIBDuu79M4MaM3bXknIPvSraJEeEwJaYpAVMZl/kmCbk4N9VHcslvOZxg=}
+    public-key: ${JWT_PUBLIC_KEY} 
+    private-key: ${JWT_PRIVATE_KEY} 
   email:
-    base-url: ${MAIL_URL:https://mail.aros.services/}
+    base-url: ${MAIL_URL}
 
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://127.0.0.1:4200}
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
 
 spring:
   application:
@@ -43,13 +47,30 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,prometheus,info
+      base-path: /
+      path-mapping:
+        prometheus: metrics
   endpoint:
-    health:
-      show-details: always
-      probes:
-        enabled: true
+    prometheus:
+      enabled: true
   health:
     db:
       enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    web:
+      server:
+        enabled: true
+    tags:
+      application: rms
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 2000ms, 3000ms
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
 

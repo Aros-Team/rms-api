@@ -1,6 +1,7 @@
 /* (C) 2026 */
 package aros.services.rms.core.order.application.service;
 
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
@@ -40,6 +41,7 @@ public class TakeOrderService implements TakeOrderUseCase {
   private final ProductOptionRepositoryPort productOptionRepositoryPort;
   private final InventoryStockUseCase inventoryStockUseCase;
   private final InventoryMovementUseCase inventoryMovementUseCase;
+  private final BusinessMetricsPort metricsPort;
 
   public TakeOrderService(
       OrderRepositoryPort orderRepositoryPort,
@@ -47,13 +49,15 @@ public class TakeOrderService implements TakeOrderUseCase {
       ProductRepositoryPort productRepositoryPort,
       ProductOptionRepositoryPort productOptionRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
-      InventoryMovementUseCase inventoryMovementUseCase) {
+      InventoryMovementUseCase inventoryMovementUseCase,
+      BusinessMetricsPort metricsPort) {
     this.orderRepositoryPort = orderRepositoryPort;
     this.tableRepositoryPort = tableRepositoryPort;
     this.productRepositoryPort = productRepositoryPort;
     this.productOptionRepositoryPort = productOptionRepositoryPort;
     this.inventoryStockUseCase = inventoryStockUseCase;
     this.inventoryMovementUseCase = inventoryMovementUseCase;
+    this.metricsPort = metricsPort;
   }
 
   /**
@@ -146,11 +150,13 @@ public class TakeOrderService implements TakeOrderUseCase {
 
       // Deduct inventory after order is saved
       inventoryMovementUseCase.deductForOrder(savedOrder.getId(), savedOrder.getDetails());
+      metricsPort.recordOrderCreated(true);
 
       return savedOrder;
     } catch (Exception e) {
       table.setStatus(TableStatus.AVAILABLE);
       tableRepositoryPort.save(table);
+      metricsPort.recordOrderCreated(false);
       throw e;
     }
   }
