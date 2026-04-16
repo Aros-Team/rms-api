@@ -2,6 +2,7 @@
 package aros.services.rms.core.user.domain;
 
 import aros.services.rms.core.area.domain.AreaId;
+import java.time.Instant;
 import java.util.List;
 
 public class User {
@@ -14,6 +15,8 @@ public class User {
   private String phone;
   private UserRole role;
   private List<AreaId> assignedAreas;
+  private boolean active;
+  private Instant deletedAt;
 
   public User(
       UserId id,
@@ -34,6 +37,8 @@ public class User {
     this.phone = phone;
     this.role = role;
     this.assignedAreas = assignedAreas;
+    this.active = true;
+    this.deletedAt = null;
   }
 
   public void rename(String newName) {
@@ -86,5 +91,21 @@ public class User {
 
   public List<AreaId> getAssignedAreas() {
     return assignedAreas;
+  }
+
+  public boolean getActive() {
+    return active;
+  }
+
+  public void setActive(boolean active) {
+    this.active = active;
+  }
+
+  public Instant getDeletedAt() {
+    return deletedAt;
+  }
+
+  public void setDeletedAt(Instant deletedAt) {
+    this.deletedAt = deletedAt;
   }
 }

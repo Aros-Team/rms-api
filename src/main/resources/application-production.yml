@@ -1,3 +1,8 @@
+app:
+  env: production
+  admin:
+    email: ${ADMIN_EMAIL}
+
 spring:
   datasource:
 
@@ -13,16 +18,10 @@ spring:
       pool-name: RmsHikariPool
       initialization-fail-timeout: -1
 
-server:
-  port: 8080
-
-app:
-  env: production
-
 logging:
   level:
     root: WARN
-    aros.services.rms: INFO
+    aros.services.rms: WARN
     org.springframework.web: ERROR
     org.springframework.security: ERROR
     org.hibernate: ERROR

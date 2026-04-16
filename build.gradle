@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'aros.services'
-version = project.hasProperty('appVersion') ? project.property('appVersion') : '0.2.1'
+version = project.hasProperty('appVersion') ? project.property('appVersion') : '0.3.0'
 description = 'Robust, scalable API that processes restaurant operations in real-time and transforms data into actionable business insights.'
 
 java {
@@ -32,44 +32,56 @@ repositories {
 }
 
 dependencies {
+	// Lombok (annotation processing)
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 
-	implementation "org.springframework.boot:spring-boot-starter-flyway"
+	// Database Migration
+	implementation 'org.springframework.boot:spring-boot-starter-flyway'
 	implementation 'org.flywaydb:flyway-mysql'
+	runtimeOnly 'com.mysql:mysql-connector-j'
 
+	// Spring Boot Starters (Core)
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-security-test'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-    testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
-	// testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
-    // testImplementation 'org.springframework.test:spring-test'
+
+	// Security & OAuth2
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-security-test'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+
+	// Observability
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+
+	// Retry & Aspects
 	implementation 'org.springframework.retry:spring-retry:2.0.10'
 	implementation 'org.springframework:spring-aspects'
+
+	// Documentation
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	// Cloud SQL
 	implementation 'com.google.cloud.sql:mysql-socket-factory-connector-j-8:1.28.2'
-	
-	// testImplementation "org.mockito:mockito-core:5.+"
-	// testImplementation "org.mockito:mockito-junit-jupiter:5.+"
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-	implementation "org.springframework.boot:spring-boot-starter-oauth2-resource-server"
-
+	// MapStruct
 	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
-    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
-    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+	// Development Tools
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// Testing
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 // to load .env files

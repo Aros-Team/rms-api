@@ -9,17 +9,23 @@ import aros.services.rms.core.auth.port.input.PasswordResetUseCase;
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
 import aros.services.rms.core.auth.port.output.PasswordResetTokenRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.email.port.input.PasswordResetEmailUseCase;
 import aros.services.rms.core.share.port.output.HashServicePort;
+import aros.services.rms.core.user.application.exception.InvalidPasswordException;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class PasswordResetService implements PasswordResetUseCase {
 
   private static final int TOKEN_EXPIRATION_MINUTES = 30;
+
+  private static final Pattern PASSWORD_PATTERN =
+      Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$");
 
   private final UserRepositoryPort userRepositoryPort;
   private final PasswordResetTokenRepositoryPort tokenRepositoryPort;
@@ -27,6 +33,7 @@ public class PasswordResetService implements PasswordResetUseCase {
   private final PasswordResetEmailUseCase emailUseCase;
   private final HashServicePort hashServicePort;
   private final Logger logger;
+  private final BusinessMetricsPort metricsPort;
 
   public PasswordResetService(
       UserRepositoryPort userRepositoryPort,
@@ -34,13 +41,15 @@ public class PasswordResetService implements PasswordResetUseCase {
       PasswordEncoderPort passwordEncoderPort,
       PasswordResetEmailUseCase emailUseCase,
       HashServicePort hashServicePort,
-      Logger logger) {
+      Logger logger,
+      BusinessMetricsPort metricsPort) {
     this.userRepositoryPort = userRepositoryPort;
     this.tokenRepositoryPort = tokenRepositoryPort;
     this.passwordEncoderPort = passwordEncoderPort;
     this.emailUseCase = emailUseCase;
     this.hashServicePort = hashServicePort;
     this.logger = logger;
+    this.metricsPort = metricsPort;
   }
 
   @Override
@@ -71,6 +80,7 @@ public class PasswordResetService implements PasswordResetUseCase {
     logger.info("Password reset token generated: userId={}, expiresAt={}", user.getId(), expiresAt);
 
     emailUseCase.sendPasswordResetEmail(user.getEmail(), rawToken);
+    metricsPort.recordPasswordReset("requested");
   }
 
   @Override
@@ -82,20 +92,33 @@ public class PasswordResetService implements PasswordResetUseCase {
     PasswordResetToken resetToken =
         tokenRepositoryPort
             .findByTokenHash(tokenHash)
-            .orElseThrow(PasswordResetTokenInvalidException::new);
+            .orElseThrow(
+                () ->
+                    new PasswordResetTokenInvalidException(
+                        "El token de recuperación no es válido"));
 
     if (resetToken.used()) {
-      throw new PasswordResetTokenInvalidException("El token ya ha sido utilizado");
+      throw new PasswordResetTokenInvalidException(
+          "El token de recuperación ya ha sido utilizado. Solicita uno nuevo");
     }
 
     if (resetToken.isExpired()) {
-      throw new PasswordResetTokenExpiredException();
+      throw new PasswordResetTokenExpiredException(
+          "El token de recuperación ha expirado. Solicita uno nuevo");
     }
 
     User user =
         userRepositoryPort
             .findById(resetToken.userId())
-            .orElseThrow(PasswordResetTokenInvalidException::new);
+            .orElseThrow(
+                () ->
+                    new PasswordResetTokenInvalidException(
+                        "El token de recuperación no es válido"));
+
+    if (!PASSWORD_PATTERN.matcher(newPassword).matches()) {
+      throw new InvalidPasswordException(
+          "La nueva contraseña debe tener mínimo 8 caracteres, incluir al menos una mayúscula, una minúscula, un número y un símbolo (@$!%*?&)");
+    }
 
     String encodedPassword = passwordEncoderPort.encode(newPassword);
     user.changePassword(encodedPassword);
@@ -105,5 +128,6 @@ public class PasswordResetService implements PasswordResetUseCase {
     tokenRepositoryPort.save(usedToken);
 
     logger.info("Password changed successfully: userId={}", user.getId());
+    metricsPort.recordPasswordReset("completed");
   }
 }

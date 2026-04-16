@@ -1,7 +1,6 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.auth.api;
 
-import aros.services.rms.core.auth.application.dto.AuthFinalResult;
 import aros.services.rms.core.auth.application.dto.AuthResult;
 import aros.services.rms.core.auth.application.dto.AuthResultType;
 import aros.services.rms.core.auth.application.dto.Credentials;
@@ -68,7 +67,7 @@ public class AuthController {
   @PostMapping("/login")
   public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request)
       throws InvalidCredentialsException {
-    log.info("User attempting login: email={}", request.username());
+    log.info("Login attempt initiated");
     Credentials credentials =
         new Credentials(
             new UserEmail(request.username()), request.password(), request.deviceHash());
@@ -83,7 +82,7 @@ public class AuthController {
       response = new AuthResponse(rs.type().name(), rs.username(), rs.acessToken(), null);
     }
 
-    log.info("User login successful: email={}, type={}", request.username(), result.type().name());
+    log.info("Login result: type={}", result.type().name());
 
     return switch (response) {
       case null -> ResponseEntity.internalServerError().build();
@@ -106,22 +105,24 @@ public class AuthController {
   public ResponseEntity<AuthResponse> verifyTfa(
       @Valid @RequestBody VerifyTwoFactorRequest request, @AuthenticationPrincipal Jwt jwt)
       throws InvalidCredentialsException {
-    log.info("User verifying 2FA: email={}", jwt.getSubject());
+    log.info("2FA verification attempt");
     TwoFactorCredentials credentials =
         new TwoFactorCredentials(
             new UserEmail(jwt.getSubject()), request.code(), request.deviceHash());
 
-    AuthFinalResult result = verifyTwoFactorUseCase.verify(credentials);
+    AuthResult result = verifyTwoFactorUseCase.verify(credentials);
 
-    AuthResponse response =
-        new AuthResponse(
-            AuthResultType.SUCCESS.name(),
-            result.username(),
-            result.acessToken(),
-            result.refreshToken());
+    AuthResponse response = null;
+    if (result instanceof AuthResult.Success sr) {
+      response =
+          new AuthResponse(
+              AuthResultType.SUCCESS.name(), sr.username(), sr.acessToken(), sr.refreshToken());
+    }
 
-    log.info("2FA verified successfully: email={}", jwt.getSubject());
-    return ResponseEntity.ok(response);
+    return switch (response) {
+      case null -> ResponseEntity.internalServerError().build();
+      default -> ResponseEntity.ok(response);
+    };
   }
 
   @Operation(
@@ -142,16 +143,18 @@ public class AuthController {
       token = token.substring(7);
     }
 
-    AuthFinalResult result = refreshTokensUseCase.refresh(token);
-    AuthResponse response =
-        new AuthResponse(
-            AuthResultType.SUCCESS.name(),
-            result.username(),
-            result.acessToken(),
-            result.refreshToken());
+    AuthResult result = refreshTokensUseCase.refresh(token);
+    AuthResponse response = null;
+    if (result instanceof AuthResult.Success sr) {
+      response =
+          new AuthResponse(
+              AuthResultType.SUCCESS.name(), sr.username(), sr.acessToken(), sr.refreshToken());
+    }
 
-    log.info("Token refreshed successfully: email={}", result.username());
-    return ResponseEntity.ok(response);
+    return switch (response) {
+      case null -> ResponseEntity.internalServerError().build();
+      default -> ResponseEntity.ok(response);
+    };
   }
 
   @Operation(
@@ -168,7 +171,7 @@ public class AuthController {
   @JustAccessToken
   public ResponseEntity<UserFullInfoResponse> me(@AuthenticationPrincipal Jwt auth)
       throws UserNotFoundException {
-    log.info("Getting current user info: email={}", auth.getSubject());
+    log.info("Fetching current user info");
     UserFullInfo uInfo = getUserInfoUseCase.getInfo(new UserEmail(auth.getSubject()));
 
     UserFullInfoResponse uInfoResponse =
@@ -199,7 +202,7 @@ public class AuthController {
   @PostMapping("/forgot-password")
   public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request)
       throws UserNotFoundException {
-    log.info("Password reset requested: email={}", request.email());
+    log.info("Password reset requested");
     passwordResetUseCase.requestPasswordReset(request.email());
     return ResponseEntity.ok().build();
   }
@@ -218,7 +221,7 @@ public class AuthController {
   @PostMapping("/resend-password")
   public ResponseEntity<Void> resendPasswordReset(@Valid @RequestBody ForgotPasswordRequest request)
       throws UserNotFoundException {
-    log.info("Password reset resent: email={}", request.email());
+    log.info("Password reset token resent");
     passwordResetUseCase.requestPasswordReset(request.email());
     return ResponseEntity.ok().build();
   }

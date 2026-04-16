@@ -1,12 +1,13 @@
 /* (C) 2026 */
 package aros.services.rms.core.order.application.service;
 
-import aros.services.rms.core.common.notification.port.output.NotificationPort;
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.input.PreparationUseCase;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
 import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
+import java.time.LocalDateTime;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.retry.annotation.Backoff;
@@ -19,16 +20,14 @@ import org.springframework.retry.annotation.Retryable;
  */
 public class PreparationService implements PreparationUseCase {
 
-  private static final String PREPARING_DESTINATION = "/topic/orders/preparing";
   private static final org.slf4j.Logger log = LoggerFactory.getLogger(PreparationService.class);
-
   private final OrderRepositoryPort orderRepositoryPort;
-  private final NotificationPort notificationPort;
+  private final BusinessMetricsPort metricsPort;
 
   public PreparationService(
-      OrderRepositoryPort orderRepositoryPort, NotificationPort notificationPort) {
+      OrderRepositoryPort orderRepositoryPort, BusinessMetricsPort metricsPort) {
     this.orderRepositoryPort = orderRepositoryPort;
-    this.notificationPort = notificationPort;
+    this.metricsPort = metricsPort;
   }
 
   /** {@inheritDoc} Busca la orden más antigua en QUEUE y cambia a PREPARING. */
@@ -43,15 +42,12 @@ public class PreparationService implements PreparationUseCase {
             .findFirstByStatusOrderByDateAsc(OrderStatus.QUEUE)
             .orElseThrow(() -> new IllegalStateException("No orders in queue"));
 
+    LocalDateTime preparationStartedAt = LocalDateTime.now();
     order.setStatus(OrderStatus.PREPARING);
     Order savedOrder = orderRepositoryPort.save(order);
 
-    // Publish order preparation notification
-    notificationPort.notify(PREPARING_DESTINATION, savedOrder);
-    log.info(
-        "Order moved to preparation: id={}, destination={}",
-        savedOrder.getId(),
-        PREPARING_DESTINATION);
+    metricsPort.recordOrderStatusTransition("QUEUE", "PREPARING");
+    metricsPort.recordKitchenLatency(order.getId(), order.getDate(), preparationStartedAt);
 
     return savedOrder;
   }

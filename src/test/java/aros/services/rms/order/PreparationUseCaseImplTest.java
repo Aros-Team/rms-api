@@ -9,6 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.order.application.service.PreparationService;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
@@ -25,11 +26,13 @@ class PreparationUseCaseImplTest {
 
   @Mock private OrderRepositoryPort orderRepositoryPort;
 
+  @Mock private BusinessMetricsPort metricsPort;
+
   private PreparationService preparationUseCase;
 
   @BeforeEach
   void setUp() {
-    preparationUseCase = new PreparationService(orderRepositoryPort);
+    preparationUseCase = new PreparationService(orderRepositoryPort, metricsPort);
   }
 
   @Test

@@ -1,6 +1,6 @@
 package aros.services.rms.core.auth.application.service;
 
-import aros.services.rms.core.auth.application.dto.AuthFinalResult;
+import aros.services.rms.core.auth.application.dto.AuthResult;
 import aros.services.rms.core.auth.application.exception.InvalidRefreshTokenException;
 import aros.services.rms.core.auth.domain.RefreshToken;
 import aros.services.rms.core.auth.port.input.RefreshTokensUseCase;
@@ -33,7 +33,7 @@ public class RefreshTokenService implements RefreshTokensUseCase {
   }
 
   @Override
-  public AuthFinalResult refresh(String token) throws InvalidRefreshTokenException {
+  public AuthResult refresh(String token) throws InvalidRefreshTokenException {
     String tokenHash = hashPort.hash(token);
     RefreshToken refreshToken =
         refreshTokenPort.findByTokenHash(tokenHash).orElseThrow(InvalidRefreshTokenException::new);
@@ -65,6 +65,6 @@ public class RefreshTokenService implements RefreshTokensUseCase {
 
     refreshTokenPort.save(refreshTokenDomain);
 
-    return new AuthFinalResult(user.getEmail().value(), accessToken, newRefreshToken);
+    return new AuthResult.Success(user.getEmail().value(), accessToken, newRefreshToken);
   }
 }

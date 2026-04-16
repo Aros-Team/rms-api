@@ -48,6 +48,7 @@ public class OrderController {
   private final MarkAsReadyUseCase markAsReadyUseCase;
   private final DeliveryUseCase deliveryUseCase;
   private final OrderQueryUseCase orderQueryUseCase;
+  private final OrderNotificationService orderNotificationService;
 
   @Operation(
       summary = "Create new order",
@@ -79,7 +80,9 @@ public class OrderController {
             .build();
 
     Order order = takeOrderUseCase.execute(command);
-    return new ResponseEntity<>(OrderResponse.fromDomain(order), HttpStatus.CREATED);
+    OrderResponse response = OrderResponse.fromDomain(order);
+    orderNotificationService.notifyOrderCreated(response);
+    return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
 
   @Operation(
@@ -146,7 +149,9 @@ public class OrderController {
   @PutMapping("/prepare")
   public ResponseEntity<OrderResponse> prepareNextOrder() {
     Order order = preparationUseCase.processNextOrder();
-    return ResponseEntity.ok(OrderResponse.fromDomain(order));
+    OrderResponse response = OrderResponse.fromDomain(order);
+    orderNotificationService.notifyOrderPreparing(response);
+    return ResponseEntity.ok(response);
   }
 
   @Operation(
@@ -164,7 +169,9 @@ public class OrderController {
   @PutMapping("/{id}/ready")
   public ResponseEntity<OrderResponse> markOrderAsReady(@PathVariable Long id) {
     Order order = markAsReadyUseCase.markAsReady(id);
-    return ResponseEntity.ok(OrderResponse.fromDomain(order));
+    OrderResponse response = OrderResponse.fromDomain(order);
+    orderNotificationService.notifyOrderReady(response);
+    return ResponseEntity.ok(response);
   }
 
   @Operation(

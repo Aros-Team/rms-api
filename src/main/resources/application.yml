@@ -1,50 +1,52 @@
+server:
+  address: 0.0.0.0
+  port: 8080
+
+spring:
+  profiles:
+    active: ${APP_ENV}
+
 app:
-  version: 0.2.9
-  env: ${APP_ENV}
-  admin:
-    email: ${ADMIN_EMAIL:}
-    dummy-email: ${DUMMY_EMAIL:}
+  version: 0.3.2
   jwt:
     issuer: rms-api
     expiration-minutes: 60
-    public-key: ${JWT_PUBLIC_KEY:}
-    private-key: ${JWT_PRIVATE_KEY:}
+    public-key: ${JWT_PUBLIC_KEY} 
+    private-key: ${JWT_PRIVATE_KEY} 
   email:
     base-url: ${MAIL_URL}
 
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://127.0.0.1:4200}
-
-spring:
-  application:
-    name: rms
-  profiles:
-    active: ${APP_ENV}
-  jpa:
-    hibernate:
-      ddl-auto: none
-    open-in-view: false
-    show-sql: false
-    properties:
-      hibernate:
-        connection:
-          handling_mode: DELAYED_ACQUISITION_AND_RELEASE_AFTER_TRANSACTION
-  flyway:
-    enabled: true
-    baseline-on-migrate: true
-    validate-on-migrate: false
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,prometheus,info
+      base-path: /
+      path-mapping:
+        prometheus: metrics
   endpoint:
-    health:
-      show-details: always
-      probes:
-        enabled: true
+    prometheus:
+      enabled: true
   health:
     db:
       enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    web:
+      server:
+        enabled: true
+    tags:
+      application: rms
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 2000ms, 3000ms
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
 

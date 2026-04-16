@@ -1,6 +1,7 @@
 /* (C) 2026 */
 package aros.services.rms.core.order.application.service;
 
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.input.DeliveryUseCase;
@@ -24,11 +25,15 @@ public class DeliveryService implements DeliveryUseCase {
   private static final org.slf4j.Logger log = LoggerFactory.getLogger(DeliveryService.class);
   private final OrderRepositoryPort orderRepositoryPort;
   private final TableRepositoryPort tableRepositoryPort;
+  private final BusinessMetricsPort metricsPort;
 
   public DeliveryService(
-      OrderRepositoryPort orderRepositoryPort, TableRepositoryPort tableRepositoryPort) {
+      OrderRepositoryPort orderRepositoryPort,
+      TableRepositoryPort tableRepositoryPort,
+      BusinessMetricsPort metricsPort) {
     this.orderRepositoryPort = orderRepositoryPort;
     this.tableRepositoryPort = tableRepositoryPort;
+    this.metricsPort = metricsPort;
   }
 
   /** {@inheritDoc} Cambia el estado de READY a DELIVERED y libera la mesa. */
@@ -56,6 +61,8 @@ public class DeliveryService implements DeliveryUseCase {
       tableRepositoryPort.save(table);
     }
 
+    metricsPort.recordOrderStatusTransition("READY", "DELIVERED");
+    metricsPort.recordOrderDelivery();
     return savedOrder;
   }
 

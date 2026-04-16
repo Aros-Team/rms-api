@@ -1,10 +1,13 @@
 /* (C) 2026 */
 package aros.services.rms;
 
+import aros.services.rms.config.AppProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
+@EnableConfigurationProperties(AppProperties.class)
 public class App {
 
   public static void main(String[] args) {

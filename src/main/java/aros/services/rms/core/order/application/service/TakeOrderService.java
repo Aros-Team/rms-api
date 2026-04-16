@@ -1,7 +1,7 @@
 /* (C) 2026 */
 package aros.services.rms.core.order.application.service;
 
-import aros.services.rms.core.common.notification.port.output.NotificationPort;
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
@@ -34,16 +34,14 @@ import org.springframework.retry.annotation.Retryable;
  */
 public class TakeOrderService implements TakeOrderUseCase {
 
-  private static final String QUEUE_DESTINATION = "/topic/orders/created";
   private static final org.slf4j.Logger log = LoggerFactory.getLogger(TakeOrderService.class);
-
   private final OrderRepositoryPort orderRepositoryPort;
   private final TableRepositoryPort tableRepositoryPort;
   private final ProductRepositoryPort productRepositoryPort;
   private final ProductOptionRepositoryPort productOptionRepositoryPort;
   private final InventoryStockUseCase inventoryStockUseCase;
   private final InventoryMovementUseCase inventoryMovementUseCase;
-  private final NotificationPort notificationPort;
+  private final BusinessMetricsPort metricsPort;
 
   public TakeOrderService(
       OrderRepositoryPort orderRepositoryPort,
@@ -52,14 +50,14 @@ public class TakeOrderService implements TakeOrderUseCase {
       ProductOptionRepositoryPort productOptionRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
       InventoryMovementUseCase inventoryMovementUseCase,
-      NotificationPort notificationPort) {
+      BusinessMetricsPort metricsPort) {
     this.orderRepositoryPort = orderRepositoryPort;
     this.tableRepositoryPort = tableRepositoryPort;
     this.productRepositoryPort = productRepositoryPort;
     this.productOptionRepositoryPort = productOptionRepositoryPort;
     this.inventoryStockUseCase = inventoryStockUseCase;
     this.inventoryMovementUseCase = inventoryMovementUseCase;
-    this.notificationPort = notificationPort;
+    this.metricsPort = metricsPort;
   }
 
   /**
@@ -152,15 +150,13 @@ public class TakeOrderService implements TakeOrderUseCase {
 
       // Deduct inventory after order is saved
       inventoryMovementUseCase.deductForOrder(savedOrder.getId(), savedOrder.getDetails());
-
-      // Publish order creation notification
-      notificationPort.notify(QUEUE_DESTINATION, savedOrder);
-      log.info("Order created: id={}, destination={}", savedOrder.getId(), QUEUE_DESTINATION);
+      metricsPort.recordOrderCreated(true);
 
       return savedOrder;
     } catch (Exception e) {
       table.setStatus(TableStatus.AVAILABLE);
       tableRepositoryPort.save(table);
+      metricsPort.recordOrderCreated(false);
       throw e;
     }
   }
