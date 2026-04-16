@@ -3,11 +3,13 @@ package aros.services.rms.infraestructure.inventory.config;
 
 import aros.services.rms.core.inventory.application.service.InventoryMovementService;
 import aros.services.rms.core.inventory.application.service.InventoryStockService;
+import aros.services.rms.core.inventory.application.service.TransferInventoryService;
 import aros.services.rms.core.inventory.port.output.InventoryMovementRepositoryPort;
 import aros.services.rms.core.inventory.port.output.InventoryStockRepositoryPort;
 import aros.services.rms.core.inventory.port.output.OptionRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.StorageLocationRepositoryPort;
+import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -52,6 +54,23 @@ public class InventoryConfigBeans {
     return new InventoryMovementService(
         productRecipeRepositoryPort,
         optionRecipeRepositoryPort,
+        inventoryStockRepositoryPort,
+        inventoryMovementRepositoryPort,
+        storageLocationRepositoryPort);
+  }
+
+  /**
+   * Registers the core transfer inventory use case impl as a bean. Transaction boundaries are
+   * managed by the controller's @Transactional annotation.
+   */
+  @Bean
+  public TransferInventoryService transferInventoryUseCase(
+      SupplyVariantRepositoryPort supplyVariantRepositoryPort,
+      InventoryStockRepositoryPort inventoryStockRepositoryPort,
+      InventoryMovementRepositoryPort inventoryMovementRepositoryPort,
+      StorageLocationRepositoryPort storageLocationRepositoryPort) {
+    return new TransferInventoryService(
+        supplyVariantRepositoryPort,
         inventoryStockRepositoryPort,
         inventoryMovementRepositoryPort,
         storageLocationRepositoryPort);
