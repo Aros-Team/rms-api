@@ -18,15 +18,10 @@ import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
-import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataAccessException;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Recover;
-import org.springframework.retry.annotation.Retryable;
 
 /**
  * Implementación del caso de uso para crear órdenes. Valida mesa disponible y opciones de
@@ -65,10 +60,6 @@ public class TakeOrderService implements TakeOrderUseCase {
    * mesa.
    */
   @Override
-  @Retryable(
-      retryFor = {DataAccessException.class},
-      maxAttempts = 3,
-      backoff = @Backoff(delay = 1000))
   public Order execute(TakeOrderCommand command) {
     Table table =
         tableRepositoryPort
@@ -159,14 +150,5 @@ public class TakeOrderService implements TakeOrderUseCase {
       metricsPort.recordOrderCreated(false);
       throw e;
     }
-  }
-
-  @Recover
-  public Order recoverExecute(DataAccessException e, TakeOrderCommand command) {
-    log.warn(
-        "BD no disponible - fallback para execute(tableId={}): {}",
-        command.getTableId(),
-        e.getMessage());
-    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 }

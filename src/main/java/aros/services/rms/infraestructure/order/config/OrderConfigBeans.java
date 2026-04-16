@@ -25,12 +25,19 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Configuración de beans para el módulo de órdenes. Registra todos los casos de uso relacionados
  * con gestión de órdenes.
+ *
+ * <p>Core use case implementations are registered as named beans (no @Transactional). The
+ * transactional wrappers are annotated with @Primary so Spring injects them wherever the use case
+ * ports are required.
  */
 @Configuration
 public class OrderConfigBeans {
 
-  /** Crea bean para tomar nuevas órdenes. */
-  @Bean
+  /**
+   * Registers the core take order use case impl as a named bean. It has no @Transactional —
+   * transaction boundaries are managed by TakeOrderTransactionalService.
+   */
+  @Bean("takeOrderUseCaseImpl")
   public TakeOrderService takeOrderUseCaseImpl(
       OrderRepositoryPort orderRepositoryPort,
       TableRepositoryPort tableRepositoryPort,

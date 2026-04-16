@@ -60,8 +60,11 @@ public class WebSocketNotificationAdapter implements NotificationPort {
         String eventType = extractEventType(destination);
         nativeWebSocketHandler.broadcastOrderUpdate(eventType, payload);
       } catch (Exception e) {
-        log.error("Failed to broadcast to native WebSocket clients: destination={}, error={}",
-                  destination, e.getMessage(), e);
+        log.error(
+            "Failed to broadcast to native WebSocket clients: destination={}, error={}",
+            destination,
+            e.getMessage(),
+            e);
       }
     }
   }

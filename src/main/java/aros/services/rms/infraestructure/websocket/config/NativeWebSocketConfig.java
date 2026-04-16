@@ -37,7 +37,8 @@ public class NativeWebSocketConfig implements WebSocketConfigurer {
             ? new String[] {"https://rms.aros.services"}
             : new String[] {"http://localhost:*", "http://127.0.0.1:*"};
 
-    registry.addHandler(nativeWebSocketHandler, "/ws-native")
+    registry
+        .addHandler(nativeWebSocketHandler, "/ws-native")
         .setAllowedOriginPatterns(allowedOrigins);
   }
 }

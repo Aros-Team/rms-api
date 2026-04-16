@@ -3,7 +3,6 @@ package aros.services.rms.infraestructure.inventory.config;
 
 import aros.services.rms.core.inventory.application.service.InventoryMovementService;
 import aros.services.rms.core.inventory.application.service.InventoryStockService;
-import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.inventory.port.output.InventoryMovementRepositoryPort;
 import aros.services.rms.core.inventory.port.output.InventoryStockRepositoryPort;
 import aros.services.rms.core.inventory.port.output.OptionRecipeRepositoryPort;
@@ -15,16 +14,19 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Configuration of beans for the inventory module.
  *
- * <p>InventoryMovementUseCaseImpl is registered as a plain bean (no @Transactional). The
- * transactional wrapper is InventoryMovementService, which is annotated with @Primary so Spring
- * injects it wherever InventoryMovementUseCase is required.
+ * <p>Core use case implementations are registered as named beans (no @Transactional). The
+ * transactional wrappers are annotated with @Primary so Spring injects them wherever the use case
+ * ports are required.
  */
 @Configuration
 public class InventoryConfigBeans {
 
-  /** Creates bean for inventory stock use case. */
-  @Bean
-  public InventoryStockUseCase inventoryStockUseCase(
+  /**
+   * Registers the core inventory stock use case impl as a named bean. It has no @Transactional —
+   * transaction boundaries are managed by InventoryStockTransactionalService.
+   */
+  @Bean("inventoryStockUseCaseImpl")
+  public InventoryStockService inventoryStockUseCaseImpl(
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
       OptionRecipeRepositoryPort optionRecipeRepositoryPort,
       InventoryStockRepositoryPort inventoryStockRepositoryPort,

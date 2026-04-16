@@ -2,6 +2,8 @@
 package aros.services.rms.infraestructure.websocket.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.concurrent.CopyOnWriteArraySet;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -9,14 +11,11 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.io.IOException;
-import java.util.concurrent.CopyOnWriteArraySet;
-
 /**
  * Handler para conexiones WebSocket nativas sin STOMP.
  *
- * <p>Permite que clientes que no usan STOMP puedan conectarse directamente vía WebSocket
- * y suscribirse a notificaciones de órdenes. Los mensajes se envían en formato JSON simple.
+ * <p>Permite que clientes que no usan STOMP puedan conectarse directamente vía WebSocket y
+ * suscribirse a notificaciones de órdenes. Los mensajes se envían en formato JSON simple.
  */
 @Slf4j
 @Component
@@ -35,10 +34,12 @@ public class NativeWebSocketHandler extends TextWebSocketHandler {
   @Override
   protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
     String payload = message.getPayload();
-    log.debug("Mensaje recibido en WebSocket nativo: sessionId={}, payload={}", session.getId(), payload);
+    log.debug(
+        "Mensaje recibido en WebSocket nativo: sessionId={}, payload={}", session.getId(), payload);
 
     // Por ahora, solo logueamos. En el futuro podríamos implementar comandos de suscripción
-    session.sendMessage(new TextMessage("{\"type\":\"ack\",\"message\":\"Connected to native WebSocket\"}"));
+    session.sendMessage(
+        new TextMessage("{\"type\":\"ack\",\"message\":\"Connected to native WebSocket\"}"));
   }
 
   @Override
@@ -48,8 +49,8 @@ public class NativeWebSocketHandler extends TextWebSocketHandler {
   }
 
   /**
-   * Envía una notificación a todos los clientes WebSocket nativos conectados.
-   * Este método sería llamado desde los use cases.
+   * Envía una notificación a todos los clientes WebSocket nativos conectados. Este método sería
+   * llamado desde los use cases.
    */
   public void broadcastOrderUpdate(String eventType, Object orderData) {
     // TODO: Implementar broadcasting a todas las sesiones conectadas
@@ -67,7 +68,8 @@ public class NativeWebSocketHandler extends TextWebSocketHandler {
         try {
           session.sendMessage(new TextMessage(message));
         } catch (IOException e) {
-          log.error("Error enviando mensaje a la sesión WebSocket: sessionId={}", session.getId(), e);
+          log.error(
+              "Error enviando mensaje a la sesión WebSocket: sessionId={}", session.getId(), e);
         }
       }
     }

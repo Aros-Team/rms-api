@@ -15,11 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /** Implementation of inventory stock availability checks. */
-@Service
 @RequiredArgsConstructor
 public class InventoryStockService implements InventoryStockUseCase {
 
@@ -29,7 +26,6 @@ public class InventoryStockService implements InventoryStockUseCase {
   private final StorageLocationRepositoryPort storageLocationRepositoryPort;
 
   @Override
-  @Transactional(readOnly = true)
   public boolean isAvailable(Long productId, List<Long> selectedOptionIds) {
     // Get product recipes
     List<ProductRecipe> productRecipes = productRecipeRepositoryPort.findByProductId(productId);
