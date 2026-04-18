@@ -5,6 +5,9 @@ server:
 spring:
   profiles:
     active: ${APP_ENV}
+  threads:
+    virtual:
+      enabled: true
 
 app:
   version: 0.3.2

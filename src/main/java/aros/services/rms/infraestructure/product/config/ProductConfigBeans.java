@@ -10,7 +10,7 @@ import aros.services.rms.core.inventory.port.output.OptionRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import aros.services.rms.core.product.application.service.ProductOptionService;
-import aros.services.rms.core.product.application.service.ProductUseService;
+import aros.services.rms.core.product.application.service.ProductService;
 import aros.services.rms.core.product.port.input.ProductOptionUseCase;
 import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
@@ -35,7 +35,7 @@ public class ProductConfigBeans {
       InventoryStockUseCase inventoryStockUseCase,
       ProductOptionRepositoryPort productOptionRepositoryPort,
       Logger logger) {
-    return new ProductUseService(
+    return new ProductService(
         productRepositoryPort,
         areaRepositoryPort,
         categoryRepositoryPort,
