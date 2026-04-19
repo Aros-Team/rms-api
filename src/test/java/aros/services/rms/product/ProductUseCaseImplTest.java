@@ -18,7 +18,7 @@ import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
-import aros.services.rms.core.product.application.service.ProductUseService;
+import aros.services.rms.core.product.application.service.ProductService;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
@@ -42,12 +42,12 @@ class ProductUseCaseImplTest {
   @Mock private InventoryStockUseCase inventoryStockUseCase;
   @Mock private ProductOptionRepositoryPort productOptionRepositoryPort;
 
-  private ProductUseService productUseCase;
+  private ProductService productUseCase;
 
   @BeforeEach
   void setUp() {
     productUseCase =
-        new ProductUseService(
+        new ProductService(
             productRepositoryPort,
             areaRepositoryPort,
             categoryRepositoryPort,

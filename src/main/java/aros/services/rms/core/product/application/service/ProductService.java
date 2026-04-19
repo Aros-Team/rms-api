@@ -30,9 +30,9 @@ import org.springframework.retry.annotation.Retryable;
  * Implementation of product management use cases. Validates area and category existence before
  * creating/updating products. Supports logical deletion via active flag.
  */
-public class ProductUseService implements ProductUseCase {
+public class ProductService implements ProductUseCase {
 
-  private static final org.slf4j.Logger log = LoggerFactory.getLogger(ProductUseService.class);
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(ProductService.class);
   private final ProductRepositoryPort productRepositoryPort;
   private final AreaRepositoryPort areaRepositoryPort;
   private final CategoryRepositoryPort categoryRepositoryPort;
@@ -42,7 +42,7 @@ public class ProductUseService implements ProductUseCase {
   private final ProductOptionRepositoryPort productOptionRepositoryPort;
   private final Logger logger;
 
-  public ProductUseService(
+  public ProductService(
       ProductRepositoryPort productRepositoryPort,
       AreaRepositoryPort areaRepositoryPort,
       CategoryRepositoryPort categoryRepositoryPort,

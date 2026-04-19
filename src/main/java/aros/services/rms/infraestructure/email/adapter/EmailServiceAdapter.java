@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -33,7 +34,20 @@ public class EmailServiceAdapter implements EmailServicePort {
   }
 
   @Override
+  @Async("virtualThreadExecutor")
   public void send(Email email) {
+    try {
+      sendEmailInternal(email);
+    } catch (Exception e) {
+      log.error(
+          "Email send failed silently: to={}, subject={}, error={}",
+          email.getTo(),
+          email.getSubject(),
+          e.getMessage());
+    }
+  }
+
+  private void sendEmailInternal(Email email) {
     if (dummyEmail != null && !dummyEmail.isBlank() && dummyEmail.equalsIgnoreCase(email.getTo())) {
       log.warn(
           "Email not sent - recipient matches DUMMY_EMAIL (development mode). to={}, template={}, data={}",
