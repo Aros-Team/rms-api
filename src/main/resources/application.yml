@@ -7,7 +7,7 @@ spring:
     active: ${APP_ENV}
 
 app:
-  version: 0.3.2
+  version: 0.3.3
   jwt:
     issuer: rms-api
     expiration-minutes: 60

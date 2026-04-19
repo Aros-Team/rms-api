@@ -1,5 +1,6 @@
 services:
   db:
+    container_name: rms-dev-db
     image: mysql:8.0
     restart: always
     environment:
@@ -9,3 +10,13 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
     ports:
       - "3306:3306"
+
+  mail:
+    container_name: rms-dev-mail
+    image: spalaxdev/amail:1.2
+    restart: always
+    ports:
+      - "8001:8000"
+    environment:
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      DOMAIN: ${DOMAIN}
