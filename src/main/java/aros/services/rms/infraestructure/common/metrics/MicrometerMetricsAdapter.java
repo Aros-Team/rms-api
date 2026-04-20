@@ -7,11 +7,14 @@ import io.micrometer.core.instrument.Timer;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class MicrometerMetricsAdapter implements BusinessMetricsPort {
 
   private static final String METRIC_PREFIX = "rms_";
+  private static final Logger log = LoggerFactory.getLogger(MicrometerMetricsAdapter.class);
 
   private final MeterRegistry registry;
 
@@ -26,6 +29,16 @@ public class MicrometerMetricsAdapter implements BusinessMetricsPort {
   private final Counter orderDeliveredCounter;
   private final Timer kitchenLatencyTimer;
   private final Timer notificationLatencyTimer;
+  private final Counter accountLockoutCounter;
+  private final Counter insufficientStockCounter;
+  private final Counter inventoryDeductionSuccessCounter;
+  private final Counter inventoryDeductionFailureCounter;
+  private final Counter purchaseRegisteredSuccessCounter;
+  private final Counter purchaseRegisteredFailureCounter;
+  private final Counter fallbackExecutedCounter;
+  private final Counter fallbackFailedCounter;
+  private final Counter inventoryReversionErrorCounter;
+  private final Counter purchaseSyncErrorCounter;
 
   public MicrometerMetricsAdapter(MeterRegistry registry) {
     this.registry = registry;
@@ -91,6 +104,62 @@ public class MicrometerMetricsAdapter implements BusinessMetricsPort {
         Timer.builder(METRIC_PREFIX + "notification_latency_seconds")
             .description("Time from kitchen start to order ready")
             .register(registry);
+
+    this.accountLockoutCounter =
+        Counter.builder(METRIC_PREFIX + "auth_lockout_total")
+            .description("Account lockouts due to failed login attempts")
+            .register(registry);
+
+    this.insufficientStockCounter =
+        Counter.builder(METRIC_PREFIX + "inventory_insufficient_stock_total")
+            .description("Insufficient stock exceptions")
+            .register(registry);
+
+    this.inventoryDeductionSuccessCounter =
+        Counter.builder(METRIC_PREFIX + "inventory_deduction_total")
+            .tag("status", "success")
+            .description("Successful inventory deductions")
+            .register(registry);
+
+    this.inventoryDeductionFailureCounter =
+        Counter.builder(METRIC_PREFIX + "inventory_deduction_total")
+            .tag("status", "failure")
+            .description("Failed inventory deductions")
+            .register(registry);
+
+    this.purchaseRegisteredSuccessCounter =
+        Counter.builder(METRIC_PREFIX + "purchase_registered_total")
+            .tag("status", "success")
+            .description("Successful purchase registrations")
+            .register(registry);
+
+    this.purchaseRegisteredFailureCounter =
+        Counter.builder(METRIC_PREFIX + "purchase_registered_total")
+            .tag("status", "failure")
+            .description("Failed purchase registrations")
+            .register(registry);
+
+    this.fallbackExecutedCounter =
+        Counter.builder(METRIC_PREFIX + "inventory_fallback_total")
+            .tag("status", "executed")
+            .description("Inventory fallback executions (Cocina to Bodega)")
+            .register(registry);
+
+    this.fallbackFailedCounter =
+        Counter.builder(METRIC_PREFIX + "inventory_fallback_total")
+            .tag("status", "failed")
+            .description("Failed inventory fallback executions")
+            .register(registry);
+
+    this.inventoryReversionErrorCounter =
+        Counter.builder(METRIC_PREFIX + "inventory_reversion_errors_total")
+            .description("Inventory reversions errors on order cancellation")
+            .register(registry);
+
+    this.purchaseSyncErrorCounter =
+        Counter.builder(METRIC_PREFIX + "purchase_sync_errors_total")
+            .description("Purchase order sync errors")
+            .register(registry);
   }
 
   @Override
@@ -112,9 +181,12 @@ public class MicrometerMetricsAdapter implements BusinessMetricsPort {
 
   @Override
   public void recordOrderCreated(boolean success) {
+    log.info("recordOrderCreated called with success={}", success);
     if (success) {
+      log.info("Incrementing orderCreatedSuccessCounter");
       orderCreatedSuccessCounter.increment();
     } else {
+      log.info("Incrementing orderCreatedFailureCounter");
       orderCreatedFailureCounter.increment();
     }
   }
@@ -155,5 +227,53 @@ public class MicrometerMetricsAdapter implements BusinessMetricsPort {
       long orderId, LocalDateTime preparationStartedAt, LocalDateTime readyAt) {
     Duration duration = Duration.between(preparationStartedAt, readyAt);
     notificationLatencyTimer.record(duration);
+  }
+
+  @Override
+  public void recordAccountLockout() {
+    accountLockoutCounter.increment();
+  }
+
+  @Override
+  public void recordInsufficientStock() {
+    insufficientStockCounter.increment();
+  }
+
+  @Override
+  public void recordInventoryDeduction(boolean success) {
+    if (success) {
+      inventoryDeductionSuccessCounter.increment();
+    } else {
+      inventoryDeductionFailureCounter.increment();
+    }
+  }
+
+  @Override
+  public void recordPurchaseRegistered(boolean success) {
+    if (success) {
+      purchaseRegisteredSuccessCounter.increment();
+    } else {
+      purchaseRegisteredFailureCounter.increment();
+    }
+  }
+
+  @Override
+  public void recordFallbackExecuted() {
+    fallbackExecutedCounter.increment();
+  }
+
+  @Override
+  public void recordFallbackFailed() {
+    fallbackFailedCounter.increment();
+  }
+
+  @Override
+  public void recordInventoryReversionError() {
+    inventoryReversionErrorCounter.increment();
+  }
+
+  @Override
+  public void recordPurchaseOrderSyncError() {
+    purchaseSyncErrorCounter.increment();
   }
 }

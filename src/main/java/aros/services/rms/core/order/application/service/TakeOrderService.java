@@ -61,6 +61,7 @@ public class TakeOrderService implements TakeOrderUseCase {
    */
   @Override
   public Order execute(TakeOrderCommand command) {
+    log.debug("TakeOrderService.execute called for table {}", command.getTableId());
     Table table =
         tableRepositoryPort
             .findById(command.getTableId())
@@ -130,6 +131,7 @@ public class TakeOrderService implements TakeOrderUseCase {
                 : List.of();
 
         if (!inventoryStockUseCase.isAvailable(detail.getProduct().getId(), selectedOptionIds)) {
+          metricsPort.recordInsufficientStock();
           throw new InsufficientStockException(
               detail.getProduct().getId(),
               aros.services.rms.core.inventory.domain.MovementType.DEDUCTION,
@@ -140,14 +142,22 @@ public class TakeOrderService implements TakeOrderUseCase {
       Order savedOrder = orderRepositoryPort.save(order);
 
       // Deduct inventory after order is saved
-      inventoryMovementUseCase.deductForOrder(savedOrder.getId(), savedOrder.getDetails());
+      try {
+        inventoryMovementUseCase.deductForOrder(savedOrder.getId(), savedOrder.getDetails());
+        metricsPort.recordInventoryDeduction(true);
+      } catch (InsufficientStockException e) {
+        metricsPort.recordInventoryDeduction(false);
+        throw e;
+      }
       metricsPort.recordOrderCreated(true);
+      log.info("METRICS: recordOrderCreated(true) called for table {}", command.getTableId());
 
       return savedOrder;
     } catch (Exception e) {
       table.setStatus(TableStatus.AVAILABLE);
       tableRepositoryPort.save(table);
       metricsPort.recordOrderCreated(false);
+      log.warn("METRICS: recordOrderCreated(false) called for table {}, reason: {}", command.getTableId(), e.getMessage());
       throw e;
     }
   }

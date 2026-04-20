@@ -21,4 +21,20 @@ public interface BusinessMetricsPort {
 
   void recordNotificationLatency(
       long orderId, LocalDateTime preparationStartedAt, LocalDateTime readyAt);
+
+  void recordAccountLockout();
+
+  void recordInsufficientStock();
+
+  void recordInventoryDeduction(boolean success);
+
+  void recordPurchaseRegistered(boolean success);
+
+  void recordFallbackExecuted();
+
+  void recordFallbackFailed();
+
+  void recordInventoryReversionError();
+
+  void recordPurchaseOrderSyncError();
 }

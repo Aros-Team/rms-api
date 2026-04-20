@@ -1,9 +1,9 @@
 /* (C) 2026 */
 package aros.services.rms.infraestructure.purchase.config;
 
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
 import aros.services.rms.core.purchase.port.input.RegisterPurchaseOrderUseCase;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +15,16 @@ import org.springframework.transaction.annotation.Transactional;
  * is rolled back.
  */
 @Service
-@RequiredArgsConstructor
 public class RegisterPurchaseOrderService {
 
   private final RegisterPurchaseOrderUseCase registerPurchaseOrderUseCase;
+  private final BusinessMetricsPort metricsPort;
+
+  public RegisterPurchaseOrderService(
+      RegisterPurchaseOrderUseCase registerPurchaseOrderUseCase, BusinessMetricsPort metricsPort) {
+    this.registerPurchaseOrderUseCase = registerPurchaseOrderUseCase;
+    this.metricsPort = metricsPort;
+  }
 
   /**
    * Registers a purchase order atomically: persists the order, updates Bodega stock and creates
@@ -29,6 +35,14 @@ public class RegisterPurchaseOrderService {
    */
   @Transactional
   public PurchaseOrder register(PurchaseOrder order) {
-    return registerPurchaseOrderUseCase.register(order);
+    try {
+      PurchaseOrder result = registerPurchaseOrderUseCase.register(order);
+      metricsPort.recordPurchaseRegistered(true);
+      return result;
+    } catch (Exception e) {
+      metricsPort.recordPurchaseRegistered(false);
+      metricsPort.recordPurchaseOrderSyncError();
+      throw e;
+    }
   }
 }

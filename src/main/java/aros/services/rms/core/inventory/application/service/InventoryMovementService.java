@@ -1,6 +1,7 @@
 /* (C) 2026 */
 package aros.services.rms.core.inventory.application.service;
 
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.application.exception.StorageLocationNotFoundException;
 import aros.services.rms.core.inventory.domain.InventoryMovement;
@@ -36,18 +37,21 @@ public class InventoryMovementService implements InventoryMovementUseCase {
   private final InventoryStockRepositoryPort inventoryStockRepositoryPort;
   private final InventoryMovementRepositoryPort inventoryMovementRepositoryPort;
   private final StorageLocationRepositoryPort storageLocationRepositoryPort;
+  private final BusinessMetricsPort metricsPort;
 
   public InventoryMovementService(
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
       OptionRecipeRepositoryPort optionRecipeRepositoryPort,
       InventoryStockRepositoryPort inventoryStockRepositoryPort,
       InventoryMovementRepositoryPort inventoryMovementRepositoryPort,
-      StorageLocationRepositoryPort storageLocationRepositoryPort) {
+      StorageLocationRepositoryPort storageLocationRepositoryPort,
+      BusinessMetricsPort metricsPort) {
     this.productRecipeRepositoryPort = productRecipeRepositoryPort;
     this.optionRecipeRepositoryPort = optionRecipeRepositoryPort;
     this.inventoryStockRepositoryPort = inventoryStockRepositoryPort;
     this.inventoryMovementRepositoryPort = inventoryMovementRepositoryPort;
     this.storageLocationRepositoryPort = storageLocationRepositoryPort;
+    this.metricsPort = metricsPort;
   }
 
   /**
@@ -78,9 +82,11 @@ public class InventoryMovementService implements InventoryMovementUseCase {
       if (remaining.compareTo(BigDecimal.ZERO) > 0) {
         BigDecimal bodegaDeducted = deductFromLocation(variantId, bodegaId, remaining);
         if (bodegaDeducted.compareTo(remaining) < 0) {
+          metricsPort.recordFallbackFailed();
           throw new InsufficientStockException(
               variantId, required, cocinaDeducted.add(bodegaDeducted));
         }
+        metricsPort.recordFallbackExecuted();
       }
 
       // Register movements only for quantities actually deducted

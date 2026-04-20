@@ -25,13 +25,13 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(rate(rms_auth_login_total{application=\"rms\"}[5m])) * 60",
-          "legendFormat": "Logins/min",
+          "expr": "sum(rate(rms_purchase_registered_total{application=\"rms\"}[5m])) * 60",
+          "legendFormat": "Compras/min",
           "refId": "A"
         }
       ],
-      "title": "Logins Totales",
-      "description": "Tasa total de intentos de login por minuto",
+      "title": "Compras Registradas/min",
+      "description": "Tasa de compras registradas por minuto",
       "type": "stat",
       "fieldConfig": {
         "defaults": {
@@ -58,13 +58,13 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(rate(rms_auth_login_total{application=\"rms\", status=\"success\"}[5m])) / sum(rate(rms_auth_login_total{application=\"rms\"}[5m])) * 100",
+          "expr": "sum(rate(rms_purchase_registered_total{application=\"rms\", status=\"success\"}[5m])) / sum(rate(rms_purchase_registered_total{application=\"rms\"}[5m])) * 100",
           "legendFormat": "% Éxito",
           "refId": "A"
         }
       ],
-      "title": "Ratio Éxito Login",
-      "description": "Porcentaje de logins exitosos sobre el total de intentos",
+      "title": "Ratio Éxito Compras %",
+      "description": "Porcentaje de compras registradas exitosamente",
       "type": "gauge",
       "fieldConfig": {
         "defaults": {
@@ -74,14 +74,14 @@
             "steps": [
               { "color": "red", "value": null },
               { "color": "yellow", "value": 70 },
-              { "color": "green", "value": 85 }
+              { "color": "green", "value": 90 }
             ]
           }
         }
       }
     },
     {
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
       "id": 3,
       "options": {
         "legend": { "displayMode": "table", "placement": "right" },
@@ -90,13 +90,13 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum by (status) (rate(rms_auth_login_total{application=\"rms\"}[5m])) * 60",
-          "legendFormat": "{{status}}",
+          "expr": "sum(rate(rms_inventory_deduction_total{application=\"rms\"}[5m])) * 60",
+          "legendFormat": "Deducciones/min",
           "refId": "A"
         }
       ],
-      "title": "Logins por Status",
-      "description": "Tendencia de logins exitosos, fallidos y TFA requerido",
+      "title": "Deducciones de Stock/min",
+      "description": "Tasa de deducciones de inventario por minuto",
       "type": "timeseries",
       "fieldConfig": {
         "defaults": {
@@ -105,7 +105,7 @@
       }
     },
     {
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
       "id": 4,
       "options": {
         "legend": { "displayMode": "table", "placement": "right" },
@@ -114,13 +114,13 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum by (type) (rate(rms_password_reset_total{application=\"rms\"}[5m])) * 60",
-          "legendFormat": "{{type}}",
+          "expr": "sum(rate(rms_inventory_insufficient_stock_total{application=\"rms\"}[5m])) * 60",
+          "legendFormat": "Alertas/min",
           "refId": "A"
         }
       ],
-      "title": "Password Reset",
-      "description": "Tendencia de solicitudes y completaciones de reseteo de password",
+      "title": "Alertas Stock Insuficiente",
+      "description": "Alertas de stock insuficiente por minuto",
       "type": "timeseries",
       "fieldConfig": {
         "defaults": {
@@ -132,12 +132,12 @@
   "refresh": "30s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["rms", "auth"],
+  "tags": ["rms", "inventario"],
   "templating": { "list": [] },
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "",
-  "title": "RMS - Autenticación",
-  "uid": "rms-auth",
+  "title": "RMS - Inventario",
+  "uid": "rms-inventario",
   "version": 1
 }

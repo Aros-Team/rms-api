@@ -25,7 +25,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(rate(rms_order_delivered_total{application=\"rms\"}[5m])) * 60",
+          "expr": "sum(rate(rms_order_delivered_total[5m])) * 60",
           "legendFormat": "Entregadas/min",
           "refId": "A"
         }
@@ -61,7 +61,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum(rate(rms_order_delivered_total{application=\"rms\"}[5m])) / sum(rate(rms_order_created_total{application=\"rms\", status=\"success\"}[5m])) * 100",
+          "expr": "sum(rate(rms_order_delivered_total[5m])) / sum(rate(rms_order_created_total[5m])) * 100",
           "legendFormat": "% Éxito",
           "refId": "A"
         }
@@ -95,7 +95,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "sum by (to) (rate(rms_order_status_transition_total{application=\"rms\"}[5m])) * 60",
+          "expr": "sum by (to) (rate(rms_order_status_transition_total[5m])) * 60",
           "legendFormat": "{{to}}",
           "refId": "A"
         }
@@ -122,22 +122,22 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(rms_kitchen_latency_seconds_bucket{application=\"rms\"}[5m])))",
+          "expr": "histogram_quantile(0.50, rate(rms_kitchen_latency_seconds_bucket[5m]))",
           "legendFormat": "Cocina p50",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(rms_kitchen_latency_seconds_bucket{application=\"rms\"}[5m])))",
+          "expr": "histogram_quantile(0.95, rate(rms_kitchen_latency_seconds_bucket[5m]))",
           "legendFormat": "Cocina p95",
           "refId": "B"
         },
         {
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(rms_notification_latency_seconds_bucket{application=\"rms\"}[5m])))",
+          "expr": "histogram_quantile(0.50, rate(rms_notification_latency_seconds_bucket[5m]))",
           "legendFormat": "Notificación p50",
           "refId": "C"
         },
         {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(rms_notification_latency_seconds_bucket{application=\"rms\"}[5m])))",
+          "expr": "histogram_quantile(0.95, rate(rms_notification_latency_seconds_bucket[5m]))",
           "legendFormat": "Notificación p95",
           "refId": "D"
         }
@@ -148,6 +148,30 @@
       "fieldConfig": {
         "defaults": {
           "unit": "s"
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "id": 5,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right" },
+        "tooltip": { "mode": "multi" }
+      },
+      "pluginVersion": "10.0.0",
+      "targets": [
+        {
+          "expr": "sum(rate(rms_inventory_insufficient_stock_total[5m])) * 60",
+          "legendFormat": "Stock Insuficiente/min",
+          "refId": "A"
+        }
+      ],
+      "title": "Stock Insuficiente",
+      "description": "Alertas de stock insuficiente por minuto",
+      "type": "timeseries",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
         }
       }
     }

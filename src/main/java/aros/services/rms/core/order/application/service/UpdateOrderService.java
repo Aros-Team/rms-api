@@ -150,6 +150,7 @@ public class UpdateOrderService implements UpdateOrderUseCase {
               : List.of();
 
       if (!inventoryStockUseCase.isAvailable(detail.getProduct().getId(), selectedOptionIds)) {
+        metricsPort.recordInsufficientStock();
         throw new InsufficientStockException(
             detail.getProduct().getId(),
             aros.services.rms.core.inventory.domain.MovementType.DEDUCTION,
@@ -159,14 +160,25 @@ public class UpdateOrderService implements UpdateOrderUseCase {
 
     // Revert previous inventory deductions (return stock to locations)
     if (order.getDetails() != null && !order.getDetails().isEmpty()) {
-      inventoryMovementUseCase.revertDeductionsForOrder(order.getId(), order.getDetails());
+      try {
+        inventoryMovementUseCase.revertDeductionsForOrder(order.getId(), order.getDetails());
+      } catch (Exception e) {
+        metricsPort.recordInventoryReversionError();
+        throw e;
+      }
     }
 
     order.setDetails(newDetails);
     Order savedOrder = orderRepositoryPort.save(order);
 
     // Deduct inventory for new details
-    inventoryMovementUseCase.deductForOrder(savedOrder.getId(), savedOrder.getDetails());
+    try {
+      inventoryMovementUseCase.deductForOrder(savedOrder.getId(), savedOrder.getDetails());
+      metricsPort.recordInventoryDeduction(true);
+    } catch (InsufficientStockException e) {
+      metricsPort.recordInventoryDeduction(false);
+      throw e;
+    }
 
     return savedOrder;
   }
