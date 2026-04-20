@@ -5,6 +5,8 @@ import aros.services.rms.core.user.domain.UserRole;
 import aros.services.rms.core.user.domain.UserStatus;
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -34,8 +36,10 @@ public class UserEntity {
 
   private String phone;
 
+  @Enumerated(EnumType.STRING)
   private UserRole role;
 
+  @Enumerated(EnumType.STRING)
   private UserStatus status;
 
   @ManyToMany(fetch = FetchType.LAZY)
