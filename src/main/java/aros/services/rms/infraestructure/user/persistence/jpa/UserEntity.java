@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.user.persistence.jpa;
 import aros.services.rms.core.user.domain.UserRole;
 import aros.services.rms.core.user.domain.UserStatus;
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -15,6 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import java.util.List;
 
 @Entity
@@ -48,6 +50,9 @@ public class UserEntity {
       joinColumns = @JoinColumn(name = "user_id"),
       inverseJoinColumns = @JoinColumn(name = "area_id"))
   private List<Area> assignedAreas;
+
+  @Column(name = "deleted_at")
+  private Instant deletedAt;
 
   public Long getId() {
     return id;
@@ -127,5 +132,13 @@ public class UserEntity {
 
   public void setAssignedAreas(List<Area> assignedAreas) {
     this.assignedAreas = assignedAreas;
+  }
+
+  public Instant getDeletedAt() {
+    return deletedAt;
+  }
+
+  public void setDeletedAt(Instant deletedAt) {
+    this.deletedAt = deletedAt;
   }
 }

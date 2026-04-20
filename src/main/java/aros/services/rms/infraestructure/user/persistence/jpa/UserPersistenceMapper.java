@@ -36,6 +36,8 @@ public abstract class UserPersistenceMapper {
 
   @Mapping(source = "id.value", target = "id")
   @Mapping(source = "email.value", target = "email")
+  @Mapping(source = "status", target = "status")
+  @Mapping(source = "deletedAt", target = "deletedAt")
   @Mapping(source = "assignedAreas", target = "assignedAreas", qualifiedByName = "areaIdToEntity")
   public abstract UserEntity toEntity(User domain);
 

@@ -50,12 +50,16 @@ public class UserRepositoryAdapter implements UserRepositoryPort, AdminRepositor
 
   @Override
   public List<User> findAll() {
-    return this.internal.findAll().stream().map((u) -> userMapper.toDomain(u)).toList();
+    return this.internal.findAllByDeletedAtIsNull().stream()
+        .map((u) -> userMapper.toDomain(u))
+        .toList();
   }
 
   @Override
   public List<User> findByStatus(UserStatus status) {
-    return this.internal.findByStatus(status).stream().map((u) -> userMapper.toDomain(u)).toList();
+    return this.internal.findByStatusAndDeletedAtIsNull(status).stream()
+        .map((u) -> userMapper.toDomain(u))
+        .toList();
   }
 
   @Override

@@ -11,16 +11,17 @@ import org.springframework.data.jpa.repository.Query;
 public interface JpaUserRepository extends JpaRepository<UserEntity, Long> {
   Optional<UserEntity> findByEmail(String email);
 
-  @Query("SELECT u FROM UserEntity u LEFT JOIN FETCH u.assignedAreas WHERE u.email = :email")
+  @Query(
+      "SELECT u FROM UserEntity u LEFT JOIN FETCH u.assignedAreas WHERE u.email = :email AND u.deletedAt IS NULL")
   Optional<UserEntity> findByEmailWithAreas(String email);
 
   boolean existsByDocumentOrEmail(String document, String email);
 
   long countByRole(UserRole role);
 
-  List<UserEntity> findAll();
+  List<UserEntity> findAllByDeletedAtIsNull();
 
-  List<UserEntity> findByStatus(UserStatus status);
+  List<UserEntity> findByStatusAndDeletedAtIsNull(UserStatus status);
 
-  List<UserEntity> findByRoleAndStatus(UserRole role, UserStatus status);
+  List<UserEntity> findByRoleAndStatusAndDeletedAtIsNull(UserRole role, UserStatus status);
 }

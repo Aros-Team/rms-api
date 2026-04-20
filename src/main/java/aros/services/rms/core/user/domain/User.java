@@ -60,7 +60,8 @@ public class User {
     this.name = name;
   }
 
-  public void updateInfo(String name, String address, String phone) {
+  public void updateInfo(String document, String name, String address, String phone) {
+    this.document = document;
     this.name = name;
     this.address = address;
     this.phone = phone;
