@@ -23,7 +23,7 @@ public class UpdateUserService implements UpdateUserUseCase {
             .findById(new aros.services.rms.core.user.domain.UserId(userId))
             .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
 
-    user.updateInfo(info.name(), info.address(), info.phone());
+    user.updateInfo(info.document(), info.name(), info.address(), info.phone());
 
     if (!user.getEmail().value().equals(info.email().value())) {
       user.changeEmail(info.email());
