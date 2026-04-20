@@ -12,6 +12,7 @@ public record UserWithAreas(
     String address,
     String phone,
     UserRole role,
+    UserStatus status,
     List<Area> assignedAreas) {
   //
 }

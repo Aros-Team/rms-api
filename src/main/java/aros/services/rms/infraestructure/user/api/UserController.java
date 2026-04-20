@@ -1,12 +1,17 @@
 package aros.services.rms.infraestructure.user.api;
 
 import aros.services.rms.core.user.application.exception.UserAlreadyExistsException;
+import aros.services.rms.core.user.application.exception.UserNotFoundException;
 import aros.services.rms.core.user.port.input.ChangePasswordUseCase;
 import aros.services.rms.core.user.port.input.CreateUserUseCase;
+import aros.services.rms.core.user.port.input.DeleteUserUseCase;
 import aros.services.rms.core.user.port.input.GetAllUsersUseCase;
+import aros.services.rms.core.user.port.input.RetryUserEmailUseCase;
+import aros.services.rms.core.user.port.input.UpdateUserUseCase;
 import aros.services.rms.infraestructure.share.security.JustAccessToken;
 import aros.services.rms.infraestructure.share.security.JustAdminUser;
 import aros.services.rms.infraestructure.user.api.dto.ChangePasswordRequest;
+import aros.services.rms.infraestructure.user.api.dto.UpdateUserRequest;
 import aros.services.rms.infraestructure.user.api.dto.UserRegisterRequest;
 import aros.services.rms.infraestructure.user.api.dto.UserRegisterResponse;
 import aros.services.rms.infraestructure.user.api.dto.UserResponse;
@@ -18,7 +23,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +40,9 @@ public class UserController {
   private final CreateUserUseCase createUserUseCase;
   private final ChangePasswordUseCase changePasswordUseCase;
   private final GetAllUsersUseCase getAllUsersUseCase;
+  private final UpdateUserUseCase updateUserUseCase;
+  private final DeleteUserUseCase deleteUserUseCase;
+  private final RetryUserEmailUseCase retryUserEmailUseCase;
 
   @GetMapping
   @JustAdminUser
@@ -46,16 +56,46 @@ public class UserController {
   @JustAdminUser
   public ResponseEntity<UserRegisterResponse> register(
       @Valid @RequestBody UserRegisterRequest request) throws UserAlreadyExistsException {
-    log.info(
-        "Admin is creating a new user: document={}, email={}", request.document(), request.email());
+    log.info("Admin is creating a new user: document={}", request.document());
     var result = this.createUserUseCase.create(request.toCreateUserInfo());
-    log.info(
-        "User created successfully: id={}, email={}",
-        result.user().getId(),
-        result.user().getEmail().value());
+    log.info("User created: id={}, status={}", result.user().getId(), result.user().getStatus());
 
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(UserRegisterResponse.fromDomain(result.user(), result.rawPassword()));
+  }
+
+  @PutMapping("/{id}")
+  @JustAdminUser
+  public ResponseEntity<UserResponse> update(
+      @PathVariable Long id, @Valid @RequestBody UpdateUserRequest request)
+      throws UserNotFoundException {
+    log.info("Admin updating user: id={}", id);
+    var user = this.updateUserUseCase.update(id, request.toUpdateUserInfo());
+    log.info("User updated successfully: id={}", id);
+    return ResponseEntity.ok(UserResponse.fromDomain(user));
+  }
+
+  @DeleteMapping("/{id}")
+  @JustAdminUser
+  public ResponseEntity<Void> delete(@PathVariable Long id) throws UserNotFoundException {
+    log.info("Admin deleting user: id={}", id);
+    this.deleteUserUseCase.delete(id);
+    log.info("User deleted successfully: id={}", id);
+    return ResponseEntity.noContent().build();
+  }
+
+  @PostMapping("/{id}/retry-email")
+  @JustAdminUser
+  public ResponseEntity<Void> retryEmail(@PathVariable Long id) throws UserNotFoundException {
+    log.info("Admin retrying email for user: id={}", id);
+    boolean sent = this.retryUserEmailUseCase.retrySendRegistrationEmail(id);
+    if (sent) {
+      log.info("Email resent successfully: id={}", id);
+      return ResponseEntity.ok().build();
+    } else {
+      log.warn("Email retry failed: id={}", id);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
   }
 
   @PutMapping("/me/password")

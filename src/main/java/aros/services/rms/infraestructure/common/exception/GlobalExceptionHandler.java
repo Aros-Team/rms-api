@@ -253,6 +253,19 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
   }
 
+  @ExceptionHandler(aros.services.rms.core.user.application.exception.UserNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleUserNotFoundById(
+      aros.services.rms.core.user.application.exception.UserNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  @ExceptionHandler(
+      aros.services.rms.core.user.application.exception.UserAlreadyExistsException.class)
+  public ResponseEntity<ErrorResponse> handleUserAlreadyExists(
+      aros.services.rms.core.user.application.exception.UserAlreadyExistsException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
   @ExceptionHandler(JwtKeysMissingException.class)
   public ResponseEntity<ErrorResponse> handleJwtKeysMissing(JwtKeysMissingException e) {
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

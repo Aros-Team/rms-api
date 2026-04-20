@@ -22,6 +22,7 @@ public abstract class UserPersistenceMapper {
 
   @Mapping(source = "id", target = "id.value")
   @Mapping(source = "email", target = "email.value")
+  @Mapping(source = "status", target = "status")
   @Mapping(source = "assignedAreas", target = "assignedAreas", qualifiedByName = "entityToAreaId")
   @Mapping(target = "active", constant = "true")
   @Mapping(target = "deletedAt", ignore = true)
@@ -29,6 +30,7 @@ public abstract class UserPersistenceMapper {
 
   @Mapping(source = "id", target = "id.value")
   @Mapping(source = "email", target = "email.value")
+  @Mapping(source = "status", target = "status")
   @Mapping(source = "assignedAreas", target = "assignedAreas", qualifiedByName = "entityToArea")
   public abstract UserWithAreas toUserWithAreas(UserEntity entity);
 

@@ -45,6 +45,14 @@ public class EmailService
     this.emailPort.send(regEmail);
   }
 
+  public boolean sendRegistrationMailSync(UserEmail destination, String message) {
+    Email regEmail =
+        new Email(
+            destination.value(), "admin@aros.service", "notification", Map.of("message", message));
+
+    return this.emailPort.sendSync(regEmail);
+  }
+
   @Override
   public void sendPasswordResetEmail(UserEmail destination, String resetToken) {
     String resetLink = uiBaseUrl + "/reset-password?token=" + resetToken;

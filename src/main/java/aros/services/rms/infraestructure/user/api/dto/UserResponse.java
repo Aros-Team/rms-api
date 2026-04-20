@@ -3,6 +3,7 @@ package aros.services.rms.infraestructure.user.api.dto;
 
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserRole;
+import aros.services.rms.core.user.domain.UserStatus;
 import java.util.List;
 
 public record UserResponse(
@@ -13,6 +14,7 @@ public record UserResponse(
     String address,
     String phone,
     UserRole role,
+    UserStatus status,
     List<Long> assignedAreas) {
 
   public static UserResponse fromDomain(User user) {
@@ -24,6 +26,7 @@ public record UserResponse(
         user.getAddress(),
         user.getPhone(),
         user.getRole(),
+        user.getStatus(),
         user.getAssignedAreas().stream().map(areaId -> areaId.value()).toList());
   }
 }

@@ -47,6 +47,21 @@ public class EmailServiceAdapter implements EmailServicePort {
     }
   }
 
+  @Override
+  public boolean sendSync(Email email) {
+    try {
+      sendEmailInternal(email);
+      return true;
+    } catch (Exception e) {
+      log.error(
+          "Email send failed: to={}, subject={}, error={}",
+          email.getTo(),
+          email.getSubject(),
+          e.getMessage());
+      return false;
+    }
+  }
+
   private void sendEmailInternal(Email email) {
     if (dummyEmail != null && !dummyEmail.isBlank() && dummyEmail.equalsIgnoreCase(email.getTo())) {
       log.warn(

@@ -6,6 +6,7 @@ import aros.services.rms.core.email.port.input.RegistrationEmailUseCase;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.core.user.domain.UserRole;
+import aros.services.rms.core.user.domain.UserStatus;
 import aros.services.rms.core.user.port.output.AdminRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.util.List;
@@ -77,6 +78,7 @@ public class CreateAdminService {
             "",
             "",
             UserRole.ADMIN,
+            UserStatus.ACTIVE,
             List.of());
 
     userRepository.save(admin);
@@ -113,6 +115,7 @@ public class CreateAdminService {
             "",
             "",
             UserRole.ADMIN,
+            UserStatus.ACTIVE,
             List.of());
 
     userRepository.save(admin);

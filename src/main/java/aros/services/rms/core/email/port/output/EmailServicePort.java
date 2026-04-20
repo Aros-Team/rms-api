@@ -5,4 +5,6 @@ import aros.services.rms.core.email.domain.Email;
 
 public interface EmailServicePort {
   void send(Email email);
+
+  boolean sendSync(Email email);
 }

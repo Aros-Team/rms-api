@@ -14,6 +14,7 @@ public class User {
   private String address;
   private String phone;
   private UserRole role;
+  private UserStatus status;
   private List<AreaId> assignedAreas;
   private boolean active;
   private Instant deletedAt;
@@ -27,6 +28,7 @@ public class User {
       String address,
       String phone,
       UserRole role,
+      UserStatus status,
       List<AreaId> assignedAreas) {
     this.id = id;
     this.document = document;
@@ -36,6 +38,7 @@ public class User {
     this.address = address;
     this.phone = phone;
     this.role = role;
+    this.status = status;
     this.assignedAreas = assignedAreas;
     this.active = true;
     this.deletedAt = null;
@@ -55,6 +58,28 @@ public class User {
 
   public void changeName(String name) {
     this.name = name;
+  }
+
+  public void updateInfo(String name, String address, String phone) {
+    this.name = name;
+    this.address = address;
+    this.phone = phone;
+  }
+
+  public void markAsActive() {
+    this.status = UserStatus.ACTIVE;
+  }
+
+  public void markAsError() {
+    this.status = UserStatus.ERROR;
+  }
+
+  public void markAsPending() {
+    this.status = UserStatus.PENDING;
+  }
+
+  public void markAsInactive() {
+    this.status = UserStatus.INACTIVE;
   }
 
   public UserId getId() {
@@ -87,6 +112,14 @@ public class User {
 
   public UserRole getRole() {
     return role;
+  }
+
+  public UserStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(UserStatus status) {
+    this.status = status;
   }
 
   public List<AreaId> getAssignedAreas() {

@@ -2,6 +2,7 @@
 package aros.services.rms.infraestructure.user.persistence.jpa;
 
 import aros.services.rms.core.user.domain.UserRole;
+import aros.services.rms.core.user.domain.UserStatus;
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -34,6 +35,8 @@ public class UserEntity {
   private String phone;
 
   private UserRole role;
+
+  private UserStatus status;
 
   @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
@@ -104,6 +107,14 @@ public class UserEntity {
 
   public void setRole(UserRole role) {
     this.role = role;
+  }
+
+  public UserStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(UserStatus status) {
+    this.status = status;
   }
 
   public List<Area> getAssignedAreas() {
