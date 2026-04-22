@@ -8,6 +8,8 @@ public interface BusinessMetricsPort {
 
   void recordPasswordReset(String type);
 
+  void recordAccountSetup(String type);
+
   void recordOrderCreated(boolean success);
 
   void recordOrderStatusTransition(String fromStatus, String toStatus);

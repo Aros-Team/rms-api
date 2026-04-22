@@ -157,7 +157,10 @@ public class TakeOrderService implements TakeOrderUseCase {
       table.setStatus(TableStatus.AVAILABLE);
       tableRepositoryPort.save(table);
       metricsPort.recordOrderCreated(false);
-      log.warn("METRICS: recordOrderCreated(false) called for table {}, reason: {}", command.getTableId(), e.getMessage());
+      log.warn(
+          "METRICS: recordOrderCreated(false) called for table {}, reason: {}",
+          command.getTableId(),
+          e.getMessage());
       throw e;
     }
   }

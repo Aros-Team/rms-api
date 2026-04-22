@@ -1,13 +1,17 @@
 package aros.services.rms.infraestructure.user.api;
 
+import aros.services.rms.core.auth.application.exception.UserNotFoundException;
+import aros.services.rms.core.auth.port.input.AccountSetupUseCase;
 import aros.services.rms.core.user.application.exception.UserAlreadyExistsException;
-import aros.services.rms.core.user.application.exception.UserNotFoundException;
+import aros.services.rms.core.user.domain.User;
+import aros.services.rms.core.user.domain.UserId;
 import aros.services.rms.core.user.port.input.ChangePasswordUseCase;
 import aros.services.rms.core.user.port.input.CreateUserUseCase;
 import aros.services.rms.core.user.port.input.DeleteUserUseCase;
 import aros.services.rms.core.user.port.input.GetAllUsersUseCase;
 import aros.services.rms.core.user.port.input.RetryUserEmailUseCase;
 import aros.services.rms.core.user.port.input.UpdateUserUseCase;
+import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import aros.services.rms.infraestructure.share.security.JustAccessToken;
 import aros.services.rms.infraestructure.share.security.JustAdminUser;
 import aros.services.rms.infraestructure.user.api.dto.ChangePasswordRequest;
@@ -43,6 +47,8 @@ public class UserController {
   private final UpdateUserUseCase updateUserUseCase;
   private final DeleteUserUseCase deleteUserUseCase;
   private final RetryUserEmailUseCase retryUserEmailUseCase;
+  private final AccountSetupUseCase accountSetupUseCase;
+  private final UserRepositoryPort userRepositoryPort;
 
   @GetMapping
   @JustAdminUser
@@ -96,6 +102,23 @@ public class UserController {
       log.warn("Email retry failed: id={}", id);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
+  }
+
+  @PostMapping("/{id}/retry-setup-email")
+  @JustAdminUser
+  public ResponseEntity<Void> retrySetupEmail(@PathVariable Long id) throws UserNotFoundException {
+    log.info("Admin retrying setup email for user: id={}", id);
+    User user =
+        userRepositoryPort
+            .findById(UserId.of(id))
+            .orElseThrow(
+                () ->
+                    new aros.services.rms.core.user.application.exception.UserNotFoundException(
+                        "User not found"));
+    accountSetupUseCase.deleteExistingTokens(user.getId());
+    accountSetupUseCase.requestSetupEmail(user.getEmail().value());
+    log.info("Setup email resent successfully: id={}", id);
+    return ResponseEntity.ok().build();
   }
 
   @PutMapping("/me/password")

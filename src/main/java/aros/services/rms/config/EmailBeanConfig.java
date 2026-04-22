@@ -5,6 +5,7 @@ import aros.services.rms.core.email.application.service.EmailService;
 import aros.services.rms.core.email.port.input.PasswordResetEmailUseCase;
 import aros.services.rms.core.email.port.input.RegistrationEmailUseCase;
 import aros.services.rms.core.email.port.input.TwoFactorAuthEmailUseCase;
+import aros.services.rms.core.email.port.input.WelcomeEmailUseCase;
 import aros.services.rms.core.email.port.output.EmailServicePort;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +35,11 @@ public class EmailBeanConfig {
 
   @Bean
   public PasswordResetEmailUseCase passwordResetEmailUseCase() {
+    return this.service;
+  }
+
+  @Bean
+  public WelcomeEmailUseCase welcomeEmailUseCase() {
     return this.service;
   }
 }

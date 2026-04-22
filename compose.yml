@@ -13,7 +13,7 @@ services:
 
   mail:
     container_name: rms-dev-mail
-    image: spalaxdev/amail:1.2
+    image: spalaxdev/amail:1.3
     restart: always
     ports:
       - "8001:8000"

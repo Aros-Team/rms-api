@@ -304,6 +304,31 @@ public class GlobalExceptionHandler {
         .body(new ErrorResponse(400, e.getMessage()));
   }
 
+  // --- Account setup exceptions ---
+
+  @ExceptionHandler(
+      aros.services.rms.core.auth.application.exception.AccountSetupTokenInvalidException.class)
+  public ResponseEntity<ErrorResponse> handleAccountSetupTokenInvalid(
+      aros.services.rms.core.auth.application.exception.AccountSetupTokenInvalidException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
+  }
+
+  @ExceptionHandler(
+      aros.services.rms.core.auth.application.exception.AccountSetupTokenExpiredException.class)
+  public ResponseEntity<ErrorResponse> handleAccountSetupTokenExpired(
+      aros.services.rms.core.auth.application.exception.AccountSetupTokenExpiredException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
+  }
+
+  @ExceptionHandler(
+      aros.services.rms.core.auth.application.exception.AccountSetupTokenAlreadyUsedException.class)
+  public ResponseEntity<ErrorResponse> handleAccountSetupTokenAlreadyUsed(
+      aros.services.rms.core.auth.application.exception.AccountSetupTokenAlreadyUsedException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
   // --- Authorization handlers ---
 
   @ExceptionHandler(AuthorizationDeniedException.class)

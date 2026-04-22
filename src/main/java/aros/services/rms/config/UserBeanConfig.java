@@ -1,7 +1,10 @@
 package aros.services.rms.config;
 
+import aros.services.rms.core.auth.port.output.AccountSetupTokenRepositoryPort;
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
-import aros.services.rms.core.email.port.input.RegistrationEmailUseCase;
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
+import aros.services.rms.core.email.port.input.WelcomeEmailUseCase;
+import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.user.application.service.ChangePasswordService;
 import aros.services.rms.core.user.application.service.CreateUserService;
 import aros.services.rms.core.user.application.service.GetAllUsersService;
@@ -17,9 +20,16 @@ public class UserBeanConfig {
   @Bean
   public CreateUserUseCase createUserUseCase(
       UserRepositoryPort userPort,
-      PasswordEncoderPort passwordPort,
-      RegistrationEmailUseCase registrationEmailUseCase) {
-    return new CreateUserService(userPort, registrationEmailUseCase, passwordPort);
+      AccountSetupTokenRepositoryPort accountSetupTokenRepositoryPort,
+      WelcomeEmailUseCase welcomeEmailUseCase,
+      HashServicePort hashServicePort,
+      BusinessMetricsPort metricsPort) {
+    return new CreateUserService(
+        userPort,
+        accountSetupTokenRepositoryPort,
+        welcomeEmailUseCase,
+        hashServicePort,
+        metricsPort);
   }
 
   @Bean

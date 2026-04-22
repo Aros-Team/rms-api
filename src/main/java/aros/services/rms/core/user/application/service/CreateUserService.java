@@ -1,8 +1,11 @@
+/* (C) 2026 */
 package aros.services.rms.core.user.application.service;
 
-import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
-import aros.services.rms.core.email.application.service.EmailService;
-import aros.services.rms.core.email.port.input.RegistrationEmailUseCase;
+import aros.services.rms.core.auth.domain.AccountSetupToken;
+import aros.services.rms.core.auth.port.output.AccountSetupTokenRepositoryPort;
+import aros.services.rms.core.common.metrics.BusinessMetricsPort;
+import aros.services.rms.core.email.port.input.WelcomeEmailUseCase;
+import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.user.application.exception.UserAlreadyExistsException;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserRole;
@@ -10,20 +13,29 @@ import aros.services.rms.core.user.domain.UserStatus;
 import aros.services.rms.core.user.port.dto.CreateUserInfo;
 import aros.services.rms.core.user.port.input.CreateUserUseCase;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 
 public class CreateUserService implements CreateUserUseCase {
   private final UserRepositoryPort userPort;
-  private final RegistrationEmailUseCase registrationEmailUseCase;
-  private final PasswordEncoderPort passwordPort;
+  private final AccountSetupTokenRepositoryPort accountSetupTokenRepositoryPort;
+  private final WelcomeEmailUseCase welcomeEmailUseCase;
+  private final HashServicePort hashServicePort;
+  private final BusinessMetricsPort metricsPort;
 
   public CreateUserService(
       UserRepositoryPort userPort,
-      RegistrationEmailUseCase registrationEmailUseCase,
-      PasswordEncoderPort passwordPort) {
+      AccountSetupTokenRepositoryPort accountSetupTokenRepositoryPort,
+      WelcomeEmailUseCase welcomeEmailUseCase,
+      HashServicePort hashServicePort,
+      BusinessMetricsPort metricsPort) {
     this.userPort = userPort;
-    this.registrationEmailUseCase = registrationEmailUseCase;
-    this.passwordPort = passwordPort;
+    this.accountSetupTokenRepositoryPort = accountSetupTokenRepositoryPort;
+    this.welcomeEmailUseCase = welcomeEmailUseCase;
+    this.hashServicePort = hashServicePort;
+    this.metricsPort = metricsPort;
   }
 
   @Override
@@ -34,15 +46,13 @@ public class CreateUserService implements CreateUserUseCase {
       throw new UserAlreadyExistsException("User document or email already used");
     }
 
-    String password = GenerateSecurePasswordService.execute();
-
     User user =
         new User(
             null,
             info.document(),
             info.name(),
             info.email(),
-            this.passwordPort.encode(password),
+            null,
             info.address(),
             info.phone(),
             UserRole.WORKER,
@@ -51,22 +61,20 @@ public class CreateUserService implements CreateUserUseCase {
 
     User saved = this.userPort.save(user);
 
+    String rawToken = UUID.randomUUID().toString();
+    String tokenHash = hashServicePort.hash(rawToken);
+
+    Instant now = Instant.now();
+    Instant expiresAt = now.plus(7, ChronoUnit.DAYS);
+
+    AccountSetupToken token =
+        new AccountSetupToken(null, saved.getId(), tokenHash, now, expiresAt, false);
+
     boolean emailSent = true;
     try {
-      if (this.registrationEmailUseCase instanceof EmailService emailService) {
-        emailSent =
-            emailService.sendRegistrationMailSync(
-                saved.getEmail(),
-                String.format(
-                    "Haz sido registrado en nuestro sistema, para ingresar haz uso de la siguiente contraseña: %s",
-                    password));
-      } else {
-        this.registrationEmailUseCase.sendRegistrationMail(
-            saved.getEmail(),
-            String.format(
-                "Haz sido registrado en nuestro sistema, para ingresar haz uso de la siguiente contraseña: %s",
-                password));
-      }
+      String templateName = saved.getRole() == UserRole.ADMIN ? "welcome" : "welcome_employee";
+      welcomeEmailUseCase.sendWelcomeEmail(
+          saved.getEmail(), rawToken, saved.getName(), templateName);
     } catch (Exception e) {
       emailSent = false;
     }
@@ -74,8 +82,12 @@ public class CreateUserService implements CreateUserUseCase {
     if (!emailSent) {
       saved.markAsError();
       saved = this.userPort.save(saved);
+      return new CreateUserResult(saved, null);
     }
 
-    return new CreateUserResult(saved, password);
+    accountSetupTokenRepositoryPort.save(token);
+    metricsPort.recordAccountSetup("requested");
+
+    return new CreateUserResult(saved, null);
   }
 }

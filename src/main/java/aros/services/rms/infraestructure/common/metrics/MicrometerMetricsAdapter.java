@@ -6,9 +6,9 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 @Component
 public class MicrometerMetricsAdapter implements BusinessMetricsPort {
@@ -23,6 +23,8 @@ public class MicrometerMetricsAdapter implements BusinessMetricsPort {
   private final Counter loginTfaRequiredCounter;
   private final Counter passwordResetRequestedCounter;
   private final Counter passwordResetCompletedCounter;
+  private final Counter accountSetupRequestedCounter;
+  private final Counter accountSetupCompletedCounter;
   private final Counter orderCreatedSuccessCounter;
   private final Counter orderCreatedFailureCounter;
   private final Counter orderCancelledCounter;
@@ -71,6 +73,18 @@ public class MicrometerMetricsAdapter implements BusinessMetricsPort {
         Counter.builder(METRIC_PREFIX + "password_reset_total")
             .tag("type", "completed")
             .description("Password reset completions")
+            .register(registry);
+
+    this.accountSetupRequestedCounter =
+        Counter.builder(METRIC_PREFIX + "account_setup_total")
+            .tag("type", "requested")
+            .description("Account setup requests")
+            .register(registry);
+
+    this.accountSetupCompletedCounter =
+        Counter.builder(METRIC_PREFIX + "account_setup_total")
+            .tag("type", "completed")
+            .description("Account setup completions")
             .register(registry);
 
     this.orderCreatedSuccessCounter =
@@ -176,6 +190,14 @@ public class MicrometerMetricsAdapter implements BusinessMetricsPort {
     switch (type) {
       case "requested" -> passwordResetRequestedCounter.increment();
       case "completed" -> passwordResetCompletedCounter.increment();
+    }
+  }
+
+  @Override
+  public void recordAccountSetup(String type) {
+    switch (type) {
+      case "requested" -> accountSetupRequestedCounter.increment();
+      case "completed" -> accountSetupCompletedCounter.increment();
     }
   }
 

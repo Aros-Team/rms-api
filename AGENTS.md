@@ -1,4 +1,4 @@
-**Try use task comands**
+**Use task commands**
 ```bash
 # Start app (Docker + Spring Boot)
 task run
@@ -51,36 +51,6 @@ Use specific, action-oriented names:
 - `@Slf4j`: **Only in infrastructure layer** (never in core)
 - `@AllArgsConstructor`, `@NoArgsConstructor`: As needed
 
-## Environment Variables
-
-### Development (.env)
-```bash
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=rmsdb
-DB_USERNAME=root
-DB_PASSWORD=your_password
-```
-
-### Production (Cloud Run)
-```bash
-SPRING_PROFILES_ACTIVE=prod
-CLOUD_SQL_INSTANCE=project:region:instance
-DB_NAME=rmsdb
-DB_USERNAME=iam_user
-# No DB_PASSWORD needed (IAM authentication)
-```
-
-## Spring Profiles
-
-| Profile | File | Use Case |
-|---------|------|----------|
-| default | application.yml | Common config |
-| dev | application-dev.yml | Local development (TCP/IP) |
-| prod | application-prod.yml | Cloud Run with IAM |
-
-**Note**: Profile files override base configuration. Use `SPRING_PROFILES_ACTIVE=prod` in production.
-
 ## Exception Handling
 
 ### Business Exceptions (Core)
@@ -104,17 +74,6 @@ DB_USERNAME=iam_user
 - **Core**: Use `Logger` interface (no implementation)
 - **Infrastructure**: Implement `Logger` with `@Slf4j`
 - Inject logger into use cases that need it
-
-### Log Levels
-- **ERROR**: Exceptions, business failures
-- **INFO**: Business actions (create, update, state changes)
-- **DEBUG**: Validation details, input data
-
-### Message Format
-```
-Action: entity=id, detail={}
-Example: "Order cancelled: id=123, reason=client_request"
-```
 
 ## Swagger / OpenAPI
 
@@ -145,11 +104,4 @@ For atomic operations requiring race condition prevention:
 - Use `@Lock(LockModeType.PESSIMISTIC_WRITE)` in repository
 - Method must be within `@Transactional` in adapter
 
-## Dependency Management
-
-- DO NOT change dependency versions without research
-- Check [Maven Repository](https://mvnrepository.com/) for GA versions
-- Verify compatibility with Spring Boot and Java 21
-- Test locally before committing
-
-## Never use build comands.
+## Never use build commands.

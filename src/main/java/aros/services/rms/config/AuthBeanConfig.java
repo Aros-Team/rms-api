@@ -1,16 +1,19 @@
 /* (C) 2026 */
 package aros.services.rms.config;
 
+import aros.services.rms.core.auth.application.service.AccountSetupService;
 import aros.services.rms.core.auth.application.service.GetCurrentUserService;
 import aros.services.rms.core.auth.application.service.LoginService;
 import aros.services.rms.core.auth.application.service.PasswordResetService;
 import aros.services.rms.core.auth.application.service.RefreshTokenService;
 import aros.services.rms.core.auth.application.service.VerifyTwoFactorService;
+import aros.services.rms.core.auth.port.input.AccountSetupUseCase;
 import aros.services.rms.core.auth.port.input.GetCurrentAuthUserInfoUseCase;
 import aros.services.rms.core.auth.port.input.LoginUseCase;
 import aros.services.rms.core.auth.port.input.PasswordResetUseCase;
 import aros.services.rms.core.auth.port.input.RefreshTokensUseCase;
 import aros.services.rms.core.auth.port.input.VerifyTwoFactorUseCase;
+import aros.services.rms.core.auth.port.output.AccountSetupTokenRepositoryPort;
 import aros.services.rms.core.auth.port.output.CurrentUserPort;
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
 import aros.services.rms.core.auth.port.output.PasswordResetTokenRepositoryPort;
@@ -21,6 +24,7 @@ import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.device.port.output.DeviceRepositoryPort;
 import aros.services.rms.core.email.port.input.PasswordResetEmailUseCase;
 import aros.services.rms.core.email.port.input.TwoFactorAuthEmailUseCase;
+import aros.services.rms.core.email.port.input.WelcomeEmailUseCase;
 import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.twofactor.port.output.TfaCodeGeneratorPort;
 import aros.services.rms.core.twofactor.port.output.TwoFactorCodeRepositoryPort;
@@ -44,6 +48,8 @@ public class AuthBeanConfig {
   private final TfaCodeGeneratorPort tfaCodeGeneratorPort;
   private final PasswordResetTokenRepositoryPort passwordResetTokenRepositoryPort;
   private final PasswordResetEmailUseCase passwordResetEmailUseCase;
+  private final AccountSetupTokenRepositoryPort accountSetupTokenRepositoryPort;
+  private final WelcomeEmailUseCase welcomeEmailUseCase;
   private final Logger logger;
   private final BusinessMetricsPort metricsPort;
 
@@ -84,6 +90,18 @@ public class AuthBeanConfig {
         hashServicePort,
         logger,
         metricsPort);
+  }
+
+  @Bean
+  public AccountSetupUseCase accountSetupUseCase() {
+    return new AccountSetupService(
+        userPort,
+        accountSetupTokenRepositoryPort,
+        passwordPort,
+        hashServicePort,
+        logger,
+        metricsPort,
+        welcomeEmailUseCase);
   }
 
   @Bean

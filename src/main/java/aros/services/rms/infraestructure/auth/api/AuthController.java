@@ -9,6 +9,7 @@ import aros.services.rms.core.auth.application.dto.UserFullInfo;
 import aros.services.rms.core.auth.application.exception.InvalidCredentialsException;
 import aros.services.rms.core.auth.application.exception.InvalidRefreshTokenException;
 import aros.services.rms.core.auth.application.exception.UserNotFoundException;
+import aros.services.rms.core.auth.port.input.AccountSetupUseCase;
 import aros.services.rms.core.auth.port.input.GetCurrentAuthUserInfoUseCase;
 import aros.services.rms.core.auth.port.input.LoginUseCase;
 import aros.services.rms.core.auth.port.input.PasswordResetUseCase;
@@ -19,6 +20,8 @@ import aros.services.rms.infraestructure.auth.api.dto.AuthResponse;
 import aros.services.rms.infraestructure.auth.api.dto.ForgotPasswordRequest;
 import aros.services.rms.infraestructure.auth.api.dto.LoginRequest;
 import aros.services.rms.infraestructure.auth.api.dto.ResetPasswordRequest;
+import aros.services.rms.infraestructure.auth.api.dto.SetupAccountValidationResponse;
+import aros.services.rms.infraestructure.auth.api.dto.SetupPasswordRequest;
 import aros.services.rms.infraestructure.auth.api.dto.UserFullInfoResponse;
 import aros.services.rms.infraestructure.auth.api.dto.VerifyTwoFactorRequest;
 import aros.services.rms.infraestructure.share.security.JustAccessToken;
@@ -39,6 +42,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -53,6 +57,7 @@ public class AuthController {
   private final RefreshTokensUseCase refreshTokensUseCase;
   private final GetCurrentAuthUserInfoUseCase getUserInfoUseCase;
   private final PasswordResetUseCase passwordResetUseCase;
+  private final AccountSetupUseCase accountSetupUseCase;
 
   @Operation(
       summary = "User login",
@@ -239,5 +244,32 @@ public class AuthController {
     log.info("Password reset completed");
     passwordResetUseCase.resetPassword(request.token(), request.newPassword());
     return ResponseEntity.status(HttpStatus.OK).build();
+  }
+
+  @PostMapping("/setup-password")
+  @Operation(
+      summary = "Setup password with token",
+      description = "Sets password using account setup token received via email",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Password set successfully"),
+        @ApiResponse(responseCode = "400", description = "Token inválido o expirado"),
+        @ApiResponse(responseCode = "409", description = "Token ya utilizado")
+      })
+  public ResponseEntity<Void> setupPassword(@Valid @RequestBody SetupPasswordRequest request) {
+    log.info("Account setup password request");
+    accountSetupUseCase.setupPassword(
+        request.token(), request.newPassword(), request.name(), request.document());
+    return ResponseEntity.ok().build();
+  }
+
+  @GetMapping("/setup-account/validate")
+  @Operation(
+      summary = "Validate setup token",
+      description = "Returns user info to determine if admin or employee")
+  public ResponseEntity<SetupAccountValidationResponse> validateSetupToken(
+      @RequestParam String token) {
+    log.info("Validating setup token");
+    SetupAccountValidationResponse validation = accountSetupUseCase.validateToken(token);
+    return ResponseEntity.ok(validation);
   }
 }

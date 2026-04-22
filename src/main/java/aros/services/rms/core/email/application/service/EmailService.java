@@ -5,13 +5,17 @@ import aros.services.rms.core.email.domain.Email;
 import aros.services.rms.core.email.port.input.PasswordResetEmailUseCase;
 import aros.services.rms.core.email.port.input.RegistrationEmailUseCase;
 import aros.services.rms.core.email.port.input.TwoFactorAuthEmailUseCase;
+import aros.services.rms.core.email.port.input.WelcomeEmailUseCase;
 import aros.services.rms.core.email.port.output.EmailServicePort;
 import aros.services.rms.core.user.domain.UserEmail;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 
 public class EmailService
-    implements TwoFactorAuthEmailUseCase, RegistrationEmailUseCase, PasswordResetEmailUseCase {
+    implements TwoFactorAuthEmailUseCase,
+        RegistrationEmailUseCase,
+        PasswordResetEmailUseCase,
+        WelcomeEmailUseCase {
 
   private static final String UI_PRODUCTION = "https://rms.aros.services";
   private static final String UI_DEVELOPMENT = "http://localhost:4200";
@@ -71,5 +75,18 @@ public class EmailService
                 "Has solicitado restablecer tu contraseña en RMS. Haz clic en el siguiente enlace para completar el proceso:"));
 
     this.emailPort.send(resetEmail);
+  }
+
+  @Override
+  public void sendWelcomeEmail(
+      UserEmail destination, String welcomeToken, String userName, String templateName) {
+    String welcomeLink = uiBaseUrl + "/setup-account?token=" + welcomeToken;
+    Email welcomeEmail =
+        new Email(
+            destination.value(),
+            "admin@aros.service",
+            templateName,
+            Map.of("name", userName, "welcome_link", welcomeLink, "expiry", "30 minutos"));
+    this.emailPort.send(welcomeEmail);
   }
 }

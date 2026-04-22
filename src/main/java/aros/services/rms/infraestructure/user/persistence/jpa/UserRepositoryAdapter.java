@@ -45,7 +45,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort, AdminRepositor
 
   @Override
   public boolean existsByEmailOrDocument(String document, String email) {
-    return this.internal.existsByDocumentOrEmail(document, email);
+    return this.internal.existsByDocumentAndEmailAndDeletedAtIsNull(document, email);
   }
 
   @Override
