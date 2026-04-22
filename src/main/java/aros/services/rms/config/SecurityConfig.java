@@ -5,21 +5,22 @@ import aros.services.rms.infraestructure.common.config.JwtConfigValidator;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import java.security.KeyFactory;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.lang.Nullable;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.converter.RsaKeyConverters;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -54,17 +55,18 @@ public class SecurityConfig {
       return null;
     }
 
-    String publicKeyBase64 = jwtConfigValidator.getPublicKey();
-    String privateKeyBase64 = jwtConfigValidator.getPrivateKey();
+    String publicKeyPem = jwtConfigValidator.getPublicKey();
+    String privateKeyPem = jwtConfigValidator.getPrivateKey();
 
-    byte[] publicBytes = Base64.getDecoder().decode(publicKeyBase64);
-    byte[] privateBytes = Base64.getDecoder().decode(privateKeyBase64);
+    Converter<InputStream, RSAPublicKey> publicKeyConverter = RsaKeyConverters.x509();
+    Converter<InputStream, RSAPrivateKey> privateKeyConverter = RsaKeyConverters.pkcs8();
 
-    KeyFactory keyFactory = KeyFactory.getInstance("RSA");
     RSAPublicKey publicKey =
-        (RSAPublicKey) keyFactory.generatePublic(new X509EncodedKeySpec(publicBytes));
+        publicKeyConverter.convert(
+            new ByteArrayInputStream(publicKeyPem.getBytes(StandardCharsets.UTF_8)));
     RSAPrivateKey privateKey =
-        (RSAPrivateKey) keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateBytes));
+        privateKeyConverter.convert(
+            new ByteArrayInputStream(privateKeyPem.getBytes(StandardCharsets.UTF_8)));
 
     return new RSAKey.Builder(publicKey).privateKey(privateKey).build();
   }

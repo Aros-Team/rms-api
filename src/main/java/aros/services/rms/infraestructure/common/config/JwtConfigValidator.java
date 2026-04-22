@@ -16,12 +16,6 @@ public class JwtConfigValidator {
       "JWT keys not configured. Run './gradlew generate-jwt-keys' or 'task jwtkeys' to generate and add to .env file";
   private static final String PRODUCTION_ERROR_MESSAGE =
       "CRITICAL: JWT keys are required in production. Application cannot start without JWT configuration.";
-  private static final String PEM_BEGIN_PRIVATE = "-----BEGIN RSA PRIVATE KEY-----";
-  private static final String PEM_END_PRIVATE = "-----END RSA PRIVATE KEY-----";
-  private static final String PEM_BEGIN_PUBLIC = "-----BEGIN RSA PUBLIC KEY-----";
-  private static final String PEM_END_PUBLIC = "-----END RSA PUBLIC KEY-----";
-  private static final String PEM_BEGIN_RSA_PUBLIC = "-----BEGIN PUBLIC KEY-----";
-  private static final String PEM_END_RSA_PUBLIC = "-----END PUBLIC KEY-----";
 
   private final String publicKey;
   private final String privateKey;
@@ -68,22 +62,10 @@ public class JwtConfigValidator {
   private String normalizeKey(String key) {
     if (key == null || key.isBlank()) return key;
     key = key.trim();
-    if (!key.startsWith("-----BEGIN")) return key;
-
-    // Remove PEM headers and newlines to get raw base64
-    String normalized = key;
-    normalized = stripPemWrapper(normalized, PEM_BEGIN_PRIVATE, PEM_END_PRIVATE);
-    normalized = stripPemWrapper(normalized, PEM_BEGIN_PUBLIC, PEM_END_PUBLIC);
-    normalized = stripPemWrapper(normalized, PEM_BEGIN_RSA_PUBLIC, PEM_END_RSA_PUBLIC);
-    return normalized.replace("\n", "").replace("\r", "");
-  }
-
-  private String stripPemWrapper(String pem, String begin, String end) {
-    if (pem.contains(begin) && pem.contains(end)) {
-      int start = pem.indexOf(begin) + begin.length();
-      int endIdx = pem.indexOf(end);
-      return pem.substring(start, endIdx);
-    }
-    return pem;
+    // Unescape \n literal sequences (from .env file) to actual newlines
+    key = key.replace("\\n", "\n");
+    // Remove Windows carriage returns if present
+    key = key.replace("\r", "");
+    return key;
   }
 }

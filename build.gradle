@@ -137,15 +137,20 @@ tasks.register("generate-jwt-keys") {
         keyGen.initialize(2048)
         def keyPair = keyGen.generateKeyPair()
 
-        def publicKeyEncoded = Base64.encoder.encodeToString(keyPair.public.encoded)
-        def privateKeyEncoded = Base64.encoder.encodeToString(keyPair.private.encoded)
+        // Convert to PEM format
+        def publicKeyPem = "-----BEGIN PUBLIC KEY-----\n" + 
+            Base64.getEncoder().encodeToString(keyPair.public.encoded) + 
+            "\n-----END PUBLIC KEY-----"
+        def privateKeyPem = "-----BEGIN PRIVATE KEY-----\n" + 
+            Base64.getEncoder().encodeToString(keyPair.private.encoded) + 
+            "\n-----END PRIVATE KEY-----"
 
         println ""
         println "=== JWT Keys Generated ==="
         println "Add these to your .env file:"
         println ""
-        println "JWT_PUBLIC_KEY=$publicKeyEncoded"
-        println "JWT_PRIVATE_KEY=$privateKeyEncoded"
+        println "JWT_PUBLIC_KEY=${publicKeyPem.replace('\n', '\\n')}"
+        println "JWT_PRIVATE_KEY=${privateKeyPem.replace('\n', '\\n')}"
         println ""
     }
 }
