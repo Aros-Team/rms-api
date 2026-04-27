@@ -5,16 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.3.6] - 2026-04-27 
+
+### Added
+
+- Order and inventory monitoring
+- User status management with update, delete, and retry-email endpoints
+- Local mail service with amail for development
+- Database Audit logs
+- Inventory transfer endpoint
+- Migration with comprehensive seed data
+- WebSocket support
+- Add update, soft-delete support with deletedAt column, and status persistence for users
+
+### Fixed
+
+- User creation with welcome token flow
+- Add @Enumerated(EnumType.STRING) to UserEntity role and status fields
+- Bug in Create new order
+- Improve configuration validation and security for production
+
+### Changed
+
+- JWT key generation and parsing - PEM format with proper headers
+- Normalize PEM tokens to raw format
+- Resolved format for appProperties
+- Removed bad seed data file and restructured V8 migrations
+- Update profile configurations for prod and dev
+
 ## [v0.3.0] - 2026-04-12
 
 ### Added
 
-- **Advanced Monitoring with Prometheus**:
+- **Basic Monitoring with Prometheus**:
   - Custom business metrics for authentication (login attempts, password reset)
   - Custom business metrics for orders (created, status transitions, cancelled, delivered)
-  - Kitchen and notification latency tracking
   - Prometheus metrics endpoint exposed at `/metrics`
-  - Grafana dashboards for orders and authentication
 
 - **Inventory Process Base**:
   - Supply management infrastructure

@@ -43,10 +43,5 @@ out/
 *.md
 *.txt
 
-
-### Project Specific ###
-INVENTORY_SPEC.md
-
-
 ### Others ###
 .kiro
