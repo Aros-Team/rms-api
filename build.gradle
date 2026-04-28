@@ -1,8 +1,9 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '4.0.3'
-	id 'io.spring.dependency-management' version '1.1.7'
-  	id "com.diffplug.spotless" version "8.2.1"
+  id 'java'
+  id 'org.springframework.boot' version '4.0.3'
+  id 'io.spring.dependency-management' version '1.1.7'
+  id "com.diffplug.spotless" version "8.2.1"
+  id 'checkstyle'
 }
 
 group = 'aros.services'
@@ -127,17 +128,17 @@ spotless {
   java {
     importOrder()
     removeUnusedImports()
-    forbidWildcardImports() // or expandWildcardImports, see below
+    forbidWildcardImports()
     forbidModuleImports()
-
-    // Cleanthat will refactor your code, but it may break your style: apply it before your formatter
-    cleanthat()          // has its own section below
-
-    // Choose one of these formatters.
-    googleJavaFormat()   // has its own section below
-
-    formatAnnotations()  // fixes formatting of type annotations, see below
+    cleanthat()
+    googleJavaFormat()
+    formatAnnotations()
   }
+}
+
+checkstyle {
+  configFile = file("$project.rootDir/gradle/checkstyle/google_checks.xml")
+  toolVersion = '13.4.1'
 }
 
 tasks.register("generate-jwt-keys") {
