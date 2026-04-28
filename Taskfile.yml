@@ -6,19 +6,18 @@ dotenv: ['.env']
 vars:
   # En Windows delegamos en cmd y ejecutamos gradlew.bat en el directorio actual
   GRADLEW: '{{if eq OS "windows"}}cmd /c gradlew.bat{{else}}./gradlew{{end}}'
-  VERSION: '{{.APP_VERSION | default "0.1.0"}}'
 
 tasks:
   run:
     cmds:
       - docker compose up -d
-      - '{{.GRADLEW}} bootRun -PappVersion={{.VERSION}} --configuration-cache'
+      - '{{.GRADLEW}} bootRun --configuration-cache'
 
   build:
     cmds:
       - docker compose up -d
-      - '{{.GRADLEW}} build -PappVersion={{.VERSION}} --configuration-cache'
-      - docker build -t spalaxdev/rms-api:{{.VERSION}} .
+      - '{{.GRADLEW}} build --configuration-cache'
+      - docker build -t spalaxdev/rms-api:latest .
 
   format:
     cmds:

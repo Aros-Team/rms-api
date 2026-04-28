@@ -1,15 +1,14 @@
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre-alpine
 
 LABEL maintainer="Aros Team"
-LABEL version="0.1.0"
 LABEL description="RMS API - Restaurant Management System"
 
-WORKDIR /app
-
+# Copiar JAR
 COPY build/libs/*.jar app.jar
 
 EXPOSE 8080
 
-ENV JAVA_OPTS="-XX:+UseZGC -XX:+AlwaysPreTouch"
+
+ENV JAVA_OPTS="-XX:+UseZGC"
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

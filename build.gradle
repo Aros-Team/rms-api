@@ -21,6 +21,15 @@ configurations {
 	}
 }
 
+import org.apache.tools.ant.filters.ReplaceTokens
+
+def appVersion = project.version
+processResources {
+    filesMatching('**/application*.yml') {
+        filter ReplaceTokens, tokens: [('project.version'): appVersion]
+    }
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.annotationProcessorPath = configurations.annotationProcessor
     options.incremental = false

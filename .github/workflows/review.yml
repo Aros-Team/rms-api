@@ -1,0 +1,122 @@
+name: review
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Job 1: Code Quality Check
+  check_code_quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - uses: actions/cache@v5.0.4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Check code format with Spotless
+        run: ./gradlew spotless:check
+
+  # Job 2: Run Tests
+  run_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - uses: actions/cache@v5.0.4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Run unit tests
+        run: ./gradlew test
+
+      - name: Run integration tests
+        run: ./gradlew verify
+
+  # Notification: Failure
+  notify_failure:
+    needs: [check_code_quality, run_tests]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout scripts
+        uses: actions/checkout@v6.0.2
+        with:
+          sparse-checkout: |
+            .github/scripts
+            .github/scripts/templates
+          sparse-checkout-cone-mode: false
+
+      - name: Make script executable
+        run: chmod +x .github/scripts/send-email.sh
+
+      - name: Send failure notification
+        run: |
+          ./.github/scripts/send-email.sh \
+            "${{ secrets.RESEND_API_KEY }}" \
+            "${{ secrets.RESEND_FROM_EMAIL }}" \
+            ".github/scripts/templates/failure.txt" \
+            "${{ secrets.RESEND_TO_EMAIL_1 }}" \
+            "${{ secrets.RESEND_TO_EMAIL_2 }}" \
+            "${{ secrets.RESEND_TO_EMAIL_3 }}" \
+            "${{ secrets.RESEND_TO_EMAIL_4 }}" \
+            REPO="$GITHUB_REPOSITORY" \
+            BRANCH="$GITHUB_REF_NAME" \
+            SHA="${GITHUB_SHA:0:7}" \
+            RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+  # Notification: Success
+  notify_success:
+    needs: [check_code_quality, run_tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout scripts
+        uses: actions/checkout@v6.0.2
+        with:
+          sparse-checkout: |
+            .github/scripts
+            .github/scripts/templates
+          sparse-checkout-cone-mode: false
+
+      - name: Make script executable
+        run: chmod +x .github/scripts/send-email.sh
+
+      - name: Send success notification
+        run: |
+          ./.github/scripts/send-email.sh \
+            "${{ secrets.RESEND_API_KEY }}" \
+            "${{ secrets.RESEND_FROM_EMAIL }}" \
+            ".github/scripts/templates/ci-success.txt" \
+            "${{ secrets.RESEND_TO_EMAIL_1 }}" \
+            "${{ secrets.RESEND_TO_EMAIL_2 }}" \
+            "${{ secrets.RESEND_TO_EMAIL_3 }}" \
+            "${{ secrets.RESEND_TO_EMAIL_4 }}" \
+            REPO="$GITHUB_REPOSITORY" \
+            BRANCH="$GITHUB_REF_NAME" \
+            SHA="${GITHUB_SHA:0:7}" \
+            RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
