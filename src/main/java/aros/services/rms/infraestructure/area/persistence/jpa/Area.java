@@ -39,6 +39,12 @@ public class Area {
   @Builder.Default
   private boolean enabled = true;
 
+  @Column(nullable = false)
+  private boolean for_user;
+
+  @Column(nullable = false)
+  private boolean for_product;
+
   @ManyToMany(mappedBy = "preparationAreas")
   @Builder.Default
   private Set<Order> orders = new HashSet<>();
