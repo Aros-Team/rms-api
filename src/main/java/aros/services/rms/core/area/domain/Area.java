@@ -20,6 +20,8 @@ public class Area {
   private Long id;
   private String name;
   private AreaType type;
+  private boolean for_user;
+  private boolean for_product;
   @Builder.Default private boolean enabled = true;
   @Builder.Default private Set<Long> orderIds = new HashSet<>();
 }
