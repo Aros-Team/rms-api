@@ -28,6 +28,11 @@ public class InventoryStockTransactionalService implements InventoryStockUseCase
 
   private final InventoryStockService delegate;
 
+  /**
+   * Creates a new instance.
+   *
+   * @param delegate the inventory stock service
+   */
   public InventoryStockTransactionalService(
       @Qualifier("inventoryStockUseCaseImpl") InventoryStockService delegate) {
     this.delegate = delegate;

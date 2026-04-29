@@ -12,6 +12,12 @@ public record SupplyResponse(
     @Schema(description = "Category ID", example = "1") Long categoryId,
     @Schema(description = "Category name", example = "Proteínas") String categoryName) {
 
+  /**
+   * Creates a response from an entity.
+   *
+   * @param entity the entity
+   * @return the response DTO
+   */
   public static SupplyResponse fromEntity(SupplyEntity entity) {
     if (entity == null) return null;
     return new SupplyResponse(

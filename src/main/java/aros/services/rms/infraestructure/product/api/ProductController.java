@@ -39,6 +39,12 @@ public class ProductController {
   private final ProductUseCase productUseCase;
   private final ProductOptionUseCase productOptionUseCase;
 
+  /**
+   * Creates a new product.
+   *
+   * @param request the product request
+   * @return the created product
+   */
   @Operation(
       summary = "Crear nuevo producto",
       description =
@@ -67,6 +73,13 @@ public class ProductController {
     return new ResponseEntity<>(ProductResponse.fromDomain(created), HttpStatus.CREATED);
   }
 
+  /**
+   * Updates a product.
+   *
+   * @param id the product ID
+   * @param request the update request
+   * @return the updated product
+   */
   @Operation(
       summary = "Actualizar producto",
       description =
@@ -95,6 +108,12 @@ public class ProductController {
     return ResponseEntity.ok(ProductResponse.fromDomain(updated));
   }
 
+  /**
+   * Gets all products.
+   *
+   * @param categories optional category filter
+   * @return the list of products
+   */
   @Operation(
       summary = "Obtener todos los productos",
       description =
@@ -121,6 +140,11 @@ public class ProductController {
     return ResponseEntity.ok(responses);
   }
 
+  /**
+   * Gets top selling products.
+   *
+   * @return the list of top selling products
+   */
   @Operation(
       summary = "Obtener productos más vendidos",
       description = "Retorna los productos más vendidos del restaurante.",
@@ -134,6 +158,12 @@ public class ProductController {
     return ResponseEntity.ok(responses);
   }
 
+  /**
+   * Gets a product by ID.
+   *
+   * @param id the product ID
+   * @return the product
+   */
   @Operation(
       summary = "Obtener producto por ID",
       description = "Retorna un producto específico dado su identificador.",
@@ -147,6 +177,12 @@ public class ProductController {
     return ResponseEntity.ok(ProductResponse.fromDomain(product));
   }
 
+  /**
+   * Disables a product.
+   *
+   * @param id the product ID
+   * @return the disabled product
+   */
   @Operation(
       summary = "Desactivar producto",
       description =
@@ -162,6 +198,12 @@ public class ProductController {
     return ResponseEntity.ok(ProductResponse.fromDomain(product));
   }
 
+  /**
+   * Gets options for a product.
+   *
+   * @param id the product ID
+   * @return the list of product options
+   */
   @Operation(
       summary = "Obtener opciones de un producto",
       description =

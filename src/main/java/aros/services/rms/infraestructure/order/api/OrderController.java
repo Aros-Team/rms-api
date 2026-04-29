@@ -50,6 +50,12 @@ public class OrderController {
   private final OrderQueryUseCase orderQueryUseCase;
   private final OrderNotificationService orderNotificationService;
 
+  /**
+   * Takes a new order.
+   *
+   * @param request the take order request
+   * @return the created order
+   */
   @Operation(
       summary = "Create new order",
       description = "Creates a new order in QUEUE status. Requires an available table.",
@@ -85,6 +91,12 @@ public class OrderController {
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
 
+  /**
+   * Cancels an order.
+   *
+   * @param id the order ID
+   * @return the cancelled order
+   */
   @Operation(
       summary = "Cancel order",
       description = "Cancels an existing order in QUEUE status.",
@@ -102,6 +114,13 @@ public class OrderController {
     return ResponseEntity.ok(OrderResponse.fromDomain(order));
   }
 
+  /**
+   * Updates order details.
+   *
+   * @param id the order ID
+   * @param request the update request
+   * @return the updated order
+   */
   @Operation(
       summary = "Update order details",
       description = "Updates the details of an order in QUEUE status.",
@@ -136,6 +155,11 @@ public class OrderController {
     return ResponseEntity.ok(OrderResponse.fromDomain(order));
   }
 
+  /**
+   * Processes the next order.
+   *
+   * @return the order being prepared
+   */
   @Operation(
       summary = "Process next order",
       description = "Takes the oldest order from the queue and changes its status to PREPARING.",
@@ -154,6 +178,12 @@ public class OrderController {
     return ResponseEntity.ok(response);
   }
 
+  /**
+   * Marks an order as ready.
+   *
+   * @param id the order ID
+   * @return the ready order
+   */
   @Operation(
       summary = "Mark order as ready",
       description =
@@ -174,6 +204,12 @@ public class OrderController {
     return ResponseEntity.ok(response);
   }
 
+  /**
+   * Delivers an order.
+   *
+   * @param id the order ID
+   * @return the delivered order
+   */
   @Operation(
       summary = "Deliver order",
       description =
@@ -192,6 +228,14 @@ public class OrderController {
     return ResponseEntity.ok(OrderResponse.fromDomain(order));
   }
 
+  /**
+   * Queries orders with optional filters.
+   *
+   * @param status the order status filter
+   * @param startDate the start date filter
+   * @param endDate the end date filter
+   * @return the list of orders
+   */
   @Operation(
       summary = "Query orders",
       description = "Retrieves orders with optional filters by status and date range.",

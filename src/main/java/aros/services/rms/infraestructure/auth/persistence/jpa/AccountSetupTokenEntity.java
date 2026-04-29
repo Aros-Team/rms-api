@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
 
+/** Entity representing an account setup token. */
 @Entity
 @Table(name = "account_setup_tokens")
 public class AccountSetupTokenEntity {

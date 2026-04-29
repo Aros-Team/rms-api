@@ -9,6 +9,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+/** Adapter for refresh token repository. */
 @Repository
 @RequiredArgsConstructor
 @Transactional

@@ -27,6 +27,11 @@ public class InventoryMovementTransactionalService implements InventoryMovementU
 
   private final InventoryMovementService delegate;
 
+  /**
+   * Creates a new instance.
+   *
+   * @param delegate the inventory movement service
+   */
   public InventoryMovementTransactionalService(
       @Qualifier("inventoryMovementUseCaseImpl") InventoryMovementService delegate) {
     this.delegate = delegate;

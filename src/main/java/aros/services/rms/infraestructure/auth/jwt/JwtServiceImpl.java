@@ -16,6 +16,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
+/** Implementation of JWT service. */
 @Service
 public class JwtServiceImpl implements JwtService {
 
@@ -27,6 +28,13 @@ public class JwtServiceImpl implements JwtService {
   private final JwtDecoder jwtDecoder;
   private final String issuer;
 
+  /**
+   * Creates a new JWT service implementation.
+   *
+   * @param jwtEncoder the JWT encoder
+   * @param jwtDecoder the JWT decoder
+   * @param issuer the token issuer
+   */
   public JwtServiceImpl(
       JwtEncoder jwtEncoder,
       JwtDecoder jwtDecoder,

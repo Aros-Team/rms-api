@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+/** Request DTO for resetting password. */
 @Schema(
     description = "Reset password request DTO",
     example =

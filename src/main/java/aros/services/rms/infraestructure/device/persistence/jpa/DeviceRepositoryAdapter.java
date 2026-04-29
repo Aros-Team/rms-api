@@ -8,6 +8,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+/** Repository adapter for device persistence. */
 @Repository
 @RequiredArgsConstructor
 public class DeviceRepositoryAdapter implements DeviceRepositoryPort {

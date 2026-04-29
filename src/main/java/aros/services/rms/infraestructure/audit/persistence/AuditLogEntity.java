@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 
+/** Entity representing an audit log entry. */
 @Entity
 @Table(name = "audit_logs")
 public class AuditLogEntity {
@@ -43,6 +44,7 @@ public class AuditLogEntity {
   @Column(nullable = false)
   private Instant timestamp;
 
+  /** Creates a new AuditLogEntity. */
   public AuditLogEntity() {}
 
   public String getId() {

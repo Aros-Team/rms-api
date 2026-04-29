@@ -5,6 +5,7 @@ import aros.services.rms.core.user.domain.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
+/** Response DTO with complete user information. */
 @Schema(description = "Response DTO con información completa del usuario autenticado")
 public record UserFullInfoResponse(
     @Schema(description = "ID del usuario", example = "1") Long id,

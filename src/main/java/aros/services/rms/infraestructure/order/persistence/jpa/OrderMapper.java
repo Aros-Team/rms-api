@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/** Mapper for orders. */
 @Component
 @RequiredArgsConstructor
 public class OrderMapper {
@@ -18,6 +19,12 @@ public class OrderMapper {
   private final TableMapper tableMapper;
   private final ProductMapper productMapper;
 
+  /**
+   * Converts a domain to entity.
+   *
+   * @param domain the domain
+   * @return the entity
+   */
   public aros.services.rms.infraestructure.order.persistence.Order toEntity(Order domain) {
     if (domain == null) return null;
 
@@ -50,6 +57,13 @@ public class OrderMapper {
     return entity;
   }
 
+  /**
+   * Converts an order detail domain to entity.
+   *
+   * @param domain the domain
+   * @param orderEntity the order entity
+   * @return the entity
+   */
   public aros.services.rms.infraestructure.order.persistence.OrderDetail toOrderDetailEntity(
       OrderDetail domain, aros.services.rms.infraestructure.order.persistence.Order orderEntity) {
     if (domain == null) return null;
@@ -69,6 +83,12 @@ public class OrderMapper {
         .build();
   }
 
+  /**
+   * Converts an entity to domain.
+   *
+   * @param entity the entity
+   * @return the domain
+   */
   public Order toDomain(aros.services.rms.infraestructure.order.persistence.Order entity) {
     if (entity == null) return null;
 
@@ -95,6 +115,12 @@ public class OrderMapper {
         .build();
   }
 
+  /**
+   * Converts an order detail entity to domain.
+   *
+   * @param entity the entity
+   * @return the domain
+   */
   public OrderDetail toOrderDetailDomain(
       aros.services.rms.infraestructure.order.persistence.OrderDetail entity) {
     if (entity == null) return null;

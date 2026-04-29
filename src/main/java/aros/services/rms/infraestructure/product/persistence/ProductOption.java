@@ -14,6 +14,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** Entity representing a product option. */
 @Entity
 @Table(name = "product_options")
 @Data

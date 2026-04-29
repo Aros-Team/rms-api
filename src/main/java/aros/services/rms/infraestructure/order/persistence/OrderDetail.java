@@ -18,6 +18,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** Entity representing an order detail. */
 @Entity
 @Table(name = "order_details")
 @Data

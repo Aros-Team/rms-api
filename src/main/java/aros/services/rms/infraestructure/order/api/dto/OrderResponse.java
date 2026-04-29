@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/** Response DTO for order data. */
 @Schema(description = "Response DTO para datos de una orden")
 public record OrderResponse(
     @Schema(description = "ID de la orden", example = "1") Long id,
@@ -18,6 +19,7 @@ public record OrderResponse(
     @Schema(description = "ID de la mesa", example = "1") Long tableId,
     @Schema(description = "Lista de productos en la orden") List<OrderDetailResponse> details) {
 
+  /** Detail of a product in the order. */
   @Schema(description = "Detalle de un producto en la orden")
   public record OrderDetailResponse(
       @Schema(description = "ID del detalle", example = "1") Long id,
@@ -30,12 +32,19 @@ public record OrderResponse(
       @Schema(description = "Opciones seleccionadas del producto")
           List<ProductOptionResponse> selectedOptions) {}
 
+  /** Selected product option. */
   @Schema(description = "Opción de producto seleccionada")
   public record ProductOptionResponse(
       @Schema(description = "ID de la opción", example = "1") Long id,
       @Schema(description = "Nombre de la opción", example = "Grande") String name,
       @Schema(description = "Nombre de la categoría", example = "Tamaños") String categoryName) {}
 
+  /**
+   * Creates a response from a domain object.
+   *
+   * @param order the order domain
+   * @return the response DTO
+   */
   public static OrderResponse fromDomain(Order order) {
     if (order == null) return null;
 

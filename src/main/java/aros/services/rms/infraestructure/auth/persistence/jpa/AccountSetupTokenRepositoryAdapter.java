@@ -9,6 +9,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+/** Adapter for account setup token repository. */
 @Repository
 @RequiredArgsConstructor
 @Transactional

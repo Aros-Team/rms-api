@@ -17,6 +17,12 @@ public class SupplierPersistenceAdapter implements SupplierRepositoryPort {
   private final SupplierJpaRepository repository;
   private final SupplierMapper mapper;
 
+  /**
+   * Creates a new instance.
+   *
+   * @param repository the JPA repository
+   * @param mapper the mapper
+   */
   public SupplierPersistenceAdapter(SupplierJpaRepository repository, SupplierMapper mapper) {
     this.repository = repository;
     this.mapper = mapper;

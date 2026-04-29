@@ -28,6 +28,12 @@ public class InventoryTransferController {
 
   private final TransferInventoryUseCase transferInventoryUseCase;
 
+  /**
+   * Transfers supplies from Bodega to Cocina.
+   *
+   * @param request the transfer request
+   * @return the list of transfers
+   */
   @Operation(
       summary = "Transfer supplies from Bodega to Cocina",
       description =

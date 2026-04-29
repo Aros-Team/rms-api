@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/** Validator for JWT configuration. */
 @Component
 public class JwtConfigValidator {
 
@@ -21,6 +22,13 @@ public class JwtConfigValidator {
   private final String privateKey;
   private final String appEnv;
 
+  /**
+   * Creates a new JwtConfigValidator.
+   *
+   * @param publicKey the JWT public key
+   * @param privateKey the JWT private key
+   * @param appEnv the application environment
+   */
   public JwtConfigValidator(
       @Value("${app.jwt.public-key:}") String publicKey,
       @Value("${app.jwt.private-key:}") String privateKey,
@@ -30,6 +38,7 @@ public class JwtConfigValidator {
     this.appEnv = appEnv;
   }
 
+  /** Validates the JWT configuration. */
   @PostConstruct
   public void validate() {
     boolean isProduction = PRODUCTION.equals(appEnv);
@@ -59,6 +68,7 @@ public class JwtConfigValidator {
     return publicKey != null && !publicKey.isBlank() && privateKey != null && !privateKey.isBlank();
   }
 
+  /** Normalizes the key by replacing escaped newlines. */
   private String normalizeKey(String key) {
     if (key == null || key.isBlank()) return key;
     key = key.trim();

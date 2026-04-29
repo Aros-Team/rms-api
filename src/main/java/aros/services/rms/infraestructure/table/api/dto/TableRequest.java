@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
+/** Request DTO for creating or updating a table. */
 @Schema(
     description = "Request DTO for creating or updating a table",
     example = "{\"tableNumber\": 5, \"capacity\": 4}")

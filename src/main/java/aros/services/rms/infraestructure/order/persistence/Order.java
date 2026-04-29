@@ -25,6 +25,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** Entity representing an order. */
 @Entity
 @jakarta.persistence.Table(name = "orders")
 @Data

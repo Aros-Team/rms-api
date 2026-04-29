@@ -6,9 +6,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+/** Configuration for email. */
 @Configuration
 public class EmailConfig {
 
+  /**
+   * Creates a RestTemplate bean.
+   *
+   * @return the RestTemplate
+   */
   @Bean
   public RestTemplate restTemplate() {
     SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+/** Adapter for BCrypt password encoding. */
 @Service
 @RequiredArgsConstructor
 public class BcryptPasswordEncoderAdapter implements PasswordEncoderPort {

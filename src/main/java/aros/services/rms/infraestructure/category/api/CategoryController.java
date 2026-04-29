@@ -31,6 +31,12 @@ public class CategoryController {
 
   private final CategoryUseCase categoryUseCase;
 
+  /**
+   * Creates a new category.
+   *
+   * @param request the category request
+   * @return the created category
+   */
   @Operation(
       summary = "Create new category",
       description = "Creates a new product category.",
@@ -47,6 +53,13 @@ public class CategoryController {
     return new ResponseEntity<>(CategoryResponse.fromDomain(created), HttpStatus.CREATED);
   }
 
+  /**
+   * Updates a category.
+   *
+   * @param id the category ID
+   * @param request the category request
+   * @return the updated category
+   */
   @Operation(
       summary = "Update category",
       description = "Updates an existing product category's name and description.",
@@ -65,6 +78,11 @@ public class CategoryController {
     return ResponseEntity.ok(CategoryResponse.fromDomain(updated));
   }
 
+  /**
+   * Gets all categories.
+   *
+   * @return the list of categories
+   */
   @Operation(
       summary = "Get all categories",
       description = "Retrieves all product categories.",
@@ -80,6 +98,12 @@ public class CategoryController {
     return ResponseEntity.ok(responses);
   }
 
+  /**
+   * Gets a category by ID.
+   *
+   * @param id the category ID
+   * @return the category
+   */
   @Operation(
       summary = "Get category by ID",
       description = "Retrieves a product category by its identifier.",
@@ -93,6 +117,12 @@ public class CategoryController {
     return ResponseEntity.ok(CategoryResponse.fromDomain(category));
   }
 
+  /**
+   * Toggles category enabled status.
+   *
+   * @param id the category ID
+   * @return the updated category
+   */
   @Operation(
       summary = "Toggle category enabled status",
       description = "Toggles the enabled/disabled status of a product category.",

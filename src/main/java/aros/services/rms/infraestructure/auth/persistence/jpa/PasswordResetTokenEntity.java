@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
 
+/** Entity representing a password reset token. */
 @Entity
 @Table(name = "password_reset_tokens")
 public class PasswordResetTokenEntity {

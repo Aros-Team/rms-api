@@ -10,6 +10,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class DayMenuMapper {
 
+  /**
+   * Converts an entity to domain.
+   *
+   * @param entity the entity
+   * @return the domain
+   */
   public DayMenu toDomain(DayMenuEntity entity) {
     return DayMenu.builder()
         .id(entity.getId())
@@ -21,6 +27,13 @@ public class DayMenuMapper {
         .build();
   }
 
+  /**
+   * Converts a domain to entity.
+   *
+   * @param domain the domain
+   * @param product the product entity
+   * @return the entity
+   */
   public DayMenuEntity toEntity(DayMenu domain, Product product) {
     return DayMenuEntity.builder()
         .id(domain.getId())
@@ -30,6 +43,12 @@ public class DayMenuMapper {
         .build();
   }
 
+  /**
+   * Converts a history entity to domain.
+   *
+   * @param entity the entity
+   * @return the domain
+   */
   public DayMenuHistory toHistoryDomain(DayMenuHistoryEntity entity) {
     return DayMenuHistory.builder()
         .id(entity.getId())
@@ -42,6 +61,13 @@ public class DayMenuMapper {
         .build();
   }
 
+  /**
+   * Converts a history domain to entity.
+   *
+   * @param domain the domain
+   * @param product the product entity
+   * @return the entity
+   */
   public DayMenuHistoryEntity toHistoryEntity(DayMenuHistory domain, Product product) {
     return DayMenuHistoryEntity.builder()
         .id(domain.getId())

@@ -11,6 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** Entity representing an option category. */
 @Entity
 @Table(name = "option_categories")
 @Data

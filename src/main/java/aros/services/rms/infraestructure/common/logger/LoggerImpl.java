@@ -4,6 +4,7 @@ import aros.services.rms.core.common.logger.Logger;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+/** Implementation of the Logger interface using SLF4J. */
 @Slf4j
 @Component
 public class LoggerImpl implements Logger {

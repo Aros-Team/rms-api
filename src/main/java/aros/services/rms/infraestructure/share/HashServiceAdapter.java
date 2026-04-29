@@ -7,6 +7,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import org.springframework.stereotype.Component;
 
+/** Adapter for hash service. */
 @Component
 public class HashServiceAdapter implements HashServicePort {
 

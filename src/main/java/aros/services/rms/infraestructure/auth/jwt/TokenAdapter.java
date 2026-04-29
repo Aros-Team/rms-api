@@ -6,6 +6,7 @@ import aros.services.rms.core.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/** Adapter for token operations. */
 @Service
 @RequiredArgsConstructor
 public class TokenAdapter implements TokenPort {

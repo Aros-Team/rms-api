@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
+/** Request DTO for creating a new order. */
 @Schema(
     description = "Request DTO para crear una nueva orden",
     example =
@@ -16,6 +17,7 @@ public record TakeOrderRequest(
     @Schema(description = "Lista de productos ordenados")
         @NotEmpty(message = "Order details cannot be empty") @Valid List<OrderDetailRequest> details) {
 
+  /** Detail of a product in the order. */
   @Schema(description = "Detalle de un producto en la orden")
   public record OrderDetailRequest(
       @Schema(description = "ID del producto", example = "1")

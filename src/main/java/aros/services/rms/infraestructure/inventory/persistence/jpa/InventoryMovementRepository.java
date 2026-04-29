@@ -5,5 +5,6 @@ import aros.services.rms.infraestructure.inventory.persistence.InventoryMovement
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+/** JPA repository for inventory movements. */
 @Repository
 public interface InventoryMovementRepository extends JpaRepository<InventoryMovementEntity, Long> {}

@@ -16,10 +16,21 @@ public class PurchaseOrderMapper {
 
   private final PurchaseOrderItemMapper itemMapper;
 
+  /**
+   * Creates a new instance.
+   *
+   * @param itemMapper the item mapper
+   */
   public PurchaseOrderMapper(PurchaseOrderItemMapper itemMapper) {
     this.itemMapper = itemMapper;
   }
 
+  /**
+   * Converts an entity to domain.
+   *
+   * @param entity the entity
+   * @return the domain
+   */
   public PurchaseOrder toDomain(PurchaseOrderEntity entity) {
     if (entity == null) return null;
     return PurchaseOrder.builder()
@@ -37,6 +48,12 @@ public class PurchaseOrderMapper {
         .build();
   }
 
+  /**
+   * Converts a domain to entity.
+   *
+   * @param domain the domain
+   * @return the entity
+   */
   public PurchaseOrderEntity toEntity(PurchaseOrder domain) {
     if (domain == null) return null;
     var entity =

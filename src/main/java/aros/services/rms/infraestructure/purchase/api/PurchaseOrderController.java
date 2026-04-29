@@ -36,6 +36,12 @@ public class PurchaseOrderController {
   private final RegisterPurchaseOrderService registerPurchaseOrderService;
   private final GetPurchaseHistoryUseCase getPurchaseHistoryUseCase;
 
+  /**
+   * Registers a purchase order.
+   *
+   * @param request the purchase order request
+   * @return the registered purchase order
+   */
   @Operation(
       summary = "Register purchase order",
       description =
@@ -80,6 +86,14 @@ public class PurchaseOrderController {
     return new ResponseEntity<>(PurchaseOrderResponse.fromDomain(saved), HttpStatus.CREATED);
   }
 
+  /**
+   * Lists purchase history.
+   *
+   * @param supplierId optional supplier filter
+   * @param from optional start date
+   * @param to optional end date
+   * @return the list of purchase orders
+   */
   @Operation(
       summary = "List purchase history",
       description =
@@ -116,6 +130,12 @@ public class PurchaseOrderController {
     return ResponseEntity.ok(responses);
   }
 
+  /**
+   * Gets a purchase order by ID.
+   *
+   * @param id the purchase order ID
+   * @return the purchase order
+   */
   @Operation(
       summary = "Get purchase order by ID",
       description = "Returns the full detail of a single purchase order including all line items.",

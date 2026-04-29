@@ -18,6 +18,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class DayMenuConfigBeans {
 
+  /**
+   * Creates the update day menu use case.
+   *
+   * @param productRepositoryPort the product repository port
+   * @param dayMenuRepositoryPort the day menu repository port
+   * @param dayMenuHistoryRepositoryPort the day menu history repository port
+   * @param logger the logger
+   * @return the update day menu use case
+   */
   @Bean
   public UpdateDayMenuUseCase updateDayMenuUseCase(
       ProductRepositoryPort productRepositoryPort,
@@ -28,12 +37,24 @@ public class DayMenuConfigBeans {
         productRepositoryPort, dayMenuRepositoryPort, dayMenuHistoryRepositoryPort, logger);
   }
 
+  /**
+   * Creates the get current day menu use case.
+   *
+   * @param dayMenuRepositoryPort the day menu repository port
+   * @return the get current day menu use case
+   */
   @Bean
   public GetCurrentDayMenuUseCase getCurrentDayMenuUseCase(
       DayMenuRepositoryPort dayMenuRepositoryPort) {
     return new GetCurrentDayMenuService(dayMenuRepositoryPort);
   }
 
+  /**
+   * Creates the get day menu history use case.
+   *
+   * @param dayMenuHistoryRepositoryPort the day menu history repository port
+   * @return the get day menu history use case
+   */
   @Bean
   public GetDayMenuHistoryUseCase getDayMenuHistoryUseCase(
       DayMenuHistoryRepositoryPort dayMenuHistoryRepositoryPort) {

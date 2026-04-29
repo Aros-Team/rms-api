@@ -13,6 +13,7 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/** Mapper for User persistence operations. */
 @Mapper(
     componentModel = MappingConstants.ComponentModel.SPRING,
     uses = {AreaMapper.class})
@@ -20,6 +21,7 @@ public abstract class UserPersistenceMapper {
 
   @Autowired protected AreaMapper areaMapper;
 
+  /** Converts a UserEntity to a User domain object. */
   @Mapping(source = "id", target = "id.value")
   @Mapping(source = "email", target = "email.value")
   @Mapping(source = "status", target = "status")
@@ -28,12 +30,14 @@ public abstract class UserPersistenceMapper {
   @Mapping(target = "deletedAt", ignore = true)
   public abstract User toDomain(UserEntity entity);
 
+  /** Converts a UserEntity to a UserWithAreas domain object. */
   @Mapping(source = "id", target = "id.value")
   @Mapping(source = "email", target = "email.value")
   @Mapping(source = "status", target = "status")
   @Mapping(source = "assignedAreas", target = "assignedAreas", qualifiedByName = "entityToArea")
   public abstract UserWithAreas toUserWithAreas(UserEntity entity);
 
+  /** Converts a User domain object to a UserEntity. */
   @Mapping(source = "id.value", target = "id")
   @Mapping(source = "email.value", target = "email")
   @Mapping(source = "status", target = "status")
@@ -41,6 +45,7 @@ public abstract class UserPersistenceMapper {
   @Mapping(source = "assignedAreas", target = "assignedAreas", qualifiedByName = "areaIdToEntity")
   public abstract UserEntity toEntity(User domain);
 
+  /** Converts Area entities to domain Area objects. */
   @Named("entityToArea")
   List<aros.services.rms.core.area.domain.Area> entityToArea(List<Area> entities) {
     if (entities == null) {
@@ -49,6 +54,7 @@ public abstract class UserPersistenceMapper {
     return entities.stream().map(e -> this.areaMapper.toDomain(e)).toList();
   }
 
+  /** Converts Area entities to AreaId list. */
   @Named("entityToAreaId")
   List<AreaId> entityToAreaId(List<Area> entities) {
     if (entities == null) {
@@ -57,6 +63,7 @@ public abstract class UserPersistenceMapper {
     return entities.stream().map(e -> AreaId.of(e.getId())).toList();
   }
 
+  /** Converts AreaId list to Area entities. */
   @Named("areaIdToEntity")
   List<Area> areaIdToEntity(List<AreaId> areaIds) {
     if (areaIds == null) {

@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
 
+/** Request DTO for creating or updating a product. */
 @Schema(
     description = "Request DTO for creating or updating a product",
     example =

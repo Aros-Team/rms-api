@@ -6,6 +6,7 @@ import aros.services.rms.core.user.domain.UserRole;
 import aros.services.rms.core.user.domain.UserStatus;
 import java.util.List;
 
+/** Response DTO for user data. */
 public record UserResponse(
     Long id,
     String document,
@@ -16,7 +17,7 @@ public record UserResponse(
     UserRole role,
     UserStatus status,
     List<Long> assignedAreas) {
-
+  /** Creates a response from a User domain object. */
   public static UserResponse fromDomain(User user) {
     return new UserResponse(
         user.getId().value(),

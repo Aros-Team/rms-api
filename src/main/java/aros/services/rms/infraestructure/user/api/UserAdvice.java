@@ -8,9 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+/** Exception advice for User operations. */
 @RestControllerAdvice(assignableTypes = {UserController.class})
 @Order(1)
 public class UserAdvice {
+  /** Handles UserAlreadyExistsException. */
   @ExceptionHandler(UserAlreadyExistsException.class)
   public ResponseEntity<ErrorResponse> handleAlreadyExistingUser(UserAlreadyExistsException e) {
     return ResponseEntity.status(HttpStatus.CONFLICT)

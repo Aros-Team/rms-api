@@ -36,6 +36,12 @@ public class DayMenuController {
   private final GetCurrentDayMenuUseCase getCurrentDayMenuUseCase;
   private final GetDayMenuHistoryUseCase getDayMenuHistoryUseCase;
 
+  /**
+   * Updates the day menu.
+   *
+   * @param request the update request
+   * @return the updated day menu
+   */
   @Operation(
       summary = "Actualizar el menú del día",
       description =
@@ -58,6 +64,11 @@ public class DayMenuController {
     return ResponseEntity.ok(DayMenuResponse.fromDomain(dayMenu));
   }
 
+  /**
+   * Gets the current day menu.
+   *
+   * @return the current day menu or no content
+   */
   @Operation(
       summary = "Obtener el menú del día actual",
       description =
@@ -76,6 +87,13 @@ public class DayMenuController {
         .orElse(ResponseEntity.noContent().build());
   }
 
+  /**
+   * Gets the day menu history.
+   *
+   * @param page the page number
+   * @param size the page size
+   * @return the page of day menu history
+   */
   @Operation(
       summary = "Obtener historial del menú del día",
       description =

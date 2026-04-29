@@ -11,14 +11,35 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/** JPA repository for inventory stock. */
 @Repository
 public interface InventoryStockRepository extends JpaRepository<InventoryStockEntity, Long> {
 
+  /**
+   * Finds inventory stock by storage location ID.
+   *
+   * @param storageLocationId the storage location ID
+   * @return the list of inventory stock entities
+   */
   List<InventoryStockEntity> findByStorageLocationId(Long storageLocationId);
 
+  /**
+   * Finds inventory stock by supply variant ID and storage location ID.
+   *
+   * @param supplyVariantId the supply variant ID
+   * @param storageLocationId the storage location ID
+   * @return the inventory stock entity if found
+   */
   Optional<InventoryStockEntity> findBySupplyVariantIdAndStorageLocationId(
       Long supplyVariantId, Long storageLocationId);
 
+  /**
+   * Finds inventory stock by variant and location with pessimistic lock.
+   *
+   * @param supplyVariantId the supply variant ID
+   * @param storageLocationId the storage location ID
+   * @return the inventory stock entity if found
+   */
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query(
       "SELECT s FROM InventoryStockEntity s "

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
+/** Request DTO for product option. */
 @Schema(
     description = "Request DTO para crear o actualizar una opción de producto",
     example =

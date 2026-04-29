@@ -9,7 +9,20 @@ import org.springframework.data.jpa.repository.JpaRepository;
 /** Spring Data JPA repository for PurchaseOrderEntity. */
 public interface PurchaseOrderJpaRepository extends JpaRepository<PurchaseOrderEntity, Long> {
 
+  /**
+   * Finds purchase orders by supplier ID.
+   *
+   * @param supplierId the supplier ID
+   * @return the list of purchase order entities
+   */
   List<PurchaseOrderEntity> findBySupplierId(Long supplierId);
 
+  /**
+   * Finds purchase orders by date range.
+   *
+   * @param from the start date
+   * @param to the end date
+   * @return the list of purchase order entities
+   */
   List<PurchaseOrderEntity> findByPurchasedAtBetween(LocalDateTime from, LocalDateTime to);
 }

@@ -3,6 +3,7 @@ package aros.services.rms.infraestructure.auth.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+/** Authentication response DTO. */
 @Schema(description = "Authentication response DTO")
 public record AuthResponse(
     @Schema(description = "Authentication result type", example = "SUCCESS") String type,

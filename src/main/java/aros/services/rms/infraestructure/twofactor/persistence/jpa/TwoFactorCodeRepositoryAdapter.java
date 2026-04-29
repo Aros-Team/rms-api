@@ -9,6 +9,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+/** Adapter for two-factor code repository. */
 @Repository
 @RequiredArgsConstructor
 public class TwoFactorCodeRepositoryAdapter implements TwoFactorCodeRepositoryPort {

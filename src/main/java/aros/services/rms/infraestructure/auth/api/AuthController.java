@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/** REST controller for authentication endpoints. */
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -59,6 +60,13 @@ public class AuthController {
   private final PasswordResetUseCase passwordResetUseCase;
   private final AccountSetupUseCase accountSetupUseCase;
 
+  /**
+   * Authenticates user with email and password.
+   *
+   * @param request the login request
+   * @return the authentication response
+   * @throws InvalidCredentialsException if credentials are invalid
+   */
   @Operation(
       summary = "User login",
       description =
@@ -95,6 +103,14 @@ public class AuthController {
     };
   }
 
+  /**
+   * Verifies two-factor authentication code.
+   *
+   * @param request the verification request
+   * @param jwt the TFA token
+   * @return the authentication response
+   * @throws InvalidCredentialsException if credentials are invalid
+   */
   @Operation(
       summary = "Verify two-factor authentication",
       description =
@@ -130,6 +146,13 @@ public class AuthController {
     };
   }
 
+  /**
+   * Refreshes the access token.
+   *
+   * @param token the refresh token
+   * @return the authentication response
+   * @throws InvalidRefreshTokenException if token is invalid
+   */
   @Operation(
       summary = "Refresh access token",
       description =
@@ -162,6 +185,13 @@ public class AuthController {
     };
   }
 
+  /**
+   * Gets the current authenticated user.
+   *
+   * @param auth the JWT token
+   * @return the user info
+   * @throws UserNotFoundException if user not found
+   */
   @Operation(
       summary = "Get current user",
       description =
@@ -194,6 +224,12 @@ public class AuthController {
     return ResponseEntity.ok(uInfoResponse);
   }
 
+  /**
+   * Requests a password reset.
+   *
+   * @param request the forgot password request
+   * @throws UserNotFoundException if user not found
+   */
   @Operation(
       summary = "Request password reset",
       description =
@@ -212,6 +248,12 @@ public class AuthController {
     return ResponseEntity.ok().build();
   }
 
+  /**
+   * Resends the password reset email.
+   *
+   * @param request the forgot password request
+   * @throws UserNotFoundException if user not found
+   */
   @Operation(
       summary = "Reenviar token de recuperación de contraseña",
       description =
@@ -231,6 +273,11 @@ public class AuthController {
     return ResponseEntity.ok().build();
   }
 
+  /**
+   * Resets the password.
+   *
+   * @param request the reset password request
+   */
   @Operation(
       summary = "Reset password",
       description = "Resets user password using the recovery token sent by email.",
@@ -246,6 +293,11 @@ public class AuthController {
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
+  /**
+   * Sets up password with token.
+   *
+   * @param request the setup password request
+   */
   @PostMapping("/setup-password")
   @Operation(
       summary = "Setup password with token",
@@ -262,6 +314,12 @@ public class AuthController {
     return ResponseEntity.ok().build();
   }
 
+  /**
+   * Validates the setup token.
+   *
+   * @param token the setup token
+   * @return the validation response
+   */
   @GetMapping("/setup-account/validate")
   @Operation(
       summary = "Validate setup token",

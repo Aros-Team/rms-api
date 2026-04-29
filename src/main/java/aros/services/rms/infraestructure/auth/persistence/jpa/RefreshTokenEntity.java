@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
 
+/** Entity representing a refresh token. */
 @Entity
 @Table(name = "refresh_tokens")
 public class RefreshTokenEntity {

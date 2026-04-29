@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+/** Adapter for Micrometer metrics. */
 @Component
 public class MicrometerMetricsAdapter implements BusinessMetricsPort {
 
@@ -42,6 +43,11 @@ public class MicrometerMetricsAdapter implements BusinessMetricsPort {
   private final Counter inventoryReversionErrorCounter;
   private final Counter purchaseSyncErrorCounter;
 
+  /**
+   * Creates a new MicrometerMetricsAdapter.
+   *
+   * @param registry the meter registry
+   */
   public MicrometerMetricsAdapter(MeterRegistry registry) {
     this.registry = registry;
 

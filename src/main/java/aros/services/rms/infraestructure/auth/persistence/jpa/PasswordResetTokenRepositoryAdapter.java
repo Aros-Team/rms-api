@@ -9,6 +9,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+/** Adapter for password reset token repository. */
 @Repository
 @RequiredArgsConstructor
 @Transactional

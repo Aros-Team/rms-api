@@ -61,6 +61,11 @@ public class SupplyCatalogController {
   // Categories
   // ---------------------------------------------------------------------------
 
+  /**
+   * Lists all supply categories.
+   *
+   * @return the list of supply categories
+   */
   @Operation(
       summary = "List supply categories",
       description = "Returns all supply categories.",
@@ -74,6 +79,12 @@ public class SupplyCatalogController {
     return ResponseEntity.ok(categories);
   }
 
+  /**
+   * Creates a supply category.
+   *
+   * @param request the create category request
+   * @return the created supply category
+   */
   @Operation(
       summary = "Create supply category",
       description = "Creates a new supply category. Returns 409 if the name already exists.",
@@ -99,6 +110,11 @@ public class SupplyCatalogController {
   // Units of measure
   // ---------------------------------------------------------------------------
 
+  /**
+   * Lists all units of measure.
+   *
+   * @return the list of units of measure
+   */
   @Operation(
       summary = "List units of measure",
       description =
@@ -117,6 +133,13 @@ public class SupplyCatalogController {
   // Supplies (insumos base)
   // ---------------------------------------------------------------------------
 
+  /**
+   * Lists supplies with optional filters.
+   *
+   * @param categoryId optional category filter
+   * @param name optional name filter
+   * @return the list of supplies
+   */
   @Operation(
       summary = "List supplies",
       description =
@@ -141,6 +164,12 @@ public class SupplyCatalogController {
     return ResponseEntity.ok(responses);
   }
 
+  /**
+   * Creates a supply.
+   *
+   * @param request the create supply request
+   * @return the created supply
+   */
   @Operation(
       summary = "Create supply",
       description =
@@ -181,6 +210,12 @@ public class SupplyCatalogController {
   // Supply variants
   // ---------------------------------------------------------------------------
 
+  /**
+   * Lists supply variants with stock.
+   *
+   * @param supplyId optional supply filter
+   * @return the list of supply variants
+   */
   @Operation(
       summary = "List supply variants with stock",
       description =
@@ -216,6 +251,12 @@ public class SupplyCatalogController {
     return ResponseEntity.ok(responses);
   }
 
+  /**
+   * Creates a supply variant.
+   *
+   * @param request the create variant request
+   * @return the created supply variant
+   */
   @Operation(
       summary = "Create supply variant",
       description =

@@ -35,6 +35,12 @@ public class ProductOptionController {
 
   private final ProductOptionUseCase productOptionUseCase;
 
+  /**
+   * Creates a new product option.
+   *
+   * @param request the product option request
+   * @return the created product option
+   */
   @Operation(
       summary = "Create new product option",
       description = "Creates a new product option linked to an option category.",
@@ -58,6 +64,13 @@ public class ProductOptionController {
     return new ResponseEntity<>(ProductOptionResponse.fromDomain(created), HttpStatus.CREATED);
   }
 
+  /**
+   * Updates a product option.
+   *
+   * @param id the product option ID
+   * @param request the update request
+   * @return the updated product option
+   */
   @Operation(
       summary = "Update product option",
       description = "Updates an existing product option.",
@@ -80,6 +93,11 @@ public class ProductOptionController {
     return ResponseEntity.ok(ProductOptionResponse.fromDomain(updated));
   }
 
+  /**
+   * Gets all product options.
+   *
+   * @return the list of product options
+   */
   @Operation(
       summary = "Get all product options",
       description = "Retrieves all product options.",
@@ -95,6 +113,12 @@ public class ProductOptionController {
     return ResponseEntity.ok(responses);
   }
 
+  /**
+   * Gets a product option by ID.
+   *
+   * @param id the product option ID
+   * @return the product option
+   */
   @Operation(
       summary = "Get product option by ID",
       description = "Retrieves a product option by its identifier.",

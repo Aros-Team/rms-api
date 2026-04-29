@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/** Adapter for order persistence. */
 @Component
 @RequiredArgsConstructor
 @Transactional

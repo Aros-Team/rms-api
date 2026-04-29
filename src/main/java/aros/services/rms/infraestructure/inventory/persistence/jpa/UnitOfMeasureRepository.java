@@ -5,5 +5,6 @@ import aros.services.rms.infraestructure.inventory.persistence.UnitOfMeasureEnti
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+/** JPA repository for unit of measures. */
 @Repository
 public interface UnitOfMeasureRepository extends JpaRepository<UnitOfMeasureEntity, Long> {}

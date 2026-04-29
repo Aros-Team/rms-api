@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 
+/** Request DTO for a recipe item. */
 @Schema(
     description = "Request DTO for a recipe item (supply variant and required quantity)",
     example = "{\"supplyVariantId\": 1, \"requiredQuantity\": 250.0}")

@@ -19,6 +19,7 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.List;
 
+/** Entity representing a user in the database. */
 @Entity
 @Table(name = "users")
 public class UserEntity {

@@ -11,6 +11,12 @@ public record UnitOfMeasureResponse(
     @Schema(description = "Full name", example = "Kilogramos") String name,
     @Schema(description = "Abbreviation", example = "kg") String abbreviation) {
 
+  /**
+   * Creates a response from an entity.
+   *
+   * @param entity the entity
+   * @return the response DTO
+   */
   public static UnitOfMeasureResponse fromEntity(UnitOfMeasureEntity entity) {
     if (entity == null) return null;
     return new UnitOfMeasureResponse(entity.getId(), entity.getName(), entity.getAbbreviation());

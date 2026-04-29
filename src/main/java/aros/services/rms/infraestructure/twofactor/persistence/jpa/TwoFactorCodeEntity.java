@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
 
+/** Entity representing a two-factor code. */
 @Entity
 @Table(name = "two_factor_codes")
 public class TwoFactorCodeEntity {

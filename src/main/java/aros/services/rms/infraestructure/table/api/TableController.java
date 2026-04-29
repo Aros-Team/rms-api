@@ -33,6 +33,7 @@ public class TableController {
 
   private final TableUseCase tableUseCase;
 
+  /** Creates a new table. */
   @Operation(
       summary = "Create new table",
       description = "Creates a new table with the given number and capacity.",
@@ -49,6 +50,7 @@ public class TableController {
     return new ResponseEntity<>(TableResponse.fromDomain(created), HttpStatus.CREATED);
   }
 
+  /** Updates an existing table. */
   @Operation(
       summary = "Update table",
       description = "Updates an existing table's number and capacity.",
@@ -66,6 +68,7 @@ public class TableController {
     return ResponseEntity.ok(TableResponse.fromDomain(updated));
   }
 
+  /** Retrieves all tables. */
   @Operation(
       summary = "Get all tables",
       description = "Retrieves all tables.",
@@ -79,6 +82,7 @@ public class TableController {
     return ResponseEntity.ok(responses);
   }
 
+  /** Retrieves a table by ID. */
   @Operation(
       summary = "Get table by ID",
       description = "Retrieves a table by its identifier.",
@@ -92,6 +96,7 @@ public class TableController {
     return ResponseEntity.ok(TableResponse.fromDomain(table));
   }
 
+  /** Changes the table status. */
   @Operation(
       summary = "Change table status",
       description = "Changes the table status between AVAILABLE, OCCUPIED, and RESERVED.",

@@ -20,6 +20,12 @@ public class RegisterPurchaseOrderService {
   private final RegisterPurchaseOrderUseCase registerPurchaseOrderUseCase;
   private final BusinessMetricsPort metricsPort;
 
+  /**
+   * Creates a new RegisterPurchaseOrderService.
+   *
+   * @param registerPurchaseOrderUseCase the use case
+   * @param metricsPort the metrics port
+   */
   public RegisterPurchaseOrderService(
       RegisterPurchaseOrderUseCase registerPurchaseOrderUseCase, BusinessMetricsPort metricsPort) {
     this.registerPurchaseOrderUseCase = registerPurchaseOrderUseCase;
