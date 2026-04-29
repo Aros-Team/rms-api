@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.purchase.persistence;
 
 import aros.services.rms.infraestructure.inventory.persistence.SupplyVariantEntity;

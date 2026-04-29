@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.config;
 
 import javax.sql.DataSource;

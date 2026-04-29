@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.product.api.dto;
 
 import aros.services.rms.core.product.domain.Product;
@@ -24,7 +25,9 @@ public record ProductResponse(
    * @return the response DTO
    */
   public static ProductResponse fromDomain(Product product) {
-    if (product == null) return null;
+    if (product == null) {
+      return null;
+    }
     return new ProductResponse(
         product.getId(),
         product.getName(),

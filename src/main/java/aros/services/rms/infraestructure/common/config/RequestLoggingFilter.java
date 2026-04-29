@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.common.config;
 
 import jakarta.servlet.FilterChain;
@@ -123,9 +124,9 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
 
   /** Gets the client IP address. */
   private String getClientIp(HttpServletRequest request) {
-    String xForwardedFor = request.getHeader("X-Forwarded-For");
-    if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-      return xForwardedFor.split(",")[0].trim();
+    String xffHeader = request.getHeader("X-Forwarded-For");
+    if (xffHeader != null && !xffHeader.isEmpty()) {
+      return xffHeader.split(",")[0].trim();
     }
     return request.getRemoteAddr();
   }

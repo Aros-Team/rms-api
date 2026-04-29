@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.twofactor.adapter;
 
 import aros.services.rms.core.twofactor.port.output.TfaCodeGeneratorPort;

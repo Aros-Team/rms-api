@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.category.api;
 
 import aros.services.rms.core.category.domain.OptionCategory;

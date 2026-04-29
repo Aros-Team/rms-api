@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.common.exception;
 
 /** Exception thrown when an environment variable is missing. */

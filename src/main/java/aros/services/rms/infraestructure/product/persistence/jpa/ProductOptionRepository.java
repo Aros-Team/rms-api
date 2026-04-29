@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.product.persistence.jpa;
 
 import aros.services.rms.infraestructure.product.persistence.ProductOption;
@@ -33,7 +34,8 @@ public interface ProductOptionRepository extends JpaRepository<ProductOption, Lo
   @Modifying
   @Query(
       value =
-          "INSERT INTO product_product_options (product_id, option_id) VALUES (:productId, :optionId)",
+          "INSERT INTO product_product_options (product_id, option_id) "
+              + "VALUES (:productId, :optionId)",
       nativeQuery = true)
   void associateOptionToProduct(
       @Param("productId") Long productId, @Param("optionId") Long optionId);
@@ -41,7 +43,8 @@ public interface ProductOptionRepository extends JpaRepository<ProductOption, Lo
   /** Checks if an option is associated with a product. */
   @Query(
       value =
-          "SELECT COUNT(*) FROM product_product_options WHERE product_id = :productId AND option_id = :optionId",
+          "SELECT COUNT(*) FROM product_product_options "
+              + "WHERE product_id = :productId AND option_id = :optionId",
       nativeQuery = true)
   Long isOptionAssociatedWithProduct(
       @Param("productId") Long productId, @Param("optionId") Long optionId);

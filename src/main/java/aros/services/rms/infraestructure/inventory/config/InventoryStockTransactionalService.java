@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.inventory.config;
 
 import aros.services.rms.core.inventory.application.service.InventoryStockService;

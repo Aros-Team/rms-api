@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.product.api;
 
 import aros.services.rms.core.category.domain.Category;
@@ -49,7 +50,7 @@ public class ProductController {
       summary = "Crear nuevo producto",
       description =
           "Crea un nuevo producto vinculado a un área de preparación y categoría. "
-              + "El flag hasOptions determina si se pueden asociar opciones de personalización (tamaño, toppings, etc).",
+              + "El flag hasOptions determina si se pueden asociar opciones de personalización.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Producto creado exitosamente"),
         @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
@@ -118,7 +119,7 @@ public class ProductController {
       summary = "Obtener todos los productos",
       description =
           "Retorna lista de todos los productos activos e inactivos del menú. "
-              + "Puede filtrarse por categoría usando el parámetro 'categories' (IDs separados por coma).",
+              + "Puede filtrarse por categoría usando el parámetro 'categories'.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Productos obtenidos exitosamente")
       })

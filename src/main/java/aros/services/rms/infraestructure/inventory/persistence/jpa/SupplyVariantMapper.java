@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.inventory.persistence.jpa;
 
 import aros.services.rms.core.inventory.domain.SupplyVariant;
@@ -11,7 +12,9 @@ public class SupplyVariantMapper {
 
   /** Converts a SupplyVariantEntity JPA entity to a domain model. */
   public SupplyVariant toDomain(SupplyVariantEntity entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
     return SupplyVariant.builder()
         .id(entity.getId())
         .supplyId(entity.getSupply() != null ? entity.getSupply().getId() : null)
@@ -22,7 +25,9 @@ public class SupplyVariantMapper {
 
   /** Converts a SupplyVariant domain model to a JPA entity. */
   public SupplyVariantEntity toEntity(SupplyVariant domain) {
-    if (domain == null) return null;
+    if (domain == null) {
+      return null;
+    }
     return SupplyVariantEntity.builder().id(domain.getId()).quantity(domain.getQuantity()).build();
   }
 }

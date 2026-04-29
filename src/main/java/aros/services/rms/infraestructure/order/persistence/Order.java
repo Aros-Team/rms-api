@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.order.persistence;
 
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;

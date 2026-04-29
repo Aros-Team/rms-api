@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.inventory.api.dto;
 
 import jakarta.validation.Valid;

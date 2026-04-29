@@ -28,7 +28,7 @@ public class SwaggerConfig {
    * @return the OpenAPI configuration
    */
   @Bean
-  public OpenAPI rmsOpenAPI() {
+  public OpenAPI rmsOpenApi() {
     return new OpenAPI()
         .info(
             new Info()

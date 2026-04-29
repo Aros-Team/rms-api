@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.twofactor.persistence.jpa;
 
 import aros.services.rms.core.twofactor.domain.TwoFactorCode;
@@ -29,7 +30,9 @@ public interface TwoFactorCodePersistenceMapper {
    * @return the user entity
    */
   default UserEntity userIdToUser(UserId userId) {
-    if (userId == null) return null;
+    if (userId == null) {
+      return null;
+    }
     UserEntity user = new UserEntity();
     user.setId(userId.value());
     return user;

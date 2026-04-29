@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.user.persistence.jpa;
 
 import aros.services.rms.core.user.domain.UserRole;
@@ -16,7 +17,8 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, Long> {
 
   /** Finds a user by email with assigned areas. */
   @Query(
-      "SELECT u FROM UserEntity u LEFT JOIN FETCH u.assignedAreas WHERE u.email = :email AND u.deletedAt IS NULL")
+      "SELECT u FROM UserEntity u LEFT JOIN FETCH u.assignedAreas "
+          + "WHERE u.email = :email AND u.deletedAt IS NULL")
   Optional<UserEntity> findByEmailWithAreas(String email);
 
   /** Checks if a user exists by document or email. */
@@ -25,7 +27,8 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, Long> {
   /** Checks if a user exists by document, email and not deleted. */
   @Query(
       "SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END "
-          + "FROM UserEntity u WHERE u.document = :document AND u.email = :email AND u.deletedAt IS NULL")
+          + "FROM UserEntity u "
+          + "WHERE u.document = :document AND u.email = :email AND u.deletedAt IS NULL")
   boolean existsByDocumentAndEmailAndDeletedAtIsNull(
       @Param("document") String document, @Param("email") String email);
 

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.table.api.dto;
 
 import aros.services.rms.core.table.domain.Table;
@@ -15,7 +16,9 @@ public record TableResponse(
 
   /** Converts a Table domain object to a TableResponse DTO. */
   public static TableResponse fromDomain(Table table) {
-    if (table == null) return null;
+    if (table == null) {
+      return null;
+    }
     return new TableResponse(
         table.getId(),
         table.getTableNumber(),

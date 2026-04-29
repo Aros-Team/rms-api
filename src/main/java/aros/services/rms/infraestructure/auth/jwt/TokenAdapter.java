@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.auth.jwt;
 
 import aros.services.rms.core.auth.port.output.TokenPort;

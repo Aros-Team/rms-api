@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.order.api;
 
 import aros.services.rms.core.order.application.dto.TakeOrderCommand;
@@ -213,7 +214,8 @@ public class OrderController {
   @Operation(
       summary = "Deliver order",
       description =
-          "Marks an order as DELIVERED and releases the table. Changes status from READY to DELIVERED.",
+          "Marks an order as DELIVERED and releases the table. "
+              + "Changes status from READY to DELIVERED.",
       responses = {
         @ApiResponse(
             responseCode = "200",

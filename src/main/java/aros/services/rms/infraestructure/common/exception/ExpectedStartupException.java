@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.common.exception;
 
 /** Base exception for expected startup failures. */

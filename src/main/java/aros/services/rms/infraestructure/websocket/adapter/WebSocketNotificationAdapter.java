@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.websocket.adapter;
 
 import aros.services.rms.core.common.notification.port.output.NotificationPort;

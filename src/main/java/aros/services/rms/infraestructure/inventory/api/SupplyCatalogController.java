@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.inventory.api;
 
 import aros.services.rms.core.inventory.application.exception.SupplyAlreadyExistsException;
@@ -118,7 +119,8 @@ public class SupplyCatalogController {
   @Operation(
       summary = "List units of measure",
       description =
-          "Returns all units of measure. Use to populate the unit selector when creating a variant.",
+          "Returns all units of measure. "
+              + "Use to populate the unit selector when creating a variant.",
       responses = {@ApiResponse(responseCode = "200", description = "OK")})
   @GetMapping("/units")
   public ResponseEntity<List<UnitOfMeasureResponse>> findAllUnits() {
@@ -339,7 +341,9 @@ public class SupplyCatalogController {
   }
 
   private Map<Long, BigDecimal> buildStockMap(Long locationId) {
-    if (locationId == null) return Map.of();
+    if (locationId == null) {
+      return Map.of();
+    }
     return inventoryStockRepository.findByStorageLocationId(locationId).stream()
         .collect(
             Collectors.toMap(

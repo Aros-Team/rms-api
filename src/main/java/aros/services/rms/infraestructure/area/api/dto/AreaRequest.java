@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.area.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;

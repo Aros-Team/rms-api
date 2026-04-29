@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.purchase.api.dto;
 
 import aros.services.rms.core.purchase.domain.Supplier;
@@ -14,7 +15,9 @@ public record SupplierResponse(
 
   /** Converts a Supplier domain object to a SupplierResponse DTO. */
   public static SupplierResponse fromDomain(Supplier supplier) {
-    if (supplier == null) return null;
+    if (supplier == null) {
+      return null;
+    }
     return new SupplierResponse(
         supplier.getId(), supplier.getName(), supplier.getContact(), supplier.isActive());
   }

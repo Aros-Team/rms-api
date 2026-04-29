@@ -10,4 +10,4 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @PreAuthorize("principal.claims['type'] == 'tfa'")
-public @interface OnlyTfaTOken {}
+public @interface OnlyTfaToken {}

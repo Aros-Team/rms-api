@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.daymenu.persistence;
 
 import org.springframework.data.domain.Page;

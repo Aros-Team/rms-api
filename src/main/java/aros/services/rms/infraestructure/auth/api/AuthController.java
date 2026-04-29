@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.auth.api;
 
 import aros.services.rms.core.auth.application.dto.AuthResult;
@@ -26,7 +27,7 @@ import aros.services.rms.infraestructure.auth.api.dto.UserFullInfoResponse;
 import aros.services.rms.infraestructure.auth.api.dto.VerifyTwoFactorRequest;
 import aros.services.rms.infraestructure.share.security.JustAccessToken;
 import aros.services.rms.infraestructure.share.security.OnlyRefreshToken;
-import aros.services.rms.infraestructure.share.security.OnlyTfaTOken;
+import aros.services.rms.infraestructure.share.security.OnlyTfaToken;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -122,7 +123,7 @@ public class AuthController {
         @ApiResponse(responseCode = "401", description = "Unauthorized")
       })
   @PostMapping("/verify")
-  @OnlyTfaTOken
+  @OnlyTfaToken
   public ResponseEntity<AuthResponse> verifyTfa(
       @Valid @RequestBody VerifyTwoFactorRequest request, @AuthenticationPrincipal Jwt jwt)
       throws InvalidCredentialsException {
@@ -207,21 +208,21 @@ public class AuthController {
   public ResponseEntity<UserFullInfoResponse> me(@AuthenticationPrincipal Jwt auth)
       throws UserNotFoundException {
     log.info("Fetching current user info");
-    UserFullInfo uInfo = getUserInfoUseCase.getInfo(new UserEmail(auth.getSubject()));
+    UserFullInfo userInfo = getUserInfoUseCase.getInfo(new UserEmail(auth.getSubject()));
 
-    UserFullInfoResponse uInfoResponse =
+    UserFullInfoResponse userInfoResponse =
         new UserFullInfoResponse(
-            uInfo.id().value(),
-            uInfo.document(),
-            uInfo.name(),
-            uInfo.email().value(),
-            uInfo.password(),
-            uInfo.address(),
-            uInfo.phone(),
-            uInfo.role(),
-            uInfo.areas());
+            userInfo.id().value(),
+            userInfo.document(),
+            userInfo.name(),
+            userInfo.email().value(),
+            userInfo.password(),
+            userInfo.address(),
+            userInfo.phone(),
+            userInfo.role(),
+            userInfo.areas());
 
-    return ResponseEntity.ok(uInfoResponse);
+    return ResponseEntity.ok(userInfoResponse);
   }
 
   /**

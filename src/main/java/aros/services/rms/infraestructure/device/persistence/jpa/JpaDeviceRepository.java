@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.device.persistence.jpa;
 
 import java.util.Optional;

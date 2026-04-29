@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.auth.persistence.jpa;
 
 import aros.services.rms.core.auth.domain.AccountSetupToken;

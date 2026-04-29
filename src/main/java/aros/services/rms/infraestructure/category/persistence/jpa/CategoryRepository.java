@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.category.persistence.jpa;
 
 import aros.services.rms.infraestructure.category.persistence.Category;

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.category.persistence.jpa;
 
 import aros.services.rms.core.category.domain.Category;
@@ -11,7 +12,9 @@ public class CategoryMapper {
 
   /** Converts a Category JPA entity to a domain model. */
   public Category toDomain(aros.services.rms.infraestructure.category.persistence.Category entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
     return Category.builder()
         .id(entity.getId())
         .name(entity.getName())
@@ -22,7 +25,9 @@ public class CategoryMapper {
 
   /** Converts a Category domain model to a JPA entity. */
   public aros.services.rms.infraestructure.category.persistence.Category toEntity(Category domain) {
-    if (domain == null) return null;
+    if (domain == null) {
+      return null;
+    }
     return aros.services.rms.infraestructure.category.persistence.Category.builder()
         .id(domain.getId())
         .name(domain.getName())
@@ -34,7 +39,9 @@ public class CategoryMapper {
   /** Converts an OptionCategory JPA entity to a domain model. */
   public OptionCategory toOptionCategoryDomain(
       aros.services.rms.infraestructure.category.persistence.OptionCategory entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
     return OptionCategory.builder()
         .id(entity.getId())
         .name(entity.getName())
@@ -45,7 +52,9 @@ public class CategoryMapper {
   /** Converts an OptionCategory domain model to a JPA entity. */
   public aros.services.rms.infraestructure.category.persistence.OptionCategory
       toOptionCategoryEntity(OptionCategory domain) {
-    if (domain == null) return null;
+    if (domain == null) {
+      return null;
+    }
     return aros.services.rms.infraestructure.category.persistence.OptionCategory.builder()
         .id(domain.getId())
         .name(domain.getName())

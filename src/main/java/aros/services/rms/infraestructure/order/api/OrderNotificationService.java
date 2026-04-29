@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.order.api;
 
 import aros.services.rms.infraestructure.order.api.dto.OrderResponse;

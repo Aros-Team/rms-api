@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.share;
 
 import aros.services.rms.core.share.port.output.HashServicePort;

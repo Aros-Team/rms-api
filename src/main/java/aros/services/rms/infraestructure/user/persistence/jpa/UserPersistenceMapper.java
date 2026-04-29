@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.user.persistence.jpa;
 
 import aros.services.rms.core.area.domain.AreaId;

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.product.api.dto;
 
 import aros.services.rms.core.product.domain.ProductOption;
@@ -20,7 +21,9 @@ public record ProductOptionResponse(
    * @return the response DTO
    */
   public static ProductOptionResponse fromDomain(ProductOption option) {
-    if (option == null) return null;
+    if (option == null) {
+      return null;
+    }
     return new ProductOptionResponse(
         option.getId(),
         option.getName(),

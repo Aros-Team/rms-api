@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.auth.config;
 
 import org.springframework.context.annotation.Bean;
@@ -27,7 +28,7 @@ public class PasswordEncoderConfig {
    * @return the BCrypt encoder
    */
   @Bean
-  public BCryptPasswordEncoder bCryptPasswordEncoder() {
+  public BCryptPasswordEncoder bcryptPasswordEncoder() {
     return new BCryptPasswordEncoder();
   }
 }

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.auth.jwt;
 
 import aros.services.rms.core.area.domain.AreaId;
@@ -22,7 +23,8 @@ public class JwtServiceImpl implements JwtService {
 
   private static final Logger log = LoggerFactory.getLogger(JwtServiceImpl.class);
   private static final String JWT_NOT_CONFIGURED_ERROR =
-      "JWT keys not configured. Cannot generate token. Run './gradlew generate-jwt-keys' or 'task jwtkeys' to generate and add to .env file";
+      "JWT keys not configured. Cannot generate token. "
+          + "Run './gradlew generate-jwt-keys' or 'task jwtkeys' to generate and add to .env file";
 
   private final JwtEncoder jwtEncoder;
   private final JwtDecoder jwtDecoder;

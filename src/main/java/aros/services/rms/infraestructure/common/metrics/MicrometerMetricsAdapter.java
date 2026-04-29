@@ -188,6 +188,9 @@ public class MicrometerMetricsAdapter implements BusinessMetricsPort {
       case "success" -> loginSuccessCounter.increment();
       case "failure" -> loginFailureCounter.increment();
       case "tfa_required" -> loginTfaRequiredCounter.increment();
+      default -> {
+        break;
+      }
     }
   }
 
@@ -196,6 +199,9 @@ public class MicrometerMetricsAdapter implements BusinessMetricsPort {
     switch (type) {
       case "requested" -> passwordResetRequestedCounter.increment();
       case "completed" -> passwordResetCompletedCounter.increment();
+      default -> {
+        break;
+      }
     }
   }
 
@@ -204,6 +210,9 @@ public class MicrometerMetricsAdapter implements BusinessMetricsPort {
     switch (type) {
       case "requested" -> accountSetupRequestedCounter.increment();
       case "completed" -> accountSetupCompletedCounter.increment();
+      default -> {
+        break;
+      }
     }
   }
 

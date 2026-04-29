@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.email.adapter;
 
 import aros.services.rms.core.email.application.exception.EmailServiceException;
@@ -73,7 +74,8 @@ public class EmailServiceAdapter implements EmailServicePort {
   private void sendEmailInternal(Email email) {
     if (dummyEmail != null && !dummyEmail.isBlank() && dummyEmail.equalsIgnoreCase(email.getTo())) {
       log.warn(
-          "Email not sent - recipient matches DUMMY_EMAIL (development mode). to={}, template={}, data={}",
+          "Email not sent - recipient matches DUMMY_EMAIL (development mode). "
+              + "to={}, template={}, data={}",
           email.getTo(),
           email.getTemplate(),
           email.getData());

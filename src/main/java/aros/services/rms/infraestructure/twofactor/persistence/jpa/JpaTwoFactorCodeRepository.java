@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.twofactor.persistence.jpa;
 
 import java.time.Instant;

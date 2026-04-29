@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.order.config;
 
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;

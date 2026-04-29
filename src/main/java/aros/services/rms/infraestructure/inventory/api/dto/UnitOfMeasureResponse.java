@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.inventory.api.dto;
 
 import aros.services.rms.infraestructure.inventory.persistence.UnitOfMeasureEntity;
@@ -18,7 +19,9 @@ public record UnitOfMeasureResponse(
    * @return the response DTO
    */
   public static UnitOfMeasureResponse fromEntity(UnitOfMeasureEntity entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
     return new UnitOfMeasureResponse(entity.getId(), entity.getName(), entity.getAbbreviation());
   }
 }

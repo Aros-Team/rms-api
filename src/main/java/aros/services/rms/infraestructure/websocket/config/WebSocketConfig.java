@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.websocket.config;
 
 import aros.services.rms.infraestructure.websocket.security.WebSocketChannelInterceptor;

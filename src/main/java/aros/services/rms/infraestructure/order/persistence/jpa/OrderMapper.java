@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.order.persistence.jpa;
 
 import aros.services.rms.core.order.domain.Order;
@@ -26,7 +27,9 @@ public class OrderMapper {
    * @return the entity
    */
   public aros.services.rms.infraestructure.order.persistence.Order toEntity(Order domain) {
-    if (domain == null) return null;
+    if (domain == null) {
+      return null;
+    }
 
     aros.services.rms.infraestructure.order.persistence.Order entity =
         aros.services.rms.infraestructure.order.persistence.Order.builder()
@@ -66,7 +69,9 @@ public class OrderMapper {
    */
   public aros.services.rms.infraestructure.order.persistence.OrderDetail toOrderDetailEntity(
       OrderDetail domain, aros.services.rms.infraestructure.order.persistence.Order orderEntity) {
-    if (domain == null) return null;
+    if (domain == null) {
+      return null;
+    }
 
     return aros.services.rms.infraestructure.order.persistence.OrderDetail.builder()
         .id(domain.getId())
@@ -90,7 +95,9 @@ public class OrderMapper {
    * @return the domain
    */
   public Order toDomain(aros.services.rms.infraestructure.order.persistence.Order entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
 
     Set<Long> areaIds =
         entity.getPreparationAreas() != null
@@ -123,7 +130,9 @@ public class OrderMapper {
    */
   public OrderDetail toOrderDetailDomain(
       aros.services.rms.infraestructure.order.persistence.OrderDetail entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
 
     return OrderDetail.builder()
         .id(entity.getId())

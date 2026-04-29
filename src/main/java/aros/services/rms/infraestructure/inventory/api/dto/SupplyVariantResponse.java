@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.inventory.api.dto;
 
 import aros.services.rms.infraestructure.inventory.persistence.SupplyVariantEntity;
@@ -39,7 +40,9 @@ public record SupplyVariantResponse(
    */
   public static SupplyVariantResponse fromEntity(
       SupplyVariantEntity entity, BigDecimal stockBodega, BigDecimal stockCocina) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
     var supply = entity.getSupply();
     var unit = entity.getUnit();
     return new SupplyVariantResponse(

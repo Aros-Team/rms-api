@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.area.config;
 
 import aros.services.rms.core.area.application.service.AreaService;

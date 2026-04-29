@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.inventory.persistence.jpa.adapters;
 
 import aros.services.rms.core.inventory.domain.OptionRecipe;

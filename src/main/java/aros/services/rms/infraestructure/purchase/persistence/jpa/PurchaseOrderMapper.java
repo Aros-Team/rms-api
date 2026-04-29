@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.purchase.persistence.jpa;
 
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
@@ -32,7 +33,9 @@ public class PurchaseOrderMapper {
    * @return the domain
    */
   public PurchaseOrder toDomain(PurchaseOrderEntity entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
     return PurchaseOrder.builder()
         .id(entity.getId())
         .supplierId(entity.getSupplier() != null ? entity.getSupplier().getId() : null)
@@ -55,7 +58,9 @@ public class PurchaseOrderMapper {
    * @return the entity
    */
   public PurchaseOrderEntity toEntity(PurchaseOrder domain) {
-    if (domain == null) return null;
+    if (domain == null) {
+      return null;
+    }
     var entity =
         PurchaseOrderEntity.builder()
             .id(domain.getId())

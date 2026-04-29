@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.common.exception;
 
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
@@ -165,6 +166,18 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleInvalidProductOption(InvalidProductOptionException e) {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(new ErrorResponse(400, e.getMessage()));
+  }
+
+  /** Handles validation errors for request body. */
+  @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
+  public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(
+      org.springframework.web.bind.MethodArgumentNotValidException e) {
+    String message =
+        e.getBindingResult().getFieldErrors().stream()
+            .map(error -> error.getField() + ": " + error.getDefaultMessage())
+            .findFirst()
+            .orElse("Validation failed");
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(400, message));
   }
 
   // --- Spring Retry ---

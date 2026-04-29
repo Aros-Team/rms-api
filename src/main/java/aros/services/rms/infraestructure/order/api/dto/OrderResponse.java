@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.order.api.dto;
 
 import aros.services.rms.core.order.domain.Order;
@@ -46,7 +47,9 @@ public record OrderResponse(
    * @return the response DTO
    */
   public static OrderResponse fromDomain(Order order) {
-    if (order == null) return null;
+    if (order == null) {
+      return null;
+    }
 
     return new OrderResponse(
         order.getId(),
@@ -61,7 +64,9 @@ public record OrderResponse(
   }
 
   private static OrderDetailResponse fromDomainDetail(OrderDetail detail) {
-    if (detail == null) return null;
+    if (detail == null) {
+      return null;
+    }
 
     return new OrderDetailResponse(
         detail.getId(),
@@ -77,7 +82,9 @@ public record OrderResponse(
   }
 
   private static ProductOptionResponse fromDomainOption(ProductOption option) {
-    if (option == null) return null;
+    if (option == null) {
+      return null;
+    }
 
     return new ProductOptionResponse(
         option.getId(),

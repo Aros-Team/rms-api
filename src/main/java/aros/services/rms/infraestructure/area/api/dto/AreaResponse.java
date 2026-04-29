@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.area.api.dto;
 
 import aros.services.rms.core.area.domain.Area;
@@ -19,7 +20,9 @@ public record AreaResponse(
    * @return the response DTO
    */
   public static AreaResponse fromDomain(Area area) {
-    if (area == null) return null;
+    if (area == null) {
+      return null;
+    }
     return new AreaResponse(
         area.getId(),
         area.getName(),

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.purchase.persistence.jpa;
 
 import aros.services.rms.core.purchase.domain.Supplier;
@@ -16,7 +17,9 @@ public class SupplierMapper {
    * @return the domain
    */
   public Supplier toDomain(SupplierEntity entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
     return Supplier.builder()
         .id(entity.getId())
         .name(entity.getName())
@@ -32,7 +35,9 @@ public class SupplierMapper {
    * @return the entity
    */
   public SupplierEntity toEntity(Supplier domain) {
-    if (domain == null) return null;
+    if (domain == null) {
+      return null;
+    }
     return SupplierEntity.builder()
         .id(domain.getId())
         .name(domain.getName())

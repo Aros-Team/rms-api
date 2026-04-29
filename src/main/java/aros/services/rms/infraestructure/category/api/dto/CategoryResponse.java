@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.category.api.dto;
 
 import aros.services.rms.core.category.domain.Category;
@@ -20,7 +21,9 @@ public record CategoryResponse(
    * @return the response DTO
    */
   public static CategoryResponse fromDomain(Category category) {
-    if (category == null) return null;
+    if (category == null) {
+      return null;
+    }
     return new CategoryResponse(
         category.getId(), category.getName(), category.getDescription(), category.isEnabled());
   }

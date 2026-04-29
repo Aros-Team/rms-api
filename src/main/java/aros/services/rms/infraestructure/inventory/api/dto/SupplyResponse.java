@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.inventory.api.dto;
 
 import aros.services.rms.infraestructure.inventory.persistence.SupplyEntity;
@@ -19,7 +20,9 @@ public record SupplyResponse(
    * @return the response DTO
    */
   public static SupplyResponse fromEntity(SupplyEntity entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
     return new SupplyResponse(
         entity.getId(),
         entity.getName(),

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.inventory.persistence.jpa;
 
 import aros.services.rms.core.inventory.domain.InventoryMovement;
@@ -15,7 +16,9 @@ public class InventoryMovementMapper {
 
   /** Converts an InventoryMovementEntity JPA entity to a domain model. */
   public InventoryMovement toDomain(InventoryMovementEntity entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
     return InventoryMovement.builder()
         .id(entity.getId())
         .supplyVariantId(
@@ -40,7 +43,9 @@ public class InventoryMovementMapper {
 
   /** Converts an InventoryMovement domain model to a JPA entity. */
   public InventoryMovementEntity toEntity(InventoryMovement domain) {
-    if (domain == null) return null;
+    if (domain == null) {
+      return null;
+    }
     InventoryMovementEntity entity =
         InventoryMovementEntity.builder()
             .id(domain.getId())
