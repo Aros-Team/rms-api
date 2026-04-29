@@ -83,7 +83,7 @@ public class AuthController {
     if (result instanceof AuthResult.Success rs) {
       response =
           new AuthResponse(rs.type().name(), rs.username(), rs.acessToken(), rs.refreshToken());
-    } else if (result instanceof AuthResult.RequiresTFA rs) {
+    } else if (result instanceof AuthResult.RequiresTfa rs) {
       response = new AuthResponse(rs.type().name(), rs.username(), rs.acessToken(), null);
     }
 

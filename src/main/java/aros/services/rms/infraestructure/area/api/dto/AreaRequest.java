@@ -7,13 +7,7 @@ import jakarta.validation.constraints.NotNull;
 
 @Schema(
     description = "Request DTO for creating or updating a preparation area",
-    example =
-        """
-        {
-          "name": "Cocina Principal",
-          "type": "KITCHEN"
-        }
-        """)
+    example = "{\"name\": \"Cocina Principal\", \"type\": \"KITCHEN\"}")
 public record AreaRequest(
     @Schema(description = "Area name", example = "Cocina Principal")
         @NotBlank(message = "Area name is required") String name,

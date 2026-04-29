@@ -7,13 +7,7 @@ import jakarta.validation.constraints.Positive;
 
 @Schema(
     description = "Request DTO for creating or updating a table",
-    example =
-        """
-        {
-          "tableNumber": 5,
-          "capacity": 4
-        }
-        """)
+    example = "{\"tableNumber\": 5, \"capacity\": 4}")
 public record TableRequest(
     @Schema(description = "Table number", example = "5")
         @NotNull(message = "Table number is required") @Positive(message = "Table number must be positive") Integer tableNumber,

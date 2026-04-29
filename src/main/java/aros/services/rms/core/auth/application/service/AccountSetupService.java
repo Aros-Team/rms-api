@@ -25,6 +25,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+/** Service for handling new user account setup with token validation. */
 public class AccountSetupService implements AccountSetupUseCase {
 
   private static final int TOKEN_EXPIRATION_MINUTES = 30;
@@ -123,7 +124,8 @@ public class AccountSetupService implements AccountSetupUseCase {
 
     if (!PASSWORD_PATTERN.matcher(newPassword).matches()) {
       throw new InvalidPasswordException(
-          "La nueva contraseña debe tener mínimo 8 caracteres, incluir al menos una mayúscula, una minúscula, un número y un símbolo (@$!%*?&)");
+          "La nueva contraseña debe tener mínimo 8 caracteres, incluir al menos"
+              + " una mayúscula, una minúscula, un número y un símbolo (@$!%*?&)");
     }
 
     String encodedPassword = passwordEncoderPort.encode(newPassword);

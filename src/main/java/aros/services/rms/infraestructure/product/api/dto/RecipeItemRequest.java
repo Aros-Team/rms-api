@@ -8,13 +8,7 @@ import java.math.BigDecimal;
 
 @Schema(
     description = "Request DTO for a recipe item (supply variant and required quantity)",
-    example =
-        """
-        {
-          "supplyVariantId": 1,
-          "requiredQuantity": 250.0
-        }
-        """)
+    example = "{\"supplyVariantId\": 1, \"requiredQuantity\": 250.0}")
 public record RecipeItemRequest(
     @Schema(description = "Supply variant ID", example = "1")
         @NotNull(message = "Supply variant ID is required") Long supplyVariantId,

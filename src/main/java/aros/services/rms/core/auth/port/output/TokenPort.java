@@ -20,7 +20,7 @@ public interface TokenPort {
    * @param user the user to generate token for
    * @return the TFA token string
    */
-  String generateTFAToken(User user);
+  String generateTfaToken(User user);
 
   /**
    * Generates a refresh token for a user.

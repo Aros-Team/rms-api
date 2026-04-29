@@ -47,7 +47,8 @@ public class ChangePasswordService implements ChangePasswordUseCase {
 
     if (!PASSWORD_PATTERN.matcher(newPassword).matches()) {
       throw new InvalidPasswordException(
-          "La contraseña debe tener mínimo 8 caracteres, incluir al menos una mayúscula, una minúscula, un número y un símbolo (@$!%*?&)");
+          "La contraseña debe tener mínimo 8 caracteres, incluir al menos"
+              + " una mayúscula, una minúscula, un número y un símbolo (@$!%*?&)");
     }
 
     String encodedPassword = passwordEncoderPort.encode(newPassword);

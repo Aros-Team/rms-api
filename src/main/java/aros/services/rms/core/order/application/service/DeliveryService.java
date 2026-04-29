@@ -63,15 +63,18 @@ public class DeliveryService implements DeliveryUseCase {
     order.setStatus(OrderStatus.DELIVERED);
     Order savedOrder = orderRepositoryPort.save(order);
 
+    releaseTableIfNeeded(savedOrder);
+    metricsPort.recordOrderStatusTransition("READY", "DELIVERED");
+    metricsPort.recordOrderDelivery();
+    return savedOrder;
+  }
+
+  private void releaseTableIfNeeded(Order order) {
     if (order.getTable() != null) {
       Table table = order.getTable();
       table.setStatus(TableStatus.AVAILABLE);
       tableRepositoryPort.save(table);
     }
-
-    metricsPort.recordOrderStatusTransition("READY", "DELIVERED");
-    metricsPort.recordOrderDelivery();
-    return savedOrder;
   }
 
   /**

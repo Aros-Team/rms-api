@@ -11,22 +11,7 @@ import java.util.List;
 @Schema(
     description = "Request DTO for creating or updating a product",
     example =
-        """
-        {
-          "name": "Hamburguesa Clásica",
-          "basePrice": 12.50,
-          "hasOptions": true,
-          "categoryId": 1,
-          "areaId": 1,
-          "optionIds": [1, 2, 3],
-          "recipe": [
-            {
-              "supplyVariantId": 1,
-              "requiredQuantity": 250.0
-            }
-          ]
-        }
-        """)
+        "{\"name\": \"Hamburguesa Clásica\", \"basePrice\": 12.50, \"hasOptions\": true, \"categoryId\": 1, \"areaId\": 1, \"optionIds\": [1, 2, 3], \"recipe\": [{\"supplyVariantId\": 1, \"requiredQuantity\": 250.0}]}")
 public record ProductRequest(
     @Schema(description = "Product name", example = "Hamburguesa Clásica")
         @NotBlank(message = "Product name is required") String name,

@@ -83,6 +83,14 @@ Use specific, action-oriented names:
 - Use `@ApiResponse` to document possible response codes
 - Group endpoints by domain using tags
 
+## Checkstyle Rules
+
+### PROHIBITED: Text blocks in @Schema
+Do not use `"""..."""` in `@Schema(example = """..."""`. Checkstyle 13.4.1 bug NPE.
+
+**CORRECT:** `@Schema(example = "{\"name\": \"Kitchen\"}")`
+**WRONT:** `@Schema(example = """{"name": "Kitchen"}""")`
+
 ## Database
 
 - Use `@Entity` and `@Table` for JPA entities

@@ -6,13 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 
 @Schema(
     description = "Request DTO for creating or updating a product category",
-    example =
-        """
-        {
-          "name": "Hamburguesas",
-          "description": "Todas las hamburguesas del menú"
-        }
-        """)
+    example = "{\"name\": \"Hamburguesas\", \"description\": \"Todas las hamburguesas del menú\"}")
 public record CategoryRequest(
     @Schema(description = "Category name", example = "Hamburguesas")
         @NotBlank(message = "Category name is required") String name,

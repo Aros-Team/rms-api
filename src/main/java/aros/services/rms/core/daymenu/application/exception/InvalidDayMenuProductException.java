@@ -13,6 +13,7 @@ public class InvalidDayMenuProductException extends RuntimeException {
     super(
         "El producto id="
             + productId
-            + " no tiene opciones habilitadas (hasOptions=false) y no puede ser asignado como menú del día");
+            + " no tiene opciones habilitadas (hasOptions=false) y no puede ser"
+            + " asignado como menú del día");
   }
 }

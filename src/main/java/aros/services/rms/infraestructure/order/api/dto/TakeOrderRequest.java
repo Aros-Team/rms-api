@@ -10,18 +10,7 @@ import java.util.List;
 @Schema(
     description = "Request DTO para crear una nueva orden",
     example =
-        """
-        {
-          "tableId": 1,
-          "details": [
-            {
-              "productId": 1,
-              "instructions": "Sin cebolla",
-              "selectedOptionIds": [1, 2]
-            }
-          ]
-        }
-        """)
+        "{\"tableId\": 1, \"details\": [{\"productId\": 1, \"instructions\": \"Sin cebolla\", \"selectedOptionIds\": [1, 2]}]}")
 public record TakeOrderRequest(
     @Schema(description = "ID de la mesa", example = "1") @NotNull(message = "Table ID is required") Long tableId,
     @Schema(description = "Lista de productos ordenados")

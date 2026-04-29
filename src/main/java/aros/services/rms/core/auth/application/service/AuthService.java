@@ -209,7 +209,7 @@ public class AuthService
       tfaPort.save(twoFactorCode);
       emailPort.sendTwoFactorCode(user.getEmail(), code);
 
-      return new AuthResult.RequiresTFA(username, tokenPort.generateTFAToken(user));
+      return new AuthResult.RequiresTfa(username, tokenPort.generateTfaToken(user));
     }
 
     String accessToken = tokenPort.generateAccessToken(user);

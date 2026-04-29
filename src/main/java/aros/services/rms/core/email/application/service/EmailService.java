@@ -87,7 +87,8 @@ public class EmailService
                 "expiry",
                 "30 minutos",
                 "message",
-                "Has solicitado restablecer tu contraseña en RMS. Haz clic en el siguiente enlace para completar el proceso:"));
+                "Has solicitado restablecer tu contraseña en RMS."
+                    + " Haz clic en el siguiente enlace para completar el proceso:"));
 
     this.emailPort.send(resetEmail);
   }

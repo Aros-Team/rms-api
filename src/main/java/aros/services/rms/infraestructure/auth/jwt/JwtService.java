@@ -10,7 +10,7 @@ public interface JwtService {
 
   String generateRefreshToken(String username);
 
-  String generateTFAToken(String username);
+  String generateTfaToken(String username);
 
   boolean validateToken(String token);
 

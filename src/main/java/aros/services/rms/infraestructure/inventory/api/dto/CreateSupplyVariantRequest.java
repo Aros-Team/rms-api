@@ -14,14 +14,7 @@ import java.math.BigDecimal;
  */
 @Schema(
     description = "Request payload for creating a new supply variant (presentación física)",
-    example =
-        """
-        {
-          "supplyId": 3,
-          "unitId": 2,
-          "quantity": 0.500
-        }
-        """)
+    example = "{\"supplyId\": 3, \"unitId\": 2, \"quantity\": 0.500}")
 public record CreateSupplyVariantRequest(
     @Schema(description = "Supply (insumo) ID — must already exist", example = "3")
         @NotNull(message = "supplyId is required") Long supplyId,

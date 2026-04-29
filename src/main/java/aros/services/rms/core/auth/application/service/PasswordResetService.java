@@ -21,6 +21,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+/** Service for handling password reset requests and token management. */
 public class PasswordResetService implements PasswordResetUseCase {
 
   private static final int TOKEN_EXPIRATION_MINUTES = 30;
@@ -129,7 +130,8 @@ public class PasswordResetService implements PasswordResetUseCase {
 
     if (!PASSWORD_PATTERN.matcher(newPassword).matches()) {
       throw new InvalidPasswordException(
-          "La nueva contraseña debe tener mínimo 8 caracteres, incluir al menos una mayúscula, una minúscula, un número y un símbolo (@$!%*?&)");
+          "La nueva contraseña debe tener mínimo 8 caracteres, incluir al menos"
+              + " una mayúscula, una minúscula, un número y un símbolo (@$!%*?&)");
     }
 
     String encodedPassword = passwordEncoderPort.encode(newPassword);

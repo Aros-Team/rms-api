@@ -98,7 +98,7 @@ public class LoginService implements LoginUseCase {
     if (deviceOpt.isPresent()) {
       return authenticateFull(user);
     } else {
-      return authenticateRequireTFA(user);
+      return authenticateRequireTfa(user);
     }
   }
 
@@ -116,19 +116,19 @@ public class LoginService implements LoginUseCase {
     return result;
   }
 
-  private AuthResult.RequiresTFA authenticateRequireTFA(User user) {
+  private AuthResult.RequiresTfa authenticateRequireTfa(User user) {
     metricsPort.recordLoginAttempt("tfa_required");
     String code = tfaCodeGeneratorPort.generateCode(6);
-    TwoFactorCode TFACode = createVerificationCode(user, code);
+    TwoFactorCode tfaCode = createVerificationCode(user, code);
 
-    tfaPort.save(TFACode);
+    tfaPort.save(tfaCode);
     emailPort.sendTwoFactorCode(user.getEmail(), code);
 
-    return createRequireTFA(user);
+    return createRequireTfa(user);
   }
 
-  private AuthResult.RequiresTFA createRequireTFA(User user) {
-    return new AuthResult.RequiresTFA(user.getEmail().value(), tokenPort.generateTFAToken(user));
+  private AuthResult.RequiresTfa createRequireTfa(User user) {
+    return new AuthResult.RequiresTfa(user.getEmail().value(), tokenPort.generateTfaToken(user));
   }
 
   private AuthResult.Success createSuccess(User user) {

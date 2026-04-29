@@ -17,5 +17,6 @@ public interface CreateUserUseCase {
    */
   CreateUserResult create(CreateUserInfo info) throws UserAlreadyExistsException;
 
+  /** Result containing the created user and their raw password. */
   record CreateUserResult(User user, String rawPassword) {}
 }

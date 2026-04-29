@@ -84,7 +84,7 @@ public class JwtServiceImpl implements JwtService {
   }
 
   @Override
-  public String generateTFAToken(String username) {
+  public String generateTfaToken(String username) {
     if (jwtEncoder == null) {
       log.error(JWT_NOT_CONFIGURED_ERROR);
       throw new IllegalStateException("JWT not configured");

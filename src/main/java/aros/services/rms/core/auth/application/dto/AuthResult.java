@@ -3,7 +3,7 @@
 package aros.services.rms.core.auth.application.dto;
 
 /** Sealed interface representing authentication results (success or requires 2FA). */
-public sealed interface AuthResult permits AuthResult.Success, AuthResult.RequiresTFA {
+public sealed interface AuthResult permits AuthResult.Success, AuthResult.RequiresTfa {
   /**
    * Gets the username from the auth result.
    *
@@ -38,7 +38,7 @@ public sealed interface AuthResult permits AuthResult.Success, AuthResult.Requir
    * @param username the username requesting TFA
    * @param acessToken the TFA token string
    */
-  record RequiresTFA(String username, String acessToken) implements AuthResult {
+  record RequiresTfa(String username, String acessToken) implements AuthResult {
     @Override
     public AuthResultType type() {
       return AuthResultType.TFA_REQUIRED;

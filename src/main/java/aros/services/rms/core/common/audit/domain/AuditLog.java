@@ -112,6 +112,7 @@ public class AuditLog {
     return new Builder();
   }
 
+  /** Builder for constructing AuditLog instances. */
   public static class Builder {
     private String id;
     private Long userId;

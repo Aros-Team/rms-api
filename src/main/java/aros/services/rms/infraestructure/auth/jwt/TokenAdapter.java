@@ -18,8 +18,8 @@ public class TokenAdapter implements TokenPort {
   }
 
   @Override
-  public String generateTFAToken(User user) {
-    return jwtService.generateTFAToken(user.getEmail().value());
+  public String generateTfaToken(User user) {
+    return jwtService.generateTfaToken(user.getEmail().value());
   }
 
   @Override

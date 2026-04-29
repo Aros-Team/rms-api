@@ -27,8 +27,10 @@ public class CreateAdminService {
   private final PasswordEncoderPort passwordEncoder;
   private final RegistrationEmailUseCase emailService;
 
+  /** Configuration for admin creation with email and environment flag. */
   public record AdminConfig(String email, boolean isProduction) {}
 
+  /** Credentials returned after admin creation with email, raw password, and environment flag. */
   public record AdminCredentials(String email, String rawPassword, boolean isDevelopment) {}
 
   /**
@@ -75,7 +77,8 @@ public class CreateAdminService {
     long adminCount = adminRepository.countByRole(UserRole.ADMIN);
     if (adminCount > 0) {
       log.warn(
-          "Administrator creation not required. An ADMIN role user already exists in the database.");
+          "Administrator creation not required. "
+              + "An ADMIN role user already exists in the database.");
       return null;
     }
 
@@ -109,7 +112,6 @@ public class CreateAdminService {
     log.debug("Administrator email: {}", dummyEmail);
 
     long adminCount = adminRepository.countByRole(UserRole.ADMIN);
-    boolean isFirstTime = adminCount == 0;
 
     if (adminCount > 0) {
       log.warn("Administrator already exists in database, skipping creation.");
@@ -137,6 +139,7 @@ public class CreateAdminService {
     userRepository.save(admin);
     log.info("Administrator created successfully and persisted in database");
 
+    boolean isFirstTime = adminCount == 0;
     if (isFirstTime) {
       sendEmail(dummyEmail, rawPassword, true);
     }

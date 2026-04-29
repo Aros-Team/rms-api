@@ -140,7 +140,7 @@ public class AuditAspect {
     if (result instanceof AuthResult.Success success) {
       return String.format("{\"username\": \"%s\", \"type\": \"SUCCESS\"}", success.username());
     }
-    if (result instanceof AuthResult.RequiresTFA tfa) {
+    if (result instanceof AuthResult.RequiresTfa tfa) {
       return String.format("{\"username\": \"%s\", \"type\": \"TFA_REQUIRED\"}", tfa.username());
     }
     if (result instanceof AuthFinalResult finalResult) {

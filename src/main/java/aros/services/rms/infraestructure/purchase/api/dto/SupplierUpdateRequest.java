@@ -13,13 +13,7 @@ import jakarta.validation.constraints.Size;
 @Schema(
     description = "Request payload for updating a supplier",
     example =
-        """
-        {
-          "name": "Distribuidora El Mayorista",
-          "contact": "3001234567",
-          "active": true
-        }
-        """)
+        "{\"name\": \"Distribuidora El Mayorista\", \"contact\": \"3001234567\", \"active\": true}")
 public record SupplierUpdateRequest(
     @Schema(description = "Supplier name", example = "Distribuidora El Mayorista")
         @NotBlank(message = "Supplier name is required") @Size(max = 255, message = "Name must not exceed 255 characters") String name,
