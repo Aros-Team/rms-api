@@ -2,35 +2,12 @@ name: release
 
 on:
   push:
-    branches:
-      - main
-  pull_request_target:
-    types:
-      - edited
-      - labeled
-      - unlabeled
-
-concurrency:
-  group: releaser-pleaser
-  cancel-in-progress: true
+    tags:
+      - "v*"
 
 jobs:
-  releaser-pleaser:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - name: releaser-pleaser
-        uses: apricote/releaser-pleaser@v0.8.0
-        with:
-          extra-files: |
-            build.gradle
-
   build-docker:
-    needs: releaser-pleaser
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
     env:
       APP_ENV: development
     steps:
