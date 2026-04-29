@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.daymenu.application.service;
 
 import aros.services.rms.core.common.logger.Logger;
@@ -24,6 +25,14 @@ public class UpdateDayMenuService implements UpdateDayMenuUseCase {
   private final DayMenuHistoryRepositoryPort dayMenuHistoryRepositoryPort;
   private final Logger logger;
 
+  /**
+   * Creates a new service instance.
+   *
+   * @param productRepositoryPort the product repository port
+   * @param dayMenuRepositoryPort the day menu repository port
+   * @param dayMenuHistoryRepositoryPort the day menu history repository port
+   * @param logger the logger instance
+   */
   public UpdateDayMenuService(
       ProductRepositoryPort productRepositoryPort,
       DayMenuRepositoryPort dayMenuRepositoryPort,
@@ -35,6 +44,14 @@ public class UpdateDayMenuService implements UpdateDayMenuUseCase {
     this.logger = logger;
   }
 
+  /**
+   * Updates the active day menu with a new product.
+   *
+   * @param productId the product identifier to set as day menu
+   * @param createdBy the user identifier who created this menu
+   * @return the newly created day menu entry
+   * @throws ProductNotFoundException if product does not exist or is not active
+   */
   @Override
   public DayMenu update(Long productId, String createdBy) {
     Product product =

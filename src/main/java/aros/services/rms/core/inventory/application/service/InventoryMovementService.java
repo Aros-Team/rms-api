@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.inventory.application.service;
 
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
@@ -39,6 +40,16 @@ public class InventoryMovementService implements InventoryMovementUseCase {
   private final StorageLocationRepositoryPort storageLocationRepositoryPort;
   private final BusinessMetricsPort metricsPort;
 
+  /**
+   * Creates a new inventory movement service instance.
+   *
+   * @param productRecipeRepositoryPort the product recipe repository port
+   * @param optionRecipeRepositoryPort the option recipe repository port
+   * @param inventoryStockRepositoryPort the inventory stock repository port
+   * @param inventoryMovementRepositoryPort the inventory movement repository port
+   * @param storageLocationRepositoryPort the storage location repository port
+   * @param metricsPort the business metrics port
+   */
   public InventoryMovementService(
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
       OptionRecipeRepositoryPort optionRecipeRepositoryPort,

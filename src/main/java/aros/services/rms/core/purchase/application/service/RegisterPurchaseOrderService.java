@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.purchase.application.service;
 
 import aros.services.rms.core.common.logger.Logger;
@@ -48,6 +49,18 @@ public class RegisterPurchaseOrderService implements RegisterPurchaseOrderUseCas
   private final InventoryMovementService inventoryMovementHelper;
   private final Logger logger;
 
+  /**
+   * Creates the register purchase order service.
+   *
+   * @param supplierRepositoryPort repository for suppliers
+   * @param purchaseOrderRepositoryPort repository for purchase orders
+   * @param supplyVariantRepositoryPort repository for supply variants
+   * @param storageLocationRepositoryPort repository for storage locations
+   * @param inventoryStockRepositoryPort repository for inventory stock
+   * @param inventoryMovementRepositoryPort repository for inventory movements
+   * @param inventoryMovementHelper helper for inventory movements
+   * @param logger logger instance
+   */
   public RegisterPurchaseOrderService(
       SupplierRepositoryPort supplierRepositoryPort,
       PurchaseOrderRepositoryPort purchaseOrderRepositoryPort,

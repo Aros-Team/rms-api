@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.table.application.service;
 
 import aros.services.rms.core.common.logger.Logger;
@@ -26,11 +27,23 @@ public class TableService implements TableUseCase {
   private final TableRepositoryPort tableRepositoryPort;
   private final Logger logger;
 
+  /**
+   * Creates a new table service instance.
+   *
+   * @param tableRepositoryPort the table repository port
+   * @param logger the logger instance
+   */
   public TableService(TableRepositoryPort tableRepositoryPort, Logger logger) {
     this.tableRepositoryPort = tableRepositoryPort;
     this.logger = logger;
   }
 
+  /**
+   * Creates a new table with AVAILABLE status.
+   *
+   * @param table the table data to create
+   * @return the created table with generated ID
+   */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -43,6 +56,14 @@ public class TableService implements TableUseCase {
     return saved;
   }
 
+  /**
+   * Recovery handler for create operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param table the table that was being created
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Table recoverCreate(DataAccessException e, Table table) {
     log.warn(
@@ -52,6 +73,14 @@ public class TableService implements TableUseCase {
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /**
+   * Updates an existing table.
+   *
+   * @param id the table identifier
+   * @param table the table data with updates
+   * @return the updated table
+   * @throws TableNotFoundException if table does not exist
+   */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -69,12 +98,26 @@ public class TableService implements TableUseCase {
     return saved;
   }
 
+  /**
+   * Recovery handler for update operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the table identifier being updated
+   * @param table the table data with updates
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Table recoverUpdate(DataAccessException e, Long id, Table table) {
     log.warn("BD no disponible - fallback para update(id={}): {}", id, e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /**
+   * Retrieves all tables.
+   *
+   * @return list of all tables
+   */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -84,12 +127,26 @@ public class TableService implements TableUseCase {
     return tableRepositoryPort.findAll();
   }
 
+  /**
+   * Recovery handler for findAll operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public List<Table> recoverFindAll(DataAccessException e) {
     log.warn("BD no disponible - fallback para findAll: {}", e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /**
+   * Finds a table by its identifier.
+   *
+   * @param id the table identifier
+   * @return the found table
+   * @throws TableNotFoundException if not found
+   */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -99,6 +156,14 @@ public class TableService implements TableUseCase {
     return tableRepositoryPort.findById(id).orElseThrow(() -> new TableNotFoundException(id));
   }
 
+  /**
+   * Recovery handler for findById operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the table identifier being looked up
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Table recoverFindById(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para findById(id={}): {}", id, e.getMessage());
@@ -126,6 +191,15 @@ public class TableService implements TableUseCase {
     return saved;
   }
 
+  /**
+   * Recovery handler for changeStatus operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the table identifier
+   * @param status the new status
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Table recoverChangeStatus(DataAccessException e, Long id, TableStatus status) {
     log.warn(

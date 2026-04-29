@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.user.application.service;
 
 import aros.services.rms.core.user.application.exception.UserNotFoundException;
@@ -8,10 +9,16 @@ import aros.services.rms.core.user.port.input.UpdateUserUseCase;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import org.springframework.stereotype.Service;
 
+/** Implementation of user update use case for modifying user information. */
 @Service
 public class UpdateUserService implements UpdateUserUseCase {
   private final UserRepositoryPort userPort;
 
+  /**
+   * Creates a service to update users.
+   *
+   * @param userPort repository for user operations
+   */
   public UpdateUserService(UserRepositoryPort userPort) {
     this.userPort = userPort;
   }

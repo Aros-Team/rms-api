@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.user.application.service;
 
 import aros.services.rms.core.auth.domain.AccountSetupToken;
@@ -18,6 +19,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
+/** Implementation of user creation with account setup token generation and welcome email. */
 public class CreateUserService implements CreateUserUseCase {
   private final UserRepositoryPort userPort;
   private final AccountSetupTokenRepositoryPort accountSetupTokenRepositoryPort;
@@ -25,6 +27,15 @@ public class CreateUserService implements CreateUserUseCase {
   private final HashServicePort hashServicePort;
   private final BusinessMetricsPort metricsPort;
 
+  /**
+   * Creates a user service.
+   *
+   * @param userPort repository for user operations
+   * @param accountSetupTokenRepositoryPort repository for account setup tokens
+   * @param welcomeEmailUseCase use case for welcome emails
+   * @param hashServicePort port for hashing operations
+   * @param metricsPort port for business metrics
+   */
   public CreateUserService(
       UserRepositoryPort userPort,
       AccountSetupTokenRepositoryPort accountSetupTokenRepositoryPort,

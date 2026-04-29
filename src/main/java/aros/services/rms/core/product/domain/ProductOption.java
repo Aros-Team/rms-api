@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.product.domain;
 
 import aros.services.rms.core.category.domain.OptionCategory;
@@ -9,6 +10,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Domain model representing a product option (customization choice). Options belong to an option
+ * category and define specific choices like "Medium rare" or "Almond milk".
+ */
 @Data
 @Builder
 @NoArgsConstructor

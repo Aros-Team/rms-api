@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.order.domain;
 
 /**
@@ -6,14 +7,14 @@ package aros.services.rms.core.order.domain;
  * DELIVERED
  */
 public enum OrderStatus {
-  /** Orden cancelada, no se procesa */
+  /** Orden cancelada, no se procesa. */
   CANCELLED,
-  /** Orden en cola esperando ser preparada */
+  /** Orden en cola esperando ser preparada. */
   QUEUE,
-  /** Orden en preparación por el cocinero */
+  /** Orden en preparación por el cocinero. */
   PREPARING,
-  /** Orden lista para entregar al cliente */
+  /** Orden lista para entregar al cliente. */
   READY,
-  /** Orden entregada al cliente */
+  /** Orden entregada al cliente. */
   DELIVERED
 }

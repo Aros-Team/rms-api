@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.user.application.service;
 
 import aros.services.rms.core.user.application.exception.UserNotFoundException;
@@ -9,10 +10,16 @@ import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
 
+/** Implementation of user deletion with logical delete (sets deletedAt timestamp). */
 @Service
 public class DeleteUserService implements DeleteUserUseCase {
   private final UserRepositoryPort userPort;
 
+  /**
+   * Creates a service to delete users.
+   *
+   * @param userPort repository for user operations
+   */
   public DeleteUserService(UserRepositoryPort userPort) {
     this.userPort = userPort;
   }

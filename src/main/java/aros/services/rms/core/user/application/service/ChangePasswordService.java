@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.user.application.service;
 
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
@@ -10,6 +11,7 @@ import aros.services.rms.core.user.port.input.ChangePasswordUseCase;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.util.regex.Pattern;
 
+/** Implementation of password change use case with validation. */
 public class ChangePasswordService implements ChangePasswordUseCase {
 
   private static final Pattern PASSWORD_PATTERN =
@@ -18,6 +20,12 @@ public class ChangePasswordService implements ChangePasswordUseCase {
   private final UserRepositoryPort userRepositoryPort;
   private final PasswordEncoderPort passwordEncoderPort;
 
+  /**
+   * Creates a change password service.
+   *
+   * @param userRepositoryPort repository for user operations
+   * @param passwordEncoderPort port for password encoding
+   */
   public ChangePasswordService(
       UserRepositoryPort userRepositoryPort, PasswordEncoderPort passwordEncoderPort) {
     this.userRepositoryPort = userRepositoryPort;

@@ -1,7 +1,18 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.user.domain;
 
+/**
+ * Value object representing a user's email address. Validates format and ensures non-null/non-blank
+ * values.
+ */
 public record UserEmail(String value) {
+  /**
+   * Canonical constructor with validation.
+   *
+   * @param value the email address value
+   * @throws IllegalArgumentException if value is null, blank, or invalid format
+   */
   public UserEmail {
     // Validación de reglas de negocio
     if (value == null || value.isBlank()) {

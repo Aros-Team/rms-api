@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.daymenu.application.service;
 
 import aros.services.rms.core.daymenu.domain.DayMenuHistory;
@@ -12,10 +13,21 @@ public class GetDayMenuHistoryService implements GetDayMenuHistoryUseCase {
 
   private final DayMenuHistoryRepositoryPort dayMenuHistoryRepositoryPort;
 
+  /**
+   * Creates a new service instance.
+   *
+   * @param dayMenuHistoryRepositoryPort the day menu history repository port
+   */
   public GetDayMenuHistoryService(DayMenuHistoryRepositoryPort dayMenuHistoryRepositoryPort) {
     this.dayMenuHistoryRepositoryPort = dayMenuHistoryRepositoryPort;
   }
 
+  /**
+   * Retrieves paginated day menu history.
+   *
+   * @param pageable pagination parameters
+   * @return page of day menu history entries
+   */
   @Override
   public Page<DayMenuHistory> getHistory(Pageable pageable) {
     return dayMenuHistoryRepositoryPort.findAll(pageable);

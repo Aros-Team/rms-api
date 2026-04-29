@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.product.application.service;
 
 import aros.services.rms.core.category.application.exception.OptionCategoryNotFoundException;
@@ -33,6 +34,15 @@ public class ProductOptionService implements ProductOptionUseCase {
   private final SupplyVariantRepositoryPort supplyVariantRepositoryPort;
   private final Logger logger;
 
+  /**
+   * Creates a new product option service instance.
+   *
+   * @param productOptionRepositoryPort the product option repository port
+   * @param optionCategoryRepositoryPort the option category repository port
+   * @param optionRecipeRepositoryPort the option recipe repository port
+   * @param supplyVariantRepositoryPort the supply variant repository port
+   * @param logger the logger instance
+   */
   public ProductOptionService(
       ProductOptionRepositoryPort productOptionRepositoryPort,
       OptionCategoryRepositoryPort optionCategoryRepositoryPort,
@@ -46,6 +56,14 @@ public class ProductOptionService implements ProductOptionUseCase {
     this.logger = logger;
   }
 
+  /**
+   * Creates a new product option with optional recipe.
+   *
+   * @param productOption the product option data to create
+   * @return the created product option with generated ID
+   * @throws OptionCategoryNotFoundException if category does not exist
+   * @throws SupplyVariantNotFoundException if any supply variant in recipe does not exist
+   */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -75,6 +93,16 @@ public class ProductOptionService implements ProductOptionUseCase {
     return saved;
   }
 
+  /**
+   * Updates an existing product option.
+   *
+   * @param id the product option identifier
+   * @param productOption the product option data with updates
+   * @return the updated product option
+   * @throws ProductOptionNotFoundException if option does not exist
+   * @throws OptionCategoryNotFoundException if category does not exist
+   * @throws SupplyVariantNotFoundException if any supply variant in recipe does not exist
+   */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -115,6 +143,11 @@ public class ProductOptionService implements ProductOptionUseCase {
     return saved;
   }
 
+  /**
+   * Retrieves all product options.
+   *
+   * @return list of all product options
+   */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -124,6 +157,13 @@ public class ProductOptionService implements ProductOptionUseCase {
     return productOptionRepositoryPort.findAll();
   }
 
+  /**
+   * Finds a product option by its identifier.
+   *
+   * @param id the product option identifier
+   * @return the found product option
+   * @throws ProductOptionNotFoundException if not found
+   */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -135,6 +175,12 @@ public class ProductOptionService implements ProductOptionUseCase {
         .orElseThrow(() -> new ProductOptionNotFoundException(id));
   }
 
+  /**
+   * Finds all product options for a specific product.
+   *
+   * @param productId the product identifier
+   * @return list of product options for the product
+   */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -144,6 +190,14 @@ public class ProductOptionService implements ProductOptionUseCase {
     return productOptionRepositoryPort.findByProductId(productId);
   }
 
+  /**
+   * Recovery handler for create operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param productOption the product option that was being created
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public ProductOption recoverCreate(DataAccessException e, ProductOption productOption) {
     log.warn(
@@ -153,24 +207,56 @@ public class ProductOptionService implements ProductOptionUseCase {
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /**
+   * Recovery handler for update operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the product option identifier being updated
+   * @param productOption the product option data with updates
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public ProductOption recoverUpdate(DataAccessException e, Long id, ProductOption productOption) {
     log.warn("BD no disponible - fallback para update(id={}): {}", id, e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /**
+   * Recovery handler for findAll operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public List<ProductOption> recoverFindAll(DataAccessException e) {
     log.warn("BD no disponible - fallback para findAll: {}", e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /**
+   * Recovery handler for findById operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the product option identifier being looked up
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public ProductOption recoverFindById(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para findById(id={}): {}", id, e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /**
+   * Recovery handler for findByProductId operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param productId the product identifier
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public List<ProductOption> recoverFindByProductId(DataAccessException e, Long productId) {
     log.warn(
@@ -180,7 +266,6 @@ public class ProductOptionService implements ProductOptionUseCase {
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
-  /** Validates that the option category exists. */
   /** Validates that the option category exists. */
   private void validateOptionCategoryExists(Long optionCategoryId) {
     if (optionCategoryId == null || !optionCategoryRepositoryPort.existsById(optionCategoryId)) {

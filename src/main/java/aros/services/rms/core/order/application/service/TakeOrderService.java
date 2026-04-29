@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.order.application.service;
 
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
@@ -38,6 +39,17 @@ public class TakeOrderService implements TakeOrderUseCase {
   private final InventoryMovementUseCase inventoryMovementUseCase;
   private final BusinessMetricsPort metricsPort;
 
+  /**
+   * Creates a new take order service instance.
+   *
+   * @param orderRepositoryPort the order repository port
+   * @param tableRepositoryPort the table repository port
+   * @param productRepositoryPort the product repository port
+   * @param productOptionRepositoryPort the product option repository port
+   * @param inventoryStockUseCase the inventory stock use case
+   * @param inventoryMovementUseCase the inventory movement use case
+   * @param metricsPort the business metrics port
+   */
   public TakeOrderService(
       OrderRepositoryPort orderRepositoryPort,
       TableRepositoryPort tableRepositoryPort,

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.auth.application.service;
 
 import aros.services.rms.core.auth.application.exception.PasswordResetTokenExpiredException;
@@ -35,6 +36,17 @@ public class PasswordResetService implements PasswordResetUseCase {
   private final Logger logger;
   private final BusinessMetricsPort metricsPort;
 
+  /**
+   * Creates a new PasswordResetService instance.
+   *
+   * @param userRepositoryPort the user repository port
+   * @param tokenRepositoryPort the password reset token repository port
+   * @param passwordEncoderPort the password encoder port
+   * @param emailUseCase the password reset email use case
+   * @param hashServicePort the hash service port
+   * @param logger the logger instance
+   * @param metricsPort the business metrics port
+   */
   public PasswordResetService(
       UserRepositoryPort userRepositoryPort,
       PasswordResetTokenRepositoryPort tokenRepositoryPort,

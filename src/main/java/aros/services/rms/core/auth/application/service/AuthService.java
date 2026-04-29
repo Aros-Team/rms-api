@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.auth.application.service;
 
 import aros.services.rms.core.area.domain.Area;
@@ -36,6 +37,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
+/** Implementation of authentication services including login, 2FA, and token refresh. */
 public class AuthService
     implements LoginUseCase,
         VerifyTwoFactorUseCase,
@@ -52,6 +54,20 @@ public class AuthService
   private final TfaCodeGeneratorPort tfaCodeGeneratorPort;
   private final AreaRepositoryPort areaPort;
 
+  /**
+   * Creates a new AuthService instance.
+   *
+   * @param userPort the user repository port
+   * @param devicePort the device repository port
+   * @param tokenPort the token port
+   * @param passwordPort the password encoder port
+   * @param emailPort the 2FA email use case port
+   * @param tfaPort the 2FA code repository port
+   * @param refreshTokenPort the refresh token repository port
+   * @param hashServicePort the hash service port
+   * @param tfaCodeGeneratorPort the 2FA code generator port
+   * @param areaPort the area repository port
+   */
   public AuthService(
       UserRepositoryPort userPort,
       DeviceRepositoryPort devicePort,

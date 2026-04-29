@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.order.application.service;
 
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
@@ -42,6 +43,17 @@ public class UpdateOrderService implements UpdateOrderUseCase {
   private final InventoryMovementUseCase inventoryMovementUseCase;
   private final BusinessMetricsPort metricsPort;
 
+  /**
+   * Creates a new update order service instance.
+   *
+   * @param orderRepositoryPort the order repository port
+   * @param tableRepositoryPort the table repository port
+   * @param productRepositoryPort the product repository port
+   * @param productOptionRepositoryPort the product option repository port
+   * @param inventoryStockUseCase the inventory stock use case
+   * @param inventoryMovementUseCase the inventory movement use case
+   * @param metricsPort the business metrics port
+   */
   public UpdateOrderService(
       OrderRepositoryPort orderRepositoryPort,
       TableRepositoryPort tableRepositoryPort,
@@ -183,12 +195,29 @@ public class UpdateOrderService implements UpdateOrderUseCase {
     return savedOrder;
   }
 
+  /**
+   * Recovery handler for cancel operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the order identifier being cancelled
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Order recoverCancel(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para cancel(id={}): {}", id, e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /**
+   * Recovery handler for update operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the order identifier being updated
+   * @param command the order update command
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Order recoverUpdate(DataAccessException e, Long id, TakeOrderCommand command) {
     log.warn("BD no disponible - fallback para update(id={}): {}", id, e.getMessage());

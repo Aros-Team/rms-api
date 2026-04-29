@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.email.application.service;
 
 import aros.services.rms.core.email.domain.Email;
@@ -11,6 +12,7 @@ import aros.services.rms.core.user.domain.UserEmail;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 
+/** Implementation of email sending services for authentication workflows. */
 public class EmailService
     implements TwoFactorAuthEmailUseCase,
         RegistrationEmailUseCase,
@@ -23,6 +25,12 @@ public class EmailService
   private final EmailServicePort emailPort;
   private final String uiBaseUrl;
 
+  /**
+   * Creates an email service.
+   *
+   * @param emailPort port for sending emails
+   * @param appEnv application environment
+   */
   public EmailService(EmailServicePort emailPort, @Value("${app.env:development}") String appEnv) {
     this.emailPort = emailPort;
     this.uiBaseUrl = "production".equalsIgnoreCase(appEnv) ? UI_PRODUCTION : UI_DEVELOPMENT;
@@ -49,6 +57,13 @@ public class EmailService
     this.emailPort.send(regEmail);
   }
 
+  /**
+   * Sends registration email synchronously.
+   *
+   * @param destination recipient email
+   * @param message the message content
+   * @return true if email was sent successfully
+   */
   public boolean sendRegistrationMailSync(UserEmail destination, String message) {
     Email regEmail =
         new Email(

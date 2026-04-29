@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.user.application.service;
 
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/** Service responsible for creating the initial administrator account. */
 @Service
 public class CreateAdminService {
 
@@ -29,6 +31,14 @@ public class CreateAdminService {
 
   public record AdminCredentials(String email, String rawPassword, boolean isDevelopment) {}
 
+  /**
+   * Creates the admin service.
+   *
+   * @param userRepository repository for user operations
+   * @param adminRepository repository for admin operations
+   * @param passwordEncoder port for password encoding
+   * @param registrationEmailUseCase use case for sending registration emails
+   */
   public CreateAdminService(
       UserRepositoryPort userRepository,
       AdminRepositoryPort adminRepository,
@@ -40,6 +50,12 @@ public class CreateAdminService {
     this.emailService = registrationEmailUseCase;
   }
 
+  /**
+   * Executes admin creation based on configuration.
+   *
+   * @param config configuration for admin creation
+   * @return credentials for the created admin
+   */
   @Transactional
   public AdminCredentials execute(AdminConfig config) {
     log.info("Starting administrator verification...");

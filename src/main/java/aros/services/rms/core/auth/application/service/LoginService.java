@@ -1,3 +1,5 @@
+/* (C) 2026 */
+
 package aros.services.rms.core.auth.application.service;
 
 import aros.services.rms.core.auth.application.dto.AuthResult;
@@ -22,6 +24,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
+/** Implementation of user login with optional two-factor authentication. */
 public class LoginService implements LoginUseCase {
   private final PasswordEncoderPort passwordPort;
   private final UserRepositoryPort userPort;
@@ -34,6 +37,20 @@ public class LoginService implements LoginUseCase {
   private final TokenPort tokenPort;
   private final BusinessMetricsPort metricsPort;
 
+  /**
+   * Creates a new LoginService instance.
+   *
+   * @param passwordPort the password encoder port
+   * @param userPort the user repository port
+   * @param devicePort the device repository port
+   * @param tfaCodeGeneratorPort the 2FA code generator port
+   * @param tfaPort the 2FA code repository port
+   * @param emailPort the 2FA email use case port
+   * @param hashServicePort the hash service port
+   * @param refreshTokenPort the refresh token repository port
+   * @param tokenPort the token port
+   * @param metricsPort the business metrics port
+   */
   public LoginService(
       PasswordEncoderPort passwordPort,
       UserRepositoryPort userPort,

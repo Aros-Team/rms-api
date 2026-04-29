@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.purchase.application.service;
 
 import aros.services.rms.core.purchase.application.exception.SupplierNotFoundException;
@@ -20,6 +21,12 @@ public class GetPurchaseHistoryService implements GetPurchaseHistoryUseCase {
   private final PurchaseOrderRepositoryPort purchaseOrderRepositoryPort;
   private final SupplierRepositoryPort supplierRepositoryPort;
 
+  /**
+   * Creates the purchase history service.
+   *
+   * @param purchaseOrderRepositoryPort repository for purchase orders
+   * @param supplierRepositoryPort repository for suppliers
+   */
   public GetPurchaseHistoryService(
       PurchaseOrderRepositoryPort purchaseOrderRepositoryPort,
       SupplierRepositoryPort supplierRepositoryPort) {

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.category.port.input;
 
 import aros.services.rms.core.category.domain.Category;

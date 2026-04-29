@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.product.application.service;
 
 import aros.services.rms.core.area.application.exception.AreaNotFoundException;
@@ -42,6 +43,18 @@ public class ProductService implements ProductUseCase {
   private final ProductOptionRepositoryPort productOptionRepositoryPort;
   private final Logger logger;
 
+  /**
+   * Creates a new product service instance.
+   *
+   * @param productRepositoryPort the product repository port
+   * @param areaRepositoryPort the area repository port
+   * @param categoryRepositoryPort the category repository port
+   * @param productRecipeRepositoryPort the product recipe repository port
+   * @param supplyVariantRepositoryPort the supply variant repository port
+   * @param inventoryStockUseCase the inventory stock use case
+   * @param productOptionRepositoryPort the product option repository port
+   * @param logger the logger instance
+   */
   public ProductService(
       ProductRepositoryPort productRepositoryPort,
       AreaRepositoryPort areaRepositoryPort,
@@ -190,6 +203,14 @@ public class ProductService implements ProductUseCase {
     return saved;
   }
 
+  /**
+   * Recovery handler for create operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param product the product that was being created
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Product recoverCreate(DataAccessException e, Product product) {
     log.warn(
@@ -199,24 +220,56 @@ public class ProductService implements ProductUseCase {
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /**
+   * Recovery handler for update operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the product identifier being updated
+   * @param product the product data with updates
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Product recoverUpdate(DataAccessException e, Long id, Product product) {
     log.warn("BD no disponible - fallback para update(id={}): {}", id, e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /**
+   * Recovery handler for findAll operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public List<Product> recoverFindAll(DataAccessException e) {
     log.warn("BD no disponible - fallback para findAll: {}", e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /**
+   * Recovery handler for findById operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the product identifier being looked up
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Product recoverFindById(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para findById(id={}): {}", id, e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /**
+   * Recovery handler for disable operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the product identifier being disabled
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Product recoverDisable(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para disable(id={}): {}", id, e.getMessage());
@@ -252,6 +305,13 @@ public class ProductService implements ProductUseCase {
     return availableProducts;
   }
 
+  /**
+   * Recovery handler for findAllAvailable operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public List<Product> recoverFindAllAvailable(DataAccessException e) {
     log.warn("BD no disponible - fallback para findAllAvailable: {}", e.getMessage());
@@ -271,6 +331,14 @@ public class ProductService implements ProductUseCase {
     return productRepositoryPort.findByCategoryIds(categoryIds);
   }
 
+  /**
+   * Recovery handler for findByCategoryIds operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param categoryIds the category identifiers to filter by
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public List<Product> recoverFindByCategoryIds(DataAccessException e, List<Long> categoryIds) {
     log.warn("BD no disponible - fallback para findByCategoryIds: {}", e.getMessage());

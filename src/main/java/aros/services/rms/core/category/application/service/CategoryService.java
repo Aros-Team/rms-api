@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.category.application.service;
 
 import aros.services.rms.core.category.application.exception.CategoryNotFoundException;
@@ -24,6 +25,12 @@ public class CategoryService implements CategoryUseCase {
   private final CategoryRepositoryPort categoryRepositoryPort;
   private final Logger logger;
 
+  /**
+   * Creates a new CategoryService instance.
+   *
+   * @param categoryRepositoryPort the category repository port
+   * @param logger the logger instance
+   */
   public CategoryService(CategoryRepositoryPort categoryRepositoryPort, Logger logger) {
     this.categoryRepositoryPort = categoryRepositoryPort;
     this.logger = logger;
@@ -42,6 +49,14 @@ public class CategoryService implements CategoryUseCase {
     return saved;
   }
 
+  /**
+   * Recovery handler for create operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param category the category that was being created
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Category recoverCreate(DataAccessException e, Category category) {
     log.warn(
@@ -69,6 +84,15 @@ public class CategoryService implements CategoryUseCase {
     return saved;
   }
 
+  /**
+   * Recovery handler for update operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the category identifier being updated
+   * @param category the category data with updates
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Category recoverUpdate(DataAccessException e, Long id, Category category) {
     log.warn("BD no disponible - fallback para update(id={}): {}", id, e.getMessage());
@@ -85,6 +109,13 @@ public class CategoryService implements CategoryUseCase {
     return categoryRepositoryPort.findAll();
   }
 
+  /**
+   * Recovery handler for findAll operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public List<Category> recoverFindAll(DataAccessException e) {
     log.warn("BD no disponible - fallback para findAll: {}", e.getMessage());
@@ -101,6 +132,14 @@ public class CategoryService implements CategoryUseCase {
     return categoryRepositoryPort.findById(id).orElseThrow(() -> new CategoryNotFoundException(id));
   }
 
+  /**
+   * Recovery handler for findById operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the category identifier being looked up
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Category recoverFindById(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para findById(id={}): {}", id, e.getMessage());
@@ -124,6 +163,14 @@ public class CategoryService implements CategoryUseCase {
     return saved;
   }
 
+  /**
+   * Recovery handler for toggleEnabled operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the category identifier being toggled
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Category recoverToggleEnabled(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para toggleEnabled(id={}): {}", id, e.getMessage());

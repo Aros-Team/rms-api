@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.user.application.service;
 
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
@@ -11,12 +12,20 @@ import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+/** Implementation of retry registration email use case for failed email deliveries. */
 @Service
 public class RetryUserEmailService implements RetryUserEmailUseCase {
   private final UserRepositoryPort userPort;
   private final PasswordEncoderPort passwordEncoder;
   private final EmailService emailService;
 
+  /**
+   * Creates a retry email service.
+   *
+   * @param userPort repository for user operations
+   * @param passwordEncoder port for password encoding
+   * @param emailService service for sending emails
+   */
   public RetryUserEmailService(
       UserRepositoryPort userPort,
       PasswordEncoderPort passwordEncoder,

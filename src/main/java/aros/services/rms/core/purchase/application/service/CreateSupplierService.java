@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.purchase.application.service;
 
 import aros.services.rms.core.common.logger.Logger;
@@ -30,6 +31,12 @@ public class CreateSupplierService
   private final SupplierRepositoryPort supplierRepositoryPort;
   private final Logger logger;
 
+  /**
+   * Creates the supplier service.
+   *
+   * @param supplierRepositoryPort repository for supplier operations
+   * @param logger logger instance
+   */
   public CreateSupplierService(SupplierRepositoryPort supplierRepositoryPort, Logger logger) {
     this.supplierRepositoryPort = supplierRepositoryPort;
     this.logger = logger;
@@ -54,6 +61,13 @@ public class CreateSupplierService
     return saved;
   }
 
+  /**
+   * Recovers from DataAccessException during create.
+   *
+   * @param e the exception
+   * @param supplier the supplier that was being created
+   * @return never returns, throws ServiceUnavailableException
+   */
   @Recover
   public Supplier recoverCreate(DataAccessException e, Supplier supplier) {
     log.warn(
@@ -92,6 +106,14 @@ public class CreateSupplierService
     return saved;
   }
 
+  /**
+   * Recovers from DataAccessException during update.
+   *
+   * @param e the exception
+   * @param id the supplier ID
+   * @param supplier the supplier data
+   * @return never returns, throws ServiceUnavailableException
+   */
   @Recover
   public Supplier recoverUpdate(DataAccessException e, Long id, Supplier supplier) {
     log.warn("DB unavailable - fallback update(id={}): {}", id, e.getMessage());
@@ -112,6 +134,12 @@ public class CreateSupplierService
     return supplierRepositoryPort.findAll();
   }
 
+  /**
+   * Recovers from DataAccessException during findAll.
+   *
+   * @param e the exception
+   * @return never returns, throws ServiceUnavailableException
+   */
   @Recover
   public List<Supplier> recoverFindAll(DataAccessException e) {
     log.warn("DB unavailable - fallback findAll: {}", e.getMessage());
@@ -134,6 +162,13 @@ public class CreateSupplierService
     return supplierRepositoryPort.findById(id).orElseThrow(() -> new SupplierNotFoundException(id));
   }
 
+  /**
+   * Recovers from DataAccessException during findById.
+   *
+   * @param e the exception
+   * @param id the supplier ID
+   * @return never returns, throws ServiceUnavailableException
+   */
   @Recover
   public Supplier recoverFindById(DataAccessException e, Long id) {
     log.warn("DB unavailable - fallback findById(id={}): {}", id, e.getMessage());
