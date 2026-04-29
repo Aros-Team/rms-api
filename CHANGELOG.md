@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.3.7](https://github.com/Aros-Team/rms-api/releases/tag/v0.3.7)
+
+### Bug Fixes
+
+- replace text blocks with escaped JSON strings to fix NPE in Checkstyle 13.4.1
+
 ## [v0.3.7]
 
 ### Features
