@@ -6,15 +6,15 @@ import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.core.user.port.dto.UpdateUserInfo;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 
 /** Request DTO for updating a user. */
 public record UpdateUserRequest(
-    @NotBlank(message = "Document is required") String document,
-    @NotBlank(message = "Name is required") String name,
-    @NotBlank(message = "Email is required") @Email(message = "Invalid email format") String email,
-    @NotBlank(message = "Address is required") String address,
-    @NotBlank(message = "Phone is required") @Size(min = 10, max = 20, message = "Phone must be between 10 and 20 characters") String phone) {
+    @NotBlank(message = "Campo requerido") String document,
+    @NotBlank(message = "Campo requerido") String name,
+    @NotBlank(message = "Campo requerido") @Email(message = "Ingrese un correo electrónico válido") String email,
+    @NotBlank(message = "Campo requerido") String address,
+    @NotBlank(message = "Campo requerido") @Pattern(message = "El teléfono debe tener 10 dígitos", regexp = "\\d{10}") String phone) {
   /** Converts this request to UpdateUserInfo. */
   public UpdateUserInfo toUpdateUserInfo() {
     return new UpdateUserInfo(document, name, new UserEmail(email), address, phone);
