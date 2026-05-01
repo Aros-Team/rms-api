@@ -56,4 +56,4 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Run unit tests
-        run: ./gradlew test -Dspring.profiles.active=test
+        run: ./gradlew test
