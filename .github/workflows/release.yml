@@ -35,5 +35,5 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t rms-api:${{ github.ref_name }} .
-          docker push rms-api:${{ github.ref_name }}
+          docker build -t spalaxdev/rms-api:${{ github.ref_name }} .
+          docker push spalaxdev/rms-api:${{ github.ref_name }}
