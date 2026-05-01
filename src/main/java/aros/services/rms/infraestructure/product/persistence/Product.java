@@ -39,9 +39,6 @@ public class Product {
 
   private Double basePrice;
 
-  @Column(name = "has_options", nullable = false)
-  private boolean hasOptions;
-
   @Column(nullable = false)
   @Builder.Default
   private boolean active = true;

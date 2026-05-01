@@ -132,7 +132,6 @@ public class ProductService implements ProductUseCase {
 
     existing.setName(product.getName());
     existing.setBasePrice(product.getBasePrice());
-    existing.setHasOptions(product.isHasOptions());
     existing.setCategory(product.getCategory());
     existing.setPreparationAreaId(product.getPreparationAreaId());
 

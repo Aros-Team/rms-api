@@ -127,16 +127,6 @@ public class UpdateOrderService implements UpdateOrderUseCase {
           detailCommand.getSelectedOptionIds() != null
               && !detailCommand.getSelectedOptionIds().isEmpty();
 
-      if (product.isHasOptions() && !hasSelectedOptions) {
-        throw new IllegalArgumentException(
-            "Product '" + product.getName() + "' requires options to be selected");
-      }
-
-      if (!product.isHasOptions() && hasSelectedOptions) {
-        throw new IllegalArgumentException(
-            "Product '" + product.getName() + "' does not support options");
-      }
-
       List<ProductOption> selectedOptions = new ArrayList<>();
       if (hasSelectedOptions) {
         selectedOptions =

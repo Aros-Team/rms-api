@@ -174,27 +174,27 @@ INSERT INTO option_categories (name, description) VALUES
 -- areas: Cocina=1, Bar=2  (seeded in V6)
 -- categories: Hamburguesas=1, Pizzas=2, Platos Ejecutivos=3, Entradas=4, Bebidas=5
 -- =============================================================================
-INSERT INTO products (name, base_price, has_options, active, category_id, area_id) VALUES
-    -- Hamburguesas (has_options = TRUE → el cliente elige término y extras)
-    ('Hamburguesa Clásica',   12500.00, TRUE,  TRUE, 1, 1),  -- id 1
-    ('Hamburguesa BBQ',       14000.00, TRUE,  TRUE, 1, 1),  -- id 2
-    ('Hamburguesa Doble',     16000.00, TRUE,  TRUE, 1, 1),  -- id 3
+INSERT INTO products (name, base_price, active, category_id, area_id) VALUES
+    -- Hamburguesas (con opciones de término y extras asociadas via product_product_options)
+    ('Hamburguesa Clásica',   12500.00, TRUE, 1, 1),  -- id 1
+    ('Hamburguesa BBQ',       14000.00, TRUE, 1, 1),  -- id 2
+    ('Hamburguesa Doble',     16000.00, TRUE, 1, 1),  -- id 3
 
-    -- Pizzas (Margarita con opciones de tamaño/extras; Pepperoni sin opciones)
-    ('Pizza Margarita',       18000.00, TRUE,  TRUE, 2, 1),  -- id 4
-    ('Pizza Pepperoni',       20000.00, FALSE, TRUE, 2, 1),  -- id 5
-    ('Pizza BBQ Pollo',       22000.00, FALSE, TRUE, 2, 1),  -- id 6
+    -- Pizzas (Margarita con opciones de tamaño/extras; Pepperoni y BBQ sin opciones)
+    ('Pizza Margarita',       18000.00, TRUE, 2, 1),  -- id 4
+    ('Pizza Pepperoni',       20000.00, TRUE, 2, 1),  -- id 5
+    ('Pizza BBQ Pollo',       22000.00, TRUE, 2, 1),  -- id 6
 
     -- Platos Ejecutivos (sin opciones, receta fija)
-    ('Plato Ejecutivo Pollo', 15000.00, FALSE, TRUE, 3, 1),  -- id 7
-    ('Plato Ejecutivo Res',   17000.00, FALSE, TRUE, 3, 1),  -- id 8
+    ('Plato Ejecutivo Pollo', 15000.00, TRUE, 3, 1),  -- id 7
+    ('Plato Ejecutivo Res',   17000.00, TRUE, 3, 1),  -- id 8
 
     -- Entradas (sin opciones)
-    ('Papas Fritas',           6000.00, FALSE, TRUE, 4, 1),  -- id 9
-    ('Aros de Cebolla',        7000.00, FALSE, TRUE, 4, 1),  -- id 10
+    ('Papas Fritas',           6000.00, TRUE, 4, 1),  -- id 9
+    ('Aros de Cebolla',        7000.00, TRUE, 4, 1),  -- id 10
 
     -- Bebidas (sin opciones)
-    ('Limonada Natural',       4500.00, FALSE, TRUE, 5, 2);  -- id 11
+    ('Limonada Natural',       4500.00, TRUE, 5, 2);  -- id 11
 
 -- =============================================================================
 -- PRODUCT OPTIONS
@@ -218,7 +218,7 @@ INSERT INTO product_options (name, option_category_id) VALUES
 
 -- =============================================================================
 -- PRODUCT ↔ OPTIONS (many-to-many via product_product_options)
--- Productos con has_options=TRUE: Hamburguesa Clásica=1, BBQ=2, Doble=3, Pizza Margarita=4
+-- Hamburguesa Clásica=1, BBQ=2, Doble=3, Pizza Margarita=4 tienen opciones asociadas
 -- =============================================================================
 INSERT INTO product_product_options (product_id, option_id) VALUES
     -- Hamburguesa Clásica → término + extras

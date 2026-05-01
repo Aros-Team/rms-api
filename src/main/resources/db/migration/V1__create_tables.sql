@@ -87,7 +87,6 @@ CREATE TABLE products (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     base_price DECIMAL(10,2) NOT NULL,
-    has_options BOOLEAN NOT NULL DEFAULT FALSE,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     category_id BIGINT,
     area_id BIGINT,
