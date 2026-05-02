@@ -80,7 +80,6 @@ class TakeOrderUseCaseImplTest {
             .id(1L)
             .name("Burger")
             .basePrice(10.0)
-            .hasOptions(true)
             .category(Category.builder().id(1L).name("Food").build())
             .build();
     ProductOption option = ProductOption.builder().id(1L).name("Extra Cheese").build();
@@ -114,14 +113,13 @@ class TakeOrderUseCaseImplTest {
   }
 
   @Test
-  void shouldTakeOrderSuccessfully_whenProductHasNoOptionsAndNoOptionsProvided() {
+  void shouldTakeOrderSuccessfully_whenProductHasNoOptionsProvided() {
     Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
     Product product =
         Product.builder()
             .id(1L)
             .name("Water")
             .basePrice(2.0)
-            .hasOptions(false)
             .category(Category.builder().id(1L).name("Drinks").build())
             .build();
 
@@ -152,19 +150,23 @@ class TakeOrderUseCaseImplTest {
   }
 
   @Test
-  void shouldThrowAndReleaseTable_whenProductHasOptionsButNoOptionsProvided() {
+  void shouldTakeOrderSuccessfully_whenProductReceivesOptionsWithoutRestriction() {
     Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
     Product product =
         Product.builder()
             .id(1L)
-            .name("Burger")
-            .basePrice(10.0)
-            .hasOptions(true)
-            .category(Category.builder().id(1L).name("Food").build())
+            .name("Pizza Pepperoni")
+            .basePrice(20.0)
+            .category(Category.builder().id(2L).name("Pizzas").build())
             .build();
+    ProductOption option = ProductOption.builder().id(7L).name("Personal").build();
 
     when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
     when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
+    when(productOptionRepositoryPort.findAllById(List.of(7L))).thenReturn(List.of(option));
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 7L)).thenReturn(true);
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
 
     TakeOrderCommand command =
         TakeOrderCommand.builder()
@@ -174,53 +176,16 @@ class TakeOrderUseCaseImplTest {
                     TakeOrderCommand.OrderDetailCommand.builder()
                         .productId(1L)
                         .instructions(null)
-                        .selectedOptionIds(null)
+                        .selectedOptionIds(List.of(7L))
                         .build()))
             .build();
 
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> takeOrderUseCase.execute(command));
+    Order result = takeOrderUseCase.execute(command);
 
-    assertEquals("Product 'Burger' requires options to be selected", exception.getMessage());
-    assertEquals(TableStatus.AVAILABLE, table.getStatus());
-    verify(tableRepositoryPort, times(2)).save(table);
-    verify(orderRepositoryPort, never()).save(any(Order.class));
-  }
-
-  @Test
-  void shouldThrowAndReleaseTable_whenProductHasNoOptionsButOptionsProvided() {
-    Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
-    Product product =
-        Product.builder()
-            .id(1L)
-            .name("Water")
-            .basePrice(2.0)
-            .hasOptions(false)
-            .category(Category.builder().id(1L).name("Drinks").build())
-            .build();
-
-    when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
-    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
-
-    TakeOrderCommand command =
-        TakeOrderCommand.builder()
-            .tableId(1L)
-            .details(
-                List.of(
-                    TakeOrderCommand.OrderDetailCommand.builder()
-                        .productId(1L)
-                        .instructions(null)
-                        .selectedOptionIds(List.of(1L))
-                        .build()))
-            .build();
-
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> takeOrderUseCase.execute(command));
-
-    assertEquals("Product 'Water' does not support options", exception.getMessage());
-    assertEquals(TableStatus.AVAILABLE, table.getStatus());
-    verify(tableRepositoryPort, times(2)).save(table);
-    verify(orderRepositoryPort, never()).save(any(Order.class));
+    assertNotNull(result);
+    assertEquals(1, result.getDetails().size());
+    assertEquals(1, result.getDetails().get(0).getSelectedOptions().size());
+    assertEquals(TableStatus.OCCUPIED, table.getStatus());
   }
 
   @Test
@@ -248,7 +213,6 @@ class TakeOrderUseCaseImplTest {
 
     when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
     when(productRepositoryPort.findById(anyLong())).thenReturn(Optional.empty());
-
     TakeOrderCommand command =
         TakeOrderCommand.builder()
             .tableId(1L)
@@ -275,7 +239,6 @@ class TakeOrderUseCaseImplTest {
             .id(1L)
             .name("Burger")
             .basePrice(10.0)
-            .hasOptions(true)
             .category(Category.builder().id(1L).name("Food").build())
             .build();
     Product beverage =
@@ -283,7 +246,6 @@ class TakeOrderUseCaseImplTest {
             .id(2L)
             .name("Beverage")
             .basePrice(5.0)
-            .hasOptions(true)
             .category(Category.builder().id(2L).name("Drinks").build())
             .build();
 
@@ -323,7 +285,6 @@ class TakeOrderUseCaseImplTest {
             .id(1L)
             .name("Burger")
             .basePrice(10.0)
-            .hasOptions(true)
             .category(Category.builder().id(1L).name("Food").build())
             .build();
 

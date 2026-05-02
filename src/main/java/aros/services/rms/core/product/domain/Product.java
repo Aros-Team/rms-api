@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * Domain model representing a product in the restaurant menu. Products are linked to a preparation
- * area and a category. The hasOptions flag determines if customization options can be associated.
+ * area and a category. Options can be associated freely without any flag restriction.
  */
 @Data
 @Builder
@@ -22,7 +22,6 @@ public class Product {
   private Long id;
   private String name;
   private Double basePrice;
-  private boolean hasOptions;
   @Builder.Default private boolean active = true;
   private Category category;
   private Long preparationAreaId;

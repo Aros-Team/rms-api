@@ -20,6 +20,7 @@ public class OrderNotificationService {
   private static final String TOPIC_ORDERS_CREATED = "/topic/orders/created";
   private static final String TOPIC_ORDERS_PREPARING = "/topic/orders/preparing";
   private static final String TOPIC_ORDERS_READY = "/topic/orders/ready";
+  private static final String TOPIC_ORDERS_DELIVERED = "/topic/orders/delivered";
 
   private final SimpMessagingTemplate messagingTemplate;
 
@@ -39,5 +40,11 @@ public class OrderNotificationService {
   public void notifyOrderReady(OrderResponse order) {
     log.info("WebSocket: notificando orden lista id={}", order.id());
     messagingTemplate.convertAndSend(TOPIC_ORDERS_READY, order);
+  }
+
+  /** Notifica a los clientes que una orden pasó a estado DELIVERED. */
+  public void notifyOrderDelivered(OrderResponse order) {
+    log.info("WebSocket: notificando orden entregada id={}", order.id());
+    messagingTemplate.convertAndSend(TOPIC_ORDERS_DELIVERED, order);
   }
 }

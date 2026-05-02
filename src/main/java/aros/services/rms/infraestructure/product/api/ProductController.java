@@ -50,7 +50,7 @@ public class ProductController {
       summary = "Crear nuevo producto",
       description =
           "Crea un nuevo producto vinculado a un área de preparación y categoría. "
-              + "El flag hasOptions determina si se pueden asociar opciones de personalización.",
+              + "Se pueden asociar opciones de personalización mediante optionIds.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Producto creado exitosamente"),
         @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
@@ -63,7 +63,6 @@ public class ProductController {
         Product.builder()
             .name(request.name())
             .basePrice(request.basePrice())
-            .hasOptions(request.hasOptions())
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())
             .optionIds(request.optionIds())
@@ -98,7 +97,6 @@ public class ProductController {
         Product.builder()
             .name(request.name())
             .basePrice(request.basePrice())
-            .hasOptions(request.hasOptions())
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())
             .optionIds(request.optionIds())
@@ -207,9 +205,7 @@ public class ProductController {
    */
   @Operation(
       summary = "Obtener opciones de un producto",
-      description =
-          "Retorna las opciones de personalización asociadas a un producto específico. "
-              + "Usar este endpoint cuando el producto tiene hasOptions=true.",
+      description = "Retorna las opciones de personalización asociadas a un producto específico.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Opciones obtenidas exitosamente"),
         @ApiResponse(responseCode = "404", description = "Producto no encontrado")

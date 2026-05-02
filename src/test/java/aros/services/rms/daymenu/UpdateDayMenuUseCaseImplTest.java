@@ -46,13 +46,7 @@ class UpdateDayMenuUseCaseImplTest {
   @Test
   void shouldCreateFirstDayMenuWhenNoPreviousExists() {
     var product =
-        Product.builder()
-            .id(1L)
-            .name("Menú Especial")
-            .basePrice(15.0)
-            .hasOptions(true)
-            .active(true)
-            .build();
+        Product.builder().id(1L).name("Menú Especial").basePrice(15.0).active(true).build();
     var saved =
         DayMenu.builder()
             .id(1L)
@@ -78,14 +72,7 @@ class UpdateDayMenuUseCaseImplTest {
 
   @Test
   void shouldArchivePreviousAndCreateNewDayMenu() {
-    var product =
-        Product.builder()
-            .id(2L)
-            .name("Nuevo Menú")
-            .basePrice(18.0)
-            .hasOptions(true)
-            .active(true)
-            .build();
+    var product = Product.builder().id(2L).name("Nuevo Menú").basePrice(18.0).active(true).build();
     var existing =
         DayMenu.builder()
             .id(1L)
@@ -129,7 +116,7 @@ class UpdateDayMenuUseCaseImplTest {
 
   @Test
   void shouldThrowProductNotFoundWhenProductIsInactive() {
-    var inactive = Product.builder().id(5L).name("Inactivo").hasOptions(true).active(false).build();
+    var inactive = Product.builder().id(5L).name("Inactivo").active(false).build();
     when(productRepositoryPort.findById(5L)).thenReturn(Optional.of(inactive));
 
     assertThrows(ProductNotFoundException.class, () -> useCase.update(5L, "admin"));
@@ -138,13 +125,7 @@ class UpdateDayMenuUseCaseImplTest {
   @Test
   void shouldAllowProductWithoutOptions() {
     var product =
-        Product.builder()
-            .id(3L)
-            .name("Sin Opciones")
-            .basePrice(10.0)
-            .hasOptions(false)
-            .active(true)
-            .build();
+        Product.builder().id(3L).name("Sin Opciones").basePrice(10.0).active(true).build();
     var saved =
         DayMenu.builder()
             .id(3L)
@@ -167,14 +148,7 @@ class UpdateDayMenuUseCaseImplTest {
 
   @Test
   void shouldNotPersistWhenHistorySaveFails() {
-    var product =
-        Product.builder()
-            .id(2L)
-            .name("Nuevo")
-            .basePrice(18.0)
-            .hasOptions(true)
-            .active(true)
-            .build();
+    var product = Product.builder().id(2L).name("Nuevo").basePrice(18.0).active(true).build();
     var existing =
         DayMenu.builder()
             .id(1L)
