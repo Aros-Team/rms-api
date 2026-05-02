@@ -14,7 +14,6 @@ public record UserFullInfo(
     String document,
     String name,
     UserEmail email,
-    String password,
     String address,
     String phone,
     UserRole role,

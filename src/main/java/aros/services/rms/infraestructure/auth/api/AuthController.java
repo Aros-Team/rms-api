@@ -213,10 +213,9 @@ public class AuthController {
     UserFullInfoResponse userInfoResponse =
         new UserFullInfoResponse(
             userInfo.id().value(),
-            userInfo.document(),
             userInfo.name(),
+            userInfo.document(),
             userInfo.email().value(),
-            userInfo.password(),
             userInfo.address(),
             userInfo.phone(),
             userInfo.role(),

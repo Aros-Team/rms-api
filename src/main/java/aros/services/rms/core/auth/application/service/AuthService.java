@@ -186,7 +186,6 @@ public class AuthService
         user.getDocument(),
         user.getName(),
         user.getEmail(),
-        user.getPassword(),
         user.getAddress(),
         user.getPhone(),
         user.getRole(),

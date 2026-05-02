@@ -35,7 +35,6 @@ public class GetCurrentUserService implements GetCurrentAuthUserInfoUseCase {
             userWithAreas.document(),
             userWithAreas.name(),
             userWithAreas.email(),
-            userWithAreas.password(),
             userWithAreas.address(),
             userWithAreas.phone(),
             userWithAreas.role(),
