@@ -132,7 +132,6 @@ public class ProductService implements ProductUseCase {
 
     existing.setName(product.getName());
     existing.setBasePrice(product.getBasePrice());
-    existing.setHasOptions(product.isHasOptions());
     existing.setCategory(product.getCategory());
     existing.setPreparationAreaId(product.getPreparationAreaId());
 
@@ -176,14 +175,18 @@ public class ProductService implements ProductUseCase {
     return productRepositoryPort.findAll();
   }
 
-  /** {@inheritDoc} */
+  /** {@inheritDoc} Loads the product recipe after fetching the product. */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000))
   public Product findById(Long id) {
-    return productRepositoryPort.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
+    Product product =
+        productRepositoryPort.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
+    List<ProductRecipe> recipe = productRecipeRepositoryPort.findByProductId(id);
+    product.setRecipe(recipe);
+    return product;
   }
 
   /** {@inheritDoc} Sets the product active flag to false (logical deletion). */

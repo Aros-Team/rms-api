@@ -3,6 +3,8 @@
 package aros.services.rms.core.inventory.application.service;
 
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
+import aros.services.rms.core.common.notification.port.output.NotificationPort;
+import aros.services.rms.core.inventory.application.dto.InventoryStockUpdatedEvent;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.application.exception.StorageLocationNotFoundException;
 import aros.services.rms.core.inventory.domain.InventoryMovement;
@@ -10,6 +12,7 @@ import aros.services.rms.core.inventory.domain.InventoryStock;
 import aros.services.rms.core.inventory.domain.MovementType;
 import aros.services.rms.core.inventory.domain.OptionRecipe;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
+import aros.services.rms.core.inventory.domain.StorageLocation;
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.output.InventoryMovementRepositoryPort;
 import aros.services.rms.core.inventory.port.output.InventoryStockRepositoryPort;
@@ -20,6 +23,7 @@ import aros.services.rms.core.order.domain.OrderDetail;
 import aros.services.rms.core.product.domain.ProductOption;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,12 +37,16 @@ import java.util.Map;
  */
 public class InventoryMovementService implements InventoryMovementUseCase {
 
+  /** Topic STOMP al que se publican los cambios de stock en tiempo real. */
+  public static final String INVENTORY_UPDATES_TOPIC = "/topic/inventory/updates";
+
   private final ProductRecipeRepositoryPort productRecipeRepositoryPort;
   private final OptionRecipeRepositoryPort optionRecipeRepositoryPort;
   private final InventoryStockRepositoryPort inventoryStockRepositoryPort;
   private final InventoryMovementRepositoryPort inventoryMovementRepositoryPort;
   private final StorageLocationRepositoryPort storageLocationRepositoryPort;
   private final BusinessMetricsPort metricsPort;
+  private final NotificationPort notificationPort;
 
   /**
    * Creates a new inventory movement service instance.
@@ -49,6 +57,7 @@ public class InventoryMovementService implements InventoryMovementUseCase {
    * @param inventoryMovementRepositoryPort the inventory movement repository port
    * @param storageLocationRepositoryPort the storage location repository port
    * @param metricsPort the business metrics port
+   * @param notificationPort the notification port for real-time WebSocket events
    */
   public InventoryMovementService(
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
@@ -56,18 +65,22 @@ public class InventoryMovementService implements InventoryMovementUseCase {
       InventoryStockRepositoryPort inventoryStockRepositoryPort,
       InventoryMovementRepositoryPort inventoryMovementRepositoryPort,
       StorageLocationRepositoryPort storageLocationRepositoryPort,
-      BusinessMetricsPort metricsPort) {
+      BusinessMetricsPort metricsPort,
+      NotificationPort notificationPort) {
     this.productRecipeRepositoryPort = productRecipeRepositoryPort;
     this.optionRecipeRepositoryPort = optionRecipeRepositoryPort;
     this.inventoryStockRepositoryPort = inventoryStockRepositoryPort;
     this.inventoryMovementRepositoryPort = inventoryMovementRepositoryPort;
     this.storageLocationRepositoryPort = storageLocationRepositoryPort;
     this.metricsPort = metricsPort;
+    this.notificationPort = notificationPort;
   }
 
   /**
    * Deducts inventory stock for a completed order. Deducts from Cocina first, then Bodega as
-   * fallback. Registers a DEDUCTION movement per variant per location used.
+   * fallback. Registers a DEDUCTION movement per variant per location used. After all deductions
+   * are applied, publishes a {@link InventoryStockUpdatedEvent} to {@value INVENTORY_UPDATES_TOPIC}
+   * so connected clients can refresh their inventory view in real time.
    *
    * @param orderId the order id used as reference in movements
    * @param details the order details containing products and selected options
@@ -78,8 +91,12 @@ public class InventoryMovementService implements InventoryMovementUseCase {
     // Consolidate all required supply variants and quantities across all order details
     Map<Long, BigDecimal> requiredVariants = buildRequiredVariantsMap(details);
 
-    Long cocinaId = getStorageLocationId("Cocina");
-    Long bodegaId = getStorageLocationId("Bodega");
+    StorageLocation cocina = getStorageLocation("Cocina");
+    StorageLocation bodega = getStorageLocation("Bodega");
+    Long cocinaId = cocina.getId();
+    Long bodegaId = bodega.getId();
+
+    List<InventoryStockUpdatedEvent.UpdatedStockItem> updatedItems = new ArrayList<>();
 
     for (Map.Entry<Long, BigDecimal> entry : requiredVariants.entrySet()) {
       Long variantId = entry.getKey();
@@ -104,11 +121,39 @@ public class InventoryMovementService implements InventoryMovementUseCase {
       if (cocinaDeducted.compareTo(BigDecimal.ZERO) > 0) {
         registerMovement(
             variantId, cocinaId, null, cocinaDeducted, MovementType.DEDUCTION, orderId, null);
+        inventoryStockRepositoryPort
+            .findByVariantAndLocationWithLock(variantId, cocinaId)
+            .ifPresent(
+                stock ->
+                    updatedItems.add(
+                        InventoryStockUpdatedEvent.UpdatedStockItem.builder()
+                            .supplyVariantId(variantId)
+                            .storageLocationId(cocinaId)
+                            .locationName(cocina.getName())
+                            .currentQuantity(stock.getCurrentQuantity())
+                            .build()));
       }
       if (remaining.compareTo(BigDecimal.ZERO) > 0) {
         registerMovement(
             variantId, bodegaId, null, remaining, MovementType.DEDUCTION, orderId, null);
+        inventoryStockRepositoryPort
+            .findByVariantAndLocationWithLock(variantId, bodegaId)
+            .ifPresent(
+                stock ->
+                    updatedItems.add(
+                        InventoryStockUpdatedEvent.UpdatedStockItem.builder()
+                            .supplyVariantId(variantId)
+                            .storageLocationId(bodegaId)
+                            .locationName(bodega.getName())
+                            .currentQuantity(stock.getCurrentQuantity())
+                            .build()));
       }
+    }
+
+    if (!updatedItems.isEmpty()) {
+      notificationPort.notify(
+          INVENTORY_UPDATES_TOPIC,
+          InventoryStockUpdatedEvent.builder().updatedItems(updatedItems).build());
     }
   }
 
@@ -123,8 +168,8 @@ public class InventoryMovementService implements InventoryMovementUseCase {
   public void revertDeductionsForOrder(Long orderId, List<OrderDetail> details) {
     Map<Long, BigDecimal> requiredVariants = buildRequiredVariantsMap(details);
 
-    Long cocinaId = getStorageLocationId("Cocina");
-    Long bodegaId = getStorageLocationId("Bodega");
+    Long cocinaId = getStorageLocation("Cocina").getId();
+    Long bodegaId = getStorageLocation("Bodega").getId();
 
     for (Map.Entry<Long, BigDecimal> entry : requiredVariants.entrySet()) {
       Long variantId = entry.getKey();
@@ -233,11 +278,10 @@ public class InventoryMovementService implements InventoryMovementUseCase {
     return required;
   }
 
-  private Long getStorageLocationId(String name) {
+  private StorageLocation getStorageLocation(String name) {
     return storageLocationRepositoryPort
         .findByName(name)
-        .orElseThrow(() -> new StorageLocationNotFoundException(name))
-        .getId();
+        .orElseThrow(() -> new StorageLocationNotFoundException(name));
   }
 
   private BigDecimal deductFromLocation(Long variantId, Long locationId, BigDecimal quantity) {

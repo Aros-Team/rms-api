@@ -227,7 +227,9 @@ public class OrderController {
   @PutMapping("/{id}/deliver")
   public ResponseEntity<OrderResponse> deliverOrder(@PathVariable Long id) {
     Order order = deliveryUseCase.markAsDelivered(id);
-    return ResponseEntity.ok(OrderResponse.fromDomain(order));
+    OrderResponse response = OrderResponse.fromDomain(order);
+    orderNotificationService.notifyOrderDelivered(response);
+    return ResponseEntity.ok(response);
   }
 
   /**

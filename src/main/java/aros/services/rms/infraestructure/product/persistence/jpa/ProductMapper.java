@@ -29,7 +29,6 @@ public class ProductMapper {
         .id(entity.getId())
         .name(entity.getName())
         .basePrice(entity.getBasePrice())
-        .hasOptions(entity.isHasOptions())
         .active(entity.isActive())
         .category(categoryMapper.toDomain(entity.getCategory()))
         .preparationAreaId(
@@ -63,7 +62,6 @@ public class ProductMapper {
             .id(domain.getId())
             .name(domain.getName())
             .basePrice(domain.getBasePrice())
-            .hasOptions(domain.isHasOptions())
             .active(domain.isActive())
             .category(categoryMapper.toEntity(domain.getCategory()))
             .build();

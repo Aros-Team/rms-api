@@ -3,6 +3,7 @@
 package aros.services.rms.infraestructure.inventory.config;
 
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
+import aros.services.rms.core.common.notification.port.output.NotificationPort;
 import aros.services.rms.core.inventory.application.service.InventoryMovementService;
 import aros.services.rms.core.inventory.application.service.InventoryStockService;
 import aros.services.rms.core.inventory.application.service.TransferInventoryService;
@@ -53,14 +54,16 @@ public class InventoryConfigBeans {
       InventoryStockRepositoryPort inventoryStockRepositoryPort,
       InventoryMovementRepositoryPort inventoryMovementRepositoryPort,
       StorageLocationRepositoryPort storageLocationRepositoryPort,
-      BusinessMetricsPort metricsPort) {
+      BusinessMetricsPort metricsPort,
+      NotificationPort notificationPort) {
     return new InventoryMovementService(
         productRecipeRepositoryPort,
         optionRecipeRepositoryPort,
         inventoryStockRepositoryPort,
         inventoryMovementRepositoryPort,
         storageLocationRepositoryPort,
-        metricsPort);
+        metricsPort,
+        notificationPort);
   }
 
   /**

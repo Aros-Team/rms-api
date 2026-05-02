@@ -6,8 +6,8 @@ import aros.services.rms.core.product.domain.Product;
 import java.util.List;
 
 /**
- * Input port for product management operations. Handles CRUD, logical deletion, and has_options
- * flag for products.
+ * Input port for product management operations. Handles CRUD, logical deletion, and option
+ * associations for products.
  */
 public interface ProductUseCase {
 

@@ -83,6 +83,10 @@ public class WebSocketNotificationAdapter implements NotificationPort {
       return "order-preparing";
     } else if (destination.contains("/topic/orders/ready")) {
       return "order-ready";
+    } else if (destination.contains("/topic/orders/delivered")) {
+      return "order-delivered";
+    } else if (destination.contains("/topic/inventory/updates")) {
+      return "inventory-updated";
     } else {
       return "order-update";
     }
