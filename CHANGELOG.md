@@ -1,5 +1,20 @@
 # Changelog
 
+## [v0.4.0](https://github.com/Aros-Team/rms-api/releases/tag/v0.4.0)
+
+### Features
+
+- **service**: fetch and populate product recipe in findById
+- **inventory**: implement WebSockets and new order delivery topic
+- **db**: enhance V8 seed data with customizable menu items
+
+### Bug Fixes
+
+- return proper 401 error when credentials are invalid instead of 500
+- add character limits and name pattern validation to user DTOs
+- improve name validation error message to be more specific
+- remove password from auth endpoint response
+
 ## [v0.3.7](https://github.com/Aros-Team/rms-api/releases/tag/v0.3.7)
 
 ### Bug Fixes
