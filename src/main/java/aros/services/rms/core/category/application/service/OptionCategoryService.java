@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.category.application.service;
 
 import aros.services.rms.core.category.application.exception.OptionCategoryNotFoundException;
@@ -24,12 +25,24 @@ public class OptionCategoryService implements OptionCategoryUseCase {
   private final OptionCategoryRepositoryPort optionCategoryRepositoryPort;
   private final Logger logger;
 
+  /**
+   * Creates a new OptionCategoryService instance.
+   *
+   * @param optionCategoryRepositoryPort the option category repository port
+   * @param logger the logger instance
+   */
   public OptionCategoryService(
       OptionCategoryRepositoryPort optionCategoryRepositoryPort, Logger logger) {
     this.optionCategoryRepositoryPort = optionCategoryRepositoryPort;
     this.logger = logger;
   }
 
+  /**
+   * Creates a new option category.
+   *
+   * @param optionCategory the option category data to create
+   * @return the created option category with generated ID
+   */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -41,6 +54,13 @@ public class OptionCategoryService implements OptionCategoryUseCase {
     return saved;
   }
 
+  /**
+   * Updates an existing option category.
+   *
+   * @param id the option category identifier
+   * @param optionCategory the option category data with updates
+   * @return the updated option category
+   */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -60,6 +80,11 @@ public class OptionCategoryService implements OptionCategoryUseCase {
     return saved;
   }
 
+  /**
+   * Retrieves all option categories.
+   *
+   * @return list of all option categories
+   */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -69,6 +94,13 @@ public class OptionCategoryService implements OptionCategoryUseCase {
     return optionCategoryRepositoryPort.findAll();
   }
 
+  /**
+   * Finds an option category by its identifier.
+   *
+   * @param id the option category identifier
+   * @return the found option category
+   * @throws OptionCategoryNotFoundException if not found
+   */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -80,6 +112,14 @@ public class OptionCategoryService implements OptionCategoryUseCase {
         .orElseThrow(() -> new OptionCategoryNotFoundException(id));
   }
 
+  /**
+   * Recovery handler for create operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param optionCategory the option category that was being created
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public OptionCategory recoverCreate(DataAccessException e, OptionCategory optionCategory) {
     log.warn(
@@ -89,6 +129,15 @@ public class OptionCategoryService implements OptionCategoryUseCase {
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /**
+   * Recovery handler for update operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the option category identifier being updated
+   * @param optionCategory the option category data with updates
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public OptionCategory recoverUpdate(
       DataAccessException e, Long id, OptionCategory optionCategory) {
@@ -96,12 +145,27 @@ public class OptionCategoryService implements OptionCategoryUseCase {
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /**
+   * Recovery handler for findAll operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public List<OptionCategory> recoverFindAll(DataAccessException e) {
     log.warn("BD no disponible - fallback para findAll: {}", e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /**
+   * Recovery handler for findById operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the option category identifier being looked up
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public OptionCategory recoverFindById(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para findById(id={}): {}", id, e.getMessage());

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.device.persistence.jpa;
 
 import aros.services.rms.infraestructure.user.persistence.jpa.UserEntity;
@@ -10,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/** Entity representing a device. */
 @Entity
 @Table(name = "devices")
 public class DeviceEntity {

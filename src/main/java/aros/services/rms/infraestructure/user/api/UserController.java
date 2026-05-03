@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** REST controller for user management. */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/api/v1/users")
@@ -50,6 +51,7 @@ public class UserController {
   private final AccountSetupUseCase accountSetupUseCase;
   private final UserRepositoryPort userRepositoryPort;
 
+  /** Retrieves all users. */
   @GetMapping
   @JustAdminUser
   public ResponseEntity<List<UserResponse>> getAll() {
@@ -58,6 +60,7 @@ public class UserController {
     return ResponseEntity.ok(users);
   }
 
+  /** Registers a new user. */
   @PostMapping
   @JustAdminUser
   public ResponseEntity<UserRegisterResponse> register(
@@ -70,6 +73,7 @@ public class UserController {
         .body(UserRegisterResponse.fromDomain(result.user(), result.rawPassword()));
   }
 
+  /** Updates an existing user. */
   @PutMapping("/{id}")
   @JustAdminUser
   public ResponseEntity<UserResponse> update(
@@ -81,6 +85,7 @@ public class UserController {
     return ResponseEntity.ok(UserResponse.fromDomain(user));
   }
 
+  /** Deletes a user. */
   @DeleteMapping("/{id}")
   @JustAdminUser
   public ResponseEntity<Void> delete(@PathVariable Long id) throws UserNotFoundException {
@@ -90,6 +95,7 @@ public class UserController {
     return ResponseEntity.noContent().build();
   }
 
+  /** Retries sending registration email. */
   @PostMapping("/{id}/retry-email")
   @JustAdminUser
   public ResponseEntity<Void> retryEmail(@PathVariable Long id) throws UserNotFoundException {
@@ -104,6 +110,7 @@ public class UserController {
     }
   }
 
+  /** Retries sending setup email. */
   @PostMapping("/{id}/retry-setup-email")
   @JustAdminUser
   public ResponseEntity<Void> retrySetupEmail(@PathVariable Long id) throws UserNotFoundException {
@@ -121,6 +128,7 @@ public class UserController {
     return ResponseEntity.ok().build();
   }
 
+  /** Changes the user's password. */
   @PutMapping("/me/password")
   @JustAccessToken
   public ResponseEntity<Void> changePassword(

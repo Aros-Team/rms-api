@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.user.config;
 
 import aros.services.rms.core.user.application.service.CreateAdminService;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+/** Initializes the admin user on application startup. */
 @Component
 public class AdminInitializer implements CommandLineRunner {
 
@@ -26,10 +28,16 @@ public class AdminInitializer implements CommandLineRunner {
   @Value("${app.admin.dummy-email:}")
   private String dummyEmail;
 
+  /**
+   * Creates a new AdminInitializer.
+   *
+   * @param createAdminUseCase the create admin use case
+   */
   public AdminInitializer(CreateAdminService createAdminUseCase) {
     this.createAdminUseCase = createAdminUseCase;
   }
 
+  /** Runs the admin initialization process. */
   @Override
   public void run(String... args) {
     try {

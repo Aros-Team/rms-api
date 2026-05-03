@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.inventory.persistence.jpa;
 
 import aros.services.rms.core.inventory.domain.ProductRecipe;
@@ -11,7 +12,9 @@ public class ProductRecipeMapper {
 
   /** Converts a ProductRecipeEntity JPA entity to a domain model. */
   public ProductRecipe toDomain(ProductRecipeEntity entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
     return ProductRecipe.builder()
         .id(entity.getId())
         .productId(entity.getProduct() != null ? entity.getProduct().getId() : null)
@@ -23,7 +26,9 @@ public class ProductRecipeMapper {
 
   /** Converts a ProductRecipe domain model to a JPA entity. */
   public ProductRecipeEntity toEntity(ProductRecipe domain) {
-    if (domain == null) return null;
+    if (domain == null) {
+      return null;
+    }
     return ProductRecipeEntity.builder()
         .id(domain.getId())
         .requiredQuantity(domain.getRequiredQuantity())

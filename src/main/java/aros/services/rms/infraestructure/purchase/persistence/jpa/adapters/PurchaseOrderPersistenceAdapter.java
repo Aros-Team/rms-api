@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.purchase.persistence.jpa.adapters;
 
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
@@ -19,6 +20,12 @@ public class PurchaseOrderPersistenceAdapter implements PurchaseOrderRepositoryP
   private final PurchaseOrderJpaRepository repository;
   private final PurchaseOrderMapper mapper;
 
+  /**
+   * Creates a new instance.
+   *
+   * @param repository the JPA repository
+   * @param mapper the mapper
+   */
   public PurchaseOrderPersistenceAdapter(
       PurchaseOrderJpaRepository repository, PurchaseOrderMapper mapper) {
     this.repository = repository;

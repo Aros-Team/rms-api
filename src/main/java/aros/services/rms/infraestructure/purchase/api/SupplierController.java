@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.purchase.api;
 
 import aros.services.rms.core.purchase.domain.Supplier;
@@ -39,6 +40,12 @@ public class SupplierController {
 
   @Qualifier("getSuppliersUseCase") private final GetSuppliersUseCase getSuppliersUseCase;
 
+  /**
+   * Creates a supplier.
+   *
+   * @param request the supplier request
+   * @return the created supplier
+   */
   @Operation(
       summary = "Create supplier",
       description = "Registers a new supplier. New suppliers are active by default.",
@@ -53,6 +60,13 @@ public class SupplierController {
     return new ResponseEntity<>(SupplierResponse.fromDomain(created), HttpStatus.CREATED);
   }
 
+  /**
+   * Updates a supplier.
+   *
+   * @param id the supplier ID
+   * @param request the update request
+   * @return the updated supplier
+   */
   @Operation(
       summary = "Update supplier",
       description =
@@ -76,6 +90,11 @@ public class SupplierController {
     return ResponseEntity.ok(SupplierResponse.fromDomain(updated));
   }
 
+  /**
+   * Lists all suppliers.
+   *
+   * @return the list of suppliers
+   */
   @Operation(
       summary = "List all suppliers",
       description = "Returns all suppliers regardless of active status.",

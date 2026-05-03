@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.auth.application.service;
 
 import aros.services.rms.core.auth.application.exception.AccountSetupTokenAlreadyUsedException;
@@ -24,6 +25,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+/** Service for handling new user account setup with token validation. */
 public class AccountSetupService implements AccountSetupUseCase {
 
   private static final int TOKEN_EXPIRATION_MINUTES = 30;
@@ -39,6 +41,17 @@ public class AccountSetupService implements AccountSetupUseCase {
   private final BusinessMetricsPort metricsPort;
   private final WelcomeEmailUseCase welcomeEmailUseCase;
 
+  /**
+   * Creates a new AccountSetupService instance.
+   *
+   * @param userRepositoryPort the user repository port
+   * @param tokenRepositoryPort the account setup token repository port
+   * @param passwordEncoderPort the password encoder port
+   * @param hashServicePort the hash service port
+   * @param logger the logger instance
+   * @param metricsPort the business metrics port
+   * @param welcomeEmailUseCase the welcome email use case
+   */
   public AccountSetupService(
       UserRepositoryPort userRepositoryPort,
       AccountSetupTokenRepositoryPort tokenRepositoryPort,
@@ -56,6 +69,14 @@ public class AccountSetupService implements AccountSetupUseCase {
     this.welcomeEmailUseCase = welcomeEmailUseCase;
   }
 
+  /**
+   * Sets up a new user's password using an account setup token.
+   *
+   * @param token the account setup token
+   * @param newPassword the new password to set
+   * @param name the user's name
+   * @param document the user's document number
+   */
   @Override
   public void setupPassword(String token, String newPassword, String name, String document) {
     logger.info("Account setup password attempt started");
@@ -103,7 +124,8 @@ public class AccountSetupService implements AccountSetupUseCase {
 
     if (!PASSWORD_PATTERN.matcher(newPassword).matches()) {
       throw new InvalidPasswordException(
-          "La nueva contraseña debe tener mínimo 8 caracteres, incluir al menos una mayúscula, una minúscula, un número y un símbolo (@$!%*?&)");
+          "La nueva contraseña debe tener mínimo 8 caracteres, incluir al menos"
+              + " una mayúscula, una minúscula, un número y un símbolo (@$!%*?&)");
     }
 
     String encodedPassword = passwordEncoderPort.encode(newPassword);
@@ -119,6 +141,12 @@ public class AccountSetupService implements AccountSetupUseCase {
     metricsPort.recordAccountSetup("completed");
   }
 
+  /**
+   * Requests an account setup email for a new user.
+   *
+   * @param email the user's email address
+   * @throws UserNotFoundException if no user exists with that email
+   */
   @Override
   public void requestSetupEmail(String email) throws UserNotFoundException {
     logger.info("Account setup email requested: email={}", email);
@@ -152,12 +180,25 @@ public class AccountSetupService implements AccountSetupUseCase {
     metricsPort.recordAccountSetup("requested");
   }
 
+  /**
+   * Deletes all existing account setup tokens for a user.
+   *
+   * @param userId the user identifier
+   */
   @Override
   public void deleteExistingTokens(UserId userId) {
     logger.info("Deleting existing setup tokens: userId={}", userId);
     tokenRepositoryPort.deleteByUserId(userId);
   }
 
+  /**
+   * Validates an account setup token.
+   *
+   * @param token the token to validate
+   * @return validation response with token status
+   * @throws AccountSetupTokenInvalidException if token is invalid
+   * @throws AccountSetupTokenExpiredException if token has expired
+   */
   @Override
   public SetupAccountValidationResponse validateToken(String token) {
     String tokenHash = hashServicePort.hash(token);

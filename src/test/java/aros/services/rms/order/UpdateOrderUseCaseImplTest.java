@@ -176,7 +176,6 @@ class UpdateOrderUseCaseImplTest {
             .id(1L)
             .name("Burger")
             .basePrice(10.0)
-            .hasOptions(true)
             .category(Category.builder().id(1L).name("Food").build())
             .build();
     ProductOption option = ProductOption.builder().id(1L).name("Extra Cheese").build();
@@ -216,7 +215,6 @@ class UpdateOrderUseCaseImplTest {
             .id(1L)
             .name("Water")
             .basePrice(2.0)
-            .hasOptions(false)
             .category(Category.builder().id(1L).name("Drinks").build())
             .build();
 
@@ -280,12 +278,13 @@ class UpdateOrderUseCaseImplTest {
             .id(1L)
             .name("Burger")
             .basePrice(10.0)
-            .hasOptions(true)
             .category(Category.builder().id(1L).name("Food").build())
             .build();
 
     when(orderRepositoryPort.findById(1L)).thenReturn(Optional.of(existingOrder));
     when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
 
     TakeOrderCommand command =
         TakeOrderCommand.builder()
@@ -299,15 +298,16 @@ class UpdateOrderUseCaseImplTest {
                         .build()))
             .build();
 
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> updateOrderUseCase.update(1L, command));
+    Order result = updateOrderUseCase.update(1L, command);
 
-    assertEquals("Product 'Burger' requires options to be selected", exception.getMessage());
-    verify(orderRepositoryPort, never()).save(any(Order.class));
+    assertNotNull(result);
+    assertEquals(1, result.getDetails().size());
+    assertEquals(0, result.getDetails().get(0).getSelectedOptions().size());
+    verify(orderRepositoryPort, times(1)).save(existingOrder);
   }
 
   @Test
-  void shouldThrowException_whenProductHasNoOptionsButOptionsProvided() {
+  void shouldUpdateOrderSuccessfully_whenProductReceivesOptionsWithoutRestriction() {
     Order existingOrder = Order.builder().id(1L).status(OrderStatus.QUEUE).build();
 
     Product product =
@@ -315,12 +315,15 @@ class UpdateOrderUseCaseImplTest {
             .id(1L)
             .name("Water")
             .basePrice(2.0)
-            .hasOptions(false)
             .category(Category.builder().id(1L).name("Drinks").build())
             .build();
+    ProductOption option = ProductOption.builder().id(1L).name("Con Hielo").build();
 
     when(orderRepositoryPort.findById(1L)).thenReturn(Optional.of(existingOrder));
     when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
+    when(productOptionRepositoryPort.findAllById(List.of(1L))).thenReturn(List.of(option));
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
 
     TakeOrderCommand command =
         TakeOrderCommand.builder()
@@ -334,11 +337,12 @@ class UpdateOrderUseCaseImplTest {
                         .build()))
             .build();
 
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> updateOrderUseCase.update(1L, command));
+    Order result = updateOrderUseCase.update(1L, command);
 
-    assertEquals("Product 'Water' does not support options", exception.getMessage());
-    verify(orderRepositoryPort, never()).save(any(Order.class));
+    assertNotNull(result);
+    assertEquals(1, result.getDetails().size());
+    assertEquals(1, result.getDetails().get(0).getSelectedOptions().size());
+    verify(orderRepositoryPort, times(1)).save(existingOrder);
   }
 
   @Test
@@ -375,7 +379,6 @@ class UpdateOrderUseCaseImplTest {
             .id(1L)
             .name("Burger")
             .basePrice(10.0)
-            .hasOptions(false)
             .category(Category.builder().id(1L).name("Food").build())
             .build();
 
@@ -384,7 +387,6 @@ class UpdateOrderUseCaseImplTest {
             .id(2L)
             .name("Fries")
             .basePrice(5.0)
-            .hasOptions(false)
             .category(Category.builder().id(1L).name("Food").build())
             .build();
 

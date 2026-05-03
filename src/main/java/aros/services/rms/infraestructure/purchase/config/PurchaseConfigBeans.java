@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.purchase.config;
 
 import aros.services.rms.core.common.logger.Logger;
@@ -30,23 +31,51 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class PurchaseConfigBeans {
 
+  /**
+   * Creates a create supplier service instance.
+   *
+   * @param supplierRepositoryPort the supplier repository port
+   * @param logger the logger
+   * @return the create supplier service
+   */
   private CreateSupplierService createSupplierServiceInstance(
       SupplierRepositoryPort supplierRepositoryPort, Logger logger) {
     return new CreateSupplierService(supplierRepositoryPort, logger);
   }
 
+  /**
+   * Creates the create supplier use case.
+   *
+   * @param supplierRepositoryPort the supplier repository port
+   * @param logger the logger
+   * @return the create supplier use case
+   */
   @Bean("createSupplierUseCase")
   public CreateSupplierUseCase createSupplierUseCase(
       SupplierRepositoryPort supplierRepositoryPort, Logger logger) {
     return createSupplierServiceInstance(supplierRepositoryPort, logger);
   }
 
+  /**
+   * Creates the update supplier use case.
+   *
+   * @param supplierRepositoryPort the supplier repository port
+   * @param logger the logger
+   * @return the update supplier use case
+   */
   @Bean("updateSupplierUseCase")
   public UpdateSupplierUseCase updateSupplierUseCase(
       SupplierRepositoryPort supplierRepositoryPort, Logger logger) {
     return createSupplierServiceInstance(supplierRepositoryPort, logger);
   }
 
+  /**
+   * Creates the get suppliers use case.
+   *
+   * @param supplierRepositoryPort the supplier repository port
+   * @param logger the logger
+   * @return the get suppliers use case
+   */
   @Bean("getSuppliersUseCase")
   public GetSuppliersUseCase getSuppliersUseCase(
       SupplierRepositoryPort supplierRepositoryPort, Logger logger) {

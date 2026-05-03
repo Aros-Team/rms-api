@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.area.application.service;
 
 import aros.services.rms.core.area.application.exception.AreaAlreadyExistsException;
@@ -26,6 +27,12 @@ public class AreaService implements AreaUseCase {
   private final AreaRepositoryPort areaRepositoryPort;
   private final Logger logger;
 
+  /**
+   * Creates a new AreaService instance.
+   *
+   * @param areaRepositoryPort the area repository port
+   * @param logger the logger instance
+   */
   public AreaService(AreaRepositoryPort areaRepositoryPort, Logger logger) {
     this.areaRepositoryPort = areaRepositoryPort;
     this.logger = logger;
@@ -49,6 +56,14 @@ public class AreaService implements AreaUseCase {
     return saved;
   }
 
+  /**
+   * Recovery handler for create operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param area the area that was being created
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Area recoverCreate(DataAccessException e, Area area) {
     log.warn(
@@ -74,6 +89,15 @@ public class AreaService implements AreaUseCase {
     return saved;
   }
 
+  /**
+   * Recovery handler for update operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the area identifier being updated
+   * @param area the area data with updates
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Area recoverUpdate(DataAccessException e, Long id, Area area) {
     log.warn("BD no disponible - fallback para update(id={}): {}", id, e.getMessage());
@@ -90,6 +114,13 @@ public class AreaService implements AreaUseCase {
     return areaRepositoryPort.findAll();
   }
 
+  /**
+   * Recovery handler for findAll operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public List<Area> recoverFindAll(DataAccessException e) {
     log.warn("BD no disponible - fallback para findAll: {}", e.getMessage());
@@ -106,6 +137,14 @@ public class AreaService implements AreaUseCase {
     return areaRepositoryPort.findById(id).orElseThrow(() -> new AreaNotFoundException(id));
   }
 
+  /**
+   * Recovery handler for findById operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the area identifier being looked up
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Area recoverFindById(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para findById(id={}): {}", id, e.getMessage());
@@ -129,6 +168,14 @@ public class AreaService implements AreaUseCase {
     return saved;
   }
 
+  /**
+   * Recovery handler for toggleEnabled operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the area identifier being toggled
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Area recoverToggleEnabled(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para toggleEnabled(id={}): {}", id, e.getMessage());

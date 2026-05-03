@@ -64,7 +64,6 @@ class ProductUseCaseImplTest {
         Product.builder()
             .name("Burger")
             .basePrice(10.0)
-            .hasOptions(true)
             .category(Category.builder().id(1L).build())
             .preparationAreaId(1L)
             .build();
@@ -73,7 +72,6 @@ class ProductUseCaseImplTest {
             .id(1L)
             .name("Burger")
             .basePrice(10.0)
-            .hasOptions(true)
             .active(true)
             .category(Category.builder().id(1L).name("Food").build())
             .preparationAreaId(1L)

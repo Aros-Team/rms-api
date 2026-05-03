@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+/** Aspect for auditing use case executions. */
 @Aspect
 @Component
 public class AuditAspect {
@@ -37,9 +38,17 @@ public class AuditAspect {
 
   private static final Set<String> EXCLUDED_PACKAGES = Set.of("aros.services.rms.core.email");
 
+  /** Pointcut for use case methods. */
   @Pointcut("execution(* aros.services.rms.core..port.input.*UseCase.*(..))")
   public void useCaseMethods() {}
 
+  /**
+   * Audits use case method execution.
+   *
+   * @param joinPoint the join point
+   * @return the result
+   * @throws Throwable if execution fails
+   */
   @Around("useCaseMethods()")
   public Object audit(ProceedingJoinPoint joinPoint) throws Throwable {
     String methodName = joinPoint.getSignature().getName();
@@ -140,7 +149,7 @@ public class AuditAspect {
     if (result instanceof AuthResult.Success success) {
       return String.format("{\"username\": \"%s\", \"type\": \"SUCCESS\"}", success.username());
     }
-    if (result instanceof AuthResult.RequiresTFA tfa) {
+    if (result instanceof AuthResult.RequiresTfa tfa) {
       return String.format("{\"username\": \"%s\", \"type\": \"TFA_REQUIRED\"}", tfa.username());
     }
     if (result instanceof AuthFinalResult finalResult) {

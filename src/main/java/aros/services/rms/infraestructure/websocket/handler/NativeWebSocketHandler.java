@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.websocket.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

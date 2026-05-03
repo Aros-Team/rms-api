@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.inventory.port.input;
 
 import java.util.List;

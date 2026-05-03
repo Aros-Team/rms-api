@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.order.persistence;
 
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
@@ -25,6 +26,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** Entity representing an order. */
 @Entity
 @jakarta.persistence.Table(name = "orders")
 @Data

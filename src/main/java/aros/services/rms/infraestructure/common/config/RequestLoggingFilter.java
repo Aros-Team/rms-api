@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.common.config;
 
 import jakarta.servlet.FilterChain;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
+/** Filter for logging HTTP requests and responses. */
 @Component
 @Order(1)
 public class RequestLoggingFilter extends OncePerRequestFilter {
@@ -26,6 +28,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
   private static final String REQUEST_ID = "requestId";
   private static final String START_TIME = "startTime";
 
+  /** Filters incoming requests and logs them. */
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -67,6 +70,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         || path.startsWith("/v3/api-docs");
   }
 
+  /** Logs the incoming request. */
   private void logRequest(HttpServletRequest request, String requestId) {
     Map<String, String> headers = getHeaders(request);
 
@@ -118,14 +122,16 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     return sanitized;
   }
 
+  /** Gets the client IP address. */
   private String getClientIp(HttpServletRequest request) {
-    String xForwardedFor = request.getHeader("X-Forwarded-For");
-    if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-      return xForwardedFor.split(",")[0].trim();
+    String xffHeader = request.getHeader("X-Forwarded-For");
+    if (xffHeader != null && !xffHeader.isEmpty()) {
+      return xffHeader.split(",")[0].trim();
     }
     return request.getRemoteAddr();
   }
 
+  /** Generates a unique request ID. */
   private String generateRequestId() {
     return String.format(
         "%s-%d",

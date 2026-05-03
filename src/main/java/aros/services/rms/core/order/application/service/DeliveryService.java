@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.order.application.service;
 
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
@@ -27,6 +28,13 @@ public class DeliveryService implements DeliveryUseCase {
   private final TableRepositoryPort tableRepositoryPort;
   private final BusinessMetricsPort metricsPort;
 
+  /**
+   * Creates a new delivery service instance.
+   *
+   * @param orderRepositoryPort the order repository port
+   * @param tableRepositoryPort the table repository port
+   * @param metricsPort the business metrics port
+   */
   public DeliveryService(
       OrderRepositoryPort orderRepositoryPort,
       TableRepositoryPort tableRepositoryPort,
@@ -55,17 +63,28 @@ public class DeliveryService implements DeliveryUseCase {
     order.setStatus(OrderStatus.DELIVERED);
     Order savedOrder = orderRepositoryPort.save(order);
 
-    if (order.getTable() != null) {
-      Table table = order.getTable();
-      table.setStatus(TableStatus.AVAILABLE);
-      tableRepositoryPort.save(table);
-    }
-
+    releaseTableIfNeeded(savedOrder);
     metricsPort.recordOrderStatusTransition("READY", "DELIVERED");
     metricsPort.recordOrderDelivery();
     return savedOrder;
   }
 
+  private void releaseTableIfNeeded(Order order) {
+    if (order.getTable() != null) {
+      Table table = order.getTable();
+      table.setStatus(TableStatus.AVAILABLE);
+      tableRepositoryPort.save(table);
+    }
+  }
+
+  /**
+   * Recovery handler for markAsDelivered operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the order identifier
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Order recoverMarkAsDelivered(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para markAsDelivered(id={}): {}", id, e.getMessage());

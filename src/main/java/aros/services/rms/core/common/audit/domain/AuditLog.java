@@ -1,8 +1,11 @@
+/* (C) 2026 */
+
 package aros.services.rms.core.common.audit.domain;
 
 import java.time.Instant;
 import java.util.Optional;
 
+/** Domain model representing an audit log entry for tracking business changes. */
 public class AuditLog {
   private final String id;
   private final Long userId;
@@ -16,6 +19,21 @@ public class AuditLog {
   private final String ipAddress;
   private final Instant timestamp;
 
+  /**
+   * Creates an audit log entry.
+   *
+   * @param id unique identifier
+   * @param userId user ID
+   * @param username username
+   * @param businessAction action performed
+   * @param targetEntity target entity type
+   * @param targetEntityId target entity ID
+   * @param details additional details
+   * @param oldValue previous value
+   * @param newValue new value
+   * @param ipAddress IP address
+   * @param timestamp timestamp
+   */
   public AuditLog(
       String id,
       Long userId,
@@ -85,10 +103,16 @@ public class AuditLog {
     return timestamp;
   }
 
+  /**
+   * Creates a new builder for AuditLog.
+   *
+   * @return a new Builder instance
+   */
   public static Builder builder() {
     return new Builder();
   }
 
+  /** Builder for constructing AuditLog instances. */
   public static class Builder {
     private String id;
     private Long userId;
@@ -102,61 +126,77 @@ public class AuditLog {
     private String ipAddress;
     private Instant timestamp;
 
+    /** Sets the audit log ID. */
     public Builder id(String id) {
       this.id = id;
       return this;
     }
 
+    /** Sets the user ID. */
     public Builder userId(Long userId) {
       this.userId = userId;
       return this;
     }
 
+    /** Sets the username. */
     public Builder username(String username) {
       this.username = username;
       return this;
     }
 
+    /** Sets the business action. */
     public Builder businessAction(String businessAction) {
       this.businessAction = businessAction;
       return this;
     }
 
+    /** Sets the target entity. */
     public Builder targetEntity(String targetEntity) {
       this.targetEntity = targetEntity;
       return this;
     }
 
+    /** Sets the target entity ID. */
     public Builder targetEntityId(String targetEntityId) {
       this.targetEntityId = targetEntityId;
       return this;
     }
 
+    /** Sets the details. */
     public Builder details(String details) {
       this.details = details;
       return this;
     }
 
+    /** Sets the old value. */
     public Builder oldValue(String oldValue) {
       this.oldValue = oldValue;
       return this;
     }
 
+    /** Sets the new value. */
     public Builder newValue(String newValue) {
       this.newValue = newValue;
       return this;
     }
 
+    /** Sets the IP address. */
     public Builder ipAddress(String ipAddress) {
       this.ipAddress = ipAddress;
       return this;
     }
 
+    /** Sets the timestamp. */
     public Builder timestamp(Instant timestamp) {
       this.timestamp = timestamp;
       return this;
     }
 
+    /**
+     * Builds the AuditLog instance.
+     *
+     * @return the built AuditLog
+     */
     public AuditLog build() {
       return new AuditLog(
           id,

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.purchase.config;
 
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
@@ -20,6 +21,12 @@ public class RegisterPurchaseOrderService {
   private final RegisterPurchaseOrderUseCase registerPurchaseOrderUseCase;
   private final BusinessMetricsPort metricsPort;
 
+  /**
+   * Creates a new RegisterPurchaseOrderService.
+   *
+   * @param registerPurchaseOrderUseCase the use case
+   * @param metricsPort the metrics port
+   */
   public RegisterPurchaseOrderService(
       RegisterPurchaseOrderUseCase registerPurchaseOrderUseCase, BusinessMetricsPort metricsPort) {
     this.registerPurchaseOrderUseCase = registerPurchaseOrderUseCase;

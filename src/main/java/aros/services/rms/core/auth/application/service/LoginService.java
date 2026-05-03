@@ -1,3 +1,5 @@
+/* (C) 2026 */
+
 package aros.services.rms.core.auth.application.service;
 
 import aros.services.rms.core.auth.application.dto.AuthResult;
@@ -22,6 +24,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
+/** Implementation of user login with optional two-factor authentication. */
 public class LoginService implements LoginUseCase {
   private final PasswordEncoderPort passwordPort;
   private final UserRepositoryPort userPort;
@@ -34,6 +37,20 @@ public class LoginService implements LoginUseCase {
   private final TokenPort tokenPort;
   private final BusinessMetricsPort metricsPort;
 
+  /**
+   * Creates a new LoginService instance.
+   *
+   * @param passwordPort the password encoder port
+   * @param userPort the user repository port
+   * @param devicePort the device repository port
+   * @param tfaCodeGeneratorPort the 2FA code generator port
+   * @param tfaPort the 2FA code repository port
+   * @param emailPort the 2FA email use case port
+   * @param hashServicePort the hash service port
+   * @param refreshTokenPort the refresh token repository port
+   * @param tokenPort the token port
+   * @param metricsPort the business metrics port
+   */
   public LoginService(
       PasswordEncoderPort passwordPort,
       UserRepositoryPort userPort,
@@ -81,7 +98,7 @@ public class LoginService implements LoginUseCase {
     if (deviceOpt.isPresent()) {
       return authenticateFull(user);
     } else {
-      return authenticateRequireTFA(user);
+      return authenticateRequireTfa(user);
     }
   }
 
@@ -99,19 +116,19 @@ public class LoginService implements LoginUseCase {
     return result;
   }
 
-  private AuthResult.RequiresTFA authenticateRequireTFA(User user) {
+  private AuthResult.RequiresTfa authenticateRequireTfa(User user) {
     metricsPort.recordLoginAttempt("tfa_required");
     String code = tfaCodeGeneratorPort.generateCode(6);
-    TwoFactorCode TFACode = createVerificationCode(user, code);
+    TwoFactorCode tfaCode = createVerificationCode(user, code);
 
-    tfaPort.save(TFACode);
+    tfaPort.save(tfaCode);
     emailPort.sendTwoFactorCode(user.getEmail(), code);
 
-    return createRequireTFA(user);
+    return createRequireTfa(user);
   }
 
-  private AuthResult.RequiresTFA createRequireTFA(User user) {
-    return new AuthResult.RequiresTFA(user.getEmail().value(), tokenPort.generateTFAToken(user));
+  private AuthResult.RequiresTfa createRequireTfa(User user) {
+    return new AuthResult.RequiresTfa(user.getEmail().value(), tokenPort.generateTfaToken(user));
   }
 
   private AuthResult.Success createSuccess(User user) {

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.user.application.service;
 
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/** Service responsible for creating the initial administrator account. */
 @Service
 public class CreateAdminService {
 
@@ -25,10 +27,20 @@ public class CreateAdminService {
   private final PasswordEncoderPort passwordEncoder;
   private final RegistrationEmailUseCase emailService;
 
+  /** Configuration for admin creation with email and environment flag. */
   public record AdminConfig(String email, boolean isProduction) {}
 
+  /** Credentials returned after admin creation with email, raw password, and environment flag. */
   public record AdminCredentials(String email, String rawPassword, boolean isDevelopment) {}
 
+  /**
+   * Creates the admin service.
+   *
+   * @param userRepository repository for user operations
+   * @param adminRepository repository for admin operations
+   * @param passwordEncoder port for password encoding
+   * @param registrationEmailUseCase use case for sending registration emails
+   */
   public CreateAdminService(
       UserRepositoryPort userRepository,
       AdminRepositoryPort adminRepository,
@@ -40,6 +52,12 @@ public class CreateAdminService {
     this.emailService = registrationEmailUseCase;
   }
 
+  /**
+   * Executes admin creation based on configuration.
+   *
+   * @param config configuration for admin creation
+   * @return credentials for the created admin
+   */
   @Transactional
   public AdminCredentials execute(AdminConfig config) {
     log.info("Starting administrator verification...");
@@ -59,7 +77,8 @@ public class CreateAdminService {
     long adminCount = adminRepository.countByRole(UserRole.ADMIN);
     if (adminCount > 0) {
       log.warn(
-          "Administrator creation not required. An ADMIN role user already exists in the database.");
+          "Administrator creation not required. "
+              + "An ADMIN role user already exists in the database.");
       return null;
     }
 
@@ -93,7 +112,6 @@ public class CreateAdminService {
     log.debug("Administrator email: {}", dummyEmail);
 
     long adminCount = adminRepository.countByRole(UserRole.ADMIN);
-    boolean isFirstTime = adminCount == 0;
 
     if (adminCount > 0) {
       log.warn("Administrator already exists in database, skipping creation.");
@@ -121,6 +139,7 @@ public class CreateAdminService {
     userRepository.save(admin);
     log.info("Administrator created successfully and persisted in database");
 
+    boolean isFirstTime = adminCount == 0;
     if (isFirstTime) {
       sendEmail(dummyEmail, rawPassword, true);
     }

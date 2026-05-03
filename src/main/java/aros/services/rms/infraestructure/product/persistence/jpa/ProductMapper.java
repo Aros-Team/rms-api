@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.product.persistence.jpa;
 
 import aros.services.rms.core.product.domain.Product;
@@ -18,7 +19,9 @@ public class ProductMapper {
   /** Converts a Product JPA entity to a domain model. */
   public Product toProductDomain(
       aros.services.rms.infraestructure.product.persistence.Product entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
 
     // Note: optionIds are not loaded here to avoid LazyInitializationException.
     // They are only populated when explicitly needed (e.g., after association operations).
@@ -26,7 +29,6 @@ public class ProductMapper {
         .id(entity.getId())
         .name(entity.getName())
         .basePrice(entity.getBasePrice())
-        .hasOptions(entity.isHasOptions())
         .active(entity.isActive())
         .category(categoryMapper.toDomain(entity.getCategory()))
         .preparationAreaId(
@@ -39,7 +41,9 @@ public class ProductMapper {
   /** Converts a ProductOption JPA entity to a domain model. */
   public ProductOption toProductOptionDomain(
       aros.services.rms.infraestructure.product.persistence.ProductOption entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
     return ProductOption.builder()
         .id(entity.getId())
         .name(entity.getName())
@@ -50,13 +54,14 @@ public class ProductMapper {
   /** Converts a Product domain model to a JPA entity. */
   public aros.services.rms.infraestructure.product.persistence.Product toProductEntity(
       Product domain) {
-    if (domain == null) return null;
+    if (domain == null) {
+      return null;
+    }
     aros.services.rms.infraestructure.product.persistence.Product entity =
         aros.services.rms.infraestructure.product.persistence.Product.builder()
             .id(domain.getId())
             .name(domain.getName())
             .basePrice(domain.getBasePrice())
-            .hasOptions(domain.isHasOptions())
             .active(domain.isActive())
             .category(categoryMapper.toEntity(domain.getCategory()))
             .build();
@@ -71,7 +76,9 @@ public class ProductMapper {
   /** Converts a ProductOption domain model to a JPA entity. */
   public aros.services.rms.infraestructure.product.persistence.ProductOption toProductOptionEntity(
       ProductOption domain) {
-    if (domain == null) return null;
+    if (domain == null) {
+      return null;
+    }
     return aros.services.rms.infraestructure.product.persistence.ProductOption.builder()
         .id(domain.getId())
         .name(domain.getName())

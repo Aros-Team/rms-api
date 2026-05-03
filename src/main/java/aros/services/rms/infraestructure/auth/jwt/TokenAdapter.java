@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.auth.jwt;
 
 import aros.services.rms.core.auth.port.output.TokenPort;
@@ -6,6 +7,7 @@ import aros.services.rms.core.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/** Adapter for token operations. */
 @Service
 @RequiredArgsConstructor
 public class TokenAdapter implements TokenPort {
@@ -18,8 +20,8 @@ public class TokenAdapter implements TokenPort {
   }
 
   @Override
-  public String generateTFAToken(User user) {
-    return jwtService.generateTFAToken(user.getEmail().value());
+  public String generateTfaToken(User user) {
+    return jwtService.generateTfaToken(user.getEmail().value());
   }
 
   @Override

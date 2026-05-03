@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.product.api;
 
 import aros.services.rms.core.category.domain.Category;
@@ -39,11 +40,17 @@ public class ProductController {
   private final ProductUseCase productUseCase;
   private final ProductOptionUseCase productOptionUseCase;
 
+  /**
+   * Creates a new product.
+   *
+   * @param request the product request
+   * @return the created product
+   */
   @Operation(
       summary = "Crear nuevo producto",
       description =
           "Crea un nuevo producto vinculado a un área de preparación y categoría. "
-              + "El flag hasOptions determina si se pueden asociar opciones de personalización (tamaño, toppings, etc).",
+              + "Se pueden asociar opciones de personalización mediante optionIds.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Producto creado exitosamente"),
         @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
@@ -56,7 +63,6 @@ public class ProductController {
         Product.builder()
             .name(request.name())
             .basePrice(request.basePrice())
-            .hasOptions(request.hasOptions())
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())
             .optionIds(request.optionIds())
@@ -67,6 +73,13 @@ public class ProductController {
     return new ResponseEntity<>(ProductResponse.fromDomain(created), HttpStatus.CREATED);
   }
 
+  /**
+   * Updates a product.
+   *
+   * @param id the product ID
+   * @param request the update request
+   * @return the updated product
+   */
   @Operation(
       summary = "Actualizar producto",
       description =
@@ -84,7 +97,6 @@ public class ProductController {
         Product.builder()
             .name(request.name())
             .basePrice(request.basePrice())
-            .hasOptions(request.hasOptions())
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())
             .optionIds(request.optionIds())
@@ -95,11 +107,17 @@ public class ProductController {
     return ResponseEntity.ok(ProductResponse.fromDomain(updated));
   }
 
+  /**
+   * Gets all products.
+   *
+   * @param categories optional category filter
+   * @return the list of products
+   */
   @Operation(
       summary = "Obtener todos los productos",
       description =
           "Retorna lista de todos los productos activos e inactivos del menú. "
-              + "Puede filtrarse por categoría usando el parámetro 'categories' (IDs separados por coma).",
+              + "Puede filtrarse por categoría usando el parámetro 'categories'.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Productos obtenidos exitosamente")
       })
@@ -121,6 +139,11 @@ public class ProductController {
     return ResponseEntity.ok(responses);
   }
 
+  /**
+   * Gets top selling products.
+   *
+   * @return the list of top selling products
+   */
   @Operation(
       summary = "Obtener productos más vendidos",
       description = "Retorna los productos más vendidos del restaurante.",
@@ -134,6 +157,12 @@ public class ProductController {
     return ResponseEntity.ok(responses);
   }
 
+  /**
+   * Gets a product by ID.
+   *
+   * @param id the product ID
+   * @return the product
+   */
   @Operation(
       summary = "Obtener producto por ID",
       description = "Retorna un producto específico dado su identificador.",
@@ -147,6 +176,12 @@ public class ProductController {
     return ResponseEntity.ok(ProductResponse.fromDomain(product));
   }
 
+  /**
+   * Disables a product.
+   *
+   * @param id the product ID
+   * @return the disabled product
+   */
   @Operation(
       summary = "Desactivar producto",
       description =
@@ -162,11 +197,15 @@ public class ProductController {
     return ResponseEntity.ok(ProductResponse.fromDomain(product));
   }
 
+  /**
+   * Gets options for a product.
+   *
+   * @param id the product ID
+   * @return the list of product options
+   */
   @Operation(
       summary = "Obtener opciones de un producto",
-      description =
-          "Retorna las opciones de personalización asociadas a un producto específico. "
-              + "Usar este endpoint cuando el producto tiene hasOptions=true.",
+      description = "Retorna las opciones de personalización asociadas a un producto específico.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Opciones obtenidas exitosamente"),
         @ApiResponse(responseCode = "404", description = "Producto no encontrado")

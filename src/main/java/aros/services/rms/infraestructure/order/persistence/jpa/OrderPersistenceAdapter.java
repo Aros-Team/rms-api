@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.order.persistence.jpa;
 
 import aros.services.rms.core.order.domain.Order;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/** Adapter for order persistence. */
 @Component
 @RequiredArgsConstructor
 @Transactional

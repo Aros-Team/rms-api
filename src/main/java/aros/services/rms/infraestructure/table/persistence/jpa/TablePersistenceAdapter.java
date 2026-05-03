@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.table.persistence.jpa;
 
 import aros.services.rms.core.table.domain.Table;

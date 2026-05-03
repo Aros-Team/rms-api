@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.email.adapter;
 
 import aros.services.rms.core.email.application.exception.EmailServiceException;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+/** Adapter for email service. */
 @Service
 public class EmailServiceAdapter implements EmailServicePort {
 
@@ -24,6 +26,13 @@ public class EmailServiceAdapter implements EmailServicePort {
   private final String baseUrl;
   private final String dummyEmail;
 
+  /**
+   * Creates a new EmailServiceAdapter.
+   *
+   * @param restTemplate the REST template
+   * @param baseUrl the email service base URL
+   * @param dummyEmail the dummy email for development
+   */
   public EmailServiceAdapter(
       RestTemplate restTemplate,
       @Value("${app.email.base-url}") String baseUrl,
@@ -65,7 +74,8 @@ public class EmailServiceAdapter implements EmailServicePort {
   private void sendEmailInternal(Email email) {
     if (dummyEmail != null && !dummyEmail.isBlank() && dummyEmail.equalsIgnoreCase(email.getTo())) {
       log.warn(
-          "Email not sent - recipient matches DUMMY_EMAIL (development mode). to={}, template={}, data={}",
+          "Email not sent - recipient matches DUMMY_EMAIL (development mode). "
+              + "to={}, template={}, data={}",
           email.getTo(),
           email.getTemplate(),
           email.getData());

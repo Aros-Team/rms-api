@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.purchase.api.dto;
 
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
@@ -26,7 +27,9 @@ public record PurchaseOrderResponse(
 
   /** Converts a PurchaseOrder domain object to a response DTO. */
   public static PurchaseOrderResponse fromDomain(PurchaseOrder order) {
-    if (order == null) return null;
+    if (order == null) {
+      return null;
+    }
     var items =
         order.getItems() != null
             ? order.getItems().stream()

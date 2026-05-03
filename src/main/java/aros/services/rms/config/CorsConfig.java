@@ -9,11 +9,22 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+/**
+ * CORS (Cross-Origin Resource Sharing) configuration for the application.
+ *
+ * <p>Configures allowed origins, methods, headers, and credential settings for cross-origin
+ * requests.
+ */
 @Configuration
 public class CorsConfig {
   @Value("${cors.allowed-origins}")
   private List<String> allowedOrigins;
 
+  /**
+   * Creates the CORS configuration source for Spring Security.
+   *
+   * @return configured CorsConfigurationSource with application CORS settings
+   */
   @Bean
   @Primary
   public CorsConfigurationSource corsConfigurationSource() {

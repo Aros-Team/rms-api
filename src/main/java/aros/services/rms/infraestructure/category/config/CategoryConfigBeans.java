@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.category.config;
 
 import aros.services.rms.core.category.application.service.CategoryService;

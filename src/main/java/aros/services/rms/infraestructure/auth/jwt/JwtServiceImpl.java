@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.auth.jwt;
 
 import aros.services.rms.core.area.domain.AreaId;
@@ -16,17 +17,26 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
+/** Implementation of JWT service. */
 @Service
 public class JwtServiceImpl implements JwtService {
 
   private static final Logger log = LoggerFactory.getLogger(JwtServiceImpl.class);
   private static final String JWT_NOT_CONFIGURED_ERROR =
-      "JWT keys not configured. Cannot generate token. Run './gradlew generate-jwt-keys' or 'task jwtkeys' to generate and add to .env file";
+      "JWT keys not configured. Cannot generate token. "
+          + "Run './gradlew generate-jwt-keys' or 'task jwtkeys' to generate and add to .env file";
 
   private final JwtEncoder jwtEncoder;
   private final JwtDecoder jwtDecoder;
   private final String issuer;
 
+  /**
+   * Creates a new JWT service implementation.
+   *
+   * @param jwtEncoder the JWT encoder
+   * @param jwtDecoder the JWT decoder
+   * @param issuer the token issuer
+   */
   public JwtServiceImpl(
       JwtEncoder jwtEncoder,
       JwtDecoder jwtDecoder,
@@ -84,7 +94,7 @@ public class JwtServiceImpl implements JwtService {
   }
 
   @Override
-  public String generateTFAToken(String username) {
+  public String generateTfaToken(String username) {
     if (jwtEncoder == null) {
       log.error(JWT_NOT_CONFIGURED_ERROR);
       throw new IllegalStateException("JWT not configured");

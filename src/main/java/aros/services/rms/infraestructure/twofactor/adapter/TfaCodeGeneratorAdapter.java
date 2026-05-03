@@ -1,10 +1,12 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.twofactor.adapter;
 
 import aros.services.rms.core.twofactor.port.output.TfaCodeGeneratorPort;
 import java.security.SecureRandom;
 import org.springframework.stereotype.Component;
 
+/** Adapter for TFA code generation. */
 @Component
 public class TfaCodeGeneratorAdapter implements TfaCodeGeneratorPort {
 

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.websocket.config;
 
 import aros.services.rms.infraestructure.websocket.handler.NativeWebSocketHandler;
@@ -25,6 +26,11 @@ public class NativeWebSocketConfig implements WebSocketConfigurer {
   @Value("${app.env:development}")
   private String appEnv;
 
+  /**
+   * Creates a new instance.
+   *
+   * @param nativeWebSocketHandler the WebSocket handler
+   */
   public NativeWebSocketConfig(NativeWebSocketHandler nativeWebSocketHandler) {
     this.nativeWebSocketHandler = nativeWebSocketHandler;
   }

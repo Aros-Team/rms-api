@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.auth.persistence.jpa;
 
 import aros.services.rms.core.auth.domain.AccountSetupToken;
@@ -9,6 +10,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+/** Adapter for account setup token repository. */
 @Repository
 @RequiredArgsConstructor
 @Transactional

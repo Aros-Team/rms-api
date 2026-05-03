@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.order.config;
 
 import aros.services.rms.core.order.application.dto.TakeOrderCommand;
@@ -37,6 +38,11 @@ public class TakeOrderTransactionalService implements TakeOrderUseCase {
       LoggerFactory.getLogger(TakeOrderTransactionalService.class);
   private final TakeOrderService delegate;
 
+  /**
+   * Creates a new TakeOrderTransactionalService.
+   *
+   * @param delegate the delegate use case
+   */
   public TakeOrderTransactionalService(
       @Qualifier("takeOrderUseCaseImpl") TakeOrderService delegate) {
     this.delegate = delegate;

@@ -1,3 +1,5 @@
+/* (C) 2026 */
+
 package aros.services.rms.core.auth.application.service;
 
 import aros.services.rms.core.auth.application.dto.AuthResult;
@@ -12,6 +14,7 @@ import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+/** Implementation of refresh token use case for token renewal. */
 public class RefreshTokenService implements RefreshTokensUseCase {
   private final HashServicePort hashPort;
   private final UserRepositoryPort userPort;
@@ -19,6 +22,15 @@ public class RefreshTokenService implements RefreshTokensUseCase {
   private final TokenPort tokenPort;
   private final HashServicePort hashServicePort;
 
+  /**
+   * Creates a new RefreshTokenService instance.
+   *
+   * @param hashPort the hash service port
+   * @param userPort the user repository port
+   * @param refreshTokenPort the refresh token repository port
+   * @param tokenPort the token port
+   * @param hashServicePort the hash service port
+   */
   public RefreshTokenService(
       HashServicePort hashPort,
       UserRepositoryPort userPort,
@@ -32,6 +44,13 @@ public class RefreshTokenService implements RefreshTokensUseCase {
     this.hashServicePort = hashServicePort;
   }
 
+  /**
+   * Refreshes authentication tokens using a refresh token.
+   *
+   * @param token the refresh token string
+   * @return new authentication result with fresh tokens
+   * @throws InvalidRefreshTokenException if token is invalid or expired
+   */
   @Override
   public AuthResult refresh(String token) throws InvalidRefreshTokenException {
     String tokenHash = hashPort.hash(token);

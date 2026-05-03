@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.common.config;
 
 import jakarta.annotation.PostConstruct;
@@ -7,20 +8,30 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/** Validator for JWT configuration. */
 @Component
 public class JwtConfigValidator {
 
   private static final Logger log = LoggerFactory.getLogger(JwtConfigValidator.class);
   private static final String PRODUCTION = "production";
   private static final String ERROR_MESSAGE =
-      "JWT keys not configured. Run './gradlew generate-jwt-keys' or 'task jwtkeys' to generate and add to .env file";
+      "JWT keys not configured. Run './gradlew generate-jwt-keys' or 'task jwtkeys' "
+          + "to generate and add to .env file";
   private static final String PRODUCTION_ERROR_MESSAGE =
-      "CRITICAL: JWT keys are required in production. Application cannot start without JWT configuration.";
+      "CRITICAL: JWT keys are required in production. "
+          + "Application cannot start without JWT configuration.";
 
   private final String publicKey;
   private final String privateKey;
   private final String appEnv;
 
+  /**
+   * Creates a new JwtConfigValidator.
+   *
+   * @param publicKey the JWT public key
+   * @param privateKey the JWT private key
+   * @param appEnv the application environment
+   */
   public JwtConfigValidator(
       @Value("${app.jwt.public-key:}") String publicKey,
       @Value("${app.jwt.private-key:}") String privateKey,
@@ -30,6 +41,7 @@ public class JwtConfigValidator {
     this.appEnv = appEnv;
   }
 
+  /** Validates the JWT configuration. */
   @PostConstruct
   public void validate() {
     boolean isProduction = PRODUCTION.equals(appEnv);
@@ -59,8 +71,11 @@ public class JwtConfigValidator {
     return publicKey != null && !publicKey.isBlank() && privateKey != null && !privateKey.isBlank();
   }
 
+  /** Normalizes the key by replacing escaped newlines. */
   private String normalizeKey(String key) {
-    if (key == null || key.isBlank()) return key;
+    if (key == null || key.isBlank()) {
+      return key;
+    }
     key = key.trim();
     // Unescape \n literal sequences (from .env file) to actual newlines
     key = key.replace("\\n", "\n");

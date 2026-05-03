@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.inventory.application.service;
 
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
@@ -30,6 +31,14 @@ public class TransferInventoryService implements TransferInventoryUseCase {
   private final InventoryMovementRepositoryPort inventoryMovementRepositoryPort;
   private final StorageLocationRepositoryPort storageLocationRepositoryPort;
 
+  /**
+   * Creates a new transfer inventory service instance.
+   *
+   * @param supplyVariantRepositoryPort the supply variant repository port
+   * @param inventoryStockRepositoryPort the inventory stock repository port
+   * @param inventoryMovementRepositoryPort the inventory movement repository port
+   * @param storageLocationRepositoryPort the storage location repository port
+   */
   public TransferInventoryService(
       SupplyVariantRepositoryPort supplyVariantRepositoryPort,
       InventoryStockRepositoryPort inventoryStockRepositoryPort,

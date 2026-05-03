@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.order.application.service;
 
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
@@ -24,6 +25,12 @@ public class PreparationService implements PreparationUseCase {
   private final OrderRepositoryPort orderRepositoryPort;
   private final BusinessMetricsPort metricsPort;
 
+  /**
+   * Creates a new preparation service instance.
+   *
+   * @param orderRepositoryPort the order repository port
+   * @param metricsPort the business metrics port
+   */
   public PreparationService(
       OrderRepositoryPort orderRepositoryPort, BusinessMetricsPort metricsPort) {
     this.orderRepositoryPort = orderRepositoryPort;
@@ -52,6 +59,13 @@ public class PreparationService implements PreparationUseCase {
     return savedOrder;
   }
 
+  /**
+   * Recovery handler for processNextOrder operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Order recoverProcessNextOrder(DataAccessException e) {
     log.warn("BD no disponible - fallback para processNextOrder: {}", e.getMessage());

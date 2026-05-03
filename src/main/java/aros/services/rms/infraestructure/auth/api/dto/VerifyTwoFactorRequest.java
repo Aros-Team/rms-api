@@ -1,10 +1,12 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.auth.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+/** Request DTO for two-factor verification. */
 @Schema(description = "Two-factor authentication verification request")
 public record VerifyTwoFactorRequest(
     @Schema(description = "6-digit verification code", example = "123456")

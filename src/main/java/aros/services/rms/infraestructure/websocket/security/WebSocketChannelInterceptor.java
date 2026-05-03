@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.websocket.security;
 
 import lombok.extern.slf4j.Slf4j;

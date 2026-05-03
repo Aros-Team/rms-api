@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.product.persistence;
 
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
@@ -37,9 +38,6 @@ public class Product {
   private String name;
 
   private Double basePrice;
-
-  @Column(name = "has_options", nullable = false)
-  private boolean hasOptions;
 
   @Column(nullable = false)
   @Builder.Default

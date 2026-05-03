@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.order.application.service;
 
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
@@ -16,7 +17,7 @@ import org.springframework.retry.annotation.Retryable;
 
 /**
  * Implementación del caso de uso para marcar órdenes como listas. Permite al cocinero notificar que
- * finalizó la preparación.
+ * finalizar la preparación.
  */
 public class MarkAsReadyService implements MarkAsReadyUseCase {
 
@@ -24,6 +25,12 @@ public class MarkAsReadyService implements MarkAsReadyUseCase {
   private final OrderRepositoryPort orderRepositoryPort;
   private final BusinessMetricsPort metricsPort;
 
+  /**
+   * Creates a new mark as ready service instance.
+   *
+   * @param orderRepositoryPort the order repository port
+   * @param metricsPort the business metrics port
+   */
   public MarkAsReadyService(
       OrderRepositoryPort orderRepositoryPort, BusinessMetricsPort metricsPort) {
     this.orderRepositoryPort = orderRepositoryPort;
@@ -56,6 +63,14 @@ public class MarkAsReadyService implements MarkAsReadyUseCase {
     return savedOrder;
   }
 
+  /**
+   * Recovery handler for markAsReady operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the order identifier
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public Order recoverMarkAsReady(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para markAsReady(id={}): {}", id, e.getMessage());

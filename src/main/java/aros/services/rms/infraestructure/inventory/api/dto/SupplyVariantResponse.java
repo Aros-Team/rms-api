@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.inventory.api.dto;
 
 import aros.services.rms.infraestructure.inventory.persistence.SupplyVariantEntity;
@@ -19,13 +20,29 @@ public record SupplyVariantResponse(
     @Schema(description = "Current stock in Bodega", example = "18.500") BigDecimal stockBodega,
     @Schema(description = "Current stock in Cocina", example = "5.000") BigDecimal stockCocina) {
 
+  /**
+   * Creates a response from an entity.
+   *
+   * @param entity the entity
+   * @return the response DTO
+   */
   public static SupplyVariantResponse fromEntity(SupplyVariantEntity entity) {
     return fromEntity(entity, BigDecimal.ZERO, BigDecimal.ZERO);
   }
 
+  /**
+   * Creates a response from an entity with stock info.
+   *
+   * @param entity the entity
+   * @param stockBodega the stock in bodega
+   * @param stockCocina the stock in cocina
+   * @return the response DTO
+   */
   public static SupplyVariantResponse fromEntity(
       SupplyVariantEntity entity, BigDecimal stockBodega, BigDecimal stockCocina) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
     var supply = entity.getSupply();
     var unit = entity.getUnit();
     return new SupplyVariantResponse(

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.auth.api;
 
 import aros.services.rms.core.auth.application.dto.AuthResult;
@@ -26,7 +27,7 @@ import aros.services.rms.infraestructure.auth.api.dto.UserFullInfoResponse;
 import aros.services.rms.infraestructure.auth.api.dto.VerifyTwoFactorRequest;
 import aros.services.rms.infraestructure.share.security.JustAccessToken;
 import aros.services.rms.infraestructure.share.security.OnlyRefreshToken;
-import aros.services.rms.infraestructure.share.security.OnlyTfaTOken;
+import aros.services.rms.infraestructure.share.security.OnlyTfaToken;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/** REST controller for authentication endpoints. */
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -59,6 +61,13 @@ public class AuthController {
   private final PasswordResetUseCase passwordResetUseCase;
   private final AccountSetupUseCase accountSetupUseCase;
 
+  /**
+   * Authenticates user with email and password.
+   *
+   * @param request the login request
+   * @return the authentication response
+   * @throws InvalidCredentialsException if credentials are invalid
+   */
   @Operation(
       summary = "User login",
       description =
@@ -83,7 +92,7 @@ public class AuthController {
     if (result instanceof AuthResult.Success rs) {
       response =
           new AuthResponse(rs.type().name(), rs.username(), rs.acessToken(), rs.refreshToken());
-    } else if (result instanceof AuthResult.RequiresTFA rs) {
+    } else if (result instanceof AuthResult.RequiresTfa rs) {
       response = new AuthResponse(rs.type().name(), rs.username(), rs.acessToken(), null);
     }
 
@@ -95,6 +104,14 @@ public class AuthController {
     };
   }
 
+  /**
+   * Verifies two-factor authentication code.
+   *
+   * @param request the verification request
+   * @param jwt the TFA token
+   * @return the authentication response
+   * @throws InvalidCredentialsException if credentials are invalid
+   */
   @Operation(
       summary = "Verify two-factor authentication",
       description =
@@ -106,7 +123,7 @@ public class AuthController {
         @ApiResponse(responseCode = "401", description = "Unauthorized")
       })
   @PostMapping("/verify")
-  @OnlyTfaTOken
+  @OnlyTfaToken
   public ResponseEntity<AuthResponse> verifyTfa(
       @Valid @RequestBody VerifyTwoFactorRequest request, @AuthenticationPrincipal Jwt jwt)
       throws InvalidCredentialsException {
@@ -130,6 +147,13 @@ public class AuthController {
     };
   }
 
+  /**
+   * Refreshes the access token.
+   *
+   * @param token the refresh token
+   * @return the authentication response
+   * @throws InvalidRefreshTokenException if token is invalid
+   */
   @Operation(
       summary = "Refresh access token",
       description =
@@ -162,6 +186,13 @@ public class AuthController {
     };
   }
 
+  /**
+   * Gets the current authenticated user.
+   *
+   * @param auth the JWT token
+   * @return the user info
+   * @throws UserNotFoundException if user not found
+   */
   @Operation(
       summary = "Get current user",
       description =
@@ -177,23 +208,28 @@ public class AuthController {
   public ResponseEntity<UserFullInfoResponse> me(@AuthenticationPrincipal Jwt auth)
       throws UserNotFoundException {
     log.info("Fetching current user info");
-    UserFullInfo uInfo = getUserInfoUseCase.getInfo(new UserEmail(auth.getSubject()));
+    UserFullInfo userInfo = getUserInfoUseCase.getInfo(new UserEmail(auth.getSubject()));
 
-    UserFullInfoResponse uInfoResponse =
+    UserFullInfoResponse userInfoResponse =
         new UserFullInfoResponse(
-            uInfo.id().value(),
-            uInfo.document(),
-            uInfo.name(),
-            uInfo.email().value(),
-            uInfo.password(),
-            uInfo.address(),
-            uInfo.phone(),
-            uInfo.role(),
-            uInfo.areas());
+            userInfo.id().value(),
+            userInfo.name(),
+            userInfo.document(),
+            userInfo.email().value(),
+            userInfo.address(),
+            userInfo.phone(),
+            userInfo.role(),
+            userInfo.areas());
 
-    return ResponseEntity.ok(uInfoResponse);
+    return ResponseEntity.ok(userInfoResponse);
   }
 
+  /**
+   * Requests a password reset.
+   *
+   * @param request the forgot password request
+   * @throws UserNotFoundException if user not found
+   */
   @Operation(
       summary = "Request password reset",
       description =
@@ -212,6 +248,12 @@ public class AuthController {
     return ResponseEntity.ok().build();
   }
 
+  /**
+   * Resends the password reset email.
+   *
+   * @param request the forgot password request
+   * @throws UserNotFoundException if user not found
+   */
   @Operation(
       summary = "Reenviar token de recuperación de contraseña",
       description =
@@ -231,6 +273,11 @@ public class AuthController {
     return ResponseEntity.ok().build();
   }
 
+  /**
+   * Resets the password.
+   *
+   * @param request the reset password request
+   */
   @Operation(
       summary = "Reset password",
       description = "Resets user password using the recovery token sent by email.",
@@ -246,6 +293,11 @@ public class AuthController {
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
+  /**
+   * Sets up password with token.
+   *
+   * @param request the setup password request
+   */
   @PostMapping("/setup-password")
   @Operation(
       summary = "Setup password with token",
@@ -262,6 +314,12 @@ public class AuthController {
     return ResponseEntity.ok().build();
   }
 
+  /**
+   * Validates the setup token.
+   *
+   * @param token the setup token
+   * @return the validation response
+   */
   @GetMapping("/setup-account/validate")
   @Operation(
       summary = "Validate setup token",

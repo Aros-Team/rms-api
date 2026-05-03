@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.config;
 
 import aros.services.rms.infraestructure.common.config.JwtConfigValidator;
@@ -28,6 +29,13 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+/**
+ * Spring Security configuration for the application.
+ *
+ * <p>Configures HTTP security, CORS, JWT authentication, and public endpoint access based on
+ * environment. In production, requires valid JWT tokens for most endpoints. In development, allows
+ * open access for testing.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -42,12 +50,24 @@ public class SecurityConfig {
   @Value("${app.env:development}")
   private String appEnv;
 
+  /**
+   * Constructs the security configuration with JWT validator and CORS configuration source.
+   *
+   * @param jwtConfigValidator JWT configuration validator
+   * @param corsConfigurationSource CORS configuration source
+   */
   public SecurityConfig(
       JwtConfigValidator jwtConfigValidator, CorsConfigurationSource corsConfigurationSource) {
     this.jwtConfigValidator = jwtConfigValidator;
     this.corsConfigurationSource = corsConfigurationSource;
   }
 
+  /**
+   * Creates the RSA key pair from PEM-encoded public and private keys.
+   *
+   * @return RSAKey instance or null if not configured
+   * @throws Exception if key parsing fails
+   */
   @Bean
   public RSAKey rsaKey() throws Exception {
     if (!jwtConfigValidator.isConfigured()) {
@@ -71,6 +91,13 @@ public class SecurityConfig {
     return new RSAKey.Builder(publicKey).privateKey(privateKey).build();
   }
 
+  /**
+   * Creates the JWT decoder for token validation.
+   *
+   * @param rsaKey RSA key for signature verification
+   * @return JwtDecoder instance or null if key is null
+   * @throws Exception if decoder creation fails
+   */
   @Bean
   public JwtDecoder jwtDecoder(@Nullable RSAKey rsaKey) throws Exception {
     if (rsaKey == null) {
@@ -79,6 +106,12 @@ public class SecurityConfig {
     return NimbusJwtDecoder.withPublicKey(rsaKey.toRSAPublicKey()).build();
   }
 
+  /**
+   * Creates the JWT encoder for token generation.
+   *
+   * @param rsaKey RSA key for signing
+   * @return JwtEncoder instance or null if key is null
+   */
   @Bean
   public JwtEncoder jwtEncoder(@Nullable RSAKey rsaKey) {
     if (rsaKey == null) {
@@ -87,6 +120,13 @@ public class SecurityConfig {
     return new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(rsaKey)));
   }
 
+  /**
+   * Configures and builds the security filter chain with HTTP security settings.
+   *
+   * @param http HttpSecurity to configure
+   * @return configured SecurityFilterChain
+   * @throws Exception if configuration fails
+   */
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(csrf -> csrf.disable())

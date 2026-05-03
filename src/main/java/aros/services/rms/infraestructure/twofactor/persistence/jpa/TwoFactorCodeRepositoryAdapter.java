@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.twofactor.persistence.jpa;
 
 import aros.services.rms.core.twofactor.domain.TwoFactorCode;
@@ -9,6 +10,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+/** Adapter for two-factor code repository. */
 @Repository
 @RequiredArgsConstructor
 public class TwoFactorCodeRepositoryAdapter implements TwoFactorCodeRepositoryPort {

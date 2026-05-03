@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.category.api;
 
 import aros.services.rms.core.category.domain.OptionCategory;
@@ -36,6 +37,12 @@ public class OptionCategoryController {
 
   private final OptionCategoryUseCase optionCategoryUseCase;
 
+  /**
+   * Creates a new option category.
+   *
+   * @param request the category request
+   * @return the created option category
+   */
   @Operation(
       summary = "Create new option category",
       description = "Creates a new option category for product customization.",
@@ -53,6 +60,13 @@ public class OptionCategoryController {
     return new ResponseEntity<>(OptionCategoryResponse.fromDomain(created), HttpStatus.CREATED);
   }
 
+  /**
+   * Updates an option category.
+   *
+   * @param id the option category ID
+   * @param request the category request
+   * @return the updated option category
+   */
   @Operation(
       summary = "Update option category",
       description = "Updates an existing option category.",
@@ -70,6 +84,11 @@ public class OptionCategoryController {
     return ResponseEntity.ok(OptionCategoryResponse.fromDomain(updated));
   }
 
+  /**
+   * Gets all option categories.
+   *
+   * @return the list of option categories
+   */
   @Operation(
       summary = "Get all option categories",
       description = "Retrieves all option categories.",
@@ -85,6 +104,12 @@ public class OptionCategoryController {
     return ResponseEntity.ok(responses);
   }
 
+  /**
+   * Gets an option category by ID.
+   *
+   * @param id the option category ID
+   * @return the option category
+   */
   @Operation(
       summary = "Get option category by ID",
       description = "Retrieves an option category by its identifier.",

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.category.persistence;
 
 import jakarta.persistence.Column;

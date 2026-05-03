@@ -1,8 +1,10 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.user.application.service;
 
 import java.security.SecureRandom;
 
+/** Service for generating secure random passwords for initial user setup. */
 public class GenerateSecurePasswordService {
 
   private static final String[] WORDS = {
@@ -20,6 +22,11 @@ public class GenerateSecurePasswordService {
   private static final String SYMBOLS = "!@#+*$%&";
   private static final SecureRandom random = new SecureRandom();
 
+  /**
+   * Generates a secure random password.
+   *
+   * @return a random password combining word, number and symbol
+   */
   public static String execute() {
     String word = WORDS[random.nextInt(WORDS.length)];
     int number = 100 + random.nextInt(900);

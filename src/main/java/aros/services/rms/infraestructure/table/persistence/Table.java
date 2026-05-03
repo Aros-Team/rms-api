@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.table.persistence;
 
 import jakarta.persistence.Entity;
@@ -12,6 +13,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** Entity representing a table in the restaurant. */
 @Entity
 @jakarta.persistence.Table(name = "tables")
 @Data

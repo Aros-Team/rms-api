@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 
+/** Adapter for audit log persistence. */
 @Repository
 @RequiredArgsConstructor
 @Transactional

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.websocket.adapter;
 
 import aros.services.rms.core.common.notification.port.output.NotificationPort;
@@ -82,6 +83,10 @@ public class WebSocketNotificationAdapter implements NotificationPort {
       return "order-preparing";
     } else if (destination.contains("/topic/orders/ready")) {
       return "order-ready";
+    } else if (destination.contains("/topic/orders/delivered")) {
+      return "order-delivered";
+    } else if (destination.contains("/topic/inventory/updates")) {
+      return "inventory-updated";
     } else {
       return "order-update";
     }

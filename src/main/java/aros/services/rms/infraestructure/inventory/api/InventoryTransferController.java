@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.inventory.api;
 
 import aros.services.rms.core.inventory.port.input.TransferInventoryUseCase;
@@ -28,6 +29,12 @@ public class InventoryTransferController {
 
   private final TransferInventoryUseCase transferInventoryUseCase;
 
+  /**
+   * Transfers supplies from Bodega to Cocina.
+   *
+   * @param request the transfer request
+   * @return the list of transfers
+   */
   @Operation(
       summary = "Transfer supplies from Bodega to Cocina",
       description =

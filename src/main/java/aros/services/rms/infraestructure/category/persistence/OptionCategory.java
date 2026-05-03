@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.category.persistence;
 
 import jakarta.persistence.Entity;
@@ -11,6 +12,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** Entity representing an option category. */
 @Entity
 @Table(name = "option_categories")
 @Data

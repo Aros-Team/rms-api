@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.inventory.api.dto;
 
 import aros.services.rms.core.inventory.domain.InventoryMovement;
@@ -15,6 +16,12 @@ public record TransferResponse(
     String movementType,
     LocalDateTime createdAt) {
 
+  /**
+   * Creates a response from a domain object.
+   *
+   * @param movement the movement domain
+   * @return the response DTO
+   */
   public static TransferResponse fromDomain(InventoryMovement movement) {
     return new TransferResponse(
         movement.getId(),

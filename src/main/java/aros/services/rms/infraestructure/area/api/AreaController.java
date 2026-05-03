@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.area.api;
 
 import aros.services.rms.core.area.domain.Area;
@@ -32,6 +33,12 @@ public class AreaController {
 
   private final AreaUseCase areaUseCase;
 
+  /**
+   * Creates a new area.
+   *
+   * @param request the area request
+   * @return the created area
+   */
   @Operation(
       summary = "Create new area",
       description = "Creates a new preparation area with the given name and type.",
@@ -52,6 +59,13 @@ public class AreaController {
     return new ResponseEntity<>(AreaResponse.fromDomain(created), HttpStatus.CREATED);
   }
 
+  /**
+   * Updates an area.
+   *
+   * @param id the area ID
+   * @param request the area request
+   * @return the updated area
+   */
   @Operation(
       summary = "Update area",
       description = "Updates an existing preparation area's name and type.",
@@ -73,6 +87,11 @@ public class AreaController {
     return ResponseEntity.ok(AreaResponse.fromDomain(updated));
   }
 
+  /**
+   * Gets all areas.
+   *
+   * @return the list of areas
+   */
   @Operation(
       summary = "Get all areas",
       description = "Retrieves all preparation areas.",
@@ -86,6 +105,12 @@ public class AreaController {
     return ResponseEntity.ok(responses);
   }
 
+  /**
+   * Gets an area by ID.
+   *
+   * @param id the area ID
+   * @return the area
+   */
   @Operation(
       summary = "Get area by ID",
       description = "Retrieves a preparation area by its identifier.",
@@ -99,6 +124,12 @@ public class AreaController {
     return ResponseEntity.ok(AreaResponse.fromDomain(area));
   }
 
+  /**
+   * Toggles area enabled status.
+   *
+   * @param id the area ID
+   * @return the updated area
+   */
   @Operation(
       summary = "Toggle area enabled status",
       description = "Toggles the enabled/disabled status of a preparation area.",

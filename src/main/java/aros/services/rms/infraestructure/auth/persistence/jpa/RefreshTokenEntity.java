@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.auth.persistence.jpa;
 
 import aros.services.rms.infraestructure.user.persistence.jpa.UserEntity;
@@ -11,6 +12,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
 
+/** Entity representing a refresh token. */
 @Entity
 @Table(name = "refresh_tokens")
 public class RefreshTokenEntity {

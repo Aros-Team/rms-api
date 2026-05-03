@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.auth.persistence.jpa;
 
 import aros.services.rms.core.auth.domain.PasswordResetToken;
@@ -9,6 +10,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+/** Adapter for password reset token repository. */
 @Repository
 @RequiredArgsConstructor
 @Transactional

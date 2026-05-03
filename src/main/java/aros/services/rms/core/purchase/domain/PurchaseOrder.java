@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.purchase.domain;
 
 import java.math.BigDecimal;

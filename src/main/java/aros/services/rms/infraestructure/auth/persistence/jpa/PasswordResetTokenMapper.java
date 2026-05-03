@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.auth.persistence.jpa;
 
 import aros.services.rms.core.auth.domain.PasswordResetToken;
@@ -8,9 +9,16 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
+/** Mapper for password reset tokens. */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface PasswordResetTokenMapper {
 
+  /**
+   * Converts a user entity to a user ID.
+   *
+   * @param user the user entity
+   * @return the user ID
+   */
   default UserId userToUserId(UserEntity user) {
     if (user == null) {
       return null;
@@ -18,6 +26,12 @@ public interface PasswordResetTokenMapper {
     return UserId.of(user.getId());
   }
 
+  /**
+   * Converts a user ID to a user entity.
+   *
+   * @param userId the user ID
+   * @return the user entity
+   */
   default UserEntity userIdToUser(UserId userId) {
     if (userId == null) {
       return null;
@@ -27,9 +41,21 @@ public interface PasswordResetTokenMapper {
     return user;
   }
 
+  /**
+   * Converts an entity to domain.
+   *
+   * @param entity the entity
+   * @return the domain
+   */
   @Mapping(source = "user", target = "userId")
   PasswordResetToken toDomain(PasswordResetTokenEntity entity);
 
+  /**
+   * Converts a domain to entity.
+   *
+   * @param domain the domain
+   * @return the entity
+   */
   @Mapping(source = "userId", target = "user")
   PasswordResetTokenEntity toEntity(PasswordResetToken domain);
 }

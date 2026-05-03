@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.order.domain;
 
 import aros.services.rms.core.product.domain.Product;
@@ -9,6 +10,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Domain model representing a single item in an order with its selected options and special
+ * instructions.
+ */
 @Data
 @Builder
 @NoArgsConstructor

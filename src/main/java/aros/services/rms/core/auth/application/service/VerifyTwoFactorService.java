@@ -1,3 +1,5 @@
+/* (C) 2026 */
+
 package aros.services.rms.core.auth.application.service;
 
 import aros.services.rms.core.auth.application.dto.AuthResult;
@@ -18,6 +20,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
+/** Implementation of two-factor verification and device registration. */
 public class VerifyTwoFactorService implements VerifyTwoFactorUseCase {
   private final UserRepositoryPort userPort;
   private final HashServicePort hashPort;
@@ -26,6 +29,16 @@ public class VerifyTwoFactorService implements VerifyTwoFactorUseCase {
   private final RefreshTokenRepositoryPort refreshTokenPort;
   private final TokenPort tokenPort;
 
+  /**
+   * Creates a new VerifyTwoFactorService instance.
+   *
+   * @param userPort the user repository port
+   * @param hashPort the hash service port
+   * @param tfaPort the 2FA code repository port
+   * @param devicePort the device repository port
+   * @param refreshTokenPort the refresh token repository port
+   * @param tokenPort the token port
+   */
   public VerifyTwoFactorService(
       UserRepositoryPort userPort,
       HashServicePort hashPort,
@@ -41,6 +54,13 @@ public class VerifyTwoFactorService implements VerifyTwoFactorUseCase {
     this.tokenPort = tokenPort;
   }
 
+  /**
+   * Verifies a two-factor authentication code.
+   *
+   * @param credentials the 2FA credentials including username and code
+   * @return the authentication result if code is valid
+   * @throws InvalidCredentialsException if code is invalid or expired
+   */
   @Override
   public AuthResult verify(TwoFactorCredentials credentials) throws InvalidCredentialsException {
     User user =

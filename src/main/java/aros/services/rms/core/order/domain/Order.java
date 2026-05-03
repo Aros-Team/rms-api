@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.order.domain;
 
 import aros.services.rms.core.table.domain.Table;
@@ -11,6 +12,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Domain model representing a restaurant order. Tracks the order lifecycle from QUEUE through
+ * PREPARING and READY to DELIVERED.
+ */
 @Data
 @Builder
 @NoArgsConstructor

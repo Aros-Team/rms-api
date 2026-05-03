@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.order.persistence;
 
 import aros.services.rms.infraestructure.product.persistence.Product;
@@ -18,6 +19,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/** Entity representing an order detail. */
 @Entity
 @Table(name = "order_details")
 @Data

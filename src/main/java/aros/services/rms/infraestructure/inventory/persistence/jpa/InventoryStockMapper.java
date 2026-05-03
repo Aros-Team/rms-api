@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.inventory.persistence.jpa;
 
 import aros.services.rms.core.inventory.domain.InventoryStock;
@@ -11,7 +12,9 @@ public class InventoryStockMapper {
 
   /** Converts an InventoryStockEntity JPA entity to a domain model. */
   public InventoryStock toDomain(InventoryStockEntity entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
     return InventoryStock.builder()
         .id(entity.getId())
         .supplyVariantId(
@@ -24,7 +27,9 @@ public class InventoryStockMapper {
 
   /** Converts an InventoryStock domain model to a JPA entity. */
   public InventoryStockEntity toEntity(InventoryStock domain) {
-    if (domain == null) return null;
+    if (domain == null) {
+      return null;
+    }
     return InventoryStockEntity.builder()
         .id(domain.getId())
         .currentQuantity(domain.getCurrentQuantity())

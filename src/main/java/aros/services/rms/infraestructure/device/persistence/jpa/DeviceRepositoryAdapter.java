@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.device.persistence.jpa;
 
 import aros.services.rms.core.device.domain.Device;
@@ -8,6 +9,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+/** Repository adapter for device persistence. */
 @Repository
 @RequiredArgsConstructor
 public class DeviceRepositoryAdapter implements DeviceRepositoryPort {

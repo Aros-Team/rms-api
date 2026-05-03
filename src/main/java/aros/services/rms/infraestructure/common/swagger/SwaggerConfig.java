@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/** Configuration for Swagger/OpenAPI documentation. */
 @Configuration
 @ConditionalOnProperty(
     name = "springdoc.swagger-ui.enabled",
@@ -21,8 +22,13 @@ public class SwaggerConfig {
   @Value("${app.version:1.0.0}")
   private String version;
 
+  /**
+   * Creates the OpenAPI configuration.
+   *
+   * @return the OpenAPI configuration
+   */
   @Bean
-  public OpenAPI rmsOpenAPI() {
+  public OpenAPI rmsOpenApi() {
     return new OpenAPI()
         .info(
             new Info()

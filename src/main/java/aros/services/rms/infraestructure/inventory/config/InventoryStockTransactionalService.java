@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.inventory.config;
 
 import aros.services.rms.core.inventory.application.service.InventoryStockService;
@@ -28,6 +29,11 @@ public class InventoryStockTransactionalService implements InventoryStockUseCase
 
   private final InventoryStockService delegate;
 
+  /**
+   * Creates a new instance.
+   *
+   * @param delegate the inventory stock service
+   */
   public InventoryStockTransactionalService(
       @Qualifier("inventoryStockUseCaseImpl") InventoryStockService delegate) {
     this.delegate = delegate;

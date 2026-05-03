@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.config;
 
 import aros.services.rms.core.auth.application.service.AccountSetupService;
@@ -33,6 +34,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Spring bean configuration for authentication-related use cases.
+ *
+ * <p>Wires authentication services including login, token refresh, password reset, two-factor
+ * verification, and account setup with their required dependencies.
+ */
 @Configuration
 @RequiredArgsConstructor
 public class AuthBeanConfig {
@@ -53,6 +60,11 @@ public class AuthBeanConfig {
   private final Logger logger;
   private final BusinessMetricsPort metricsPort;
 
+  /**
+   * Creates the login use case with all required dependencies.
+   *
+   * @return configured LoginUseCase
+   */
   @Bean
   public LoginUseCase loginUseCase() {
     return new LoginService(
@@ -68,18 +80,33 @@ public class AuthBeanConfig {
         metricsPort);
   }
 
+  /**
+   * Creates the token refresh use case.
+   *
+   * @return configured RefreshTokensUseCase
+   */
   @Bean
   public RefreshTokensUseCase refreshTokensUseCase() {
     return new RefreshTokenService(
         hashServicePort, userPort, refreshTokenPort, tokenPort, hashServicePort);
   }
 
+  /**
+   * Creates the two-factor verification use case.
+   *
+   * @return configured VerifyTwoFactorUseCase
+   */
   @Bean
   public VerifyTwoFactorUseCase verifyTwoFactorUseCase() {
     return new VerifyTwoFactorService(
         userPort, hashServicePort, tfaPort, devicePort, refreshTokenPort, tokenPort);
   }
 
+  /**
+   * Creates the password reset use case.
+   *
+   * @return configured PasswordResetUseCase
+   */
   @Bean
   public PasswordResetUseCase passwordResetUseCase() {
     return new PasswordResetService(
@@ -92,6 +119,11 @@ public class AuthBeanConfig {
         metricsPort);
   }
 
+  /**
+   * Creates the account setup use case.
+   *
+   * @return configured AccountSetupUseCase
+   */
   @Bean
   public AccountSetupUseCase accountSetupUseCase() {
     return new AccountSetupService(
@@ -104,6 +136,12 @@ public class AuthBeanConfig {
         welcomeEmailUseCase);
   }
 
+  /**
+   * Creates the get current authenticated user info use case.
+   *
+   * @param currentUserPort current user data port
+   * @return configured GetCurrentAuthUserInfoUseCase
+   */
   @Bean
   public GetCurrentAuthUserInfoUseCase getCurrentAuthUserInfoUseCase(
       CurrentUserPort currentUserPort) {

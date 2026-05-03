@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.infraestructure.purchase.persistence.jpa;
 
 import aros.services.rms.core.purchase.domain.PurchaseOrderItem;
@@ -11,8 +12,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class PurchaseOrderItemMapper {
 
+  /**
+   * Converts an entity to domain.
+   *
+   * @param entity the entity
+   * @return the domain
+   */
   public PurchaseOrderItem toDomain(PurchaseOrderItemEntity entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
     return PurchaseOrderItem.builder()
         .id(entity.getId())
         .purchaseOrderId(
@@ -25,8 +34,16 @@ public class PurchaseOrderItemMapper {
         .build();
   }
 
+  /**
+   * Converts a domain to entity.
+   *
+   * @param domain the domain
+   * @return the entity
+   */
   public PurchaseOrderItemEntity toEntity(PurchaseOrderItem domain) {
-    if (domain == null) return null;
+    if (domain == null) {
+      return null;
+    }
     var entity =
         PurchaseOrderItemEntity.builder()
             .id(domain.getId())

@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.core.order.application.service;
 
 import aros.services.rms.core.order.domain.Order;
@@ -23,6 +24,11 @@ public class OrderQueryService implements OrderQueryUseCase {
   private static final org.slf4j.Logger log = LoggerFactory.getLogger(OrderQueryService.class);
   private final OrderRepositoryPort orderRepositoryPort;
 
+  /**
+   * Creates a new order query service instance.
+   *
+   * @param orderRepositoryPort the order repository port
+   */
   public OrderQueryService(OrderRepositoryPort orderRepositoryPort) {
     this.orderRepositoryPort = orderRepositoryPort;
   }
@@ -61,6 +67,16 @@ public class OrderQueryService implements OrderQueryUseCase {
     return orderRepositoryPort.findAll();
   }
 
+  /**
+   * Recovery handler for findOrders operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param status the order status filter
+   * @param startDate the start date filter
+   * @param endDate the end date filter
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
   @Recover
   public List<Order> recoverFindOrders(
       DataAccessException e, OrderStatus status, LocalDateTime startDate, LocalDateTime endDate) {
