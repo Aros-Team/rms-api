@@ -26,8 +26,10 @@ tasks:
   test:
     cmds:
       - docker compose up -d
+      - '{{.GRADLEW}} clean'
       - '{{.GRADLEW}} spotlessCheck --configuration-cache'
-      - '{{.GRADLEW}} checkstyleMain --configuration-cache' 
+      - '{{.GRADLEW}} checkstyleMain --configuration-cache'
+      - '{{.GRADLEW}} checkstyleTest --configuration-cache' 
       - '{{.GRADLEW}} test --configuration-cache'
 
   clean:

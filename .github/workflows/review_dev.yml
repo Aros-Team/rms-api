@@ -33,9 +33,13 @@ jobs:
       - name: Check code format with Spotless
         run: ./gradlew spotlessCheck
 
-      - name: Checkstyle
-        run: ./gradlew checkstyleMain
+      - name: Clean
+        run:  ./gradlew clean
 
+      - name: Checkstyle main
+        run: ./gradlew checkstyleMain
+      - name: Checkstyle test
+        run: ./gradlew checkstyleTest
   run_tests:
     runs-on: ubuntu-latest
     env:

@@ -41,10 +41,10 @@ public class Area {
   private boolean enabled = true;
 
   @Column(nullable = false)
-  private boolean for_user;
+  private boolean forUser;
 
   @Column(nullable = false)
-  private boolean for_product;
+  private boolean forProduct;
 
   @ManyToMany(mappedBy = "preparationAreas")
   @Builder.Default

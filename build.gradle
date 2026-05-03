@@ -132,13 +132,13 @@ spotless {
     forbidModuleImports()
     cleanthat()
     googleJavaFormat()
-    formatAnnotations()
   }
 }
 
 checkstyle {
   configFile = file("$project.rootDir/gradle/checkstyle/google_checks.xml")
   toolVersion = '13.4.1'
+  ignoreFailures = false
 }
 
 tasks.register("generate-jwt-keys") {

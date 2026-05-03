@@ -13,5 +13,8 @@ import jakarta.validation.constraints.Size;
     example = "{\"name\": \"Carne de Res\", \"categoryId\": 1}")
 public record CreateSupplyRequest(
     @Schema(description = "Supply name", example = "Carne de Res")
-        @NotBlank(message = "name is required") @Size(max = 255, message = "name must not exceed 255 characters") String name,
-    @Schema(description = "Category ID", example = "1") @NotNull(message = "categoryId is required") Long categoryId) {}
+        @NotBlank(message = "name is required")
+        @Size(max = 255, message = "name must not exceed 255 characters")
+        String name,
+    @Schema(description = "Category ID", example = "1") @NotNull(message = "categoryId is required")
+        Long categoryId) {}

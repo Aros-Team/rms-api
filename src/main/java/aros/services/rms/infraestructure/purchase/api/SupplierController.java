@@ -34,11 +34,14 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Suppliers", description = "Supplier and distributor management")
 public class SupplierController {
 
-  @Qualifier("createSupplierUseCase") private final CreateSupplierUseCase createSupplierUseCase;
+  @Qualifier("createSupplierUseCase")
+  private final CreateSupplierUseCase createSupplierUseCase;
 
-  @Qualifier("updateSupplierUseCase") private final UpdateSupplierUseCase updateSupplierUseCase;
+  @Qualifier("updateSupplierUseCase")
+  private final UpdateSupplierUseCase updateSupplierUseCase;
 
-  @Qualifier("getSuppliersUseCase") private final GetSuppliersUseCase getSuppliersUseCase;
+  @Qualifier("getSuppliersUseCase")
+  private final GetSuppliersUseCase getSuppliersUseCase;
 
   /**
    * Creates a supplier.

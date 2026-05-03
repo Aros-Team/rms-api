@@ -13,6 +13,9 @@ import java.math.BigDecimal;
     example = "{\"supplyVariantId\": 1, \"requiredQuantity\": 250.0}")
 public record RecipeItemRequest(
     @Schema(description = "Supply variant ID", example = "1")
-        @NotNull(message = "Supply variant ID is required") Long supplyVariantId,
+        @NotNull(message = "Supply variant ID is required")
+        Long supplyVariantId,
     @Schema(description = "Required quantity", example = "250.0")
-        @NotNull(message = "Required quantity is required") @Positive(message = "Required quantity must be positive") BigDecimal requiredQuantity) {}
+        @NotNull(message = "Required quantity is required")
+        @Positive(message = "Required quantity must be positive")
+        BigDecimal requiredQuantity) {}

@@ -15,9 +15,12 @@ import jakarta.validation.constraints.Size;
             + "\"newPassword\": \"NewPass@123\"}")
 public record ResetPasswordRequest(
     @Schema(description = "Password reset token", example = "550e8400-e29b-41d4-a716-446655440000")
-        @NotBlank(message = "El token es requerido") String token,
+        @NotBlank(message = "El token es requerido")
+        String token,
     @Schema(description = "New password", example = "NewPass123@")
-        @NotBlank(message = "La nueva contraseña es requerida") @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres") @Pattern(
+        @NotBlank(message = "La nueva contraseña es requerida")
+        @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres")
+        @Pattern(
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
             message =
                 "La contraseña debe contener al menos: 8 caracteres, una mayúscula, "

@@ -16,10 +16,13 @@ import java.util.List;
             + "\"recipe\": [{\"supplyVariantId\": 1, \"requiredQuantity\": 500.0}]}")
 public record ProductOptionRequest(
     @Schema(description = "Nombre de la opción", example = "Grande (1.5L)")
-        @NotBlank(message = "Option name is required") String name,
+        @NotBlank(message = "Option name is required")
+        String name,
     @Schema(description = "ID de la categoría de opción a la que pertenece", example = "1")
-        @NotNull(message = "Option category ID is required") Long optionCategoryId,
+        @NotNull(message = "Option category ID is required")
+        Long optionCategoryId,
     @Schema(
             description = "Recipe items (supply variants and quantities)",
             example = "[{\"supplyVariantId\": 1, \"requiredQuantity\": 500.0}]")
-        @Valid List<RecipeItemRequest> recipe) {}
+        @Valid
+        List<RecipeItemRequest> recipe) {}

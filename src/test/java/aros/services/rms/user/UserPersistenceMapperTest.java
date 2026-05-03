@@ -19,6 +19,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+/** Unit tests for the UserPersistenceMapper. */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {UserPersistenceMapperImpl.class, AreaMapper.class})
 public class UserPersistenceMapperTest {

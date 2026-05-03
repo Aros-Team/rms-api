@@ -11,4 +11,5 @@ import jakarta.validation.constraints.NotBlank;
     example = "{\"status\": \"OCCUPIED\"}")
 public record ChangeStatusRequest(
     @Schema(description = "New status: AVAILABLE, OCCUPIED, or RESERVED", example = "OCCUPIED")
-        @NotBlank(message = "Status is required") String status) {}
+        @NotBlank(message = "Status is required")
+        String status) {}

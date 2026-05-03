@@ -11,6 +11,7 @@ import jakarta.validation.constraints.NotBlank;
     example = "{\"name\": \"Hamburguesas\", \"description\": \"Todas las hamburguesas del menú\"}")
 public record CategoryRequest(
     @Schema(description = "Category name", example = "Hamburguesas")
-        @NotBlank(message = "Category name is required") String name,
+        @NotBlank(message = "Category name is required")
+        String name,
     @Schema(description = "Category description", example = "Todas las hamburguesas del menú")
         String description) {}

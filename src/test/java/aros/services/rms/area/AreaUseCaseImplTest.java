@@ -1,4 +1,5 @@
 /* (C) 2026 */
+
 package aros.services.rms.area;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
