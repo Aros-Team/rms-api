@@ -16,7 +16,7 @@ import aros.services.rms.core.user.port.input.CreateUserUseCase;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.UUID;
 
 /** Implementation of user creation with account setup token generation and welcome email. */
@@ -54,7 +54,7 @@ public class CreateUserService implements CreateUserUseCase {
     boolean exists = this.userPort.existsByEmailOrDocument(info.document(), info.email().value());
 
     if (exists) {
-      throw new UserAlreadyExistsException("User document or email already used");
+      throw new UserAlreadyExistsException("El Documento o Correo ya han sido utilizados por otro usuario.");
     }
 
     User user =
@@ -68,7 +68,7 @@ public class CreateUserService implements CreateUserUseCase {
             info.phone(),
             UserRole.WORKER,
             UserStatus.PENDING,
-            List.of());
+            new LinkedList<>(info.areas()));
 
     User saved = this.userPort.save(user);
 

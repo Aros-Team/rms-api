@@ -2,10 +2,16 @@
 
 package aros.services.rms.infraestructure.user.api.dto;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import aros.services.rms.core.area.domain.AreaId;
 import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.core.user.port.dto.UpdateUserInfo;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -18,9 +24,12 @@ public record UpdateUserRequest(
         @Size(max = 100, message = "El nombre debe tener máximo 100 caracteres") String name,
     @NotBlank(message = "Campo requerido") @Email(message = "Ingrese un correo electrónico válido") @Size(max = 100, message = "El correo debe tener máximo 100 caracteres") String email,
     @NotBlank(message = "Campo requerido") @Size(max = 200, message = "La dirección debe tener máximo 200 caracteres") String address,
-    @NotBlank(message = "Campo requerido") @Pattern(message = "El teléfono debe tener 10 dígitos", regexp = "\\d{10}") String phone) {
+    @NotBlank(message = "Campo requerido") @Pattern(message = "El teléfono debe tener 10 dígitos", regexp = "\\d{10}") String phone,
+
+    @NotNull(message = "Las areas son requerdias") @NotEmpty(message = "Las areas no pueden estar vacias") Set<Long> areas
+  ) {
   /** Converts this request to UpdateUserInfo. */
   public UpdateUserInfo toUpdateUserInfo() {
-    return new UpdateUserInfo(document, name, new UserEmail(email), address, phone);
+    return new UpdateUserInfo(document, name, new UserEmail(email), address, phone, areas.stream().map(AreaId::of).collect(Collectors.toSet()));
   }
 }

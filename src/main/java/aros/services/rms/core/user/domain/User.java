@@ -5,6 +5,8 @@ package aros.services.rms.core.user.domain;
 import aros.services.rms.core.area.domain.AreaId;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /** Domain model representing a user in the restaurant management system. */
 public class User {
@@ -129,6 +131,21 @@ public class User {
   /** Marks the user as inactive. */
   public void markAsInactive() {
     this.status = UserStatus.INACTIVE;
+  }
+
+  /** Assign a new area to user. */
+  public void assignArea(AreaId areaId) {
+    this.assignedAreas.add(areaId);
+  }
+
+  /** remove a assigned area from user. */
+  public void revokeArea(AreaId areaId) {
+    this.assignedAreas.remove(areaId);
+  }
+
+  /** clear old areas and add the new ones */
+  public void reAssinngAreas(Set<AreaId> areas) {
+    this.assignedAreas = areas.stream().collect(Collectors.toList());
   }
 
   /**
