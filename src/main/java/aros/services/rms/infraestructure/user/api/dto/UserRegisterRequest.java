@@ -2,12 +2,17 @@
 
 package aros.services.rms.infraestructure.user.api.dto;
 
+import aros.services.rms.core.area.domain.AreaId;
 import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.core.user.port.dto.CreateUserInfo;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /** Request DTO for user registration. */
 public record UserRegisterRequest(
@@ -27,9 +32,17 @@ public record UserRegisterRequest(
         String email,
     @Size(max = 200, message = "La dirección debe tener máximo 200 caracteres") String address,
     @NotBlank @Pattern(message = "El teléfono debe tener 10 dígitos", regexp = "\\d{10}")
-        String phone) {
+        String phone,
+    @NotNull(message = "Las areas son requerdias") @NotEmpty(message = "Las areas no pueden estar vacias")
+        Set<Long> areas) {
   /** Converts this request to CreateUserInfo. */
   public CreateUserInfo toCreateUserInfo() {
-    return new CreateUserInfo(document, name, new UserEmail(email), address, phone);
+    return new CreateUserInfo(
+        document,
+        name,
+        new UserEmail(email),
+        address,
+        phone,
+        areas.stream().map(AreaId::of).collect(Collectors.toSet()));
   }
 }

@@ -31,6 +31,7 @@ public class UpdateUserService implements UpdateUserUseCase {
             .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
 
     user.updateInfo(info.document(), info.name(), info.address(), info.phone());
+    user.reAssinngAreas(info.areas());
 
     if (!user.getEmail().value().equals(info.email().value())) {
       user.changeEmail(info.email());

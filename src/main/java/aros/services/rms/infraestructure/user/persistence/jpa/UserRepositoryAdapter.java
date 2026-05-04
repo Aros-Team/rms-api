@@ -52,7 +52,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort, AdminRepositor
   /** Checks if a user exists by email or document. */
   @Override
   public boolean existsByEmailOrDocument(String document, String email) {
-    return this.internal.existsByDocumentAndEmailAndDeletedAtIsNull(document, email);
+    return this.internal.existsByDocumentOrEmail(document, email);
   }
 
   /** Finds all non-deleted users. */

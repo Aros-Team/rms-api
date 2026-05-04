@@ -7,5 +7,6 @@ public enum AreaType {
   KITCHEN,
   BARTENDER,
   BAR,
-  GRILL
+  GRILL,
+  CASH
 }
