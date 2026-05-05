@@ -1,5 +1,13 @@
 # Changelog
 
+## [v1.0.0](https://github.com/Aros-Team/rms-api/releases/tag/v1.0.0)
+
+### Bug Fixes
+
+- **BREAKING**: added "areas" attribute on user creation and modification
+- remove spotless rule to allow break lines
+- **BREAKING**: areas on user creation/modification
+
 ## [v0.4.0](https://github.com/Aros-Team/rms-api/releases/tag/v0.4.0)
 
 ### Features
