@@ -112,7 +112,9 @@ public class OrderController {
   @PutMapping("/{id}/cancel")
   public ResponseEntity<OrderResponse> cancelOrder(@PathVariable Long id) {
     Order order = updateOrderUseCase.cancel(id);
-    return ResponseEntity.ok(OrderResponse.fromDomain(order));
+    OrderResponse response = OrderResponse.fromDomain(order);
+    orderNotificationService.notifyOrderCancelled(response);
+    return ResponseEntity.ok(response);
   }
 
   /**

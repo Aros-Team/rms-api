@@ -21,6 +21,7 @@ public class OrderNotificationService {
   private static final String TOPIC_ORDERS_PREPARING = "/topic/orders/preparing";
   private static final String TOPIC_ORDERS_READY = "/topic/orders/ready";
   private static final String TOPIC_ORDERS_DELIVERED = "/topic/orders/delivered";
+  private static final String TOPIC_ORDERS_CANCELLED = "/topic/orders/cancelled";
 
   private final NotificationPort notificationPort;
 
@@ -46,5 +47,11 @@ public class OrderNotificationService {
   public void notifyOrderDelivered(OrderResponse order) {
     log.info("WebSocket: notificando orden entregada id={}", order.id());
     notificationPort.notify(TOPIC_ORDERS_DELIVERED, order);
+  }
+
+  /** Notifica a los clientes que una orden fue cancelada (estado CANCELLED). */
+  public void notifyOrderCancelled(OrderResponse order) {
+    log.info("WebSocket: notificando orden cancelada id={}", order.id());
+    notificationPort.notify(TOPIC_ORDERS_CANCELLED, order);
   }
 }
