@@ -40,7 +40,9 @@ jobs:
         run: |
           tag=$(gh release view --json tagName --jq '.tagName' | sed 's/^v//')
           echo "TAG=$tag" >> $GITHUB_ENV
-
+        env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            
       - name: Build and push Docker image
         run: |
           docker build -t spalaxdev/rms-api:${{ env.TAG }} .
