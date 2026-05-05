@@ -13,6 +13,8 @@ import aros.services.rms.core.order.port.input.TakeOrderUseCase;
 import aros.services.rms.core.order.port.input.UpdateOrderUseCase;
 import aros.services.rms.infraestructure.order.api.dto.OrderResponse;
 import aros.services.rms.infraestructure.order.api.dto.TakeOrderRequest;
+import aros.services.rms.infraestructure.table.api.TableNotificationService;
+import aros.services.rms.infraestructure.table.api.dto.TableResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -50,6 +52,7 @@ public class OrderController {
   private final DeliveryUseCase deliveryUseCase;
   private final OrderQueryUseCase orderQueryUseCase;
   private final OrderNotificationService orderNotificationService;
+  private final TableNotificationService tableNotificationService;
 
   /**
    * Takes a new order.
@@ -89,6 +92,9 @@ public class OrderController {
     Order order = takeOrderUseCase.execute(command);
     OrderResponse response = OrderResponse.fromDomain(order);
     orderNotificationService.notifyOrderCreated(response);
+    if (order.getTable() != null) {
+      tableNotificationService.notifyTableStatusChanged(TableResponse.fromDomain(order.getTable()));
+    }
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
 
@@ -114,6 +120,9 @@ public class OrderController {
     Order order = updateOrderUseCase.cancel(id);
     OrderResponse response = OrderResponse.fromDomain(order);
     orderNotificationService.notifyOrderCancelled(response);
+    if (order.getTable() != null) {
+      tableNotificationService.notifyTableStatusChanged(TableResponse.fromDomain(order.getTable()));
+    }
     return ResponseEntity.ok(response);
   }
 
@@ -231,6 +240,9 @@ public class OrderController {
     Order order = deliveryUseCase.markAsDelivered(id);
     OrderResponse response = OrderResponse.fromDomain(order);
     orderNotificationService.notifyOrderDelivered(response);
+    if (order.getTable() != null) {
+      tableNotificationService.notifyTableStatusChanged(TableResponse.fromDomain(order.getTable()));
+    }
     return ResponseEntity.ok(response);
   }
 
