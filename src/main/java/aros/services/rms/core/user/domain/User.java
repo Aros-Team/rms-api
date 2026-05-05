@@ -138,12 +138,12 @@ public class User {
     this.assignedAreas.add(areaId);
   }
 
-  /** remove a assigned area from user. */
+  /** Removes an assigned area from the user. */
   public void revokeArea(AreaId areaId) {
     this.assignedAreas.remove(areaId);
   }
 
-  /** clear old areas and add the new ones */
+  /** Clears old areas and adds the new ones. */
   public void reAssinngAreas(Set<AreaId> areas) {
     this.assignedAreas = areas.stream().collect(Collectors.toList());
   }

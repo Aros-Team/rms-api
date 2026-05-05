@@ -54,7 +54,8 @@ public class CreateUserService implements CreateUserUseCase {
     boolean exists = this.userPort.existsByEmailOrDocument(info.document(), info.email().value());
 
     if (exists) {
-      throw new UserAlreadyExistsException("El Documento o Correo ya han sido utilizados por otro usuario.");
+      throw new UserAlreadyExistsException(
+          "El Documento o Correo ya han sido utilizados por otro usuario.");
     }
 
     User user =

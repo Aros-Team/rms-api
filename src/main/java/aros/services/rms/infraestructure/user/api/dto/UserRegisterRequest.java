@@ -33,7 +33,8 @@ public record UserRegisterRequest(
     @Size(max = 200, message = "La dirección debe tener máximo 200 caracteres") String address,
     @NotBlank @Pattern(message = "El teléfono debe tener 10 dígitos", regexp = "\\d{10}")
         String phone,
-    @NotNull(message = "Las areas son requerdias") @NotEmpty(message = "Las areas no pueden estar vacias")
+    @NotNull(message = "Las areas son requerdias")
+        @NotEmpty(message = "Las areas no pueden estar vacias")
         Set<Long> areas) {
   /** Converts this request to CreateUserInfo. */
   public CreateUserInfo toCreateUserInfo() {

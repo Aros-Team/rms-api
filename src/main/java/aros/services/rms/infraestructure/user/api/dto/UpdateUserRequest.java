@@ -2,9 +2,6 @@
 
 package aros.services.rms.infraestructure.user.api.dto;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import aros.services.rms.core.area.domain.AreaId;
 import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.core.user.port.dto.UpdateUserInfo;
@@ -14,6 +11,8 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /** Request DTO for updating a user. */
 public record UpdateUserRequest(
@@ -42,6 +41,12 @@ public record UpdateUserRequest(
         Set<Long> areas) {
   /** Converts this request to UpdateUserInfo. */
   public UpdateUserInfo toUpdateUserInfo() {
-    return new UpdateUserInfo(document, name, new UserEmail(email), address, phone, areas.stream().map(AreaId::of).collect(Collectors.toSet()));
+    return new UpdateUserInfo(
+        document,
+        name,
+        new UserEmail(email),
+        address,
+        phone,
+        areas.stream().map(AreaId::of).collect(Collectors.toSet()));
   }
 }
