@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class TableController {
 
   private final TableUseCase tableUseCase;
+  private final TableNotificationService tableNotificationService;
 
   /** Creates a new table. */
   @Operation(
@@ -112,6 +113,8 @@ public class TableController {
       @PathVariable Long id, @Valid @RequestBody ChangeStatusRequest request) {
     TableStatus status = TableStatus.valueOf(request.status().toUpperCase());
     Table table = tableUseCase.changeStatus(id, status);
-    return ResponseEntity.ok(TableResponse.fromDomain(table));
+    TableResponse response = TableResponse.fromDomain(table);
+    tableNotificationService.notifyTableStatusChanged(response);
+    return ResponseEntity.ok(response);
   }
 }
