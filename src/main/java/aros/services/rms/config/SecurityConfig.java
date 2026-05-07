@@ -153,7 +153,8 @@ public class SecurityConfig {
                           "/actuator/health",
                           "/health/**",
                           "/health",
-                          "/metrics/**")
+                          "/metrics/**",
+                          "/api/v1/images/local/**")
                       .permitAll()
                       .anyRequest()
                       .authenticated())

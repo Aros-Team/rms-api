@@ -2,6 +2,12 @@ app:
   env: production
   admin:
     email: ${ADMIN_EMAIL}
+  storage:
+    type: gcs
+    gcs:
+      bucket: ${GCS_BUCKET_NAME}
+      project-id: ${GCS_PROJECT_ID}
+      signed-url-expiration-minutes: 60
 
 spring:
   datasource:

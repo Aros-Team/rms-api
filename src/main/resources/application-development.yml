@@ -2,8 +2,18 @@ app:
   env: development
   admin:
     dummy-email: ${DUMMY_EMAIL}
+  storage:
+    type: local
+    local:
+      base-dir: ./uploads
+      base-url: http://localhost:8080/api/v1/images/local
 
 spring:
+  cloud:
+    gcp:
+      enabled: false
+      storage:
+        enabled: false
   datasource:
     url: jdbc:mysql://localhost:3306/${DB_NAME}
     username: root

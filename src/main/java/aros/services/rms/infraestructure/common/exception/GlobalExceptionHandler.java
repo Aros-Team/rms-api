@@ -2,6 +2,9 @@
 
 package aros.services.rms.infraestructure.common.exception;
 
+import aros.services.rms.core.image.application.exception.ImageUploadException;
+import aros.services.rms.core.image.application.exception.InvalidImageException;
+import aros.services.rms.core.image.application.exception.ProductImageNotFoundException;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.application.exception.StorageLocationNotFoundException;
 import aros.services.rms.core.inventory.application.exception.SupplyAlreadyExistsException;
@@ -209,6 +212,36 @@ public class GlobalExceptionHandler {
         "Retry agotado sin recovery: causa={}", cause != null ? cause.getMessage() : "unknown", e);
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
         .body(new ErrorResponse(500, "Error interno del servidor"));
+  }
+
+  // --- Image exceptions ---
+
+  /** Handles ProductImageNotFoundException. */
+  @ExceptionHandler(ProductImageNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleProductImageNotFound(ProductImageNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  /** Handles InvalidImageException. */
+  @ExceptionHandler(InvalidImageException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidImage(InvalidImageException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
+  }
+
+  /** Handles ImageUploadException. */
+  @ExceptionHandler(ImageUploadException.class)
+  public ResponseEntity<ErrorResponse> handleImageUpload(ImageUploadException e) {
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(new ErrorResponse(500, e.getMessage()));
+  }
+
+  /** Handles MaxUploadSizeExceededException. */
+  @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+  public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(
+      org.springframework.web.multipart.MaxUploadSizeExceededException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, "File size exceeds maximum allowed size"));
   }
 
   // --- Generic catch-all handlers ---
