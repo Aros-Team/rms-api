@@ -6,14 +6,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** Domain entity representing a product image with storage metadata. */
+/** Domain entity representing an image belonging to any entity type. */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductImage {
+public class EntityImage {
   private Long id;
-  private Long productId;
+  private ImageEntityType entityType;
+  private Long entityId;
   private String originalFilename;
   private String contentType;
   private long originalSizeBytes;

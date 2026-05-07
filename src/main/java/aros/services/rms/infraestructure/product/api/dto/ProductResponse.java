@@ -15,6 +15,10 @@ import java.util.stream.Collectors;
 public record ProductResponse(
     @Schema(description = "Product ID", example = "1") Long id,
     @Schema(description = "Product name", example = "Hamburguesa Clásica") String name,
+    @Schema(
+            description = "Product description",
+            example = "Deliciosa hamburguesa con queso cheddar")
+        String description,
     @Schema(description = "Product base price", example = "12.50") Double basePrice,
     @Schema(description = "Whether product is active", example = "true") boolean active,
     @Schema(description = "Category ID", example = "1") Long categoryId,
@@ -58,6 +62,7 @@ public record ProductResponse(
     return new ProductResponse(
         product.getId(),
         product.getName(),
+        product.getDescription(),
         product.getBasePrice(),
         product.isActive(),
         product.getCategory() != null ? product.getCategory().getId() : null,

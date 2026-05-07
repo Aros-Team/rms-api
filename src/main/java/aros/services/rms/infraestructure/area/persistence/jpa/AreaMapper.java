@@ -19,11 +19,7 @@ public class AreaMapper {
     return aros.services.rms.infraestructure.area.persistence.jpa.Area.builder()
         .id(domain.getId())
         .name(domain.getName())
-        .type(
-            domain.getType() != null
-                ? aros.services.rms.infraestructure.area.persistence.AreaType.valueOf(
-                    domain.getType().name())
-                : null)
+        .type(domain.getType() != null ? AreaType.valueOf(domain.getType().name()) : null)
         .enabled(domain.isEnabled())
         .build();
   }

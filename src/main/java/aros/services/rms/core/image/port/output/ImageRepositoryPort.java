@@ -1,20 +1,24 @@
 package aros.services.rms.core.image.port.output;
 
-import aros.services.rms.core.image.domain.ProductImage;
+import aros.services.rms.core.image.domain.EntityImage;
+import aros.services.rms.core.image.domain.ImageEntityType;
 import java.util.List;
 import java.util.Optional;
 
-/** Output port for product image persistence. */
+/** Output port for entity image persistence. */
 public interface ImageRepositoryPort {
-  /** Saves or updates a product image. */
-  ProductImage save(ProductImage productImage);
+  /** Saves or updates an image. */
+  EntityImage save(EntityImage image);
 
   /** Finds image by ID. Returns empty if not found. */
-  Optional<ProductImage> findById(Long id);
+  Optional<EntityImage> findById(Long id);
 
-  /** Finds all images for a product. */
-  List<ProductImage> findByProductId(Long productId);
+  /** Finds all images for a given entity type and entity ID. */
+  List<EntityImage> findByEntityTypeAndEntityId(ImageEntityType entityType, Long entityId);
 
   /** Deletes image by ID. */
   void deleteById(Long id);
+
+  /** Deletes all images for a given entity type and entity ID. */
+  void deleteByEntityTypeAndEntityId(ImageEntityType entityType, Long entityId);
 }

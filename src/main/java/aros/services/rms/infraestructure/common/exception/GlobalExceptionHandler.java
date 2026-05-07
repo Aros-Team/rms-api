@@ -2,9 +2,9 @@
 
 package aros.services.rms.infraestructure.common.exception;
 
+import aros.services.rms.core.image.application.exception.ImageNotFoundException;
 import aros.services.rms.core.image.application.exception.ImageUploadException;
 import aros.services.rms.core.image.application.exception.InvalidImageException;
-import aros.services.rms.core.image.application.exception.ProductImageNotFoundException;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.application.exception.StorageLocationNotFoundException;
 import aros.services.rms.core.inventory.application.exception.SupplyAlreadyExistsException;
@@ -216,9 +216,9 @@ public class GlobalExceptionHandler {
 
   // --- Image exceptions ---
 
-  /** Handles ProductImageNotFoundException. */
-  @ExceptionHandler(ProductImageNotFoundException.class)
-  public ResponseEntity<ErrorResponse> handleProductImageNotFound(ProductImageNotFoundException e) {
+  /** Handles ImageNotFoundException. */
+  @ExceptionHandler(ImageNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleImageNotFound(ImageNotFoundException e) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
   }
 

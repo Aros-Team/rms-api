@@ -2,7 +2,7 @@
 
 package aros.services.rms.infraestructure.area.persistence.jpa;
 
-import aros.services.rms.infraestructure.area.persistence.AreaType;
+import aros.services.rms.core.area.domain.AreaType;
 import aros.services.rms.infraestructure.order.persistence.Order;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

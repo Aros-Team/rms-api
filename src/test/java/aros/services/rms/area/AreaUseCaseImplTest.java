@@ -70,8 +70,8 @@ class AreaUseCaseImplTest {
   void shouldUpdateAreaSuccessfully() {
     Area existing =
         Area.builder().id(1L).name("Kitchen").type(AreaType.KITCHEN).enabled(true).build();
-    Area updateData = Area.builder().name("Bar").type(AreaType.BARTENDER).build();
-    Area saved = Area.builder().id(1L).name("Bar").type(AreaType.BARTENDER).enabled(true).build();
+    Area updateData = Area.builder().name("Bar").type(AreaType.BAR).build();
+    Area saved = Area.builder().id(1L).name("Bar").type(AreaType.BAR).enabled(true).build();
 
     when(areaRepositoryPort.findById(1L)).thenReturn(Optional.of(existing));
     when(areaRepositoryPort.save(any(Area.class))).thenReturn(saved);
@@ -79,7 +79,7 @@ class AreaUseCaseImplTest {
     Area result = areaUseCase.update(1L, updateData);
 
     assertEquals("Bar", result.getName());
-    assertEquals(AreaType.BARTENDER, result.getType());
+    assertEquals(AreaType.BAR, result.getType());
   }
 
   @Test

@@ -20,9 +20,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-/**
- * GCS storage adapter for production profile. Uses core google-cloud-storage library.
- */
+/** GCS storage adapter for production profile. Uses core google-cloud-storage library. */
 @Component
 @Profile("production")
 public class GcsStorageAdapter implements StoragePort {
@@ -30,11 +28,15 @@ public class GcsStorageAdapter implements StoragePort {
   private final Storage storage;
   private final StorageProperties storageProperties;
 
-  /**
-   * Creates adapter with storage properties. Creates Storage client using default credentials.
-   */
+  /** Creates adapter with storage properties. Creates Storage client using default credentials. */
   public GcsStorageAdapter(StorageProperties storageProperties) {
     this.storage = StorageOptions.getDefaultInstance().getService();
+    this.storageProperties = storageProperties;
+  }
+
+  /** Creates adapter with custom storage client. For testing. */
+  public GcsStorageAdapter(Storage storage, StorageProperties storageProperties) {
+    this.storage = storage;
     this.storageProperties = storageProperties;
   }
 

@@ -27,9 +27,7 @@ public class LocalResourceConfig implements WebMvcConfigurer {
     String baseDir = storageProperties.getLocal().getBaseDir();
     Path absolutePath = Paths.get(baseDir).toAbsolutePath();
     String resourceLocation = "file:" + absolutePath + "/";
-    
-    registry
-        .addResourceHandler("/api/v1/images/local/**")
-        .addResourceLocations(resourceLocation);
+
+    registry.addResourceHandler("/api/v1/images/local/**").addResourceLocations(resourceLocation);
   }
 }

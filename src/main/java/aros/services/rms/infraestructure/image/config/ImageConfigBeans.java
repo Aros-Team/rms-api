@@ -3,12 +3,12 @@
 package aros.services.rms.infraestructure.image.config;
 
 import aros.services.rms.core.common.logger.Logger;
-import aros.services.rms.core.image.application.service.DeleteProductImageService;
-import aros.services.rms.core.image.application.service.GetProductImagesService;
-import aros.services.rms.core.image.application.service.UploadProductImageService;
-import aros.services.rms.core.image.port.input.DeleteProductImageUseCase;
-import aros.services.rms.core.image.port.input.GetProductImagesUseCase;
-import aros.services.rms.core.image.port.input.UploadProductImageUseCase;
+import aros.services.rms.core.image.application.service.DeleteImageService;
+import aros.services.rms.core.image.application.service.GetImagesService;
+import aros.services.rms.core.image.application.service.UploadImageService;
+import aros.services.rms.core.image.port.input.DeleteImageUseCase;
+import aros.services.rms.core.image.port.input.GetImagesUseCase;
+import aros.services.rms.core.image.port.input.UploadImageUseCase;
 import aros.services.rms.core.image.port.output.ImageProcessingPort;
 import aros.services.rms.core.image.port.output.ImageRepositoryPort;
 import aros.services.rms.core.image.port.output.StoragePort;
@@ -23,29 +23,28 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(StorageProperties.class)
 public class ImageConfigBeans {
 
-  /** Creates the upload product image use case bean. */
+  /** Creates the upload image use case bean. */
   @Bean
-  public UploadProductImageUseCase uploadProductImageUseCase(
+  public UploadImageUseCase uploadImageUseCase(
       ImageProcessingPort imageProcessingPort,
       StoragePort storagePort,
       ImageRepositoryPort imageRepositoryPort,
       Logger logger) {
-    return new UploadProductImageService(
-        imageProcessingPort, storagePort, imageRepositoryPort, logger);
+    return new UploadImageService(imageProcessingPort, storagePort, imageRepositoryPort, logger);
   }
 
-  /** Creates the get product images use case bean. */
+  /** Creates the get images use case bean. */
   @Bean
-  public GetProductImagesUseCase getProductImagesUseCase(
+  public GetImagesUseCase getImagesUseCase(
       ImageRepositoryPort imageRepositoryPort, StoragePort storagePort, Logger logger) {
-    return new GetProductImagesService(imageRepositoryPort, storagePort, logger);
+    return new GetImagesService(imageRepositoryPort, storagePort, logger);
   }
 
-  /** Creates the delete product image use case bean. */
+  /** Creates the delete image use case bean. */
   @Bean
-  public DeleteProductImageUseCase deleteProductImageUseCase(
+  public DeleteImageUseCase deleteImageUseCase(
       ImageRepositoryPort imageRepositoryPort, StoragePort storagePort, Logger logger) {
-    return new DeleteProductImageService(imageRepositoryPort, storagePort, logger);
+    return new DeleteImageService(imageRepositoryPort, storagePort, logger);
   }
 
   /** Creates the image processing port bean. */

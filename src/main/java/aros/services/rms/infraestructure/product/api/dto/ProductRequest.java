@@ -13,13 +13,16 @@ import java.util.List;
 @Schema(
     description = "Request DTO for creating or updating a product",
     example =
-        "{\"name\": \"Hamburguesa Clásica\", \"basePrice\": 12.50, "
-            + "\"categoryId\": 1, \"areaId\": 1, \"optionIds\": [1, 2, 3], "
-            + "\"recipe\": [{\"supplyVariantId\": 1, \"requiredQuantity\": 250.0}]}")
+        "{\"name\": \"Hamburguesa\", \"description\": \"Con queso cheddar\", \"basePrice\": 12.50, "
+            + "\"categoryId\": 1, \"areaId\": 1, \"optionIds\": [1, 2, 3]}")
 public record ProductRequest(
     @Schema(description = "Product name", example = "Hamburguesa Clásica")
         @NotBlank(message = "Product name is required")
         String name,
+    @Schema(
+            description = "Product description",
+            example = "Deliciosa hamburguesa con queso cheddar, tocino y vegetales frescos")
+        String description,
     @Schema(description = "Product base price", example = "12.50")
         @NotNull(message = "Base price is required")
         @Positive(message = "Base price must be positive")

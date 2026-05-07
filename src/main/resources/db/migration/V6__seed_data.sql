@@ -6,7 +6,8 @@
 -- =============================================================================
 INSERT INTO areas (name, type, enabled) VALUES
     ('Cocina', 'KITCHEN',   TRUE),
-    ('Bar',    'BARTENDER', TRUE);
+    ('Servicio', 'SERVICE', TRUE),
+    ('Bar',    'BAR', TRUE);
 
 -- =============================================================================
 -- INVENTARIO: unidades de medida

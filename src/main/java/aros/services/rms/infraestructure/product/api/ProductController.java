@@ -62,6 +62,7 @@ public class ProductController {
     Product product =
         Product.builder()
             .name(request.name())
+            .description(request.description())
             .basePrice(request.basePrice())
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())
@@ -83,7 +84,7 @@ public class ProductController {
   @Operation(
       summary = "Actualizar producto",
       description =
-          "Actualiza los detalles de un producto existente (nombre, precio, categoría, área).",
+          "Actualiza los detalles de un producto existente (nombre, descripcion, precio).",
       responses = {
         @ApiResponse(responseCode = "200", description = "Producto actualizado exitosamente"),
         @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
@@ -96,6 +97,7 @@ public class ProductController {
     Product product =
         Product.builder()
             .name(request.name())
+            .description(request.description())
             .basePrice(request.basePrice())
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())

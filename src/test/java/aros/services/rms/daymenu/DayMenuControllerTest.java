@@ -17,11 +17,14 @@ import aros.services.rms.core.daymenu.port.input.GetCurrentDayMenuUseCase;
 import aros.services.rms.core.daymenu.port.input.GetDayMenuHistoryUseCase;
 import aros.services.rms.core.daymenu.port.input.UpdateDayMenuUseCase;
 import aros.services.rms.infraestructure.daymenu.api.DayMenuController;
+import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -29,7 +32,12 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(DayMenuController.class)
+@WebMvcTest(
+    value = DayMenuController.class,
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = LocalResourceConfig.class))
 class DayMenuControllerTest {
 
   @Autowired private MockMvc mockMvc;

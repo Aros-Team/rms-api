@@ -3,9 +3,7 @@
 package aros.services.rms.core.product.domain;
 
 import aros.services.rms.core.category.domain.Category;
-import aros.services.rms.core.image.domain.ProductImage;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +21,7 @@ import lombok.NoArgsConstructor;
 public class Product {
   private Long id;
   private String name;
+  private String description;
   private Double basePrice;
   @Builder.Default private boolean active = true;
   private Category category;
@@ -30,5 +29,4 @@ public class Product {
   private String preparationAreaName;
   private List<ProductRecipe> recipe;
   private List<Long> optionIds;
-  @Builder.Default private List<ProductImage> images = new ArrayList<>();
 }
