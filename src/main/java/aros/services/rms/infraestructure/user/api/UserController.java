@@ -9,6 +9,7 @@ import aros.services.rms.core.user.port.input.ChangePasswordUseCase;
 import aros.services.rms.core.user.port.input.CreateUserUseCase;
 import aros.services.rms.core.user.port.input.DeleteUserUseCase;
 import aros.services.rms.core.user.port.input.GetAllUsersUseCase;
+import aros.services.rms.core.user.port.input.GetAllWorkersUseCase;
 import aros.services.rms.core.user.port.input.RetryUserEmailUseCase;
 import aros.services.rms.core.user.port.input.UpdateUserUseCase;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
@@ -19,6 +20,9 @@ import aros.services.rms.infraestructure.user.api.dto.UpdateUserRequest;
 import aros.services.rms.infraestructure.user.api.dto.UserRegisterRequest;
 import aros.services.rms.infraestructure.user.api.dto.UserRegisterResponse;
 import aros.services.rms.infraestructure.user.api.dto.UserResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -41,10 +45,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping(path = "/api/v1/users")
 @Slf4j
+@Tag(name = "Users", description = "Gestión de usuarios")
 public class UserController {
   private final CreateUserUseCase createUserUseCase;
   private final ChangePasswordUseCase changePasswordUseCase;
   private final GetAllUsersUseCase getAllUsersUseCase;
+  private final GetAllWorkersUseCase getAllWorkersUseCase;
   private final UpdateUserUseCase updateUserUseCase;
   private final DeleteUserUseCase deleteUserUseCase;
   private final RetryUserEmailUseCase retryUserEmailUseCase;
@@ -58,6 +64,21 @@ public class UserController {
     List<UserResponse> users =
         getAllUsersUseCase.getAll().stream().map(UserResponse::fromDomain).toList();
     return ResponseEntity.ok(users);
+  }
+
+  /** Retrieves all workers (employees). */
+  @GetMapping("/employees")
+  @JustAccessToken
+  @Operation(
+      summary = "Obtener todos los empleados",
+      description = "Retorna lista de usuarios con rol WORKER (empleados).",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Empleados obtenidos exitosamente")
+      })
+  public ResponseEntity<List<UserResponse>> getAllWorkers() {
+    List<UserResponse> workers =
+        getAllWorkersUseCase.getAll().stream().map(UserResponse::fromDomain).toList();
+    return ResponseEntity.ok(workers);
   }
 
   /** Registers a new user. */

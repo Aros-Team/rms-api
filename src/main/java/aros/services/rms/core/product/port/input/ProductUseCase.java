@@ -4,6 +4,8 @@ package aros.services.rms.core.product.port.input;
 
 import aros.services.rms.core.product.domain.Product;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Input port for product management operations. Handles CRUD, logical deletion, and option
@@ -66,4 +68,12 @@ public interface ProductUseCase {
    * @return list of products in the specified categories
    */
   List<Product> findByCategoryIds(List<Long> categoryIds);
+
+  /**
+   * Retrieves all active products with pagination.
+   *
+   * @param pageable pagination parameters
+   * @return page of active products
+   */
+  Page<Product> findAllActive(Pageable pageable);
 }

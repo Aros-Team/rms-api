@@ -12,6 +12,7 @@ import aros.services.rms.infraestructure.product.api.dto.ProductRequest;
 import aros.services.rms.infraestructure.product.api.dto.ProductResponse;
 import aros.services.rms.infraestructure.product.api.dto.RecipeItemRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -19,6 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -113,30 +117,62 @@ public class ProductController {
    * Gets all products.
    *
    * @param categories optional category filter
+   * @param page page number (default 0)
+   * @param size page size (default 20, max 100)
+   * @param includeInactive if true, include inactive products (default false)
    * @return the list of products
    */
   @Operation(
       summary = "Obtener todos los productos",
       description =
-          "Retorna lista de todos los productos activos e inactivos del menú. "
+          "Retorna lista de productos con paginación. "
+              + "Por defecto solo retorna productos activos. "
               + "Puede filtrarse por categoría usando el parámetro 'categories'.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Productos obtenidos exitosamente")
+        @ApiResponse(responseCode = "200", description = "Productos obtenidos exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Parámetros de paginación inválidos")
       })
   @GetMapping
-  public ResponseEntity<List<ProductResponse>> findAll(
-      @RequestParam(required = false) List<Long> categories) {
-    List<ProductResponse> responses;
+  public ResponseEntity<Page<ProductResponse>> findAll(
+      @RequestParam(required = false) List<Long> categories,
+      @Parameter(description = "Número de página (default 0)") @RequestParam(defaultValue = "0")
+          int page,
+      @Parameter(description = "Tamaño de página (default 20, max 100)")
+          @RequestParam(defaultValue = "20")
+          int size,
+      @Parameter(description = "Incluir productos inactivos (default false)")
+          @RequestParam(defaultValue = "false")
+          boolean includeInactive) {
+    if (page < 0) {
+      throw new IllegalArgumentException("El parámetro page debe ser mayor o igual a 0");
+    }
+    if (size <= 0 || size > 100) {
+      throw new IllegalArgumentException("El parámetro size debe estar entre 1 y 100");
+    }
+    var pageable = PageRequest.of(page, size);
+    Page<ProductResponse> responses;
     if (categories == null || categories.isEmpty()) {
-      responses =
-          productUseCase.findAll().stream()
-              .map(ProductResponse::fromDomain)
-              .collect(Collectors.toList());
+      if (includeInactive) {
+        List<Product> allProducts = productUseCase.findAll();
+        List<ProductResponse> productResponses =
+            allProducts.stream().map(ProductResponse::fromDomain).toList();
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), productResponses.size());
+        List<ProductResponse> pagedContent =
+            start < productResponses.size() ? productResponses.subList(start, end) : List.of();
+        responses = new PageImpl<>(pagedContent, pageable, productResponses.size());
+      } else {
+        responses = productUseCase.findAllActive(pageable).map(ProductResponse::fromDomain);
+      }
     } else {
-      responses =
-          productUseCase.findByCategoryIds(categories).stream()
-              .map(ProductResponse::fromDomain)
-              .collect(Collectors.toList());
+      List<Product> filteredProducts = productUseCase.findByCategoryIds(categories);
+      List<ProductResponse> productResponses =
+          filteredProducts.stream().map(ProductResponse::fromDomain).toList();
+      int start = (int) pageable.getOffset();
+      int end = Math.min((start + pageable.getPageSize()), productResponses.size());
+      List<ProductResponse> pagedContent =
+          start < productResponses.size() ? productResponses.subList(start, end) : List.of();
+      responses = new PageImpl<>(pagedContent, pageable, productResponses.size());
     }
     return ResponseEntity.ok(responses);
   }

@@ -5,6 +5,8 @@ package aros.services.rms.infraestructure.inventory.persistence.jpa;
 import aros.services.rms.infraestructure.inventory.persistence.SupplyEntity;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -29,12 +31,30 @@ public interface SupplyRepository extends JpaRepository<SupplyEntity, Long> {
   List<SupplyEntity> findByNameContainingIgnoreCase(String name);
 
   /**
+   * Finds supplies whose name contains the given string (case-insensitive) with pagination.
+   *
+   * @param name the name substring
+   * @param pageable pagination parameters
+   * @return the page of supply entities
+   */
+  Page<SupplyEntity> findByNameContainingIgnoreCase(String name, Pageable pageable);
+
+  /**
    * Finds supplies belonging to a specific category.
    *
    * @param categoryId the category ID
    * @return the list of supply entities
    */
   List<SupplyEntity> findByCategoryId(Long categoryId);
+
+  /**
+   * Finds supplies belonging to a specific category with pagination.
+   *
+   * @param categoryId the category ID
+   * @param pageable pagination parameters
+   * @return the page of supply entities
+   */
+  Page<SupplyEntity> findByCategoryId(Long categoryId, Pageable pageable);
 
   /**
    * Finds supplies by category and name (combined filter).
@@ -44,4 +64,18 @@ public interface SupplyRepository extends JpaRepository<SupplyEntity, Long> {
    * @return the list of supply entities
    */
   List<SupplyEntity> findByCategoryIdAndNameContainingIgnoreCase(Long categoryId, String name);
+
+  /**
+   * Finds supplies by category and name (combined filter) with pagination.
+   *
+   * @param categoryId the category ID
+   * @param name the name substring
+   * @param pageable pagination parameters
+   * @return the page of supply entities
+   */
+  Page<SupplyEntity> findByCategoryIdAndNameContainingIgnoreCase(
+      Long categoryId, String name, Pageable pageable);
+
+  /** Finds all supplies with pagination. */
+  Page<SupplyEntity> findAll(Pageable pageable);
 }

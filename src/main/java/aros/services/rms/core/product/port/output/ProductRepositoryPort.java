@@ -5,6 +5,8 @@ package aros.services.rms.core.product.port.output;
 import aros.services.rms.core.product.domain.Product;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /** Output port for product persistence operations. */
 public interface ProductRepositoryPort {
@@ -46,4 +48,12 @@ public interface ProductRepositoryPort {
    * @return true if product exists
    */
   boolean existsById(Long id);
+
+  /**
+   * Retrieves all active products with pagination.
+   *
+   * @param pageable pagination parameters
+   * @return page of active products
+   */
+  Page<Product> findAllActive(Pageable pageable);
 }

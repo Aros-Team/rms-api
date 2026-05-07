@@ -24,6 +24,7 @@ import aros.services.rms.infraestructure.inventory.persistence.jpa.SupplyReposit
 import aros.services.rms.infraestructure.inventory.persistence.jpa.SupplyVariantRepository;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.UnitOfMeasureRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -32,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -136,34 +139,54 @@ public class SupplyCatalogController {
   // ---------------------------------------------------------------------------
 
   /**
-   * Lists supplies with optional filters.
+   * Lists supplies with optional filters and pagination.
    *
    * @param categoryId optional category filter
    * @param name optional name filter
-   * @return the list of supplies
+   * @param page page number (default 0)
+   * @param size page size (default 20, max 100)
+   * @return the page of supplies
    */
   @Operation(
       summary = "List supplies",
       description =
-          "Returns all supplies. Filter by categoryId and/or name (partial, case-insensitive).",
-      responses = {@ApiResponse(responseCode = "200", description = "OK")})
+          "Returns supplies with pagination. Filter by categoryId and/or name "
+              + "(partial, case-insensitive). page >= 0, size entre 1 y 100.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "OK"),
+        @ApiResponse(responseCode = "400", description = "Parámetros de paginación inválidos")
+      })
   @GetMapping
   @Transactional(readOnly = true)
-  public ResponseEntity<List<SupplyResponse>> findAllSupplies(
+  public ResponseEntity<Page<SupplyResponse>> findAllSupplies(
       @RequestParam(required = false) Long categoryId,
-      @RequestParam(required = false) String name) {
+      @RequestParam(required = false) String name,
+      @Parameter(description = "Número de página (default 0)") @RequestParam(defaultValue = "0")
+          int page,
+      @Parameter(description = "Tamaño de página (default 20, max 100)")
+          @RequestParam(defaultValue = "20")
+          int size) {
+    if (page < 0) {
+      throw new IllegalArgumentException("El parámetro page debe ser mayor o igual a 0");
+    }
+    if (size <= 0 || size > 100) {
+      throw new IllegalArgumentException("El parámetro size debe estar entre 1 y 100");
+    }
+    var pageable = PageRequest.of(page, size);
 
-    var supplies =
-        (categoryId != null && name != null)
-            ? supplyRepository.findByCategoryIdAndNameContainingIgnoreCase(categoryId, name)
-            : (categoryId != null)
-                ? supplyRepository.findByCategoryId(categoryId)
-                : (name != null)
-                    ? supplyRepository.findByNameContainingIgnoreCase(name)
-                    : supplyRepository.findAll();
+    Page<SupplyEntity> supplies;
+    if (categoryId != null && name != null) {
+      supplies =
+          supplyRepository.findByCategoryIdAndNameContainingIgnoreCase(categoryId, name, pageable);
+    } else if (categoryId != null) {
+      supplies = supplyRepository.findByCategoryId(categoryId, pageable);
+    } else if (name != null) {
+      supplies = supplyRepository.findByNameContainingIgnoreCase(name, pageable);
+    } else {
+      supplies = supplyRepository.findAll(pageable);
+    }
 
-    var responses = supplies.stream().map(SupplyResponse::fromEntity).collect(Collectors.toList());
-    return ResponseEntity.ok(responses);
+    return ResponseEntity.ok(supplies.map(SupplyResponse::fromEntity));
   }
 
   /**

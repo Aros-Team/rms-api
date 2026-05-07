@@ -43,4 +43,7 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, Long> {
 
   /** Finds users by role and status that are not deleted. */
   List<UserEntity> findByRoleAndStatusAndDeletedAtIsNull(UserRole role, UserStatus status);
+
+  /** Finds users by role that are not deleted. */
+  List<UserEntity> findByRoleAndDeletedAtIsNull(UserRole role);
 }

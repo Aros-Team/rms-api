@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 /** Persistence adapter that implements ProductRepositoryPort using JPA. */
@@ -49,5 +51,10 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
     return productRepository.findByCategoryIdIn(categoryIds).stream()
         .map(productMapper::toProductDomain)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public Page<Product> findAllActive(Pageable pageable) {
+    return productRepository.findAllActive(true, pageable).map(productMapper::toProductDomain);
   }
 }

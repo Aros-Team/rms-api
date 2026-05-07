@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.List;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -324,7 +326,7 @@ public class ProductService implements ProductUseCase {
   /** {@inheritDoc} */
   @Override
   @Retryable(
-      retryFor = {DataAccessException.class},
+      retryFor = DataAccessException.class,
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000))
   public List<Product> findByCategoryIds(List<Long> categoryIds) {
@@ -332,6 +334,12 @@ public class ProductService implements ProductUseCase {
       return productRepositoryPort.findAll();
     }
     return productRepositoryPort.findByCategoryIds(categoryIds);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Page<Product> findAllActive(Pageable pageable) {
+    return productRepositoryPort.findAllActive(pageable);
   }
 
   /**
@@ -345,6 +353,20 @@ public class ProductService implements ProductUseCase {
   @Recover
   public List<Product> recoverFindByCategoryIds(DataAccessException e, List<Long> categoryIds) {
     log.warn("BD no disponible - fallback para findByCategoryIds: {}", e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  /**
+   * Recovery handler for findAllActive operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param pageable pagination parameters
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
+  @Recover
+  public Page<Product> recoverFindAllActive(DataAccessException e, Pageable pageable) {
+    log.warn("BD no disponible - fallback para findAllActive: {}", e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
