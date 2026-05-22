@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
+import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.order.application.dto.TakeOrderCommand;
@@ -33,6 +34,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -320,5 +322,122 @@ class TakeOrderUseCaseImplTest {
     assertEquals(2, result.getDetails().get(0).getSelectedOptions().size());
     verify(tableRepositoryPort, times(1)).save(table);
     assertEquals(TableStatus.OCCUPIED, table.getStatus());
+  }
+
+  @Test
+  void shouldThrowAndReleaseTable_whenInsufficientStock() {
+    // Arrange: mesa disponible, producto existente, pero sin stock
+    Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
+    Product product =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .basePrice(10.0)
+            .category(Category.builder().id(1L).name("Food").build())
+            .build();
+
+    when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
+    // isAvailable retorna false → sin stock
+    when(inventoryStockUseCase.isAvailable(any(), any())).thenReturn(false);
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(1L)
+            .details(
+                List.of(
+                    TakeOrderCommand.OrderDetailCommand.builder()
+                        .productId(1L)
+                        .instructions(null)
+                        .selectedOptionIds(null)
+                        .build()))
+            .build();
+
+    // Act & Assert: debe lanzar InsufficientStockException
+    assertThrows(InsufficientStockException.class, () -> takeOrderUseCase.execute(command));
+
+    // La mesa debe haber sido restaurada a AVAILABLE
+    assertEquals(TableStatus.AVAILABLE, table.getStatus());
+    // save llamado 2 veces: 1 para OCCUPIED, 1 para restaurar a AVAILABLE
+    verify(tableRepositoryPort, times(2)).save(table);
+    // La orden nunca debe haberse persistido
+    verify(orderRepositoryPort, never()).save(any(Order.class));
+  }
+
+  @Test
+  void shouldOccupyTable_whenOrderIsCreated() {
+    // Arrange: mesa disponible, producto con stock suficiente
+    Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
+    Product product =
+        Product.builder()
+            .id(1L)
+            .name("Pizza")
+            .basePrice(15.0)
+            .category(Category.builder().id(1L).name("Food").build())
+            .build();
+
+    when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
+    when(inventoryStockUseCase.isAvailable(any(), any())).thenReturn(true);
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(1L)
+            .details(
+                List.of(
+                    TakeOrderCommand.OrderDetailCommand.builder()
+                        .productId(1L)
+                        .instructions(null)
+                        .selectedOptionIds(null)
+                        .build()))
+            .build();
+
+    // Act
+    takeOrderUseCase.execute(command);
+
+    // Assert: capturar el argumento con el que se llamó tableRepositoryPort.save()
+    ArgumentCaptor<Table> tableCaptor = ArgumentCaptor.forClass(Table.class);
+    // save se llama exactamente una vez (flujo exitoso)
+    verify(tableRepositoryPort, times(1)).save(tableCaptor.capture());
+    assertEquals(TableStatus.OCCUPIED, tableCaptor.getValue().getStatus());
+  }
+
+  @Test
+  void shouldDeductInventory_whenOrderIsCreated() {
+    // Arrange: flujo completamente exitoso
+    Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
+    Product product =
+        Product.builder()
+            .id(1L)
+            .name("Pasta")
+            .basePrice(12.0)
+            .category(Category.builder().id(1L).name("Food").build())
+            .build();
+
+    when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
+    when(inventoryStockUseCase.isAvailable(any(), any())).thenReturn(true);
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(1L)
+            .details(
+                List.of(
+                    TakeOrderCommand.OrderDetailCommand.builder()
+                        .productId(1L)
+                        .instructions(null)
+                        .selectedOptionIds(null)
+                        .build()))
+            .build();
+
+    // Act
+    takeOrderUseCase.execute(command);
+
+    // Assert: deductForOrder debe haberse invocado exactamente una vez
+    verify(inventoryMovementUseCase, times(1)).deductForOrder(any(), any());
   }
 }

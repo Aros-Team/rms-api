@@ -92,6 +92,9 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// Embedded DB for persistence tests
+	testImplementation 'com.h2database:h2'
 }
 
 // to load .env files
