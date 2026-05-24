@@ -3,6 +3,7 @@
 package aros.services.rms.infraestructure.user.api.dto;
 
 import aros.services.rms.core.area.domain.AreaId;
+import aros.services.rms.core.user.domain.Salary;
 import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.core.user.port.dto.UpdateUserInfo;
 import jakarta.validation.constraints.Email;
@@ -11,6 +12,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,7 +40,10 @@ public record UpdateUserRequest(
         String phone,
     @NotNull(message = "Las areas son requerdias")
         @NotEmpty(message = "Las areas no pueden estar vacias")
-        Set<Long> areas) {
+        Set<Long> areas,
+    BigDecimal salary,
+    String reason,
+    String observations) {
   /** Converts this request to UpdateUserInfo. */
   public UpdateUserInfo toUpdateUserInfo() {
     return new UpdateUserInfo(
@@ -47,6 +52,9 @@ public record UpdateUserRequest(
         new UserEmail(email),
         address,
         phone,
-        areas.stream().map(AreaId::of).collect(Collectors.toSet()));
+        areas.stream().map(AreaId::of).collect(Collectors.toSet()),
+        salary != null ? Salary.of(salary) : null,
+        reason,
+        observations);
   }
 }

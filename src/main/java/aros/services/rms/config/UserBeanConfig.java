@@ -9,9 +9,12 @@ import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.user.application.service.ChangePasswordService;
 import aros.services.rms.core.user.application.service.CreateUserService;
 import aros.services.rms.core.user.application.service.GetAllUsersService;
+import aros.services.rms.core.user.application.service.GetSalaryHistoryService;
 import aros.services.rms.core.user.port.input.ChangePasswordUseCase;
 import aros.services.rms.core.user.port.input.CreateUserUseCase;
 import aros.services.rms.core.user.port.input.GetAllUsersUseCase;
+import aros.services.rms.core.user.port.input.GetSalaryHistoryUseCase;
+import aros.services.rms.core.user.port.output.SalaryHistoryRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,14 +44,16 @@ public class UserBeanConfig {
       AccountSetupTokenRepositoryPort accountSetupTokenRepositoryPort,
       WelcomeEmailUseCase welcomeEmailUseCase,
       HashServicePort hashServicePort,
-      BusinessMetricsPort metricsPort) {
+      BusinessMetricsPort metricsPort,
+      SalaryHistoryRepositoryPort salaryHistoryPort) {
     return new CreateUserService(
         userPort,
         areaPort,
         accountSetupTokenRepositoryPort,
         welcomeEmailUseCase,
         hashServicePort,
-        metricsPort);
+        metricsPort,
+        salaryHistoryPort);
   }
 
   /**
@@ -73,5 +78,18 @@ public class UserBeanConfig {
   @Bean
   public GetAllUsersUseCase getAllUsersUseCase(UserRepositoryPort userPort) {
     return new GetAllUsersService(userPort);
+  }
+
+  /**
+   * Creates the get salary history use case.
+   *
+   * @param userPort user repository port
+   * @param salaryHistoryPort salary history repository port
+   * @return configured GetSalaryHistoryUseCase
+   */
+  @Bean
+  public GetSalaryHistoryUseCase getSalaryHistoryUseCase(
+      UserRepositoryPort userPort, SalaryHistoryRepositoryPort salaryHistoryPort) {
+    return new GetSalaryHistoryService(userPort, salaryHistoryPort);
   }
 }

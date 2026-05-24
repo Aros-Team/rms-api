@@ -5,6 +5,7 @@ package aros.services.rms.infraestructure.user.api.dto;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserRole;
 import aros.services.rms.core.user.domain.UserStatus;
+import java.math.BigDecimal;
 import java.util.List;
 
 /** Response DTO for user data. */
@@ -17,7 +18,8 @@ public record UserResponse(
     String phone,
     UserRole role,
     UserStatus status,
-    List<Long> assignedAreas) {
+    List<Long> assignedAreas,
+    BigDecimal salary) {
   /** Creates a response from a User domain object. */
   public static UserResponse fromDomain(User user) {
     return new UserResponse(
@@ -29,6 +31,7 @@ public record UserResponse(
         user.getPhone(),
         user.getRole(),
         user.getStatus(),
-        user.getAssignedAreas().stream().map(areaId -> areaId.value()).toList());
+        user.getAssignedAreas().stream().map(areaId -> areaId.value()).toList(),
+        user.getSalary() != null ? user.getSalary().value() : null);
   }
 }

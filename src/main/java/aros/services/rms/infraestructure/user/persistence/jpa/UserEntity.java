@@ -17,6 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
@@ -55,6 +56,8 @@ public class UserEntity {
 
   @Column(name = "deleted_at")
   private Instant deletedAt;
+
+  private BigDecimal salary;
 
   public Long getId() {
     return id;
@@ -142,5 +145,13 @@ public class UserEntity {
 
   public void setDeletedAt(Instant deletedAt) {
     this.deletedAt = deletedAt;
+  }
+
+  public BigDecimal getSalary() {
+    return salary;
+  }
+
+  public void setSalary(BigDecimal salary) {
+    this.salary = salary;
   }
 }

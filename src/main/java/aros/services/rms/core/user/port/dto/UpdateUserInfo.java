@@ -3,6 +3,7 @@
 package aros.services.rms.core.user.port.dto;
 
 import aros.services.rms.core.area.domain.AreaId;
+import aros.services.rms.core.user.domain.Salary;
 import aros.services.rms.core.user.domain.UserEmail;
 import java.util.Set;
 
@@ -13,4 +14,7 @@ public record UpdateUserInfo(
     UserEmail email,
     String address,
     String phone,
-    Set<AreaId> areas) {}
+    Set<AreaId> areas,
+    Salary salary,
+    String reason,
+    String observations) {}

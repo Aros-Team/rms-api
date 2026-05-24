@@ -12,6 +12,7 @@ import aros.services.rms.core.order.application.exception.OrderNotFoundException
 import aros.services.rms.core.order.application.exception.TableNotAvailableException;
 import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
 import aros.services.rms.core.table.application.exception.InvalidTableStatusException;
+import aros.services.rms.core.user.application.exception.InvalidSalaryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
@@ -151,6 +152,13 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(aros.services.rms.core.user.application.exception.SamePasswordException.class)
   public ResponseEntity<ErrorResponse> handleSamePassword(
       aros.services.rms.core.user.application.exception.SamePasswordException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
+  }
+
+  /** Handles InvalidSalaryException. */
+  @ExceptionHandler(InvalidSalaryException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidSalary(InvalidSalaryException e) {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(new ErrorResponse(400, e.getMessage()));
   }
