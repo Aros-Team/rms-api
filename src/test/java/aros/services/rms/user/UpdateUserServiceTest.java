@@ -13,15 +13,20 @@ import static org.mockito.Mockito.when;
 import aros.services.rms.core.area.application.exception.AreaNotFoundException;
 import aros.services.rms.core.area.domain.AreaId;
 import aros.services.rms.core.area.port.output.AreaRepositoryPort;
+import aros.services.rms.core.user.application.exception.InvalidSalaryException;
 import aros.services.rms.core.user.application.exception.UserNotFoundException;
 import aros.services.rms.core.user.application.service.UpdateUserService;
+import aros.services.rms.core.user.domain.Salary;
+import aros.services.rms.core.user.domain.SalaryHistoryEntry;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.core.user.domain.UserId;
 import aros.services.rms.core.user.domain.UserRole;
 import aros.services.rms.core.user.domain.UserStatus;
 import aros.services.rms.core.user.port.dto.UpdateUserInfo;
+import aros.services.rms.core.user.port.output.SalaryHistoryRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -38,8 +43,10 @@ class UpdateUserServiceTest {
 
   @Mock private UserRepositoryPort userPort;
   @Mock private AreaRepositoryPort areaPort;
+  @Mock private SalaryHistoryRepositoryPort salaryHistoryPort;
 
   @Captor private ArgumentCaptor<User> userCaptor;
+  @Captor private ArgumentCaptor<SalaryHistoryEntry> salaryHistoryCaptor;
 
   private UpdateUserService updateUserService;
 
@@ -52,7 +59,7 @@ class UpdateUserServiceTest {
 
   @BeforeEach
   void setUp() {
-    updateUserService = new UpdateUserService(userPort, areaPort);
+    updateUserService = new UpdateUserService(userPort, areaPort, salaryHistoryPort);
 
     user =
         new User(
@@ -66,6 +73,7 @@ class UpdateUserServiceTest {
             UserRole.WORKER,
             UserStatus.ACTIVE,
             List.of(AreaId.of(1L)));
+    user.setSalary(Salary.of(new BigDecimal("2500000")));
   }
 
   // ---------------------------------------------------------------------------
@@ -80,7 +88,15 @@ class UpdateUserServiceTest {
 
     UpdateUserInfo info =
         new UpdateUserInfo(
-            "9876543210", "Updated Name", ORIGINAL_EMAIL, "New Address", "555-0200", AREAS);
+            "9876543210",
+            "Updated Name",
+            ORIGINAL_EMAIL,
+            "New Address",
+            "555-0200",
+            AREAS,
+            null,
+            null,
+            null);
 
     User result = updateUserService.update(USER_ID, info);
 
@@ -105,7 +121,15 @@ class UpdateUserServiceTest {
 
     UpdateUserInfo info =
         new UpdateUserInfo(
-            "1234567890", "Original Name", NEW_EMAIL, "Original Address", "555-0100", AREAS);
+            "1234567890",
+            "Original Name",
+            NEW_EMAIL,
+            "Original Address",
+            "555-0100",
+            AREAS,
+            null,
+            null,
+            null);
 
     User result = updateUserService.update(USER_ID, info);
 
@@ -122,7 +146,8 @@ class UpdateUserServiceTest {
     when(userPort.findById(UserId.of(USER_ID))).thenReturn(Optional.empty());
 
     UpdateUserInfo info =
-        new UpdateUserInfo("1234567890", "Name", ORIGINAL_EMAIL, "Address", "555-0100", AREAS);
+        new UpdateUserInfo(
+            "1234567890", "Name", ORIGINAL_EMAIL, "Address", "555-0100", AREAS, null, null, null);
 
     assertThrows(UserNotFoundException.class, () -> updateUserService.update(USER_ID, info));
 
@@ -139,10 +164,200 @@ class UpdateUserServiceTest {
     when(areaPort.existsAllByIds(anySet())).thenReturn(false);
 
     UpdateUserInfo info =
-        new UpdateUserInfo("1234567890", "Name", ORIGINAL_EMAIL, "Address", "555-0100", AREAS);
+        new UpdateUserInfo(
+            "1234567890", "Name", ORIGINAL_EMAIL, "Address", "555-0100", AREAS, null, null, null);
 
     assertThrows(AreaNotFoundException.class, () -> updateUserService.update(USER_ID, info));
 
     verify(userPort, never()).save(any());
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-S05: shouldCreateSalaryHistoryEntry_whenSalaryChanged
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldCreateSalaryHistoryEntry_whenSalaryChanged() {
+    when(userPort.findById(UserId.of(USER_ID))).thenReturn(Optional.of(user));
+    when(areaPort.existsAllByIds(AREAS)).thenReturn(true);
+    when(userPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    Salary newSalary = Salary.of(new BigDecimal("3000000"));
+    UpdateUserInfo info =
+        new UpdateUserInfo(
+            "1234567890",
+            "Original Name",
+            ORIGINAL_EMAIL,
+            "Original Address",
+            "555-0100",
+            AREAS,
+            newSalary,
+            "Aumento anual",
+            "Periodo 2026");
+
+    User result = updateUserService.update(USER_ID, info);
+
+    assertEquals(newSalary, result.getSalary());
+    verify(salaryHistoryPort).save(salaryHistoryCaptor.capture());
+    SalaryHistoryEntry entry = salaryHistoryCaptor.getValue();
+    assertEquals(Salary.of(new BigDecimal("2500000")), entry.getOldSalary());
+    assertEquals(newSalary, entry.getNewSalary());
+    assertEquals("Aumento anual", entry.getReason());
+    assertEquals("Periodo 2026", entry.getObservations());
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-S06: shouldNotCreateSalaryHistoryEntry_whenSalaryUnchanged
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldNotCreateSalaryHistoryEntry_whenSalaryUnchanged() {
+    when(userPort.findById(UserId.of(USER_ID))).thenReturn(Optional.of(user));
+    when(areaPort.existsAllByIds(AREAS)).thenReturn(true);
+    when(userPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    Salary sameSalary = Salary.of(new BigDecimal("2500000"));
+    UpdateUserInfo info =
+        new UpdateUserInfo(
+            "1234567890",
+            "Original Name",
+            ORIGINAL_EMAIL,
+            "Original Address",
+            "555-0100",
+            AREAS,
+            sameSalary,
+            null,
+            null);
+
+    updateUserService.update(USER_ID, info);
+
+    verify(salaryHistoryPort, never()).save(any());
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-S07: shouldNotCreateSalaryHistoryEntry_whenSalaryNull
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldNotCreateSalaryHistoryEntry_whenSalaryNull() {
+    when(userPort.findById(UserId.of(USER_ID))).thenReturn(Optional.of(user));
+    when(areaPort.existsAllByIds(AREAS)).thenReturn(true);
+    when(userPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    UpdateUserInfo info =
+        new UpdateUserInfo(
+            "1234567890",
+            "Original Name",
+            ORIGINAL_EMAIL,
+            "Original Address",
+            "555-0100",
+            AREAS,
+            null,
+            null,
+            null);
+
+    updateUserService.update(USER_ID, info);
+
+    assertEquals(Salary.of(new BigDecimal("2500000")), user.getSalary());
+    verify(salaryHistoryPort, never()).save(any());
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-S08: shouldThrow_whenSalaryChangedWithoutReason
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldThrow_whenSalaryChangedWithoutReason() {
+    when(userPort.findById(UserId.of(USER_ID))).thenReturn(Optional.of(user));
+    when(areaPort.existsAllByIds(AREAS)).thenReturn(true);
+
+    Salary newSalary = Salary.of(new BigDecimal("3000000"));
+    UpdateUserInfo info =
+        new UpdateUserInfo(
+            "1234567890",
+            "Original Name",
+            ORIGINAL_EMAIL,
+            "Original Address",
+            "555-0100",
+            AREAS,
+            newSalary,
+            null,
+            null);
+
+    assertThrows(InvalidSalaryException.class, () -> updateUserService.update(USER_ID, info));
+    verify(salaryHistoryPort, never()).save(any());
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-S09: shouldThrow_whenSalaryChangedWithBlankReason
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldThrow_whenSalaryChangedWithBlankReason() {
+    when(userPort.findById(UserId.of(USER_ID))).thenReturn(Optional.of(user));
+    when(areaPort.existsAllByIds(AREAS)).thenReturn(true);
+
+    Salary newSalary = Salary.of(new BigDecimal("3000000"));
+    UpdateUserInfo info =
+        new UpdateUserInfo(
+            "1234567890",
+            "Original Name",
+            ORIGINAL_EMAIL,
+            "Original Address",
+            "555-0100",
+            AREAS,
+            newSalary,
+            "",
+            null);
+
+    assertThrows(InvalidSalaryException.class, () -> updateUserService.update(USER_ID, info));
+    verify(salaryHistoryPort, never()).save(any());
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-S10: shouldThrow_whenSalaryIsZeroOrNegative
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldThrow_whenSalaryIsZero() {
+    assertThrows(IllegalArgumentException.class, () -> Salary.of(BigDecimal.ZERO));
+  }
+
+  @Test
+  void shouldThrow_whenSalaryIsNegative() {
+    assertThrows(IllegalArgumentException.class, () -> Salary.of(new BigDecimal("-1000")));
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-S11: shouldCreateSalaryHistory_whenSalarySetFromNull
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldCreateSalaryHistory_whenSalarySetFromNull() {
+    user.setSalary(null);
+
+    when(userPort.findById(UserId.of(USER_ID))).thenReturn(Optional.of(user));
+    when(areaPort.existsAllByIds(AREAS)).thenReturn(true);
+    when(userPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    Salary newSalary = Salary.of(new BigDecimal("3000000"));
+    UpdateUserInfo info =
+        new UpdateUserInfo(
+            "1234567890",
+            "Original Name",
+            ORIGINAL_EMAIL,
+            "Original Address",
+            "555-0100",
+            AREAS,
+            newSalary,
+            "Asignación inicial",
+            null);
+
+    updateUserService.update(USER_ID, info);
+
+    assertEquals(newSalary, user.getSalary());
+    verify(salaryHistoryPort).save(salaryHistoryCaptor.capture());
+    assertEquals(null, salaryHistoryCaptor.getValue().getOldSalary());
+    assertEquals(newSalary, salaryHistoryCaptor.getValue().getNewSalary());
   }
 }

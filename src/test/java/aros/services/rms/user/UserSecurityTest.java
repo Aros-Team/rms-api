@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -23,6 +24,7 @@ import aros.services.rms.core.user.port.input.CreateUserUseCase;
 import aros.services.rms.core.user.port.input.CreateUserUseCase.CreateUserResult;
 import aros.services.rms.core.user.port.input.DeleteUserUseCase;
 import aros.services.rms.core.user.port.input.GetAllUsersUseCase;
+import aros.services.rms.core.user.port.input.GetSalaryHistoryUseCase;
 import aros.services.rms.core.user.port.input.RetryUserEmailUseCase;
 import aros.services.rms.core.user.port.input.UpdateUserUseCase;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
@@ -60,6 +62,7 @@ class UserSecurityTest {
   @MockitoBean private RetryUserEmailUseCase retryUserEmailUseCase;
   @MockitoBean private AccountSetupUseCase accountSetupUseCase;
   @MockitoBean private UserRepositoryPort userRepositoryPort;
+  @MockitoBean private GetSalaryHistoryUseCase getSalaryHistoryUseCase;
 
   @MockitoBean private JwtDecoder jwtDecoder;
 
@@ -85,6 +88,7 @@ class UserSecurityTest {
 
   private static final String USERS_URL = "/api/v1/users";
   private static final String CHANGE_PASSWORD_URL = "/api/v1/users/me/password";
+  private static final String SALARY_HISTORY_URL = "/api/v1/users/{id}/salary-history";
 
   private static final String VALID_CREATE_BODY =
       """
@@ -264,5 +268,41 @@ class UserSecurityTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(VALID_CHANGE_PASSWORD_BODY))
         .andExpect(status().isOk());
+  }
+
+  // ---------------------------------------------------------------------------
+  // SG-S01: shouldReturn200_whenAdminGetsSalaryHistory
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn200_whenAdminGetsSalaryHistory() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createJwt("access", "ADMIN"));
+    when(getSalaryHistoryUseCase.getSalaryHistory(anyLong())).thenReturn(List.of());
+
+    mockMvc
+        .perform(get(SALARY_HISTORY_URL, 1L).header("Authorization", "Bearer token"))
+        .andExpect(status().isOk());
+  }
+
+  // ---------------------------------------------------------------------------
+  // SG-S02: shouldReturn403_whenWorkerGetsSalaryHistory
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn403_whenWorkerGetsSalaryHistory() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createJwt("access", "WORKER"));
+
+    mockMvc
+        .perform(get(SALARY_HISTORY_URL, 1L).header("Authorization", "Bearer token"))
+        .andExpect(status().isForbidden());
+  }
+
+  // ---------------------------------------------------------------------------
+  // SG-S03: shouldReturn401_whenNoTokenOnGetSalaryHistory
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn401_whenNoTokenOnGetSalaryHistory() throws Exception {
+    mockMvc.perform(get(SALARY_HISTORY_URL, 1L)).andExpect(status().isUnauthorized());
   }
 }
