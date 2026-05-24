@@ -42,7 +42,8 @@ import org.springframework.web.context.WebApplicationContext;
       "spring.sql.init.mode=never",
       "app.admin.email=admin@test.local",
       "app.admin.dummy-email=test@test.local",
-      "app.admin.password=TestPassword123!"
+      "app.admin.password=TestPassword123!",
+      "CORS_ALLOWED_ORIGINS=*",
     })
 class InventoryTransferControllerTest {
 

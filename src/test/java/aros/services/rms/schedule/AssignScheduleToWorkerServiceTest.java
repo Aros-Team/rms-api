@@ -82,8 +82,6 @@ class AssignScheduleToWorkerServiceTest {
     var workerId = UserId.of(1L);
     var newScheduleId = ScheduleId.of(2L);
     var existingScheduleId = ScheduleId.of(1L);
-    var info = new AssignInfo(workerId, 2L);
-
     var newSchedule =
         new Schedule(
             newScheduleId,
@@ -102,6 +100,8 @@ class AssignScheduleToWorkerServiceTest {
     when(scheduleRepository.findById(newScheduleId)).thenReturn(Optional.of(newSchedule));
     when(assignmentRepository.findByWorkerId(workerId)).thenReturn(List.of(existingAssignment));
     when(scheduleRepository.findById(existingScheduleId)).thenReturn(Optional.of(existingSchedule));
+
+    var info = new AssignInfo(workerId, 2L);
 
     assertThrows(ShiftOverlapException.class, () -> service.assign(info));
   }
