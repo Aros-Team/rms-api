@@ -1,0 +1,268 @@
+/* (C) 2026 */
+
+package aros.services.rms.user;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import aros.services.rms.core.auth.port.input.AccountSetupUseCase;
+import aros.services.rms.core.user.domain.User;
+import aros.services.rms.core.user.domain.UserEmail;
+import aros.services.rms.core.user.domain.UserId;
+import aros.services.rms.core.user.domain.UserRole;
+import aros.services.rms.core.user.domain.UserStatus;
+import aros.services.rms.core.user.port.dto.CreateUserInfo;
+import aros.services.rms.core.user.port.dto.UpdateUserInfo;
+import aros.services.rms.core.user.port.input.ChangePasswordUseCase;
+import aros.services.rms.core.user.port.input.CreateUserUseCase;
+import aros.services.rms.core.user.port.input.CreateUserUseCase.CreateUserResult;
+import aros.services.rms.core.user.port.input.DeleteUserUseCase;
+import aros.services.rms.core.user.port.input.GetAllUsersUseCase;
+import aros.services.rms.core.user.port.input.RetryUserEmailUseCase;
+import aros.services.rms.core.user.port.input.UpdateUserUseCase;
+import aros.services.rms.core.user.port.output.UserRepositoryPort;
+import aros.services.rms.infraestructure.user.api.UserController;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+@WebMvcTest(UserController.class)
+@Import(UserSecurityTest.TestSecurityConfig.class)
+class UserSecurityTest {
+
+  @Autowired private MockMvc mockMvc;
+
+  @MockitoBean private CreateUserUseCase createUserUseCase;
+  @MockitoBean private ChangePasswordUseCase changePasswordUseCase;
+  @MockitoBean private GetAllUsersUseCase getAllUsersUseCase;
+  @MockitoBean private UpdateUserUseCase updateUserUseCase;
+  @MockitoBean private DeleteUserUseCase deleteUserUseCase;
+  @MockitoBean private RetryUserEmailUseCase retryUserEmailUseCase;
+  @MockitoBean private AccountSetupUseCase accountSetupUseCase;
+  @MockitoBean private UserRepositoryPort userRepositoryPort;
+
+  @MockitoBean private JwtDecoder jwtDecoder;
+
+  @org.springframework.boot.test.context.TestConfiguration
+  @EnableMethodSecurity
+  static class TestSecurityConfig {
+    @Bean
+    public SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
+      http.csrf(csrf -> csrf.disable())
+          .sessionManagement(
+              session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+          .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+          .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+      return http.build();
+    }
+  }
+
+  private static Jwt createJwt(String tokenType, String role) {
+    Map<String, Object> claims = Map.of("type", tokenType, "role", role, "sub", "test@example.com");
+    Map<String, Object> headers = Map.of("alg", "RS256");
+    return new Jwt("token", Instant.now(), Instant.now().plusSeconds(3600), headers, claims);
+  }
+
+  private static final String USERS_URL = "/api/v1/users";
+  private static final String CHANGE_PASSWORD_URL = "/api/v1/users/me/password";
+
+  private static final String VALID_CREATE_BODY =
+      """
+      {
+        "document": "1234567890",
+        "name": "New User",
+        "email": "new@example.com",
+        "address": "Address",
+        "phone": "5555550100",
+        "areas": [1, 2]
+      }
+      """;
+
+  private static final String VALID_UPDATE_BODY =
+      """
+      {
+        "document": "9876543210",
+        "name": "Updated User",
+        "email": "updated@example.com",
+        "address": "New Address",
+        "phone": "5555550200",
+        "areas": [1]
+      }
+      """;
+
+  private static final String VALID_CHANGE_PASSWORD_BODY =
+      """
+      {
+        "currentPassword": "CurrentPass1!",
+        "newPassword": "NewPass123!"
+      }
+      """;
+
+  private User createUser(Long id) {
+    return new User(
+        UserId.of(id),
+        "1234567890",
+        "User",
+        new UserEmail("user@example.com"),
+        "encoded",
+        "Address",
+        "555-0100",
+        UserRole.WORKER,
+        UserStatus.ACTIVE,
+        List.of());
+  }
+
+  // ---------------------------------------------------------------------------
+  // SG-01: shouldReturn401_whenNoTokenOnCreate
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn401_whenNoTokenOnCreate() throws Exception {
+    mockMvc
+        .perform(post(USERS_URL).contentType(MediaType.APPLICATION_JSON).content(VALID_CREATE_BODY))
+        .andExpect(status().isUnauthorized());
+  }
+
+  // ---------------------------------------------------------------------------
+  // SG-02: shouldReturn403_whenWorkerCreatesUser
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn403_whenWorkerCreatesUser() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createJwt("access", "WORKER"));
+
+    mockMvc
+        .perform(
+            post(USERS_URL)
+                .header("Authorization", "Bearer token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_CREATE_BODY))
+        .andExpect(status().isForbidden());
+  }
+
+  // ---------------------------------------------------------------------------
+  // SG-03: shouldReturn201_whenAdminCreatesUser
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn201_whenAdminCreatesUser() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createJwt("access", "ADMIN"));
+
+    User user = createUser(1L);
+    when(createUserUseCase.create(any(CreateUserInfo.class)))
+        .thenReturn(new CreateUserResult(user, null));
+
+    mockMvc
+        .perform(
+            post(USERS_URL)
+                .header("Authorization", "Bearer token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_CREATE_BODY))
+        .andExpect(status().isCreated());
+  }
+
+  // ---------------------------------------------------------------------------
+  // SG-04: shouldReturn403_whenWorkerUpdatesUser
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn403_whenWorkerUpdatesUser() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createJwt("access", "WORKER"));
+
+    mockMvc
+        .perform(
+            put(USERS_URL + "/1")
+                .header("Authorization", "Bearer token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_UPDATE_BODY))
+        .andExpect(status().isForbidden());
+  }
+
+  // ---------------------------------------------------------------------------
+  // SG-05: shouldReturn200_whenAdminUpdatesUser
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn200_whenAdminUpdatesUser() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createJwt("access", "ADMIN"));
+
+    User user = createUser(1L);
+    when(updateUserUseCase.update(anyLong(), any(UpdateUserInfo.class))).thenReturn(user);
+
+    mockMvc
+        .perform(
+            put(USERS_URL + "/1")
+                .header("Authorization", "Bearer token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_UPDATE_BODY))
+        .andExpect(status().isOk());
+  }
+
+  // ---------------------------------------------------------------------------
+  // SG-06: shouldReturn401_whenNoTokenOnChangePassword
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn401_whenNoTokenOnChangePassword() throws Exception {
+    mockMvc
+        .perform(
+            put(CHANGE_PASSWORD_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_CHANGE_PASSWORD_BODY))
+        .andExpect(status().isUnauthorized());
+  }
+
+  // ---------------------------------------------------------------------------
+  // SG-07: shouldReturn200_whenWorkerChangesPassword
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn200_whenWorkerChangesPassword() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createJwt("access", "WORKER"));
+
+    mockMvc
+        .perform(
+            put(CHANGE_PASSWORD_URL)
+                .header("Authorization", "Bearer token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_CHANGE_PASSWORD_BODY))
+        .andExpect(status().isOk());
+  }
+
+  // ---------------------------------------------------------------------------
+  // SG-08: shouldReturn200_whenAdminChangesPassword
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn200_whenAdminChangesPassword() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createJwt("access", "ADMIN"));
+
+    mockMvc
+        .perform(
+            put(CHANGE_PASSWORD_URL)
+                .header("Authorization", "Bearer token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(VALID_CHANGE_PASSWORD_BODY))
+        .andExpect(status().isOk());
+  }
+}

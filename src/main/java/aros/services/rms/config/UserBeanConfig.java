@@ -1,5 +1,6 @@
 package aros.services.rms.config;
 
+import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.auth.port.output.AccountSetupTokenRepositoryPort;
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
@@ -36,12 +37,14 @@ public class UserBeanConfig {
   @Bean
   public CreateUserUseCase createUserUseCase(
       UserRepositoryPort userPort,
+      AreaRepositoryPort areaPort,
       AccountSetupTokenRepositoryPort accountSetupTokenRepositoryPort,
       WelcomeEmailUseCase welcomeEmailUseCase,
       HashServicePort hashServicePort,
       BusinessMetricsPort metricsPort) {
     return new CreateUserService(
         userPort,
+        areaPort,
         accountSetupTokenRepositoryPort,
         welcomeEmailUseCase,
         hashServicePort,

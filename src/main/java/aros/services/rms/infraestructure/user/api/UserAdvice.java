@@ -23,6 +23,6 @@ public class UserAdvice {
   @ExceptionHandler(AreaNotFoundException.class)
   public ResponseEntity<ErrorResponse> handleAreaNotFound(AreaNotFoundException e) {
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT)
-      .body(new ErrorResponse(HttpStatus.UNPROCESSABLE_CONTENT.value(), e.getMessage()));
+        .body(new ErrorResponse(HttpStatus.UNPROCESSABLE_CONTENT.value(), e.getMessage()));
   }
 }

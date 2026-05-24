@@ -60,6 +60,7 @@ public class AreaPersistenceAdapter implements AreaRepositoryPort {
 
   @Override
   public boolean existsAllByIds(Set<AreaId> ids) {
-    return areaRepository.existsAllByIdIn(ids.stream().map(i -> i.value()).collect(Collectors.toSet()), ids.size());
+    return areaRepository.existsAllByIdIn(
+        ids.stream().map(i -> i.value()).collect(Collectors.toSet()), ids.size());
   }
 }

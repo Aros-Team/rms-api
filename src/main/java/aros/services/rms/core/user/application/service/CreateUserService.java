@@ -63,7 +63,7 @@ public class CreateUserService implements CreateUserUseCase {
           "El Documento o Correo ya han sido utilizados por otro usuario.");
     }
 
-    if (! areaPort.existsAllByIds(info.areas())) {
+    if (!areaPort.existsAllByIds(info.areas())) {
       throw new AreaNotFoundException("No se pudo encontrar alguna de areas referenciadas.");
     }
 

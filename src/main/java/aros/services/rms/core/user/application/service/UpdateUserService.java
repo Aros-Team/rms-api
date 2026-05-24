@@ -34,7 +34,7 @@ public class UpdateUserService implements UpdateUserUseCase {
             .findById(new aros.services.rms.core.user.domain.UserId(userId))
             .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
 
-    if (! areaPort.existsAllByIds(info.areas())) {
+    if (!areaPort.existsAllByIds(info.areas())) {
       throw new AreaNotFoundException("No se pudo encontrar alguna de areas referenciadas.");
     }
 

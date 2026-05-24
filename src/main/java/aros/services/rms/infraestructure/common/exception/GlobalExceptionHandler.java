@@ -122,6 +122,22 @@ public class GlobalExceptionHandler {
 
   // --- User exceptions ---
 
+  /** Handles UserNotFoundException. */
+  @ExceptionHandler(aros.services.rms.core.user.application.exception.UserNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleUserNotFound(
+      aros.services.rms.core.user.application.exception.UserNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  /** Handles UserNotFoundByEmailException. */
+  @ExceptionHandler(
+      aros.services.rms.core.user.application.exception.UserNotFoundByEmailException.class)
+  public ResponseEntity<ErrorResponse> handleUserNotFoundByEmail(
+      aros.services.rms.core.user.application.exception.UserNotFoundByEmailException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
+  }
+
   /** Handles InvalidPasswordException. */
   @ExceptionHandler(
       aros.services.rms.core.user.application.exception.InvalidPasswordException.class)

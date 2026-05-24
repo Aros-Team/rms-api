@@ -5,7 +5,6 @@ package aros.services.rms.infraestructure.area.persistence.jpa;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -27,7 +26,7 @@ public interface AreaRepository extends JpaRepository<Area, Long> {
 
   /**
    * checks if a list of areas exists by id
-   * 
+   *
    * @param ids the areas's id to check
    * @return true if all the areas exists
    */
