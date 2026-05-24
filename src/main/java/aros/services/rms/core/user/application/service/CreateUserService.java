@@ -2,6 +2,8 @@
 
 package aros.services.rms.core.user.application.service;
 
+import aros.services.rms.core.area.application.exception.AreaNotFoundException;
+import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.auth.domain.AccountSetupToken;
 import aros.services.rms.core.auth.port.output.AccountSetupTokenRepositoryPort;
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
@@ -22,6 +24,7 @@ import java.util.UUID;
 /** Implementation of user creation with account setup token generation and welcome email. */
 public class CreateUserService implements CreateUserUseCase {
   private final UserRepositoryPort userPort;
+  private final AreaRepositoryPort areaPort;
   private final AccountSetupTokenRepositoryPort accountSetupTokenRepositoryPort;
   private final WelcomeEmailUseCase welcomeEmailUseCase;
   private final HashServicePort hashServicePort;
@@ -38,6 +41,7 @@ public class CreateUserService implements CreateUserUseCase {
    */
   public CreateUserService(
       UserRepositoryPort userPort,
+      AreaRepositoryPort areaPort,
       AccountSetupTokenRepositoryPort accountSetupTokenRepositoryPort,
       WelcomeEmailUseCase welcomeEmailUseCase,
       HashServicePort hashServicePort,
@@ -47,6 +51,7 @@ public class CreateUserService implements CreateUserUseCase {
     this.welcomeEmailUseCase = welcomeEmailUseCase;
     this.hashServicePort = hashServicePort;
     this.metricsPort = metricsPort;
+    this.areaPort = areaPort;
   }
 
   @Override
@@ -56,6 +61,10 @@ public class CreateUserService implements CreateUserUseCase {
     if (exists) {
       throw new UserAlreadyExistsException(
           "El Documento o Correo ya han sido utilizados por otro usuario.");
+    }
+
+    if (! areaPort.existsAllByIds(info.areas())) {
+      throw new AreaNotFoundException("No se pudo encontrar alguna de areas referenciadas.");
     }
 
     User user =
