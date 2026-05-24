@@ -25,6 +25,7 @@ import aros.services.rms.core.device.domain.Device;
 import aros.services.rms.core.device.domain.DeviceId;
 import aros.services.rms.core.device.port.output.DeviceRepositoryPort;
 import aros.services.rms.core.email.port.input.TwoFactorAuthEmailUseCase;
+import aros.services.rms.core.schedule.port.input.RecordTimeLogUseCase;
 import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.twofactor.domain.TwoFactorCode;
 import aros.services.rms.core.twofactor.port.output.TfaCodeGeneratorPort;
@@ -57,6 +58,7 @@ class LoginServiceTest {
   @Mock private RefreshTokenRepositoryPort refreshTokenPort;
   @Mock private TokenPort tokenPort;
   @Mock private BusinessMetricsPort metricsPort;
+  @Mock private RecordTimeLogUseCase recordTimeLogUseCase;
 
   private LoginService loginService;
 
@@ -104,7 +106,8 @@ class LoginServiceTest {
             hashServicePort,
             refreshTokenPort,
             tokenPort,
-            metricsPort);
+            metricsPort,
+            recordTimeLogUseCase);
   }
 
   // ---------------------------------------------------------------------------
@@ -117,7 +120,9 @@ class LoginServiceTest {
     when(passwordPort.validate(RAW_PASS, ENCODED_PASS)).thenReturn(true);
     when(devicePort.findByUserIdAndHash(USER_ID, KNOWN_DEVICE_HASH))
         .thenReturn(Optional.of(device));
-    when(tokenPort.generateAccessToken(user)).thenReturn(ACCESS_TOKEN);
+    when(recordTimeLogUseCase.execute(any()))
+        .thenReturn(new RecordTimeLogUseCase.RecordTimeLogResult(false, null));
+    when(tokenPort.generateAccessToken(user, true)).thenReturn(ACCESS_TOKEN);
     when(tokenPort.generateRefreshToken(user)).thenReturn(REFRESH_TOKEN);
     when(hashServicePort.hash(REFRESH_TOKEN)).thenReturn(HASHED_REFRESH);
 

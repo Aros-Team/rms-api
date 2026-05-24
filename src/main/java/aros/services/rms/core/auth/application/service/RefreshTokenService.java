@@ -69,7 +69,7 @@ public class RefreshTokenService implements RefreshTokensUseCase {
     refreshToken.revoke();
     this.refreshTokenPort.save(refreshToken);
 
-    String accessToken = tokenPort.generateAccessToken(user);
+    String accessToken = tokenPort.generateAccessToken(user, false);
     String newRefreshToken = tokenPort.generateRefreshToken(user);
     String refreshHash = hashServicePort.hash(newRefreshToken);
 

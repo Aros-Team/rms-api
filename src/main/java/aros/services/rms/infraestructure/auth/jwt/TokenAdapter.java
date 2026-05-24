@@ -14,9 +14,9 @@ public class TokenAdapter implements TokenPort {
   private final JwtService jwtService;
 
   @Override
-  public String generateAccessToken(User user) {
+  public String generateAccessToken(User user, boolean restricted) {
     return jwtService.generateAccessToken(
-        user.getEmail().value(), user.getRole(), user.getAssignedAreas());
+        user.getEmail().value(), user.getRole(), user.getAssignedAreas(), restricted);
   }
 
   @Override

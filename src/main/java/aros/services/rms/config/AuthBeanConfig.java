@@ -26,6 +26,7 @@ import aros.services.rms.core.device.port.output.DeviceRepositoryPort;
 import aros.services.rms.core.email.port.input.PasswordResetEmailUseCase;
 import aros.services.rms.core.email.port.input.TwoFactorAuthEmailUseCase;
 import aros.services.rms.core.email.port.input.WelcomeEmailUseCase;
+import aros.services.rms.core.schedule.port.input.RecordTimeLogUseCase;
 import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.twofactor.port.output.TfaCodeGeneratorPort;
 import aros.services.rms.core.twofactor.port.output.TwoFactorCodeRepositoryPort;
@@ -59,6 +60,7 @@ public class AuthBeanConfig {
   private final WelcomeEmailUseCase welcomeEmailUseCase;
   private final Logger logger;
   private final BusinessMetricsPort metricsPort;
+  private final RecordTimeLogUseCase recordTimeLogUseCase;
 
   /**
    * Creates the login use case with all required dependencies.
@@ -77,7 +79,8 @@ public class AuthBeanConfig {
         hashServicePort,
         refreshTokenPort,
         tokenPort,
-        metricsPort);
+        metricsPort,
+        recordTimeLogUseCase);
   }
 
   /**

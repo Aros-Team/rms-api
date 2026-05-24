@@ -47,7 +47,8 @@ public class JwtServiceImpl implements JwtService {
   }
 
   @Override
-  public String generateAccessToken(String username, UserRole role, List<AreaId> areas) {
+  public String generateAccessToken(
+      String username, UserRole role, List<AreaId> areas, boolean restricted) {
     if (jwtEncoder == null) {
       log.error(JWT_NOT_CONFIGURED_ERROR);
       throw new IllegalStateException("JWT not configured");
@@ -67,6 +68,7 @@ public class JwtServiceImpl implements JwtService {
             .claim("type", "access")
             .claim("role", role.name())
             .claim("areaIds", areaIds)
+            .claim("restricted", restricted)
             .build();
 
     return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
