@@ -10,6 +10,7 @@ import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 
+/** JPA entity for the schedules table. */
 @Entity
 @Table(name = "schedules")
 public class ScheduleEntity {

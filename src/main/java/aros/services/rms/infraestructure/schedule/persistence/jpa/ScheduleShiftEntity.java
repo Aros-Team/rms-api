@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalTime;
 
+/** JPA entity for the schedule_shifts table. */
 @Entity
 @Table(name = "schedule_shifts")
 public class ScheduleShiftEntity {

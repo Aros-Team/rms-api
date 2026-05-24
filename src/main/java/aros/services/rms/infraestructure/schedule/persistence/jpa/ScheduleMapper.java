@@ -8,11 +8,15 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
+/** MapStruct mapper between ScheduleEntity and Schedule. */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public abstract class ScheduleMapper {
 
+  /** Maps a ScheduleEntity to a domain Schedule. */
   public Schedule toDomain(ScheduleEntity entity) {
-    if (entity == null) return null;
+    if (entity == null) {
+      return null;
+    }
     List<ScheduleShift> shifts =
         entity.getShifts().stream()
             .map(
@@ -24,6 +28,7 @@ public abstract class ScheduleMapper {
         ScheduleId.of(entity.getId()), entity.getName(), entity.getDescription(), shifts);
   }
 
+  /** Maps a domain Schedule to a ScheduleEntity. */
   @Mapping(source = "id.value", target = "id")
   @Mapping(target = "shifts", ignore = true)
   public abstract ScheduleEntity toEntity(Schedule domain);

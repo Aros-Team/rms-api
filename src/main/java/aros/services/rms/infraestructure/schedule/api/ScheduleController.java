@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** REST controller for schedule CRUD operations. */
 @RestController
 @RequestMapping("/api/v1/schedules")
 @RequiredArgsConstructor
@@ -37,6 +38,7 @@ public class ScheduleController {
   private final DeleteScheduleUseCase deleteScheduleUseCase;
   private final ScheduleRepositoryPort scheduleRepository;
 
+  /** Creates a new schedule with shifts. */
   @PostMapping
   @JustAdminUser
   @Operation(summary = "Create a schedule", description = "Creates a new schedule with shifts")
@@ -58,6 +60,7 @@ public class ScheduleController {
     return ResponseEntity.status(HttpStatus.CREATED).body(ScheduleResponse.fromDomain(schedule));
   }
 
+  /** Returns all schedules. */
   @GetMapping
   @JustAdminUser
   @Operation(summary = "List all schedules", description = "Returns all schedules")
@@ -67,6 +70,7 @@ public class ScheduleController {
     return ResponseEntity.ok(schedules);
   }
 
+  /** Returns a single schedule by ID. */
   @GetMapping("/{id}")
   @JustAdminUser
   @Operation(summary = "Get schedule by ID", description = "Returns a single schedule with shifts")
@@ -79,6 +83,7 @@ public class ScheduleController {
         .orElse(ResponseEntity.notFound().build());
   }
 
+  /** Updates an existing schedule. */
   @PutMapping("/{id}")
   @JustAdminUser
   @Operation(summary = "Update a schedule", description = "Updates an existing schedule")
@@ -100,6 +105,7 @@ public class ScheduleController {
     return ResponseEntity.ok(ScheduleResponse.fromDomain(schedule));
   }
 
+  /** Deletes a schedule if it has no active assignments. */
   @DeleteMapping("/{id}")
   @JustAdminUser
   @Operation(

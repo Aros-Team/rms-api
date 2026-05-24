@@ -20,6 +20,7 @@ public class UserAdvice {
         .body(new ErrorResponse(HttpStatus.CONFLICT.value(), e.getMessage()));
   }
 
+  /** Handles AreaNotFoundException. */
   @ExceptionHandler(AreaNotFoundException.class)
   public ResponseEntity<ErrorResponse> handleAreaNotFound(AreaNotFoundException e) {
     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT)

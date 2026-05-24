@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/** REST controller for time log history queries. */
 @RestController
 @RequestMapping("/api/v1/admin/time-logs")
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ public class TimeLogController {
 
   private final GetTimeLogHistoryUseCase getTimeLogHistoryUseCase;
 
+  /** Returns filtered time log entries. */
   @GetMapping
   @JustAdminUser
   @Operation(summary = "Get time log history", description = "Returns filtered time log entries")

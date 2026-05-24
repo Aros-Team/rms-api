@@ -5,8 +5,10 @@ import aros.services.rms.core.schedule.port.input.GetWorkerShiftsUseCase.ShiftDe
 import java.util.List;
 import java.util.Map;
 
+/** Response with the worker's weekly schedule. */
 public record WorkerScheduleResponse(List<DayShiftsResponse> days) {
 
+  /** Builds a WorkerScheduleResponse from a map of shifts grouped by day. */
   public static WorkerScheduleResponse fromShiftMap(Map<DayOfWeek, List<ShiftDetail>> shifts) {
     List<DayShiftsResponse> days =
         shifts.entrySet().stream()

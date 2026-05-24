@@ -25,21 +25,25 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/** Spring configuration that wires schedule use case beans. */
 @Configuration
 public class ScheduleConfigBeans {
 
+  /** Creates the CreateScheduleUseCase bean. */
   @Bean
   public CreateScheduleUseCase createScheduleUseCase(
       ScheduleRepositoryPort scheduleRepository, Logger logger) {
     return new CreateScheduleService(scheduleRepository, logger);
   }
 
+  /** Creates the UpdateScheduleUseCase bean. */
   @Bean
   public UpdateScheduleUseCase updateScheduleUseCase(
       ScheduleRepositoryPort scheduleRepository, Logger logger) {
     return new UpdateScheduleService(scheduleRepository, logger);
   }
 
+  /** Creates the DeleteScheduleUseCase bean. */
   @Bean
   public DeleteScheduleUseCase deleteScheduleUseCase(
       ScheduleRepositoryPort scheduleRepository,
@@ -48,6 +52,7 @@ public class ScheduleConfigBeans {
     return new DeleteScheduleService(scheduleRepository, assignmentRepository, logger);
   }
 
+  /** Creates the AssignScheduleToWorkerUseCase bean. */
   @Bean
   public AssignScheduleToWorkerUseCase assignScheduleToWorkerUseCase(
       ScheduleRepositoryPort scheduleRepository,
@@ -56,12 +61,14 @@ public class ScheduleConfigBeans {
     return new AssignScheduleToWorkerService(scheduleRepository, assignmentRepository, logger);
   }
 
+  /** Creates the RemoveScheduleFromWorkerUseCase bean. */
   @Bean
   public RemoveScheduleFromWorkerUseCase removeScheduleFromWorkerUseCase(
       WorkerScheduleAssignmentRepositoryPort assignmentRepository, Logger logger) {
     return new RemoveScheduleFromWorkerService(assignmentRepository, logger);
   }
 
+  /** Creates the GetWorkerShiftsUseCase bean. */
   @Bean
   public GetWorkerShiftsUseCase getWorkerShiftsUseCase(
       WorkerScheduleAssignmentRepositoryPort assignmentRepository,
@@ -69,6 +76,7 @@ public class ScheduleConfigBeans {
     return new GetWorkerShiftsService(assignmentRepository, scheduleRepository);
   }
 
+  /** Creates the RecordTimeLogUseCase bean. */
   @Bean
   public RecordTimeLogUseCase recordTimeLogUseCase(
       TimeLogRepositoryPort timeLogRepository,
@@ -79,6 +87,7 @@ public class ScheduleConfigBeans {
         timeLogRepository, assignmentRepository, scheduleRepository, ZoneId.of(timezone));
   }
 
+  /** Creates the GetTimeLogHistoryUseCase bean. */
   @Bean
   public GetTimeLogHistoryUseCase getTimeLogHistoryUseCase(
       TimeLogRepositoryPort timeLogRepository) {

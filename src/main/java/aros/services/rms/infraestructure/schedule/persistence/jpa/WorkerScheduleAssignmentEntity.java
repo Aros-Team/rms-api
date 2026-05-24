@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 
+/** JPA entity for the worker_schedule_assignments table. */
 @Entity
 @Table(name = "worker_schedule_assignments")
 public class WorkerScheduleAssignmentEntity {

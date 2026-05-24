@@ -12,15 +12,31 @@ import aros.services.rms.core.schedule.port.output.ScheduleRepositoryPort;
 import java.time.LocalTime;
 import java.util.List;
 
+/** Service for updating an existing schedule's name, description, and shifts. */
 public class UpdateScheduleService implements UpdateScheduleUseCase {
   private final ScheduleRepositoryPort scheduleRepository;
   private final Logger logger;
 
+  /**
+   * Constructs a new UpdateScheduleService.
+   *
+   * @param scheduleRepository the schedule repository
+   * @param logger the logger
+   */
   public UpdateScheduleService(ScheduleRepositoryPort scheduleRepository, Logger logger) {
     this.scheduleRepository = scheduleRepository;
     this.logger = logger;
   }
 
+  /**
+   * Updates the schedule with the given ID using the provided info.
+   *
+   * @param id the schedule ID to update
+   * @param info the update info containing new name, description, and shifts
+   * @return the updated schedule
+   * @throws ScheduleNotFoundException if no schedule with the given ID exists
+   * @throws ScheduleAlreadyExistsException if another schedule with the new name already exists
+   */
   @Override
   public Schedule update(ScheduleId id, UpdateScheduleInfo info) {
     Schedule existing =

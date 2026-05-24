@@ -9,6 +9,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+/** Repository adapter for Schedule persistence. */
 @Repository
 @Transactional
 @RequiredArgsConstructor
@@ -17,6 +18,7 @@ public class ScheduleRepositoryAdapter implements ScheduleRepositoryPort {
   private final ScheduleJpaRepository internal;
   private final ScheduleMapper mapper;
 
+  /** {@inheritDoc} */
   @Override
   public Schedule save(Schedule schedule) {
     ScheduleEntity entity = mapper.toEntity(schedule);
@@ -42,26 +44,31 @@ public class ScheduleRepositoryAdapter implements ScheduleRepositoryPort {
     return mapper.toDomain(saved);
   }
 
+  /** {@inheritDoc} */
   @Override
   public Optional<Schedule> findById(ScheduleId id) {
     return internal.findById(id.value()).map(mapper::toDomain);
   }
 
+  /** {@inheritDoc} */
   @Override
   public List<Schedule> findAll() {
     return internal.findAll().stream().map(mapper::toDomain).toList();
   }
 
+  /** {@inheritDoc} */
   @Override
   public Optional<Schedule> findByName(String name) {
     return internal.findByName(name).map(mapper::toDomain);
   }
 
+  /** {@inheritDoc} */
   @Override
   public boolean existsByName(String name) {
     return internal.existsByName(name);
   }
 
+  /** {@inheritDoc} */
   @Override
   public void delete(ScheduleId id) {
     internal.deleteById(id.value());

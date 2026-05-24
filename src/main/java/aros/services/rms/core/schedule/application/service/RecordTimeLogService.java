@@ -14,12 +14,21 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 
+/** Service for recording a time log entry when a worker clocks in during an active shift. */
 public class RecordTimeLogService implements RecordTimeLogUseCase {
   private final TimeLogRepositoryPort timeLogRepository;
   private final WorkerScheduleAssignmentRepositoryPort assignmentRepository;
   private final ScheduleRepositoryPort scheduleRepository;
   private final ZoneId zoneId;
 
+  /**
+   * Constructs a new RecordTimeLogService.
+   *
+   * @param timeLogRepository the time log repository
+   * @param assignmentRepository the assignment repository
+   * @param scheduleRepository the schedule repository
+   * @param zoneId the time zone for determining the current day
+   */
   public RecordTimeLogService(
       TimeLogRepositoryPort timeLogRepository,
       WorkerScheduleAssignmentRepositoryPort assignmentRepository,
@@ -31,6 +40,13 @@ public class RecordTimeLogService implements RecordTimeLogUseCase {
     this.zoneId = zoneId;
   }
 
+  /**
+   * Records a time log for the worker. If the worker has an active shift at this moment, the log is
+   * marked as successful; otherwise, it is recorded as a failed attempt.
+   *
+   * @param workerId the worker's user ID
+   * @return the result indicating success and the matched shift, if any
+   */
   @Override
   public RecordTimeLogResult execute(UserId workerId) {
     Instant now = Instant.now();
@@ -42,7 +58,9 @@ public class RecordTimeLogService implements RecordTimeLogUseCase {
 
     for (var assignment : assignments) {
       Schedule schedule = scheduleRepository.findById(assignment.getScheduleId()).orElse(null);
-      if (schedule == null) continue;
+      if (schedule == null) {
+        continue;
+      }
 
       for (ScheduleShift shift : schedule.getShifts()) {
         if (shift.dayOfWeek() == today

@@ -11,6 +11,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+/** Repository adapter for WorkerScheduleAssignment persistence. */
 @Repository
 @Transactional
 @RequiredArgsConstructor
@@ -20,6 +21,7 @@ public class WorkerScheduleAssignmentRepositoryAdapter
   private final WorkerScheduleAssignmentJpaRepository internal;
   private final WorkerScheduleAssignmentMapper mapper;
 
+  /** {@inheritDoc} */
   @Override
   public WorkerScheduleAssignment save(WorkerScheduleAssignment assignment) {
     WorkerScheduleAssignmentEntity entity = mapper.toEntity(assignment);
@@ -27,27 +29,32 @@ public class WorkerScheduleAssignmentRepositoryAdapter
     return mapper.toDomain(saved);
   }
 
+  /** {@inheritDoc} */
   @Override
   public List<WorkerScheduleAssignment> findByWorkerId(UserId workerId) {
     return internal.findByWorkerId(workerId.value()).stream().map(mapper::toDomain).toList();
   }
 
+  /** {@inheritDoc} */
   @Override
   public List<WorkerScheduleAssignment> findByScheduleId(ScheduleId scheduleId) {
     return internal.findByScheduleId(scheduleId.value()).stream().map(mapper::toDomain).toList();
   }
 
+  /** {@inheritDoc} */
   @Override
   public List<WorkerScheduleAssignment> findByWorkerIdAndDayOfWeek(
       UserId workerId, DayOfWeek dayOfWeek) {
     return findByWorkerId(workerId);
   }
 
+  /** {@inheritDoc} */
   @Override
   public void delete(WorkerScheduleAssignmentId id) {
     internal.deleteById(id.value());
   }
 
+  /** {@inheritDoc} */
   @Override
   public boolean existsByScheduleId(ScheduleId scheduleId) {
     return internal.existsByScheduleId(scheduleId.value());

@@ -10,15 +10,29 @@ import aros.services.rms.core.schedule.port.output.ScheduleRepositoryPort;
 import java.time.LocalTime;
 import java.util.List;
 
+/** Service for creating new schedules. */
 public class CreateScheduleService implements CreateScheduleUseCase {
   private final ScheduleRepositoryPort scheduleRepository;
   private final Logger logger;
 
+  /**
+   * Constructs a new CreateScheduleService.
+   *
+   * @param scheduleRepository the repository for schedules
+   * @param logger the logger
+   */
   public CreateScheduleService(ScheduleRepositoryPort scheduleRepository, Logger logger) {
     this.scheduleRepository = scheduleRepository;
     this.logger = logger;
   }
 
+  /**
+   * Creates a new schedule with the given info.
+   *
+   * @param info the schedule creation info
+   * @return the created schedule
+   * @throws ScheduleAlreadyExistsException if a schedule with the same name already exists
+   */
   @Override
   public Schedule create(CreateScheduleInfo info) {
     if (scheduleRepository.existsByName(info.name())) {

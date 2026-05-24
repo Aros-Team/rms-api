@@ -12,11 +12,19 @@ import aros.services.rms.core.schedule.port.output.ScheduleRepositoryPort;
 import aros.services.rms.core.schedule.port.output.WorkerScheduleAssignmentRepositoryPort;
 import java.util.List;
 
+/** Service for assigning a schedule to a worker, with shift overlap validation. */
 public class AssignScheduleToWorkerService implements AssignScheduleToWorkerUseCase {
   private final ScheduleRepositoryPort scheduleRepository;
   private final WorkerScheduleAssignmentRepositoryPort assignmentRepository;
   private final Logger logger;
 
+  /**
+   * Constructs a new AssignScheduleToWorkerService.
+   *
+   * @param scheduleRepository the schedule repository
+   * @param assignmentRepository the assignment repository
+   * @param logger the logger
+   */
   public AssignScheduleToWorkerService(
       ScheduleRepositoryPort scheduleRepository,
       WorkerScheduleAssignmentRepositoryPort assignmentRepository,
@@ -26,6 +34,15 @@ public class AssignScheduleToWorkerService implements AssignScheduleToWorkerUseC
     this.logger = logger;
   }
 
+  /**
+   * Assigns a schedule to a worker after validating the schedule exists and no shift overlap
+   * occurs.
+   *
+   * @param info the assignment info containing worker ID and schedule ID
+   * @return the created assignment
+   * @throws ScheduleNotFoundException if the schedule is not found
+   * @throws ShiftOverlapException if the new shifts overlap with existing assignments
+   */
   @Override
   public WorkerScheduleAssignment assign(AssignInfo info) {
     Schedule schedule =

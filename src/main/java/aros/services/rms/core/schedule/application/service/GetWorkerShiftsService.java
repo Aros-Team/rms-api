@@ -11,10 +11,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/** Service for retrieving a worker's scheduled shifts grouped by day of week. */
 public class GetWorkerShiftsService implements GetWorkerShiftsUseCase {
   private final WorkerScheduleAssignmentRepositoryPort assignmentRepository;
   private final ScheduleRepositoryPort scheduleRepository;
 
+  /**
+   * Constructs a new GetWorkerShiftsService.
+   *
+   * @param assignmentRepository the assignment repository
+   * @param scheduleRepository the schedule repository
+   */
   public GetWorkerShiftsService(
       WorkerScheduleAssignmentRepositoryPort assignmentRepository,
       ScheduleRepositoryPort scheduleRepository) {
@@ -22,6 +29,12 @@ public class GetWorkerShiftsService implements GetWorkerShiftsUseCase {
     this.scheduleRepository = scheduleRepository;
   }
 
+  /**
+   * Retrieves all scheduled shifts for the given worker, grouped by day of week.
+   *
+   * @param workerId the worker's user ID
+   * @return a map from day of week to list of shift details
+   */
   @Override
   public Map<DayOfWeek, List<ShiftDetail>> getShifts(UserId workerId) {
     Map<DayOfWeek, List<ShiftDetail>> result = new LinkedHashMap<>();

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** REST controller for the authenticated worker's schedule. */
 @RestController
 @RequestMapping("/api/v1/workers/me/schedule")
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ public class WorkerScheduleController {
   private final GetWorkerShiftsUseCase getWorkerShiftsUseCase;
   private final UserRepositoryPort userRepositoryPort;
 
+  /** Returns the authenticated worker's schedule. */
   @GetMapping
   @JustWorkerOrAdmin
   @Operation(

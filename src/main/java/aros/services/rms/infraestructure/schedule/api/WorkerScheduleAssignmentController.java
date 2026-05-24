@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** REST controller for schedule-to-worker assignments. */
 @RestController
 @RequestMapping("/api/v1/workers/{workerId}/schedule-assignments")
 @RequiredArgsConstructor
@@ -33,6 +34,7 @@ public class WorkerScheduleAssignmentController {
   private final RemoveScheduleFromWorkerUseCase removeScheduleUseCase;
   private final WorkerScheduleAssignmentRepositoryPort assignmentRepository;
 
+  /** Assigns a schedule to a worker. */
   @PostMapping
   @JustAdminUser
   @Operation(summary = "Assign schedule to worker", description = "Assigns a schedule to a worker")
@@ -46,6 +48,7 @@ public class WorkerScheduleAssignmentController {
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 
+  /** Lists all schedule assignments for a worker. */
   @GetMapping
   @JustAdminUser
   @Operation(
@@ -59,6 +62,7 @@ public class WorkerScheduleAssignmentController {
     return ResponseEntity.ok(scheduleIds);
   }
 
+  /** Removes a schedule assignment from a worker. */
   @DeleteMapping("/{assignmentId}")
   @JustAdminUser
   @Operation(

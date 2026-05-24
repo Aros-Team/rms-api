@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 
+/** JPA entity for the time_logs table. */
 @Entity
 @Table(name = "time_logs")
 public class TimeLogEntity {

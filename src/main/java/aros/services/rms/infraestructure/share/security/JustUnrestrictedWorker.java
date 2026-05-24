@@ -6,6 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+/** Security annotation for admin or unrestricted worker access. */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @PreAuthorize(

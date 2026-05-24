@@ -25,7 +25,7 @@ public interface AreaRepository extends JpaRepository<Area, Long> {
   List<Area> findByIdIn(List<Long> ids);
 
   /**
-   * checks if a list of areas exists by id
+   * Checks if a list of areas exists by id.
    *
    * @param ids the areas's id to check
    * @return true if all the areas exists

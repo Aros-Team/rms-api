@@ -8,11 +8,19 @@ import aros.services.rms.core.schedule.port.input.DeleteScheduleUseCase;
 import aros.services.rms.core.schedule.port.output.ScheduleRepositoryPort;
 import aros.services.rms.core.schedule.port.output.WorkerScheduleAssignmentRepositoryPort;
 
+/** Service for deleting a schedule by its ID. */
 public class DeleteScheduleService implements DeleteScheduleUseCase {
   private final ScheduleRepositoryPort scheduleRepository;
   private final WorkerScheduleAssignmentRepositoryPort assignmentRepository;
   private final Logger logger;
 
+  /**
+   * Constructs a new DeleteScheduleService.
+   *
+   * @param scheduleRepository the schedule repository
+   * @param assignmentRepository the assignment repository
+   * @param logger the logger
+   */
   public DeleteScheduleService(
       ScheduleRepositoryPort scheduleRepository,
       WorkerScheduleAssignmentRepositoryPort assignmentRepository,
@@ -22,6 +30,13 @@ public class DeleteScheduleService implements DeleteScheduleUseCase {
     this.logger = logger;
   }
 
+  /**
+   * Deletes the schedule with the given ID if it exists and has no active assignments.
+   *
+   * @param id the schedule ID
+   * @throws ScheduleNotFoundException if no schedule with the given ID exists
+   * @throws ScheduleHasAssignmentsException if the schedule has active worker assignments
+   */
   @Override
   public void delete(ScheduleId id) {
     if (scheduleRepository.findById(id).isEmpty()) {

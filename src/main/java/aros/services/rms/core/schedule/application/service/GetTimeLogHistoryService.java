@@ -6,13 +6,25 @@ import aros.services.rms.core.schedule.port.output.TimeLogRepositoryPort;
 import java.time.Instant;
 import java.util.List;
 
+/** Service for retrieving time log history with optional worker and date-range filtering. */
 public class GetTimeLogHistoryService implements GetTimeLogHistoryUseCase {
   private final TimeLogRepositoryPort timeLogRepository;
 
+  /**
+   * Constructs a new GetTimeLogHistoryService.
+   *
+   * @param timeLogRepository the time log repository
+   */
   public GetTimeLogHistoryService(TimeLogRepositoryPort timeLogRepository) {
     this.timeLogRepository = timeLogRepository;
   }
 
+  /**
+   * Retrieves time logs matching the given filter criteria.
+   *
+   * @param filter the filter with optional worker ID and date range
+   * @return a list of matching time logs
+   */
   @Override
   public List<TimeLog> getHistory(TimeLogFilter filter) {
     if (filter.workerId() != null) {
