@@ -2,6 +2,8 @@
 
 package aros.services.rms.core.user.application.service;
 
+import aros.services.rms.core.area.application.exception.AreaNotFoundException;
+import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.user.application.exception.UserNotFoundException;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.port.dto.UpdateUserInfo;
@@ -13,14 +15,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class UpdateUserService implements UpdateUserUseCase {
   private final UserRepositoryPort userPort;
+  private final AreaRepositoryPort areaPort;
 
   /**
    * Creates a service to update users.
    *
    * @param userPort repository for user operations
    */
-  public UpdateUserService(UserRepositoryPort userPort) {
+  public UpdateUserService(UserRepositoryPort userPort, AreaRepositoryPort areaPort) {
     this.userPort = userPort;
+    this.areaPort = areaPort;
   }
 
   @Override
@@ -29,6 +33,10 @@ public class UpdateUserService implements UpdateUserUseCase {
         this.userPort
             .findById(new aros.services.rms.core.user.domain.UserId(userId))
             .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
+    if (! areaPort.existsAllByIds(info.areas())) {
+      throw new AreaNotFoundException("No se pudo encontrar alguna de areas referenciadas.");
+    }
 
     user.updateInfo(info.document(), info.name(), info.address(), info.phone());
     user.reAssinngAreas(info.areas());
