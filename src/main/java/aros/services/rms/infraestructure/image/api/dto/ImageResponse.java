@@ -7,6 +7,7 @@ import aros.services.rms.core.image.domain.ImageWithUrls;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 
+/** Response DTO containing image metadata and pre-signed URLs for each size variant. */
 @Schema(description = "Image response DTO")
 public record ImageResponse(
     @Schema(description = "Unique image ID", example = "1") Long id,
@@ -20,6 +21,12 @@ public record ImageResponse(
     @Schema(description = "Desktop-optimized version URL") String desktopUrl,
     @Schema(description = "Creation timestamp") Instant createdAt) {
 
+  /**
+   * Builds an ImageResponse from a domain image enriched with URLs.
+   *
+   * @param imageWithUrls domain image with size-variant URLs
+   * @return mapped response DTO, or null if input is null
+   */
   public static ImageResponse fromDomain(ImageWithUrls imageWithUrls) {
     if (imageWithUrls == null) {
       return null;

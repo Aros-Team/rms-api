@@ -204,7 +204,8 @@ public class OrderController {
   @Operation(
       summary = "Mark order as ready",
       description =
-          "Marks a specific order as LISTA for delivery. Changes status from EN_PREPARACION to LISTA.",
+          "Marks a specific order as LISTA for delivery."
+              + " Changes status from EN_PREPARACION to LISTA.",
       responses = {
         @ApiResponse(
             responseCode = "200",

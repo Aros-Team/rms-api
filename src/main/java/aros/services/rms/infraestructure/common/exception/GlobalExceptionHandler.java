@@ -283,7 +283,8 @@ public class GlobalExceptionHandler {
     String message;
     if (path.contains("/products/") || path.contains("/users/")) {
       message =
-          "Invalid image endpoint format. Use: /api/v1/products/{productId}/images or /api/v1/users/{userId}/images";
+          "Invalid image endpoint format."
+              + " Use: /api/v1/products/{productId}/images or /api/v1/users/{userId}/images";
     } else {
       message = "Endpoint not found: " + path;
     }

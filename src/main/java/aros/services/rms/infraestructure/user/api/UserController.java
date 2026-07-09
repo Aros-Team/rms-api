@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** REST controller exposing endpoints for user account management. */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/api/v1/users")
@@ -61,6 +62,11 @@ public class UserController {
   private final AccountSetupUseCase accountSetupUseCase;
   private final UserRepositoryPort userRepositoryPort;
 
+  /**
+   * Returns all users in the system. Admin access only.
+   *
+   * @return list of users
+   */
   @GetMapping
   @JustAdminUser
   @Operation(
@@ -78,6 +84,11 @@ public class UserController {
     return ResponseEntity.ok(users);
   }
 
+  /**
+   * Returns all users with WORKER role.
+   *
+   * @return list of workers
+   */
   @GetMapping("/employees")
   @JustAccessToken
   @Operation(
@@ -94,6 +105,12 @@ public class UserController {
     return ResponseEntity.ok(workers);
   }
 
+  /**
+   * Creates a new user and sends a welcome email with temporary credentials. Admin only.
+   *
+   * @param request user registration payload
+   * @return the created user with the temporary raw password
+   */
   @PostMapping
   @JustAdminUser
   @Operation(
@@ -120,6 +137,13 @@ public class UserController {
         .body(UserRegisterResponse.fromDomain(result.user(), result.rawPassword()));
   }
 
+  /**
+   * Updates an existing user. Admin access only.
+   *
+   * @param id user ID to update
+   * @param request update payload
+   * @return the updated user
+   */
   @PutMapping("/{id}")
   @JustAdminUser
   @Operation(
@@ -143,6 +167,12 @@ public class UserController {
     return ResponseEntity.ok(UserResponse.fromDomain(user));
   }
 
+  /**
+   * Deletes a user from the system. Admin access only.
+   *
+   * @param id user ID to delete
+   * @return empty response with 204 status
+   */
   @DeleteMapping("/{id}")
   @JustAdminUser
   @Operation(
@@ -163,6 +193,12 @@ public class UserController {
     return ResponseEntity.noContent().build();
   }
 
+  /**
+   * Resends the welcome email to a user. Admin access only.
+   *
+   * @param id user ID to resend the email to
+   * @return empty response indicating success or internal server error
+   */
   @PostMapping("/{id}/retry-email")
   @JustAdminUser
   @Operation(
@@ -188,6 +224,12 @@ public class UserController {
     }
   }
 
+  /**
+   * Invalidates existing setup tokens and sends a new account setup email. Admin only.
+   *
+   * @param id user ID to resend the setup email to
+   * @return empty response on success
+   */
   @PostMapping("/{id}/retry-setup-email")
   @JustAdminUser
   @Operation(
@@ -217,6 +259,13 @@ public class UserController {
     return ResponseEntity.ok().build();
   }
 
+  /**
+   * Allows the authenticated user to change their password.
+   *
+   * @param request password change payload
+   * @param jwt authenticated principal's JWT
+   * @return empty response on success
+   */
   @PutMapping("/me/password")
   @JustAccessToken
   @Operation(

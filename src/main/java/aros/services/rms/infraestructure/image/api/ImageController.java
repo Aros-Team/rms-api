@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+/** REST controller exposing endpoints to manage images owned by products or users. */
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Images", description = "Upload, retrieve, and delete images for products and users")
@@ -40,6 +41,13 @@ public class ImageController {
 
   // ==================== PRODUCT IMAGES ====================
 
+  /**
+   * Uploads a single image for a product.
+   *
+   * @param productId target product ID
+   * @param file multipart file to upload
+   * @return the uploaded image with its size-variant URLs
+   */
   @Operation(
       summary = "Upload product image",
       description = "Uploads an image for a product. Accepts JPEG, PNG, or WebP up to 5MB.",
@@ -69,6 +77,12 @@ public class ImageController {
     return new ResponseEntity<>(ImageResponse.fromDomain(withUrls), HttpStatus.CREATED);
   }
 
+  /**
+   * Lists all images attached to a product.
+   *
+   * @param productId target product ID
+   * @return list of images with size-variant URLs
+   */
   @Operation(
       summary = "Get product images",
       description = "Retrieves all images for a product with signed URLs for each size variant.",
@@ -88,6 +102,13 @@ public class ImageController {
     return ResponseEntity.ok(responses);
   }
 
+  /**
+   * Replaces all images of a product with the provided set.
+   *
+   * @param productId target product ID
+   * @param files new image files to upload
+   * @return the new set of images with size-variant URLs
+   */
   @Operation(
       summary = "Replace product images",
       description = "Deletes all existing images for a product and uploads new ones.",
@@ -124,6 +145,13 @@ public class ImageController {
 
   // ==================== USER IMAGES ====================
 
+  /**
+   * Uploads a single profile image for a user.
+   *
+   * @param userId target user ID
+   * @param file multipart file to upload
+   * @return the uploaded image with its size-variant URLs
+   */
   @Operation(
       summary = "Upload user image",
       description = "Uploads a profile image for a user. Accepts JPEG, PNG, or WebP up to 5MB.",
@@ -152,6 +180,12 @@ public class ImageController {
     return new ResponseEntity<>(ImageResponse.fromDomain(withUrls), HttpStatus.CREATED);
   }
 
+  /**
+   * Lists all profile images for a user.
+   *
+   * @param userId target user ID
+   * @return list of images with size-variant URLs
+   */
   @Operation(
       summary = "Get user images",
       description = "Retrieves all profile images for a user with signed URLs.",
@@ -171,6 +205,13 @@ public class ImageController {
     return ResponseEntity.ok(responses);
   }
 
+  /**
+   * Replaces all profile images of a user with the provided set.
+   *
+   * @param userId target user ID
+   * @param files new image files to upload
+   * @return the new set of images with size-variant URLs
+   */
   @Operation(
       summary = "Replace user images",
       description = "Deletes all existing images for a user and uploads new ones.",
@@ -206,6 +247,12 @@ public class ImageController {
 
   // ==================== GENERIC DELETE ====================
 
+  /**
+   * Deletes an image and all its size variants by ID.
+   *
+   * @param imageId target image ID
+   * @return empty response with 204 status
+   */
   @Operation(
       summary = "Delete image by ID",
       description = "Permanently deletes an image and all its size variants from storage.",
