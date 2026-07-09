@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Controlador REST para gestión de órdenes. */
+/** REST controller for order management. */
 @RestController
 @RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor
@@ -62,7 +62,7 @@ public class OrderController {
    */
   @Operation(
       summary = "Create new order",
-      description = "Creates a new order in QUEUE status. Requires an available table.",
+      description = "Creates a new order with status EN_COLA. Requires an available table.",
       responses = {
         @ApiResponse(
             responseCode = "201",
@@ -70,7 +70,8 @@ public class OrderController {
             content = @Content(schema = @Schema(implementation = OrderResponse.class))),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
         @ApiResponse(responseCode = "404", description = "Table or product not found"),
-        @ApiResponse(responseCode = "409", description = "Table not available")
+        @ApiResponse(responseCode = "409", description = "Table not available"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
   public ResponseEntity<OrderResponse> takeOrder(@Valid @RequestBody TakeOrderRequest request) {
@@ -106,14 +107,15 @@ public class OrderController {
    */
   @Operation(
       summary = "Cancel order",
-      description = "Cancels an existing order in QUEUE status.",
+      description = "Cancels an existing order that is in EN_COLA status.",
       responses = {
         @ApiResponse(
             responseCode = "200",
             description = "Order cancelled successfully",
             content = @Content(schema = @Schema(implementation = OrderResponse.class))),
         @ApiResponse(responseCode = "404", description = "Order not found"),
-        @ApiResponse(responseCode = "409", description = "Order cannot be cancelled")
+        @ApiResponse(responseCode = "409", description = "Order cannot be cancelled"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/cancel")
   public ResponseEntity<OrderResponse> cancelOrder(@PathVariable Long id) {
@@ -135,7 +137,7 @@ public class OrderController {
    */
   @Operation(
       summary = "Update order details",
-      description = "Updates the details of an order in QUEUE status.",
+      description = "Updates the details of an order in EN_COLA status.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -143,7 +145,8 @@ public class OrderController {
             content = @Content(schema = @Schema(implementation = OrderResponse.class))),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
         @ApiResponse(responseCode = "404", description = "Order or product not found"),
-        @ApiResponse(responseCode = "409", description = "Order cannot be updated")
+        @ApiResponse(responseCode = "409", description = "Order cannot be updated"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
   public ResponseEntity<OrderResponse> updateOrder(
@@ -174,13 +177,15 @@ public class OrderController {
    */
   @Operation(
       summary = "Process next order",
-      description = "Takes the oldest order from the queue and changes its status to PREPARING.",
+      description =
+          "Takes the oldest order from the queue and changes its status to EN_PREPARACION.",
       responses = {
         @ApiResponse(
             responseCode = "200",
             description = "Order moved to preparation",
             content = @Content(schema = @Schema(implementation = OrderResponse.class))),
-        @ApiResponse(responseCode = "409", description = "No orders in queue")
+        @ApiResponse(responseCode = "409", description = "No orders in queue"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/prepare")
   public ResponseEntity<OrderResponse> prepareNextOrder() {
@@ -199,14 +204,15 @@ public class OrderController {
   @Operation(
       summary = "Mark order as ready",
       description =
-          "Marks a specific order as READY for delivery. Changes status from PREPARING to READY.",
+          "Marks a specific order as LISTA for delivery. Changes status from EN_PREPARACION to LISTA.",
       responses = {
         @ApiResponse(
             responseCode = "200",
             description = "Order marked as ready",
             content = @Content(schema = @Schema(implementation = OrderResponse.class))),
         @ApiResponse(responseCode = "404", description = "Order not found"),
-        @ApiResponse(responseCode = "409", description = "Order is not in PREPARING status")
+        @ApiResponse(responseCode = "409", description = "Order is not in EN_PREPARACION status"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/ready")
   public ResponseEntity<OrderResponse> markOrderAsReady(@PathVariable Long id) {
@@ -225,15 +231,16 @@ public class OrderController {
   @Operation(
       summary = "Deliver order",
       description =
-          "Marks an order as DELIVERED and releases the table. "
-              + "Changes status from READY to DELIVERED.",
+          "Marks an order as ENTREGADA and releases the table. "
+              + "Changes status from LISTA to ENTREGADA.",
       responses = {
         @ApiResponse(
             responseCode = "200",
             description = "Order delivered successfully",
             content = @Content(schema = @Schema(implementation = OrderResponse.class))),
         @ApiResponse(responseCode = "404", description = "Order not found"),
-        @ApiResponse(responseCode = "409", description = "Order is not in READY status")
+        @ApiResponse(responseCode = "409", description = "Order is not in LISTA status"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/deliver")
   public ResponseEntity<OrderResponse> deliverOrder(@PathVariable Long id) {
@@ -265,12 +272,14 @@ public class OrderController {
                 @Content(
                     schema = @Schema(implementation = OrderResponse.class),
                     mediaType = "application/json")),
-        @ApiResponse(responseCode = "400", description = "Invalid status value")
+        @ApiResponse(responseCode = "400", description = "Invalid status value"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
   public ResponseEntity<List<OrderResponse>> getOrders(
       @Parameter(
-              description = "Order status filter (QUEUE, PREPARING, READY, DELIVERED, CANCELLED)")
+              description =
+                  "Order status filter (EN_COLA, EN_PREPARACION, LISTA, ENTREGADA, CANCELADA)")
           @RequestParam(required = false)
           String status,
       @Parameter(description = "Start date for filtering (ISO DateTime)")

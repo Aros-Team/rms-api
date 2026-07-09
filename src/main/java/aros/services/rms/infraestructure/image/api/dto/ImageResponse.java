@@ -7,21 +7,19 @@ import aros.services.rms.core.image.domain.ImageWithUrls;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 
-/** Response DTO for entity image data. */
-@Schema(description = "Response DTO for entity image data")
+@Schema(description = "Image response DTO")
 public record ImageResponse(
-    @Schema(description = "Image ID", example = "1") Long id,
+    @Schema(description = "Unique image ID", example = "1") Long id,
     @Schema(description = "Entity type", example = "PRODUCT") ImageEntityType entityType,
-    @Schema(description = "Entity ID", example = "42") Long entityId,
+    @Schema(description = "ID of the owning entity", example = "42") Long entityId,
     @Schema(description = "Original filename", example = "burger.jpg") String originalFilename,
-    @Schema(description = "Content type", example = "image/webp") String contentType,
+    @Schema(description = "MIME content type", example = "image/webp") String contentType,
     @Schema(description = "Original file size in bytes", example = "204800") long originalSizeBytes,
-    @Schema(description = "Mobile version URL") String mobileUrl,
-    @Schema(description = "Tablet version URL") String tabletUrl,
-    @Schema(description = "Desktop version URL") String desktopUrl,
-    @Schema(description = "Created at") Instant createdAt) {
+    @Schema(description = "Mobile-optimized version URL") String mobileUrl,
+    @Schema(description = "Tablet-optimized version URL") String tabletUrl,
+    @Schema(description = "Desktop-optimized version URL") String desktopUrl,
+    @Schema(description = "Creation timestamp") Instant createdAt) {
 
-  /** Creates a response from a domain object. */
   public static ImageResponse fromDomain(ImageWithUrls imageWithUrls) {
     if (imageWithUrls == null) {
       return null;

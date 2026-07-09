@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/tables")
 @RequiredArgsConstructor
-@Tag(name = "Tables", description = "Table management and status lifecycle")
+@Tag(name = "Tables", description = "Table management and lifecycle status")
 public class TableController {
 
   private final TableUseCase tableUseCase;
@@ -38,10 +38,11 @@ public class TableController {
   /** Creates a new table. */
   @Operation(
       summary = "Create new table",
-      description = "Creates a new table with the given number and capacity.",
+      description = "Creates a new table with the specified number and capacity.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Table created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid input data")
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
   public ResponseEntity<TableResponse> create(@Valid @RequestBody TableRequest request) {
@@ -55,10 +56,11 @@ public class TableController {
   /** Updates an existing table. */
   @Operation(
       summary = "Update table",
-      description = "Updates an existing table's number and capacity.",
+      description = "Updates the number and capacity of an existing table.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Table updated successfully"),
-        @ApiResponse(responseCode = "404", description = "Table not found")
+        @ApiResponse(responseCode = "404", description = "Table not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
   public ResponseEntity<TableResponse> update(
@@ -73,9 +75,10 @@ public class TableController {
   /** Retrieves all tables. */
   @Operation(
       summary = "Get all tables",
-      description = "Retrieves all tables.",
+      description = "Returns all tables in the restaurant.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Tables retrieved successfully")
+        @ApiResponse(responseCode = "200", description = "Tables retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
   public ResponseEntity<List<TableResponse>> findAll() {
@@ -87,10 +90,11 @@ public class TableController {
   /** Retrieves a table by ID. */
   @Operation(
       summary = "Get table by ID",
-      description = "Retrieves a table by its identifier.",
+      description = "Returns a specific table by its identifier.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Table retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "Table not found")
+        @ApiResponse(responseCode = "404", description = "Table not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/{id}")
   public ResponseEntity<TableResponse> findById(@PathVariable Long id) {
@@ -101,12 +105,13 @@ public class TableController {
   /** Changes the table status. */
   @Operation(
       summary = "Change table status",
-      description = "Changes the table status between AVAILABLE, OCCUPIED, and RESERVED.",
+      description = "Changes the table status among AVAILABLE, OCCUPIED, and RESERVED.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Table status changed successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid status value"),
         @ApiResponse(responseCode = "404", description = "Table not found"),
-        @ApiResponse(responseCode = "409", description = "Invalid status transition")
+        @ApiResponse(responseCode = "409", description = "Invalid status transition"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/status")
   public ResponseEntity<TableResponse> changeStatus(

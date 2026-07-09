@@ -51,7 +51,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @Tag(
     name = "Supply Catalog",
-    description = "Catalog management for supplies, variants and categories")
+    description = "Supply catalog management, including variants and categories")
 public class SupplyCatalogController {
 
   private final SupplyRepository supplyRepository;
@@ -71,9 +71,12 @@ public class SupplyCatalogController {
    * @return the list of supply categories
    */
   @Operation(
-      summary = "List supply categories",
+      summary = "List all supply categories",
       description = "Returns all supply categories.",
-      responses = {@ApiResponse(responseCode = "200", description = "OK")})
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Supply categories retrieved"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
   @GetMapping("/categories")
   public ResponseEntity<List<SupplyCategoryResponse>> findAllCategories() {
     var categories =
@@ -120,11 +123,14 @@ public class SupplyCatalogController {
    * @return the list of units of measure
    */
   @Operation(
-      summary = "List units of measure",
+      summary = "List all units of measure",
       description =
           "Returns all units of measure. "
-              + "Use to populate the unit selector when creating a variant.",
-      responses = {@ApiResponse(responseCode = "200", description = "OK")})
+              + "Use this to populate the unit selector when creating a variant.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Units of measure retrieved"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
   @GetMapping("/units")
   public ResponseEntity<List<UnitOfMeasureResponse>> findAllUnits() {
     var units =
@@ -150,21 +156,24 @@ public class SupplyCatalogController {
   @Operation(
       summary = "List supplies",
       description =
-          "Returns supplies with pagination. Filter by categoryId and/or name "
-              + "(partial, case-insensitive). page >= 0, size entre 1 y 100.",
+          "Returns supplies with pagination. Filters by categoryId and/or name "
+              + "(partial, case-insensitive). page >= 0, size between 1 and 100.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "OK"),
-        @ApiResponse(responseCode = "400", description = "Parámetros de paginación inválidos")
+        @ApiResponse(responseCode = "200", description = "Supplies retrieved"),
+        @ApiResponse(responseCode = "400", description = "Invalid pagination parameters"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
   @Transactional(readOnly = true)
   public ResponseEntity<Page<SupplyResponse>> findAllSupplies(
-      @RequestParam(required = false) Long categoryId,
-      @RequestParam(required = false) String name,
-      @Parameter(description = "Número de página (default 0)") @RequestParam(defaultValue = "0")
+      @Parameter(description = "Optional category filter") @RequestParam(required = false)
+          Long categoryId,
+      @Parameter(description = "Optional name filter (partial, case-insensitive)")
+          @RequestParam(required = false)
+          String name,
+      @Parameter(description = "Page number (default 0)") @RequestParam(defaultValue = "0")
           int page,
-      @Parameter(description = "Tamaño de página (default 20, max 100)")
-          @RequestParam(defaultValue = "20")
+      @Parameter(description = "Page size (default 20, max 100)") @RequestParam(defaultValue = "20")
           int size) {
     if (page < 0) {
       throw new IllegalArgumentException("El parámetro page debe ser mayor o igual a 0");
@@ -244,10 +253,13 @@ public class SupplyCatalogController {
   @Operation(
       summary = "List supply variants with stock",
       description =
-          "Returns all supply variants with current stock in Bodega and Cocina."
-              + " Optionally filter by supplyId."
-              + " The variant 'id' is the supplyVariantId used in purchase order items.",
-      responses = {@ApiResponse(responseCode = "200", description = "OK")})
+          "Returns all supply variants with current stock in Bodega and Cocina. "
+              + "Optionally filters by supplyId. "
+              + "The variant 'id' is the supplyVariantId used in purchase order items.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Supply variants retrieved"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
   @GetMapping("/variants")
   @Transactional(readOnly = true)
   public ResponseEntity<List<SupplyVariantResponse>> findAllVariants(

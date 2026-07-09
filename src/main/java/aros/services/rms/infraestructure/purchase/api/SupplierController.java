@@ -54,7 +54,8 @@ public class SupplierController {
       description = "Registers a new supplier. New suppliers are active by default.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Supplier created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid input data")
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
   public ResponseEntity<SupplierResponse> create(@Valid @RequestBody SupplierRequest request) {
@@ -73,12 +74,13 @@ public class SupplierController {
   @Operation(
       summary = "Update supplier",
       description =
-          "Updates name, contact and active status of an existing supplier."
-              + " Use active=false to deactivate a supplier.",
+          "Updates the name, contact, and active status of an existing supplier. "
+              + "Use active=false to deactivate a supplier.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Supplier updated successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
-        @ApiResponse(responseCode = "404", description = "Supplier not found")
+        @ApiResponse(responseCode = "404", description = "Supplier not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
   public ResponseEntity<SupplierResponse> update(
@@ -100,9 +102,10 @@ public class SupplierController {
    */
   @Operation(
       summary = "List all suppliers",
-      description = "Returns all suppliers regardless of active status.",
+      description = "Returns all suppliers regardless of their active status.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Suppliers retrieved successfully")
+        @ApiResponse(responseCode = "200", description = "Suppliers retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
   public ResponseEntity<List<SupplierResponse>> findAll() {

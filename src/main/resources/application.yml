@@ -13,7 +13,7 @@ app:
   version: @project.version@
   jwt:
     issuer: rms-api
-    expiration-minutes: 60
+    expiration-minutes: 360
     public-key: ${JWT_PUBLIC_KEY} 
     private-key: ${JWT_PRIVATE_KEY} 
   email:

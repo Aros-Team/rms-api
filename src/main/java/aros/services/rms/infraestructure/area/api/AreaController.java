@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/areas")
 @RequiredArgsConstructor
-@Tag(name = "Areas", description = "Preparation area management")
+@Tag(name = "Preparation Areas", description = "Restaurant preparation area management")
 public class AreaController {
 
   private final AreaUseCase areaUseCase;
@@ -41,11 +41,12 @@ public class AreaController {
    */
   @Operation(
       summary = "Create new area",
-      description = "Creates a new preparation area with the given name and type.",
+      description = "Creates a new preparation area with the specified name and type.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Area created successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
-        @ApiResponse(responseCode = "409", description = "Area name already exists")
+        @ApiResponse(responseCode = "409", description = "Area name already exists"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
   public ResponseEntity<AreaResponse> create(@Valid @RequestBody AreaRequest request) {
@@ -68,11 +69,12 @@ public class AreaController {
    */
   @Operation(
       summary = "Update area",
-      description = "Updates an existing preparation area's name and type.",
+      description = "Updates the name and type of an existing preparation area.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Area updated successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
-        @ApiResponse(responseCode = "404", description = "Area not found")
+        @ApiResponse(responseCode = "404", description = "Area not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
   public ResponseEntity<AreaResponse> update(
@@ -94,9 +96,10 @@ public class AreaController {
    */
   @Operation(
       summary = "Get all areas",
-      description = "Retrieves all preparation areas.",
+      description = "Returns all preparation areas in the restaurant.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Areas retrieved successfully")
+        @ApiResponse(responseCode = "200", description = "Areas retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
   public ResponseEntity<List<AreaResponse>> findAll() {
@@ -113,10 +116,11 @@ public class AreaController {
    */
   @Operation(
       summary = "Get area by ID",
-      description = "Retrieves a preparation area by its identifier.",
+      description = "Returns a specific preparation area by its identifier.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Area retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "Area not found")
+        @ApiResponse(responseCode = "404", description = "Area not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/{id}")
   public ResponseEntity<AreaResponse> findById(@PathVariable Long id) {
@@ -134,8 +138,9 @@ public class AreaController {
       summary = "Toggle area enabled status",
       description = "Toggles the enabled/disabled status of a preparation area.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Area status toggled successfully"),
-        @ApiResponse(responseCode = "404", description = "Area not found")
+        @ApiResponse(responseCode = "200", description = "Area status changed successfully"),
+        @ApiResponse(responseCode = "404", description = "Area not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/toggle")
   public ResponseEntity<AreaResponse> toggleEnabled(@PathVariable Long id) {

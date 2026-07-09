@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @Tag(
     name = "Option Categories",
-    description = "Option category management for product customization")
+    description = "Management of option categories for product customization")
 public class OptionCategoryController {
 
   private final OptionCategoryUseCase optionCategoryUseCase;
@@ -48,7 +48,8 @@ public class OptionCategoryController {
       description = "Creates a new option category for product customization.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Option category created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid input data")
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
   public ResponseEntity<OptionCategoryResponse> create(
@@ -72,7 +73,8 @@ public class OptionCategoryController {
       description = "Updates an existing option category.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Option category updated successfully"),
-        @ApiResponse(responseCode = "404", description = "Option category not found")
+        @ApiResponse(responseCode = "404", description = "Option category not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
   public ResponseEntity<OptionCategoryResponse> update(
@@ -91,9 +93,12 @@ public class OptionCategoryController {
    */
   @Operation(
       summary = "Get all option categories",
-      description = "Retrieves all option categories.",
+      description = "Returns all option categories for customization.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Option categories retrieved successfully")
+        @ApiResponse(
+            responseCode = "200",
+            description = "Option categories retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
   public ResponseEntity<List<OptionCategoryResponse>> findAll() {
@@ -112,10 +117,11 @@ public class OptionCategoryController {
    */
   @Operation(
       summary = "Get option category by ID",
-      description = "Retrieves an option category by its identifier.",
+      description = "Returns a specific option category given its identifier.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Option category retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "Option category not found")
+        @ApiResponse(responseCode = "404", description = "Option category not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/{id}")
   public ResponseEntity<OptionCategoryResponse> findById(@PathVariable Long id) {

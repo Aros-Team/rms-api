@@ -246,6 +246,51 @@ public class GlobalExceptionHandler {
 
   // --- Generic catch-all handlers ---
 
+  /** Handles MethodArgumentTypeMismatchException - invalid enum/path variable values. */
+  @ExceptionHandler(
+      org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(
+      org.springframework.web.method.annotation.MethodArgumentTypeMismatchException e) {
+    String message = "Invalid value '" + e.getName() + "': " + e.getValue();
+    log.warn("Invalid parameter: {}", message);
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(400, message));
+  }
+
+  /** Handles HttpMediaTypeNotAcceptableException - content negotiation failures. */
+  @ExceptionHandler(org.springframework.web.HttpMediaTypeNotAcceptableException.class)
+  public ResponseEntity<ErrorResponse> handleHttpMediaTypeNotAcceptable(
+      org.springframework.web.HttpMediaTypeNotAcceptableException e) {
+    log.warn("Unsupported media type: {}", e.getMessage());
+    return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+        .body(new ErrorResponse(406, "Content type not accepted"));
+  }
+
+  /** Handles MissingServletRequestParameterException. */
+  @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
+  public ResponseEntity<ErrorResponse> handleMissingServletRequestParameter(
+      org.springframework.web.bind.MissingServletRequestParameterException e) {
+    log.warn("Missing required parameter: {}", e.getParameterName());
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(
+            new ErrorResponse(400, "Required parameter '" + e.getParameterName() + "' not found"));
+  }
+
+  /** Handles NoResourceFoundException - for requests to non-existent endpoints. */
+  @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+  public ResponseEntity<ErrorResponse> handleNoResourceFound(
+      org.springframework.web.servlet.resource.NoResourceFoundException e) {
+    String path = e.getResourcePath();
+    String message;
+    if (path.contains("/products/") || path.contains("/users/")) {
+      message =
+          "Invalid image endpoint format. Use: /api/v1/products/{productId}/images or /api/v1/users/{userId}/images";
+    } else {
+      message = "Endpoint not found: " + path;
+    }
+    log.warn("Resource not found: {}", path);
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(400, message));
+  }
+
   /** Handles generic Exception. */
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponse> handleGenericException(Exception e) {

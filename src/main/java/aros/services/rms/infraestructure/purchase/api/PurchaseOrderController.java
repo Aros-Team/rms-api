@@ -9,6 +9,7 @@ import aros.services.rms.infraestructure.purchase.api.dto.PurchaseOrderRequest;
 import aros.services.rms.infraestructure.purchase.api.dto.PurchaseOrderResponse;
 import aros.services.rms.infraestructure.purchase.config.RegisterPurchaseOrderService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -46,16 +47,17 @@ public class PurchaseOrderController {
   @Operation(
       summary = "Register purchase order",
       description =
-          "Registers a new purchase order and automatically updates Bodega stock."
-              + " Each item's quantityReceived enters the inventory as an ENTRY movement."
-              + " The entire operation is atomic — if any step fails, nothing is persisted.",
+          "Registers a new purchase order and automatically updates Warehouse stock. "
+              + "The received quantity of each item enters the inventory as an ENTRY movement. "
+              + "The entire operation is atomic — if any step fails, nothing is persisted.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Purchase order registered successfully"),
         @ApiResponse(
             responseCode = "400",
             description = "Invalid input data or quantityReceived > quantityOrdered"),
         @ApiResponse(responseCode = "404", description = "Supplier or supply variant not found"),
-        @ApiResponse(responseCode = "409", description = "Supplier is inactive")
+        @ApiResponse(responseCode = "409", description = "Supplier is inactive"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
   public ResponseEntity<PurchaseOrderResponse> register(
@@ -98,20 +100,29 @@ public class PurchaseOrderController {
   @Operation(
       summary = "List purchase history",
       description =
-          "Returns all purchase orders. Optionally filter by supplierId or date range (from/to)."
-              + " If supplierId is provided, date range is ignored.",
+          "Returns all purchase orders. Optionally filters by supplierId or date range (from/to). "
+              + "If supplierId is provided, the date range is ignored.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Purchase orders retrieved successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid date format"),
         @ApiResponse(
             responseCode = "404",
-            description = "Supplier not found (when filtering by supplierId)")
+            description = "Supplier not found (when filtering by supplierId)"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
   public ResponseEntity<List<PurchaseOrderResponse>> findAll(
-      @RequestParam(required = false) Long supplierId,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+      @Parameter(description = "Filter by supplier ID", example = "1")
+          @RequestParam(required = false)
+          Long supplierId,
+      @Parameter(description = "Filter by start date (from)", example = "2026-01-01")
+          @RequestParam(required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate from,
+      @Parameter(description = "Filter by end date (to)", example = "2026-12-31")
+          @RequestParam(required = false)
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          LocalDate to) {
 
     List<PurchaseOrder> orders;
 
@@ -139,10 +150,11 @@ public class PurchaseOrderController {
    */
   @Operation(
       summary = "Get purchase order by ID",
-      description = "Returns the full detail of a single purchase order including all line items.",
+      description = "Returns the complete details of a purchase order, including all items.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Purchase order retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "Purchase order not found")
+        @ApiResponse(responseCode = "404", description = "Purchase order not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/{id}")
   public ResponseEntity<PurchaseOrderResponse> findById(@PathVariable Long id) {

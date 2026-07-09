@@ -1,3 +1,5 @@
+/* (C) 2026 */
+
 package aros.services.rms.infraestructure.user.api;
 
 import aros.services.rms.core.auth.application.exception.UserNotFoundException;
@@ -21,6 +23,7 @@ import aros.services.rms.infraestructure.user.api.dto.UserRegisterRequest;
 import aros.services.rms.infraestructure.user.api.dto.UserRegisterResponse;
 import aros.services.rms.infraestructure.user.api.dto.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -40,12 +43,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** REST controller for user management. */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/api/v1/users")
 @Slf4j
-@Tag(name = "Users", description = "Gestión de usuarios")
+@Tag(
+    name = "Users",
+    description = "User management - create, update, delete and manage user accounts")
 public class UserController {
   private final CreateUserUseCase createUserUseCase;
   private final ChangePasswordUseCase changePasswordUseCase;
@@ -57,23 +61,32 @@ public class UserController {
   private final AccountSetupUseCase accountSetupUseCase;
   private final UserRepositoryPort userRepositoryPort;
 
-  /** Retrieves all users. */
   @GetMapping
   @JustAdminUser
+  @Operation(
+      summary = "Get all users",
+      description = "Returns a list of all users in the system. Admin access only.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Users retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Admin access required"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
   public ResponseEntity<List<UserResponse>> getAll() {
     List<UserResponse> users =
         getAllUsersUseCase.getAll().stream().map(UserResponse::fromDomain).toList();
     return ResponseEntity.ok(users);
   }
 
-  /** Retrieves all workers (employees). */
   @GetMapping("/employees")
   @JustAccessToken
   @Operation(
-      summary = "Obtener todos los empleados",
-      description = "Retorna lista de usuarios con rol WORKER (empleados).",
+      summary = "Get all workers",
+      description = "Returns a list of all users with WORKER role.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Empleados obtenidos exitosamente")
+        @ApiResponse(responseCode = "200", description = "Workers retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   public ResponseEntity<List<UserResponse>> getAllWorkers() {
     List<UserResponse> workers =
@@ -81,9 +94,22 @@ public class UserController {
     return ResponseEntity.ok(workers);
   }
 
-  /** Registers a new user. */
   @PostMapping
   @JustAdminUser
+  @Operation(
+      summary = "Register new user",
+      description =
+          "Creates a new user in the system. A welcome email with temporary credentials is sent.",
+      responses = {
+        @ApiResponse(responseCode = "201", description = "User created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Admin access required"),
+        @ApiResponse(
+            responseCode = "409",
+            description = "User already exists with that document or email"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
   public ResponseEntity<UserRegisterResponse> register(
       @Valid @RequestBody UserRegisterRequest request) throws UserAlreadyExistsException {
     log.info("Admin is creating a new user: document={}", request.document());
@@ -94,9 +120,20 @@ public class UserController {
         .body(UserRegisterResponse.fromDomain(result.user(), result.rawPassword()));
   }
 
-  /** Updates an existing user. */
   @PutMapping("/{id}")
   @JustAdminUser
+  @Operation(
+      summary = "Update user",
+      description = "Updates an existing user's data. Admin access only.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "User updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Admin access required"),
+        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @Parameter(description = "User ID", example = "1")
   public ResponseEntity<UserResponse> update(
       @PathVariable Long id, @Valid @RequestBody UpdateUserRequest request)
       throws UserNotFoundException {
@@ -106,9 +143,19 @@ public class UserController {
     return ResponseEntity.ok(UserResponse.fromDomain(user));
   }
 
-  /** Deletes a user. */
   @DeleteMapping("/{id}")
   @JustAdminUser
+  @Operation(
+      summary = "Delete user",
+      description = "Deletes a user from the system. Admin access only.",
+      responses = {
+        @ApiResponse(responseCode = "204", description = "User deleted successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Admin access required"),
+        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @Parameter(description = "User ID", example = "1")
   public ResponseEntity<Void> delete(@PathVariable Long id) throws UserNotFoundException {
     log.info("Admin deleting user: id={}", id);
     this.deleteUserUseCase.delete(id);
@@ -116,9 +163,19 @@ public class UserController {
     return ResponseEntity.noContent().build();
   }
 
-  /** Retries sending registration email. */
   @PostMapping("/{id}/retry-email")
   @JustAdminUser
+  @Operation(
+      summary = "Resend registration email",
+      description = "Resends the welcome email to a user. Admin access only.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Email resent successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Admin access required"),
+        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "500", description = "Error sending email")
+      })
+  @Parameter(description = "User ID", example = "1")
   public ResponseEntity<Void> retryEmail(@PathVariable Long id) throws UserNotFoundException {
     log.info("Admin retrying email for user: id={}", id);
     boolean sent = this.retryUserEmailUseCase.retrySendRegistrationEmail(id);
@@ -131,9 +188,20 @@ public class UserController {
     }
   }
 
-  /** Retries sending setup email. */
   @PostMapping("/{id}/retry-setup-email")
   @JustAdminUser
+  @Operation(
+      summary = "Resend setup email",
+      description =
+          "Invalidates existing tokens and sends a new account setup email. Admin access only.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Email resent successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Admin access required"),
+        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "500", description = "Error sending email")
+      })
+  @Parameter(description = "User ID", example = "1")
   public ResponseEntity<Void> retrySetupEmail(@PathVariable Long id) throws UserNotFoundException {
     log.info("Admin retrying setup email for user: id={}", id);
     User user =
@@ -149,9 +217,17 @@ public class UserController {
     return ResponseEntity.ok().build();
   }
 
-  /** Changes the user's password. */
   @PutMapping("/me/password")
   @JustAccessToken
+  @Operation(
+      summary = "Change password",
+      description = "Allows the authenticated user to change their password.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Password changed successfully"),
+        @ApiResponse(responseCode = "400", description = "Current password is incorrect"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
   public ResponseEntity<Void> changePassword(
       @Valid @RequestBody ChangePasswordRequest request, @AuthenticationPrincipal Jwt jwt) {
     String email = jwt.getSubject();

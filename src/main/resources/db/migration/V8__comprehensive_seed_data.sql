@@ -2,7 +2,7 @@
 -- Seed data realista para desarrollo local. NO para producción.
 -- V6 ya siembra: areas, units_of_measure, storage_locations
 -- IDs de referencia:
---   areas             → Cocina=1, Bar=2
+--   areas             → Cocina=1, Servicio=2, Bar=3, Caja=4 (Caja lo agrega V14)
 --   units_of_measure  → g=1, kg=2, l=3, u=4, lb=5, pz=6, paq=7, bot=8, lat=9
 --   storage_locations → Bodega=1, Cocina=2
 
@@ -293,19 +293,19 @@ INSERT INTO storage_locations (name) VALUES
 -- =============================================================================
 INSERT INTO inventory_stock (supply_variant_id, storage_location_id, current_quantity) VALUES
     -- Carne de Res Molida 150g
-    (1,  1, 40.000), (1,  2, 15.000),
+    (1,  3, 40.000), (1,  2, 15.000),
     -- Carne de Res Molida 100g
-    (2,  1, 30.000), (2,  2, 10.000),
+    (2,  3, 30.000), (2,  2, 10.000),
     -- Pollo Apanado 180g
-    (3,  1, 35.000), (3,  2, 12.000),
+    (3,  3, 35.000), (3,  2, 12.000),
     -- Lenteja Preparada 150g
-    (4,  1, 20.000), (4,  2,  8.000),
+    (4,  3, 20.000), (4,  2,  8.000),
     -- Pechuga de Pollo 200g
-    (5,  1, 30.000), (5,  2, 10.000),
+    (5,  3, 30.000), (5,  2, 10.000),
     -- Pechuga de Pollo 100g
-    (6,  1, 25.000), (6,  2,  8.000),
+    (6,  3, 25.000), (6,  2,  8.000),
     -- Carne de Cerdo 200g
-    (7,  1, 25.000), (7,  2,  8.000),
+    (7,  3, 25.000), (7,  2,  8.000),
     -- Camarón Tigre 6u
     (8,  3, 20.000), (8,  2,  5.000),
     -- Baby Beef 300g
@@ -315,9 +315,9 @@ INSERT INTO inventory_stock (supply_variant_id, storage_location_id, current_qua
     -- Entrecot 300g
     (11, 3, 10.000), (11, 2,  3.000),
     -- Huevo 1u
-    (12, 1, 60.000), (12, 2, 20.000),
+    (12, 3, 60.000), (12, 2, 20.000),
     -- Huevo 2u
-    (13, 1, 30.000), (13, 2, 10.000),
+    (13, 3, 30.000), (13, 2, 10.000),
     -- Lechuga Crespa 20g
     (14, 1, 50.000), (14, 2, 20.000),
     -- Tomate 2 rodajas
@@ -353,7 +353,7 @@ INSERT INTO inventory_stock (supply_variant_id, storage_location_id, current_qua
     -- Queso Mozzarella 200g rallado
     (30, 3, 20.000), (30, 2,  8.000),
     -- Queso Parmesano 15g
-    (31, 1, 30.000), (31, 2, 10.000),
+    (31, 3, 30.000), (31, 2, 10.000),
     -- Queso Crema 80g
     (32, 3, 20.000), (32, 2,  6.000),
     -- Crema de Leche 100ml
@@ -393,7 +393,7 @@ INSERT INTO inventory_stock (supply_variant_id, storage_location_id, current_qua
     -- Bocadillo 80g
     (50, 1, 15.000), (50, 2,  5.000),
     -- Limón Tahití 2u
-    (51, 1, 50.000), (51, 4, 20.000),
+    (51, 3, 50.000), (51, 4, 20.000),
     -- Pulpa de Mango 100g
     (52, 3, 20.000), (52, 4, 10.000),
     -- Pulpa de Mora 100g
@@ -480,17 +480,17 @@ INSERT INTO option_categories (name, description) VALUES
 
 -- =============================================================================
 -- PRODUCTS
--- areas: Cocina=1, Bar=2
+-- areas: Cocina=1, Servicio=2, Bar=3, Caja=4 (Caja lo agrega V14)
 -- categories: Hamburguesas=1, Almuerzo Ejecutivo=2, Pizzas=3,
 --             Pasta/Italiana=4, Parrilla/Carnes=5, Bebidas Naturales=6
 -- =============================================================================
 INSERT INTO products (name, base_price, active, category_id, area_id) VALUES
-    ('Hamburguesa Double Bacon Cheese', 28000.00, TRUE, 1, 1),  -- id 1
-    ('Menú del Día',                    18000.00, TRUE, 2, 1),  -- id 2
-    ('Pizza Especial Familiar',         38000.00, TRUE, 3, 1),  -- id 3
-    ('Pasta de la Casa',                22000.00, TRUE, 4, 1),  -- id 4
-    ('Corte de Res Premium',            55000.00, TRUE, 5, 1),  -- id 5
-    ('Limonada / Jugo Natural',          8000.00, TRUE, 6, 2);  -- id 6
+    ('Hamburguesa Double Bacon Cheese', 28000.00, TRUE, 1, 1),  -- id 1, Cocina
+    ('Menú del Día',                    18000.00, TRUE, 2, 1),  -- id 2, Cocina
+    ('Pizza Especial Familiar',         38000.00, TRUE, 3, 1),  -- id 3, Cocina
+    ('Pasta de la Casa',                22000.00, TRUE, 4, 1),  -- id 4, Cocina
+    ('Corte de Res Premium',            55000.00, TRUE, 5, 1),  -- id 5, Cocina
+    ('Limonada / Jugo Natural',          8000.00, TRUE, 6, 3);  -- id 6, Bar
 
 -- =============================================================================
 -- PRODUCT OPTIONS

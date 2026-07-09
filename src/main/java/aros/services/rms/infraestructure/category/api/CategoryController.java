@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/categories")
 @RequiredArgsConstructor
-@Tag(name = "Categories", description = "Product category management")
+@Tag(name = "Product Categories", description = "Menu product category management")
 public class CategoryController {
 
   private final CategoryUseCase categoryUseCase;
@@ -40,10 +40,11 @@ public class CategoryController {
    */
   @Operation(
       summary = "Create new category",
-      description = "Creates a new product category.",
+      description = "Creates a new product category for the menu.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Category created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid input data")
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
   public ResponseEntity<CategoryResponse> create(@Valid @RequestBody CategoryRequest request) {
@@ -63,11 +64,12 @@ public class CategoryController {
    */
   @Operation(
       summary = "Update category",
-      description = "Updates an existing product category's name and description.",
+      description = "Updates the name and description of an existing product category.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Category updated successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
-        @ApiResponse(responseCode = "404", description = "Category not found")
+        @ApiResponse(responseCode = "404", description = "Category not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
   public ResponseEntity<CategoryResponse> update(
@@ -86,9 +88,10 @@ public class CategoryController {
    */
   @Operation(
       summary = "Get all categories",
-      description = "Retrieves all product categories.",
+      description = "Returns all product categories from the menu.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Categories retrieved successfully")
+        @ApiResponse(responseCode = "200", description = "Categories retrieved successfully"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
   public ResponseEntity<List<CategoryResponse>> findAll() {
@@ -107,10 +110,11 @@ public class CategoryController {
    */
   @Operation(
       summary = "Get category by ID",
-      description = "Retrieves a product category by its identifier.",
+      description = "Returns a specific product category given its identifier.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Category retrieved successfully"),
-        @ApiResponse(responseCode = "404", description = "Category not found")
+        @ApiResponse(responseCode = "404", description = "Category not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/{id}")
   public ResponseEntity<CategoryResponse> findById(@PathVariable Long id) {
@@ -125,11 +129,12 @@ public class CategoryController {
    * @return the updated category
    */
   @Operation(
-      summary = "Toggle category enabled status",
-      description = "Toggles the enabled/disabled status of a product category.",
+      summary = "Toggle category active status",
+      description = "Changes the enabled/disabled status of a product category.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Category status toggled successfully"),
-        @ApiResponse(responseCode = "404", description = "Category not found")
+        @ApiResponse(responseCode = "200", description = "Category status changed successfully"),
+        @ApiResponse(responseCode = "404", description = "Category not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/toggle")
   public ResponseEntity<CategoryResponse> toggleEnabled(@PathVariable Long id) {
