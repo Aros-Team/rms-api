@@ -6,6 +6,7 @@ deploy.sh
 .gradle/
 build/
 data/
+uploads/
 
 ### STS ###
 .apt_generated
