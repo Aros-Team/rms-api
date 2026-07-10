@@ -2,6 +2,9 @@
 
 package aros.services.rms.infraestructure.common.exception;
 
+import aros.services.rms.core.auth.application.exception.InvalidCredentialsException;
+import aros.services.rms.core.auth.application.exception.InvalidRefreshTokenException;
+import aros.services.rms.core.auth.application.exception.UserNotFoundException;
 import aros.services.rms.core.image.application.exception.ImageNotFoundException;
 import aros.services.rms.core.image.application.exception.ImageUploadException;
 import aros.services.rms.core.image.application.exception.InvalidImageException;
@@ -15,6 +18,7 @@ import aros.services.rms.core.order.application.exception.OrderNotFoundException
 import aros.services.rms.core.order.application.exception.TableNotAvailableException;
 import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
 import aros.services.rms.core.table.application.exception.InvalidTableStatusException;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
@@ -31,6 +35,30 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+  // --- Auth exceptions ---
+
+  /** Handles InvalidCredentialsException. */
+  @ExceptionHandler(InvalidCredentialsException.class)
+  public ResponseEntity<Map<String, Object>> handleInvalidCredentials(
+      InvalidCredentialsException e) {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        .body(Map.of("status", 401, "message", e.getMessage()));
+  }
+
+  /** Handles UserNotFoundException. */
+  @ExceptionHandler(UserNotFoundException.class)
+  public ResponseEntity<Map<String, Object>> handleUserNotFound(UserNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(Map.of("status", 400, "message", e.getMessage()));
+  }
+
+  /** Handles InvalidRefreshTokenException. */
+  @ExceptionHandler(InvalidRefreshTokenException.class)
+  public ResponseEntity<Map<String, Object>> handleInvalidToken(InvalidRefreshTokenException e) {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        .body(Map.of("status", 401, "message", e.getMessage()));
+  }
 
   // --- Order exceptions ---
 

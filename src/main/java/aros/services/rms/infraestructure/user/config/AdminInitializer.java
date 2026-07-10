@@ -63,6 +63,10 @@ public class AdminInitializer implements CommandLineRunner {
       }
 
       if (credentials.isDevelopment()) {
+        log.info(
+            "Development admin credentials -> email: {}, password: {}",
+            credentials.email(),
+            credentials.rawPassword());
         log.info("Initialization process completed");
       } else {
         log.info("Administrator created successfully");
