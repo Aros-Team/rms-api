@@ -9,6 +9,9 @@ app:
       base-url: http://localhost:8080/api/v1/images/local
 
 spring:
+  sql:
+    init:
+      mode: always
   cloud:
     gcp:
       enabled: false

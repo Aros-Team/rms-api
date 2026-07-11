@@ -137,8 +137,9 @@ public class AuditAspect {
     if (json == null) {
       return null;
     }
-    return json.replaceAll("\"password\"\\s*:\\s*\"[^\"]+\"", "\"password\": \"[FILTERED]\"")
-        .replaceAll("\"code\"\\s*:\\s*\"[^\"]+\"", "\"code\": \"[FILTERED]\"");
+    return json.replaceAll(
+            "\"password\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*\"", "\"password\": \"[FILTERED]\"")
+        .replaceAll("\"code\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*\"", "\"code\": \"[FILTERED]\"");
   }
 
   private String sanitizeNewValue(Object result) {
@@ -162,8 +163,11 @@ public class AuditAspect {
     }
 
     String json = serialize(result);
-    return json.replaceAll("\"[^\"]*token[^\"]*\"\\s*:\\s*\"[^\"]*\"", "\"[FILTERED]\"")
-        .replaceAll("\"password\"\\s*:\\s*\"[^\"]+\"", "\"password\": \"[FILTERED]\"");
+    return json.replaceAll(
+            "\"(?:[^\"\\\\]|\\\\.)*token(?:[^\"\\\\]|\\\\.)*\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*\"",
+            "\"[FILTERED]\"")
+        .replaceAll(
+            "\"password\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*\"", "\"password\": \"[FILTERED]\"");
   }
 
   private String serialize(Object obj) {
