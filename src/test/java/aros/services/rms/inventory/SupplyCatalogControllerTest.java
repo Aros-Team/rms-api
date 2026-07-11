@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.image.port.output.StoragePort;
 import aros.services.rms.infraestructure.inventory.persistence.SupplyCategoryEntity;
 import aros.services.rms.infraestructure.inventory.persistence.SupplyEntity;
 import aros.services.rms.infraestructure.inventory.persistence.SupplyVariantEntity;
@@ -56,6 +57,8 @@ import org.springframework.web.context.WebApplicationContext;
 class SupplyCatalogControllerTest {
 
   @Autowired private WebApplicationContext context;
+
+  @MockitoBean private StoragePort storagePort;
 
   @MockitoBean private SupplyRepository supplyRepository;
   @MockitoBean private SupplyVariantRepository supplyVariantRepository;

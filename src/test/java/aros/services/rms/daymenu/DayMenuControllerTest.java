@@ -141,6 +141,6 @@ class DayMenuControllerTest {
     mockMvc
         .perform(get("/api/v1/day-menu/history").param("page", "0").param("size", "10"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.totalElements").value(0));
+        .andExpect(jsonPath("$.page.totalElements").value(0));
   }
 }

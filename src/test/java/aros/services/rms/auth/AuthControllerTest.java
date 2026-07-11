@@ -20,10 +20,13 @@ import aros.services.rms.core.auth.port.input.PasswordResetUseCase;
 import aros.services.rms.core.auth.port.input.RefreshTokensUseCase;
 import aros.services.rms.core.auth.port.input.VerifyTwoFactorUseCase;
 import aros.services.rms.infraestructure.auth.api.AuthController;
+import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
@@ -35,7 +38,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(AuthController.class)
+@WebMvcTest(
+    value = AuthController.class,
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = LocalResourceConfig.class))
 @Import(AuthControllerTest.TestSecurityConfig.class)
 class AuthControllerTest {
 

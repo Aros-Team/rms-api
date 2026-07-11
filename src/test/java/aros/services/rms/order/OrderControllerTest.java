@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.image.port.output.StoragePort;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.domain.MovementType;
 import aros.services.rms.core.order.application.dto.TakeOrderCommand;
@@ -53,6 +54,7 @@ class OrderControllerTest {
   @Autowired private WebApplicationContext context;
 
   @MockitoBean private TakeOrderUseCase takeOrderUseCase;
+  @MockitoBean private StoragePort storagePort;
 
   private MockMvc mockMvc;
 

@@ -40,6 +40,7 @@ import aros.services.rms.core.user.port.input.GetSalaryHistoryUseCase;
 import aros.services.rms.core.user.port.input.RetryUserEmailUseCase;
 import aros.services.rms.core.user.port.input.UpdateUserUseCase;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
+import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
 import aros.services.rms.infraestructure.user.api.UserController;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -49,6 +50,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
@@ -61,7 +64,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(UserController.class)
+@WebMvcTest(
+    value = UserController.class,
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = LocalResourceConfig.class))
 @Import(UserControllerTest.TestSecurityConfig.class)
 class UserControllerTest {
 

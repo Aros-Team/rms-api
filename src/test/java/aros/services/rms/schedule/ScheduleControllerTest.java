@@ -24,6 +24,7 @@ import aros.services.rms.core.schedule.port.input.CreateScheduleUseCase;
 import aros.services.rms.core.schedule.port.input.DeleteScheduleUseCase;
 import aros.services.rms.core.schedule.port.input.UpdateScheduleUseCase;
 import aros.services.rms.core.schedule.port.output.ScheduleRepositoryPort;
+import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
 import aros.services.rms.infraestructure.schedule.api.ScheduleController;
 import java.time.Instant;
 import java.time.LocalTime;
@@ -34,6 +35,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
@@ -46,7 +49,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(ScheduleController.class)
+@WebMvcTest(
+    value = ScheduleController.class,
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = LocalResourceConfig.class))
 @Import(ScheduleControllerTest.TestSecurityConfig.class)
 class ScheduleControllerTest {
 

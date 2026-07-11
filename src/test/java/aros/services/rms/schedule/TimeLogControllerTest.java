@@ -15,6 +15,7 @@ import aros.services.rms.core.schedule.domain.TimeLogId;
 import aros.services.rms.core.schedule.port.input.GetTimeLogHistoryUseCase;
 import aros.services.rms.core.schedule.port.input.GetTimeLogHistoryUseCase.TimeLogFilter;
 import aros.services.rms.core.user.domain.UserId;
+import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
 import aros.services.rms.infraestructure.schedule.api.TimeLogController;
 import java.time.Instant;
 import java.util.List;
@@ -23,6 +24,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -34,7 +37,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(TimeLogController.class)
+@WebMvcTest(
+    value = TimeLogController.class,
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = LocalResourceConfig.class))
 @Import(TimeLogControllerTest.TestSecurityConfig.class)
 class TimeLogControllerTest {
 

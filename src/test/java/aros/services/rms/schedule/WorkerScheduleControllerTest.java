@@ -17,6 +17,7 @@ import aros.services.rms.core.user.domain.UserId;
 import aros.services.rms.core.user.domain.UserRole;
 import aros.services.rms.core.user.domain.UserStatus;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
+import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
 import aros.services.rms.infraestructure.schedule.api.WorkerScheduleController;
 import java.time.Instant;
 import java.time.LocalTime;
@@ -27,6 +28,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -38,7 +41,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(WorkerScheduleController.class)
+@WebMvcTest(
+    value = WorkerScheduleController.class,
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = LocalResourceConfig.class))
 @Import(WorkerScheduleControllerTest.TestSecurityConfig.class)
 class WorkerScheduleControllerTest {
 
