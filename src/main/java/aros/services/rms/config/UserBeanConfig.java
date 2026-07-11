@@ -16,7 +16,6 @@ import aros.services.rms.core.user.port.input.GetAllUsersUseCase;
 import aros.services.rms.core.user.port.input.GetSalaryHistoryUseCase;
 import aros.services.rms.core.user.port.output.SalaryHistoryRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
-import aros.services.rms.core.user.port.output.WorkerRepositoryPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

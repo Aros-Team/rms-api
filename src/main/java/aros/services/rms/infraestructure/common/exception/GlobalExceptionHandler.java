@@ -61,6 +61,13 @@ public class GlobalExceptionHandler {
         .body(Map.of("status", 400, "message", e.getMessage()));
   }
 
+  /** Handles UserNotFoundException (user domain). */
+  @ExceptionHandler(aros.services.rms.core.user.application.exception.UserNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleUserNotFound(
+      aros.services.rms.core.user.application.exception.UserNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
   /** Handles InvalidRefreshTokenException. */
   @ExceptionHandler(InvalidRefreshTokenException.class)
   public ResponseEntity<Map<String, Object>> handleInvalidToken(InvalidRefreshTokenException e) {
@@ -160,13 +167,6 @@ public class GlobalExceptionHandler {
   }
 
   // --- User exceptions ---
-
-  /** Handles UserNotFoundException. */
-  @ExceptionHandler(aros.services.rms.core.user.application.exception.UserNotFoundException.class)
-  public ResponseEntity<ErrorResponse> handleUserNotFound(
-      aros.services.rms.core.user.application.exception.UserNotFoundException e) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
-  }
 
   /** Handles UserNotFoundByEmailException. */
   @ExceptionHandler(

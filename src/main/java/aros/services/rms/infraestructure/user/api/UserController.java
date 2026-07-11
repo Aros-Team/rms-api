@@ -56,7 +56,6 @@ public class UserController {
   private final CreateUserUseCase createUserUseCase;
   private final ChangePasswordUseCase changePasswordUseCase;
   private final GetAllUsersUseCase getAllUsersUseCase;
-  private final GetAllWorkersUseCase getAllWorkersUseCase;
   private final UpdateUserUseCase updateUserUseCase;
   private final DeleteUserUseCase deleteUserUseCase;
   private final RetryUserEmailUseCase retryUserEmailUseCase;
@@ -84,27 +83,6 @@ public class UserController {
     List<UserResponse> users =
         getAllUsersUseCase.getAll().stream().map(UserResponse::fromDomain).toList();
     return ResponseEntity.ok(users);
-  }
-
-  /**
-   * Returns all users with WORKER role.
-   *
-   * @return list of workers
-   */
-  @GetMapping("/employees")
-  @JustAccessToken
-  @Operation(
-      summary = "Get all workers",
-      description = "Returns a list of all users with WORKER role.",
-      responses = {
-        @ApiResponse(responseCode = "200", description = "Workers retrieved successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")
-      })
-  public ResponseEntity<List<UserResponse>> getAllWorkers() {
-    List<UserResponse> workers =
-        getAllWorkersUseCase.getAll().stream().map(UserResponse::fromDomain).toList();
-    return ResponseEntity.ok(workers);
   }
 
   /**
