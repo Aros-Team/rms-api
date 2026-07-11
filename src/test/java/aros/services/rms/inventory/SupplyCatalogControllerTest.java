@@ -20,6 +20,7 @@ import aros.services.rms.infraestructure.inventory.persistence.jpa.SupplyCategor
 import aros.services.rms.infraestructure.inventory.persistence.jpa.SupplyRepository;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.SupplyVariantRepository;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.UnitOfMeasureRepository;
+import aros.services.rms.testsupport.AbstractJwtIntegrationTest;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -50,11 +51,17 @@ import org.springframework.web.context.WebApplicationContext;
       "spring.flyway.enabled=false",
       "spring.jpa.hibernate.ddl-auto=create-drop",
       "spring.sql.init.mode=never",
+      "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MYSQL",
+      "spring.datasource.driver-class-name=org.h2.Driver",
+      "spring.datasource.username=sa",
+      "spring.datasource.password=",
+      "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
       "app.admin.email=admin@test.local",
       "app.admin.dummy-email=test@test.local",
-      "app.admin.password=TestPassword123!"
+      "app.admin.password=TestPassword123!",
+      "app.env=development"
     })
-class SupplyCatalogControllerTest {
+class SupplyCatalogControllerTest extends AbstractJwtIntegrationTest {
 
   @Autowired private WebApplicationContext context;
 
