@@ -5,6 +5,7 @@ package aros.services.rms.infraestructure.auth.api.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 /** Request DTO for user login. */
 @Schema(
@@ -19,5 +20,6 @@ public record LoginRequest(
         String username,
     @Schema(description = "User password", example = "123")
         @NotBlank(message = "La contraseña es requerida")
+        @Size(max = 64, message = "La contraseña no puede exceder 64 caracteres")
         String password,
     @Schema(description = "Device hash for 2FA", example = "device-123") String deviceHash) {}

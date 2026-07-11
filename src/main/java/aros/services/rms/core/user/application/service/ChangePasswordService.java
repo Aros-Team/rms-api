@@ -9,13 +9,9 @@ import aros.services.rms.core.user.application.exception.UserNotFoundByEmailExce
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.port.input.ChangePasswordUseCase;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
-import java.util.regex.Pattern;
 
 /** Implementation of password change use case with validation. */
 public class ChangePasswordService implements ChangePasswordUseCase {
-
-  private static final Pattern PASSWORD_PATTERN =
-      Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$");
 
   private final UserRepositoryPort userRepositoryPort;
   private final PasswordEncoderPort passwordEncoderPort;
@@ -45,11 +41,7 @@ public class ChangePasswordService implements ChangePasswordUseCase {
       throw new SamePasswordException();
     }
 
-    if (!PASSWORD_PATTERN.matcher(newPassword).matches()) {
-      throw new InvalidPasswordException(
-          "La contraseña debe tener mínimo 8 caracteres, incluir al menos"
-              + " una mayúscula, una minúscula, un número y un símbolo (@$!%*?&)");
-    }
+    PasswordValidator.validate(newPassword);
 
     String encodedPassword = passwordEncoderPort.encode(newPassword);
     user.changePassword(encodedPassword);

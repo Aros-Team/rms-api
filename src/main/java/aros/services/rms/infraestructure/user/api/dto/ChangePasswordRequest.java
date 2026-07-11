@@ -9,13 +9,13 @@ import jakarta.validation.constraints.Size;
 /** Request DTO for changing password. */
 public record ChangePasswordRequest(
     @NotBlank(message = "La contraseña actual es requerida")
-        @Size(min = 8, max = 20, message = "La contraseña debe tener entre 8 y 20 caracteres")
+        @Size(min = 8, max = 64, message = "La contraseña debe tener entre 8 y 64 caracteres")
         String currentPassword,
     @NotBlank(message = "La nueva contraseña es requerida")
-        @Size(min = 8, max = 20, message = "La nueva contraseña debe tener entre 8 y 20 caracteres")
+        @Size(min = 8, max = 64, message = "La nueva contraseña debe tener entre 8 y 64 caracteres")
         @Pattern(
-            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*\\p{Punct})[\\p{Graph}]{8,64}$",
             message =
                 "La nueva contraseña debe contener al menos: 1 mayúscula, 1 minúscula, "
-                    + "1 número y 1 símbolo (@$!%*?&)")
+                    + "1 número y 1 símbolo")
         String newPassword) {}

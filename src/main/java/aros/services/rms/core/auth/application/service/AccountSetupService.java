@@ -14,7 +14,7 @@ import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.email.port.input.WelcomeEmailUseCase;
 import aros.services.rms.core.share.port.output.HashServicePort;
-import aros.services.rms.core.user.application.exception.InvalidPasswordException;
+import aros.services.rms.core.user.application.service.PasswordValidator;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserId;
 import aros.services.rms.core.user.domain.UserRole;
@@ -23,15 +23,11 @@ import aros.services.rms.infraestructure.auth.api.dto.SetupAccountValidationResp
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 /** Service for handling new user account setup with token validation. */
 public class AccountSetupService implements AccountSetupUseCase {
 
   private static final int TOKEN_EXPIRATION_MINUTES = 30;
-
-  private static final Pattern PASSWORD_PATTERN =
-      Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$");
 
   private final UserRepositoryPort userRepositoryPort;
   private final AccountSetupTokenRepositoryPort tokenRepositoryPort;
@@ -122,11 +118,7 @@ public class AccountSetupService implements AccountSetupUseCase {
       }
     }
 
-    if (!PASSWORD_PATTERN.matcher(newPassword).matches()) {
-      throw new InvalidPasswordException(
-          "La nueva contraseña debe tener mínimo 8 caracteres, incluir al menos"
-              + " una mayúscula, una minúscula, un número y un símbolo (@$!%*?&)");
-    }
+    PasswordValidator.validate(newPassword);
 
     String encodedPassword = passwordEncoderPort.encode(newPassword);
 

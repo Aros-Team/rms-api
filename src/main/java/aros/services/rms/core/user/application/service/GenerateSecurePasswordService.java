@@ -3,35 +3,54 @@
 package aros.services.rms.core.user.application.service;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-/** Service for generating secure random passwords for initial user setup. */
+/** Service for generating secure random passwords. */
 public class GenerateSecurePasswordService {
 
-  private static final String[] WORDS = {
-    "Table", "Table", "Table", "Table", "Table", "Chair", "Chair", "Chair", "Chair", "Plate",
-    "Plate", "Plate", "Glass", "Glass", "Glass", "Fork", "Knife", "Spoon", "Menu", "Menu", "Menu",
-    "Order", "Order", "Order", "Check", "Check", "Bill", "Toast", "Toast", "Salad", "Soup", "Soup",
-    "Bread", "Rice", "Pasta", "Beans", "Steak", "Steak", "Grill", "Roast", "Steam", "Bake", "Slice",
-    "Dice", "Mix", "Pour", "Fill", "Pour", "Seat", "Serve", "Cater", "Cook", "Prep", "Brew", "Dish",
-    "Dish", "Chef", "Menu", "Order", "Table", "Guest", "Visit", "Dine", "Lunch", "Dinner", "Brunch",
-    "Taste", "Flavor", "Aroma", "Spice", "Herb", "Sauce", "Sauté", "Broil", "Roast", "Slice",
-    "Chop", "Blend", "Whisk", "Fold", "Knead", "Rise", "Proof", "Heat", "Cool", "Chill", "Freeze",
-    "Mince", "Grind", "Crush"
-  };
+  private static final String LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
+  private static final String UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  private static final String DIGITS = "0123456789";
+  private static final String SYMBOLS = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+  private static final String ALL = LOWERCASE + UPPERCASE + DIGITS + SYMBOLS;
 
-  private static final String SYMBOLS = "!@#+*$%&";
+  private static final int MIN_LENGTH = 14;
+  private static final int MAX_LENGTH = 16;
+
   private static final SecureRandom random = new SecureRandom();
 
+  private GenerateSecurePasswordService() {}
+
   /**
-   * Generates a secure random password.
+   * Generates a secure random password meeting all complexity requirements.
    *
-   * @return a random password combining word, number and symbol
+   * @return a random password with upper, lower, digit, and symbol characters
    */
   public static String execute() {
-    String word = WORDS[random.nextInt(WORDS.length)];
-    int number = 100 + random.nextInt(900);
-    char symbol = SYMBOLS.charAt(random.nextInt(SYMBOLS.length()));
+    int length = MIN_LENGTH + random.nextInt(MAX_LENGTH - MIN_LENGTH + 1);
+    List<Character> chars = new ArrayList<>(length);
 
-    return word + number + symbol;
+    chars.add(pick(LOWERCASE));
+    chars.add(pick(UPPERCASE));
+    chars.add(pick(DIGITS));
+    chars.add(pick(SYMBOLS));
+
+    for (int i = 4; i < length; i++) {
+      chars.add(pick(ALL));
+    }
+
+    Collections.shuffle(chars, random);
+
+    StringBuilder sb = new StringBuilder(length);
+    for (char c : chars) {
+      sb.append(c);
+    }
+    return sb.toString();
+  }
+
+  private static char pick(String pool) {
+    return pool.charAt(random.nextInt(pool.length()));
   }
 }

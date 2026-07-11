@@ -13,21 +13,17 @@ import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.email.port.input.PasswordResetEmailUseCase;
 import aros.services.rms.core.share.port.output.HashServicePort;
-import aros.services.rms.core.user.application.exception.InvalidPasswordException;
+import aros.services.rms.core.user.application.service.PasswordValidator;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 /** Service for handling password reset requests and token management. */
 public class PasswordResetService implements PasswordResetUseCase {
 
   private static final int TOKEN_EXPIRATION_MINUTES = 30;
-
-  private static final Pattern PASSWORD_PATTERN =
-      Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$");
 
   private final UserRepositoryPort userRepositoryPort;
   private final PasswordResetTokenRepositoryPort tokenRepositoryPort;
@@ -128,11 +124,7 @@ public class PasswordResetService implements PasswordResetUseCase {
                     new PasswordResetTokenInvalidException(
                         "El token de recuperación no es válido"));
 
-    if (!PASSWORD_PATTERN.matcher(newPassword).matches()) {
-      throw new InvalidPasswordException(
-          "La nueva contraseña debe tener mínimo 8 caracteres, incluir al menos"
-              + " una mayúscula, una minúscula, un número y un símbolo (@$!%*?&)");
-    }
+    PasswordValidator.validate(newPassword);
 
     String encodedPassword = passwordEncoderPort.encode(newPassword);
     user.changePassword(encodedPassword);
