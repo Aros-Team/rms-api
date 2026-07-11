@@ -1,5 +1,6 @@
 package aros.services.rms.config;
 
+import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.auth.port.output.AccountSetupTokenRepositoryPort;
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
@@ -8,11 +9,12 @@ import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.user.application.service.ChangePasswordService;
 import aros.services.rms.core.user.application.service.CreateUserService;
 import aros.services.rms.core.user.application.service.GetAllUsersService;
-import aros.services.rms.core.user.application.service.GetAllWorkersService;
+import aros.services.rms.core.user.application.service.GetSalaryHistoryService;
 import aros.services.rms.core.user.port.input.ChangePasswordUseCase;
 import aros.services.rms.core.user.port.input.CreateUserUseCase;
 import aros.services.rms.core.user.port.input.GetAllUsersUseCase;
-import aros.services.rms.core.user.port.input.GetAllWorkersUseCase;
+import aros.services.rms.core.user.port.input.GetSalaryHistoryUseCase;
+import aros.services.rms.core.user.port.output.SalaryHistoryRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import aros.services.rms.core.user.port.output.WorkerRepositoryPort;
 import org.springframework.context.annotation.Bean;
@@ -39,16 +41,20 @@ public class UserBeanConfig {
   @Bean
   public CreateUserUseCase createUserUseCase(
       UserRepositoryPort userPort,
+      AreaRepositoryPort areaPort,
       AccountSetupTokenRepositoryPort accountSetupTokenRepositoryPort,
       WelcomeEmailUseCase welcomeEmailUseCase,
       HashServicePort hashServicePort,
-      BusinessMetricsPort metricsPort) {
+      BusinessMetricsPort metricsPort,
+      SalaryHistoryRepositoryPort salaryHistoryPort) {
     return new CreateUserService(
         userPort,
+        areaPort,
         accountSetupTokenRepositoryPort,
         welcomeEmailUseCase,
         hashServicePort,
-        metricsPort);
+        metricsPort,
+        salaryHistoryPort);
   }
 
   /**
@@ -76,13 +82,15 @@ public class UserBeanConfig {
   }
 
   /**
-   * Creates the get all workers use case.
+   * Creates the get salary history use case.
    *
-   * @param workerRepositoryPort worker repository port
-   * @return configured GetAllWorkersUseCase
+   * @param userPort user repository port
+   * @param salaryHistoryPort salary history repository port
+   * @return configured GetSalaryHistoryUseCase
    */
   @Bean
-  public GetAllWorkersUseCase getAllWorkersUseCase(WorkerRepositoryPort workerRepositoryPort) {
-    return new GetAllWorkersService(workerRepositoryPort);
+  public GetSalaryHistoryUseCase getSalaryHistoryUseCase(
+      UserRepositoryPort userPort, SalaryHistoryRepositoryPort salaryHistoryPort) {
+    return new GetSalaryHistoryService(userPort, salaryHistoryPort);
   }
 }

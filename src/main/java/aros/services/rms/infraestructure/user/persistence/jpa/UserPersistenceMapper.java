@@ -3,10 +3,12 @@
 package aros.services.rms.infraestructure.user.persistence.jpa;
 
 import aros.services.rms.core.area.domain.AreaId;
+import aros.services.rms.core.user.domain.Salary;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserWithAreas;
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
 import aros.services.rms.infraestructure.area.persistence.jpa.AreaMapper;
+import java.math.BigDecimal;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -27,6 +29,7 @@ public abstract class UserPersistenceMapper {
   @Mapping(source = "email", target = "email.value")
   @Mapping(source = "status", target = "status")
   @Mapping(source = "assignedAreas", target = "assignedAreas", qualifiedByName = "entityToAreaId")
+  @Mapping(source = "salary", target = "salary", qualifiedByName = "bigDecimalToSalary")
   @Mapping(target = "active", constant = "true")
   @Mapping(target = "deletedAt", ignore = true)
   public abstract User toDomain(UserEntity entity);
@@ -43,6 +46,7 @@ public abstract class UserPersistenceMapper {
   @Mapping(source = "email.value", target = "email")
   @Mapping(source = "status", target = "status")
   @Mapping(source = "deletedAt", target = "deletedAt")
+  @Mapping(source = "salary", target = "salary", qualifiedByName = "salaryToBigDecimal")
   @Mapping(source = "assignedAreas", target = "assignedAreas", qualifiedByName = "areaIdToEntity")
   public abstract UserEntity toEntity(User domain);
 
@@ -78,5 +82,21 @@ public abstract class UserPersistenceMapper {
               return entity;
             })
         .toList();
+  }
+
+  @Named("bigDecimalToSalary")
+  Salary bigDecimalToSalary(BigDecimal value) {
+    if (value == null) {
+      return null;
+    }
+    return Salary.of(value);
+  }
+
+  @Named("salaryToBigDecimal")
+  BigDecimal salaryToBigDecimal(Salary salary) {
+    if (salary == null) {
+      return null;
+    }
+    return salary.value();
   }
 }

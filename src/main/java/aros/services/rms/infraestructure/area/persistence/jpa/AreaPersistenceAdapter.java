@@ -3,9 +3,11 @@
 package aros.services.rms.infraestructure.area.persistence.jpa;
 
 import aros.services.rms.core.area.domain.Area;
+import aros.services.rms.core.area.domain.AreaId;
 import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -54,5 +56,11 @@ public class AreaPersistenceAdapter implements AreaRepositoryPort {
   @Override
   public List<Area> findByIdIn(List<Long> ids) {
     return areaRepository.findByIdIn(ids).stream().map(areaMapper::toDomain).toList();
+  }
+
+  @Override
+  public boolean existsAllByIds(Set<AreaId> ids) {
+    return areaRepository.existsAllByIdIn(
+        ids.stream().map(i -> i.value()).collect(Collectors.toSet()), ids.size());
   }
 }

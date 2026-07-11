@@ -11,13 +11,14 @@ import aros.services.rms.core.user.port.input.ChangePasswordUseCase;
 import aros.services.rms.core.user.port.input.CreateUserUseCase;
 import aros.services.rms.core.user.port.input.DeleteUserUseCase;
 import aros.services.rms.core.user.port.input.GetAllUsersUseCase;
-import aros.services.rms.core.user.port.input.GetAllWorkersUseCase;
+import aros.services.rms.core.user.port.input.GetSalaryHistoryUseCase;
 import aros.services.rms.core.user.port.input.RetryUserEmailUseCase;
 import aros.services.rms.core.user.port.input.UpdateUserUseCase;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import aros.services.rms.infraestructure.share.security.JustAccessToken;
 import aros.services.rms.infraestructure.share.security.JustAdminUser;
 import aros.services.rms.infraestructure.user.api.dto.ChangePasswordRequest;
+import aros.services.rms.infraestructure.user.api.dto.SalaryHistoryResponse;
 import aros.services.rms.infraestructure.user.api.dto.UpdateUserRequest;
 import aros.services.rms.infraestructure.user.api.dto.UserRegisterRequest;
 import aros.services.rms.infraestructure.user.api.dto.UserRegisterResponse;
@@ -61,6 +62,7 @@ public class UserController {
   private final RetryUserEmailUseCase retryUserEmailUseCase;
   private final AccountSetupUseCase accountSetupUseCase;
   private final UserRepositoryPort userRepositoryPort;
+  private final GetSalaryHistoryUseCase getSalaryHistoryUseCase;
 
   /**
    * Returns all users in the system. Admin access only.
@@ -284,5 +286,18 @@ public class UserController {
     changePasswordUseCase.changePassword(email, request.currentPassword(), request.newPassword());
     log.info("Password changed successfully: email={}", email);
     return ResponseEntity.ok().build();
+  }
+
+  /** Retrieves the salary history for a user. */
+  @GetMapping("/{id}/salary-history")
+  @JustAdminUser
+  public ResponseEntity<List<SalaryHistoryResponse>> getSalaryHistory(@PathVariable Long id) {
+    log.info("Admin retrieving salary history for user: id={}", id);
+    List<SalaryHistoryResponse> history =
+        getSalaryHistoryUseCase.getSalaryHistory(id).stream()
+            .map(SalaryHistoryResponse::fromDomain)
+            .toList();
+    log.info("Salary history retrieved for user: id={}, count={}", id, history.size());
+    return ResponseEntity.ok(history);
   }
 }

@@ -10,7 +10,8 @@ spring:
       enabled: true
 
 app:
-  version: @project.version@
+  version: "@project.version@"
+  timezone: America/Bogota
   jwt:
     issuer: rms-api
     expiration-minutes: 360

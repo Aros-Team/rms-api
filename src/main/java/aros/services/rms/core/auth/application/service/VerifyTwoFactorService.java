@@ -92,7 +92,7 @@ public class VerifyTwoFactorService implements VerifyTwoFactorUseCase {
   }
 
   private AuthResult generateAuthResult(String username, User user) {
-    String accessToken = tokenPort.generateAccessToken(user);
+    String accessToken = tokenPort.generateAccessToken(user, false);
     String refreshToken = tokenPort.generateRefreshToken(user);
 
     String refreshHash = hashPort.hash(refreshToken);

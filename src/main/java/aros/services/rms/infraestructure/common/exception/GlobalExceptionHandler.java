@@ -17,7 +17,14 @@ import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFo
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.application.exception.TableNotAvailableException;
 import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
+import aros.services.rms.core.schedule.application.exception.ScheduleAlreadyExistsException;
+import aros.services.rms.core.schedule.application.exception.ScheduleHasAssignmentsException;
+import aros.services.rms.core.schedule.application.exception.ScheduleNotFoundException;
+import aros.services.rms.core.schedule.application.exception.ShiftOverlapException;
+import aros.services.rms.core.schedule.application.exception.WorkerNotInShiftException;
+import aros.services.rms.core.schedule.application.exception.WorkerScheduleAssignmentNotFoundException;
 import aros.services.rms.core.table.application.exception.InvalidTableStatusException;
+import aros.services.rms.core.user.application.exception.InvalidSalaryException;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,6 +161,22 @@ public class GlobalExceptionHandler {
 
   // --- User exceptions ---
 
+  /** Handles UserNotFoundException. */
+  @ExceptionHandler(aros.services.rms.core.user.application.exception.UserNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleUserNotFound(
+      aros.services.rms.core.user.application.exception.UserNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  /** Handles UserNotFoundByEmailException. */
+  @ExceptionHandler(
+      aros.services.rms.core.user.application.exception.UserNotFoundByEmailException.class)
+  public ResponseEntity<ErrorResponse> handleUserNotFoundByEmail(
+      aros.services.rms.core.user.application.exception.UserNotFoundByEmailException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
+  }
+
   /** Handles InvalidPasswordException. */
   @ExceptionHandler(
       aros.services.rms.core.user.application.exception.InvalidPasswordException.class)
@@ -169,6 +192,54 @@ public class GlobalExceptionHandler {
       aros.services.rms.core.user.application.exception.SamePasswordException e) {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(new ErrorResponse(400, e.getMessage()));
+  }
+
+  /** Handles InvalidSalaryException. */
+  @ExceptionHandler(InvalidSalaryException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidSalary(InvalidSalaryException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
+  }
+
+  // --- Schedule exceptions ---
+
+  /** Handles ScheduleNotFoundException. */
+  @ExceptionHandler(ScheduleNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleScheduleNotFound(ScheduleNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  /** Handles ScheduleAlreadyExistsException. */
+  @ExceptionHandler(ScheduleAlreadyExistsException.class)
+  public ResponseEntity<ErrorResponse> handleScheduleAlreadyExists(
+      ScheduleAlreadyExistsException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
+  /** Handles ShiftOverlapException. */
+  @ExceptionHandler(ShiftOverlapException.class)
+  public ResponseEntity<ErrorResponse> handleShiftOverlap(ShiftOverlapException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
+  /** Handles ScheduleHasAssignmentsException. */
+  @ExceptionHandler(ScheduleHasAssignmentsException.class)
+  public ResponseEntity<ErrorResponse> handleScheduleHasAssignments(
+      ScheduleHasAssignmentsException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
+  /** Handles WorkerNotInShiftException. */
+  @ExceptionHandler(WorkerNotInShiftException.class)
+  public ResponseEntity<ErrorResponse> handleWorkerNotInShift(WorkerNotInShiftException e) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(403, e.getMessage()));
+  }
+
+  /** Handles WorkerScheduleAssignmentNotFoundException. */
+  @ExceptionHandler(WorkerScheduleAssignmentNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleWorkerScheduleAssignmentNotFound(
+      WorkerScheduleAssignmentNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
   }
 
   // --- Missing handlers referenced in ExhaustedRetryException ---

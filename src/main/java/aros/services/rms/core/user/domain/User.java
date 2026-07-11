@@ -22,6 +22,7 @@ public class User {
   private List<AreaId> assignedAreas;
   private boolean active;
   private Instant deletedAt;
+  private Salary salary;
 
   /**
    * Creates a new User instance.
@@ -60,6 +61,7 @@ public class User {
     this.assignedAreas = assignedAreas;
     this.active = true;
     this.deletedAt = null;
+    this.salary = null;
   }
 
   /**
@@ -281,5 +283,13 @@ public class User {
    */
   public void setDeletedAt(Instant deletedAt) {
     this.deletedAt = deletedAt;
+  }
+
+  public Salary getSalary() {
+    return salary;
+  }
+
+  public void setSalary(Salary salary) {
+    this.salary = salary;
   }
 }

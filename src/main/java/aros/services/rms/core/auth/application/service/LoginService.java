@@ -14,11 +14,13 @@ import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.device.domain.Device;
 import aros.services.rms.core.device.port.output.DeviceRepositoryPort;
 import aros.services.rms.core.email.port.input.TwoFactorAuthEmailUseCase;
+import aros.services.rms.core.schedule.port.input.RecordTimeLogUseCase;
 import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.twofactor.domain.TwoFactorCode;
 import aros.services.rms.core.twofactor.port.output.TfaCodeGeneratorPort;
 import aros.services.rms.core.twofactor.port.output.TwoFactorCodeRepositoryPort;
 import aros.services.rms.core.user.domain.User;
+import aros.services.rms.core.user.domain.UserRole;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -36,6 +38,7 @@ public class LoginService implements LoginUseCase {
   private final RefreshTokenRepositoryPort refreshTokenPort;
   private final TokenPort tokenPort;
   private final BusinessMetricsPort metricsPort;
+  private final RecordTimeLogUseCase recordTimeLogUseCase;
 
   /**
    * Creates a new LoginService instance.
@@ -61,7 +64,8 @@ public class LoginService implements LoginUseCase {
       HashServicePort hashServicePort,
       RefreshTokenRepositoryPort refreshTokenPort,
       TokenPort tokenPort,
-      BusinessMetricsPort metricsPort) {
+      BusinessMetricsPort metricsPort,
+      RecordTimeLogUseCase recordTimeLogUseCase) {
     this.passwordPort = passwordPort;
     this.userPort = userPort;
     this.devicePort = devicePort;
@@ -72,6 +76,7 @@ public class LoginService implements LoginUseCase {
     this.refreshTokenPort = refreshTokenPort;
     this.tokenPort = tokenPort;
     this.metricsPort = metricsPort;
+    this.recordTimeLogUseCase = recordTimeLogUseCase;
   }
 
   @Override
@@ -132,9 +137,14 @@ public class LoginService implements LoginUseCase {
   }
 
   private AuthResult.Success createSuccess(User user) {
+    boolean restricted = false;
+    if (user.getRole() == UserRole.WORKER) {
+      var result = recordTimeLogUseCase.execute(user.getId());
+      restricted = !result.withinShift();
+    }
     return new AuthResult.Success(
         user.getEmail().value(),
-        tokenPort.generateAccessToken(user),
+        tokenPort.generateAccessToken(user, restricted),
         tokenPort.generateRefreshToken(user));
   }
 

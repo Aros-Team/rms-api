@@ -3,6 +3,7 @@
 package aros.services.rms.infraestructure.user.api.dto;
 
 import aros.services.rms.core.area.domain.AreaId;
+import aros.services.rms.core.user.domain.Salary;
 import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.core.user.port.dto.CreateUserInfo;
 import jakarta.validation.constraints.Email;
@@ -10,7 +11,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,7 +38,8 @@ public record UserRegisterRequest(
         String phone,
     @NotNull(message = "Las areas son requerdias")
         @NotEmpty(message = "Las areas no pueden estar vacias")
-        Set<Long> areas) {
+        Set<Long> areas,
+    @Positive(message = "El salario debe ser un valor positivo") BigDecimal salary) {
   /** Converts this request to CreateUserInfo. */
   public CreateUserInfo toCreateUserInfo() {
     return new CreateUserInfo(
@@ -44,6 +48,7 @@ public record UserRegisterRequest(
         new UserEmail(email),
         address,
         phone,
-        areas.stream().map(AreaId::of).collect(Collectors.toSet()));
+        areas.stream().map(AreaId::of).collect(Collectors.toSet()),
+        salary != null ? Salary.of(salary) : null);
   }
 }

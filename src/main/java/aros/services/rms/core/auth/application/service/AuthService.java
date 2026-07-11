@@ -211,7 +211,7 @@ public class AuthService
       return new AuthResult.RequiresTfa(username, tokenPort.generateTfaToken(user));
     }
 
-    String accessToken = tokenPort.generateAccessToken(user);
+    String accessToken = tokenPort.generateAccessToken(user, false);
     String refreshToken = tokenPort.generateRefreshToken(user);
 
     String refreshHash = hashServiceHash(refreshToken);

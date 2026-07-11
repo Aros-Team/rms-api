@@ -13,4 +13,13 @@ public class AreaNotFoundException extends RuntimeException {
   public AreaNotFoundException(Long id) {
     super("Area not found: " + id);
   }
+
+  /**
+   * Creates a new exception for missing area.
+   *
+   * @param msg custom message of error
+   */
+  public AreaNotFoundException(String msg) {
+    super(msg);
+  }
 }

@@ -10,9 +10,10 @@ public interface TokenPort {
    * Generates an access token for a user.
    *
    * @param user the user to generate token for
+   * @param restricted whether the user has restricted access (outside shift)
    * @return the access token string
    */
-  String generateAccessToken(User user);
+  String generateAccessToken(User user, boolean restricted);
 
   /**
    * Generates a two-factor authentication token for a user.

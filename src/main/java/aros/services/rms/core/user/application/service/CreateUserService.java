@@ -2,17 +2,21 @@
 
 package aros.services.rms.core.user.application.service;
 
+import aros.services.rms.core.area.application.exception.AreaNotFoundException;
+import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.auth.domain.AccountSetupToken;
 import aros.services.rms.core.auth.port.output.AccountSetupTokenRepositoryPort;
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.email.port.input.WelcomeEmailUseCase;
 import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.user.application.exception.UserAlreadyExistsException;
+import aros.services.rms.core.user.domain.SalaryHistoryEntry;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserRole;
 import aros.services.rms.core.user.domain.UserStatus;
 import aros.services.rms.core.user.port.dto.CreateUserInfo;
 import aros.services.rms.core.user.port.input.CreateUserUseCase;
+import aros.services.rms.core.user.port.output.SalaryHistoryRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -22,31 +26,39 @@ import java.util.UUID;
 /** Implementation of user creation with account setup token generation and welcome email. */
 public class CreateUserService implements CreateUserUseCase {
   private final UserRepositoryPort userPort;
+  private final AreaRepositoryPort areaPort;
   private final AccountSetupTokenRepositoryPort accountSetupTokenRepositoryPort;
   private final WelcomeEmailUseCase welcomeEmailUseCase;
   private final HashServicePort hashServicePort;
   private final BusinessMetricsPort metricsPort;
+  private final SalaryHistoryRepositoryPort salaryHistoryPort;
 
   /**
    * Creates a user service.
    *
    * @param userPort repository for user operations
+   * @param areaPort repository for area operations
    * @param accountSetupTokenRepositoryPort repository for account setup tokens
    * @param welcomeEmailUseCase use case for welcome emails
    * @param hashServicePort port for hashing operations
    * @param metricsPort port for business metrics
+   * @param salaryHistoryPort port for salary history operations
    */
   public CreateUserService(
       UserRepositoryPort userPort,
+      AreaRepositoryPort areaPort,
       AccountSetupTokenRepositoryPort accountSetupTokenRepositoryPort,
       WelcomeEmailUseCase welcomeEmailUseCase,
       HashServicePort hashServicePort,
-      BusinessMetricsPort metricsPort) {
+      BusinessMetricsPort metricsPort,
+      SalaryHistoryRepositoryPort salaryHistoryPort) {
     this.userPort = userPort;
+    this.areaPort = areaPort;
     this.accountSetupTokenRepositoryPort = accountSetupTokenRepositoryPort;
     this.welcomeEmailUseCase = welcomeEmailUseCase;
     this.hashServicePort = hashServicePort;
     this.metricsPort = metricsPort;
+    this.salaryHistoryPort = salaryHistoryPort;
   }
 
   @Override
@@ -56,6 +68,10 @@ public class CreateUserService implements CreateUserUseCase {
     if (exists) {
       throw new UserAlreadyExistsException(
           "El Documento o Correo ya han sido utilizados por otro usuario.");
+    }
+
+    if (!areaPort.existsAllByIds(info.areas())) {
+      throw new AreaNotFoundException("No se pudo encontrar alguna de areas referenciadas.");
     }
 
     User user =
@@ -71,7 +87,24 @@ public class CreateUserService implements CreateUserUseCase {
             UserStatus.PENDING,
             new LinkedList<>(info.areas()));
 
+    if (info.salary() != null) {
+      user.setSalary(info.salary());
+    }
+
     User saved = this.userPort.save(user);
+
+    if (saved.getSalary() != null) {
+      SalaryHistoryEntry historyEntry =
+          new SalaryHistoryEntry(
+              null,
+              saved.getId(),
+              null,
+              saved.getSalary(),
+              Instant.now(),
+              "CREACION",
+              "Salario inicial");
+      this.salaryHistoryPort.save(historyEntry);
+    }
 
     String rawToken = UUID.randomUUID().toString();
     String tokenHash = hashServicePort.hash(rawToken);

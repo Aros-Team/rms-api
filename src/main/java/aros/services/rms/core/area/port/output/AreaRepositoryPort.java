@@ -3,8 +3,10 @@
 package aros.services.rms.core.area.port.output;
 
 import aros.services.rms.core.area.domain.Area;
+import aros.services.rms.core.area.domain.AreaId;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /** Output port for area persistence operations. */
 public interface AreaRepositoryPort {
@@ -61,4 +63,12 @@ public interface AreaRepositoryPort {
    * @return list of found areas
    */
   List<Area> findByIdIn(List<Long> ids);
+
+  /**
+   * Checks if a list of areas exists by id.
+   *
+   * @param ids the areas's id to check
+   * @return true if all the areas exists
+   */
+  boolean existsAllByIds(Set<AreaId> ids);
 }
