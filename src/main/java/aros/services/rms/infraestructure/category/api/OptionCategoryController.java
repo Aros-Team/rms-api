@@ -7,6 +7,7 @@ import aros.services.rms.core.category.port.input.OptionCategoryUseCase;
 import aros.services.rms.infraestructure.category.api.dto.CategoryRequest;
 import aros.services.rms.infraestructure.category.api.dto.OptionCategoryResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -32,7 +33,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @Tag(
     name = "Option Categories",
-    description = "Management of option categories for product customization")
+    description =
+        "Operations for managing option categories used in product customization"
+            + " (e.g. cooking term, milk type)")
 public class OptionCategoryController {
 
   private final OptionCategoryUseCase optionCategoryUseCase;
@@ -44,11 +47,15 @@ public class OptionCategoryController {
    * @return the created option category
    */
   @Operation(
+      tags = {"Option Categories"},
       summary = "Create new option category",
       description = "Creates a new option category for product customization.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Option category created successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "409", description = "Option category name already exists"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
@@ -69,16 +76,22 @@ public class OptionCategoryController {
    * @return the updated option category
    */
   @Operation(
+      tags = {"Option Categories"},
       summary = "Update option category",
       description = "Updates an existing option category.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Option category updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Option category not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
   public ResponseEntity<OptionCategoryResponse> update(
-      @PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
+      @Parameter(description = "Option category ID", example = "1", required = true) @PathVariable
+          Long id,
+      @Valid @RequestBody CategoryRequest request) {
     OptionCategory optionCategory =
         OptionCategory.builder().name(request.name()).description(request.description()).build();
 
@@ -92,12 +105,15 @@ public class OptionCategoryController {
    * @return the list of option categories
    */
   @Operation(
+      tags = {"Option Categories"},
       summary = "Get all option categories",
       description = "Returns all option categories for customization.",
       responses = {
         @ApiResponse(
             responseCode = "200",
             description = "Option categories retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
@@ -116,15 +132,20 @@ public class OptionCategoryController {
    * @return the option category
    */
   @Operation(
+      tags = {"Option Categories"},
       summary = "Get option category by ID",
       description = "Returns a specific option category given its identifier.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Option category retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Option category not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/{id}")
-  public ResponseEntity<OptionCategoryResponse> findById(@PathVariable Long id) {
+  public ResponseEntity<OptionCategoryResponse> findById(
+      @Parameter(description = "Option category ID", example = "1", required = true) @PathVariable
+          Long id) {
     OptionCategory optionCategory = optionCategoryUseCase.findById(id);
     return ResponseEntity.ok(OptionCategoryResponse.fromDomain(optionCategory));
   }

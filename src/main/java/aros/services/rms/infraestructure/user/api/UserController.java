@@ -51,7 +51,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @Tag(
     name = "Users",
-    description = "User management - create, update, delete and manage user accounts")
+    description =
+        "Operations for user account management: create, update, delete and self-service actions")
 public class UserController {
   private final CreateUserUseCase createUserUseCase;
   private final ChangePasswordUseCase changePasswordUseCase;
@@ -71,6 +72,7 @@ public class UserController {
   @GetMapping
   @JustAdminUser
   @Operation(
+      tags = {"Users"},
       summary = "Get all users",
       description = "Returns a list of all users in the system. Admin access only.",
       responses = {
@@ -94,6 +96,7 @@ public class UserController {
   @PostMapping
   @JustAdminUser
   @Operation(
+      tags = {"Users"},
       summary = "Register new user",
       description =
           "Creates a new user in the system. A welcome email with temporary credentials is sent.",
@@ -127,6 +130,7 @@ public class UserController {
   @PutMapping("/{id}")
   @JustAdminUser
   @Operation(
+      tags = {"Users"},
       summary = "Update user",
       description = "Updates an existing user's data. Admin access only.",
       responses = {
@@ -137,9 +141,9 @@ public class UserController {
         @ApiResponse(responseCode = "404", description = "User not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
-  @Parameter(description = "User ID", example = "1")
   public ResponseEntity<UserResponse> update(
-      @PathVariable Long id, @Valid @RequestBody UpdateUserRequest request)
+      @Parameter(description = "User ID", example = "1", required = true) @PathVariable Long id,
+      @Valid @RequestBody UpdateUserRequest request)
       throws UserNotFoundException {
     log.info("Admin updating user: id={}", id);
     var user = this.updateUserUseCase.update(id, request.toUpdateUserInfo());
@@ -156,6 +160,7 @@ public class UserController {
   @DeleteMapping("/{id}")
   @JustAdminUser
   @Operation(
+      tags = {"Users"},
       summary = "Delete user",
       description = "Deletes a user from the system. Admin access only.",
       responses = {
@@ -165,8 +170,9 @@ public class UserController {
         @ApiResponse(responseCode = "404", description = "User not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
-  @Parameter(description = "User ID", example = "1")
-  public ResponseEntity<Void> delete(@PathVariable Long id) throws UserNotFoundException {
+  public ResponseEntity<Void> delete(
+      @Parameter(description = "User ID", example = "1", required = true) @PathVariable Long id)
+      throws UserNotFoundException {
     log.info("Admin deleting user: id={}", id);
     this.deleteUserUseCase.delete(id);
     log.info("User deleted successfully: id={}", id);
@@ -182,6 +188,7 @@ public class UserController {
   @PostMapping("/{id}/retry-email")
   @JustAdminUser
   @Operation(
+      tags = {"Users"},
       summary = "Resend registration email",
       description = "Resends the welcome email to a user. Admin access only.",
       responses = {
@@ -191,8 +198,9 @@ public class UserController {
         @ApiResponse(responseCode = "404", description = "User not found"),
         @ApiResponse(responseCode = "500", description = "Error sending email")
       })
-  @Parameter(description = "User ID", example = "1")
-  public ResponseEntity<Void> retryEmail(@PathVariable Long id) throws UserNotFoundException {
+  public ResponseEntity<Void> retryEmail(
+      @Parameter(description = "User ID", example = "1", required = true) @PathVariable Long id)
+      throws UserNotFoundException {
     log.info("Admin retrying email for user: id={}", id);
     boolean sent = this.retryUserEmailUseCase.retrySendRegistrationEmail(id);
     if (sent) {
@@ -213,6 +221,7 @@ public class UserController {
   @PostMapping("/{id}/retry-setup-email")
   @JustAdminUser
   @Operation(
+      tags = {"Users"},
       summary = "Resend setup email",
       description =
           "Invalidates existing tokens and sends a new account setup email. Admin access only.",
@@ -223,8 +232,9 @@ public class UserController {
         @ApiResponse(responseCode = "404", description = "User not found"),
         @ApiResponse(responseCode = "500", description = "Error sending email")
       })
-  @Parameter(description = "User ID", example = "1")
-  public ResponseEntity<Void> retrySetupEmail(@PathVariable Long id) throws UserNotFoundException {
+  public ResponseEntity<Void> retrySetupEmail(
+      @Parameter(description = "User ID", example = "1", required = true) @PathVariable Long id)
+      throws UserNotFoundException {
     log.info("Admin retrying setup email for user: id={}", id);
     User user =
         userRepositoryPort
@@ -249,12 +259,14 @@ public class UserController {
   @PutMapping("/me/password")
   @JustAccessToken
   @Operation(
+      tags = {"Users"},
       summary = "Change password",
       description = "Allows the authenticated user to change their password.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Password changed successfully"),
         @ApiResponse(responseCode = "400", description = "Current password is incorrect"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   public ResponseEntity<Void> changePassword(
@@ -269,7 +281,19 @@ public class UserController {
   /** Retrieves the salary history for a user. */
   @GetMapping("/{id}/salary-history")
   @JustAdminUser
-  public ResponseEntity<List<SalaryHistoryResponse>> getSalaryHistory(@PathVariable Long id) {
+  @Operation(
+      tags = {"Users"},
+      summary = "Get user salary history",
+      description = "Returns the salary change history for a user. Admin access only.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Salary history retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Admin access required"),
+        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  public ResponseEntity<List<SalaryHistoryResponse>> getSalaryHistory(
+      @Parameter(description = "User ID", example = "1", required = true) @PathVariable Long id) {
     log.info("Admin retrieving salary history for user: id={}", id);
     List<SalaryHistoryResponse> history =
         getSalaryHistoryUseCase.getSalaryHistory(id).stream()

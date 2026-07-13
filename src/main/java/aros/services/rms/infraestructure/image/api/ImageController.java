@@ -12,7 +12,6 @@ import aros.services.rms.infraestructure.image.api.dto.ImageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,7 +31,6 @@ import org.springframework.web.multipart.MultipartFile;
 /** REST controller exposing endpoints to manage images owned by products or users. */
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Images", description = "Upload, retrieve, and delete images for products and users")
 public class ImageController {
 
   private final UploadImageUseCase uploadImageUseCase;
@@ -49,11 +47,14 @@ public class ImageController {
    * @return the uploaded image with its size-variant URLs
    */
   @Operation(
+      tags = {"Products"},
       summary = "Upload product image",
       description = "Uploads an image for a product. Accepts JPEG, PNG, or WebP up to 5MB.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Image uploaded successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid file or file too large"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Product not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
@@ -63,7 +64,11 @@ public class ImageController {
   public ResponseEntity<ImageResponse> uploadProductImage(
       @Parameter(description = "Product ID", example = "42", required = true) @PathVariable
           Long productId,
-      @Parameter(description = "Image file", required = true) @RequestParam("file")
+      @Parameter(
+              description = "Image file (JPEG, PNG, WebP up to 5MB)",
+              example = "burger.jpg",
+              required = true)
+          @RequestParam("file")
           MultipartFile file)
       throws IOException {
     var image =
@@ -84,10 +89,13 @@ public class ImageController {
    * @return list of images with size-variant URLs
    */
   @Operation(
+      tags = {"Products"},
       summary = "Get product images",
       description = "Retrieves all images for a product with signed URLs for each size variant.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Images retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Product not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
@@ -110,11 +118,14 @@ public class ImageController {
    * @return the new set of images with size-variant URLs
    */
   @Operation(
+      tags = {"Products"},
       summary = "Replace product images",
       description = "Deletes all existing images for a product and uploads new ones.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Images replaced successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid files or file too large"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Product not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
@@ -124,7 +135,11 @@ public class ImageController {
   public ResponseEntity<List<ImageResponse>> replaceProductImages(
       @Parameter(description = "Product ID", example = "42", required = true) @PathVariable
           Long productId,
-      @Parameter(description = "Image files (multiple)", required = true) @RequestParam("files")
+      @Parameter(
+              description = "Image files (multiple, JPEG/PNG/WebP up to 5MB each)",
+              example = "[\"burger.jpg\", \"drink.jpg\"]",
+              required = true)
+          @RequestParam("files")
           List<MultipartFile> files)
       throws IOException {
     deleteImageUseCase.deleteByEntity(ImageEntityType.PRODUCT, productId);
@@ -153,11 +168,14 @@ public class ImageController {
    * @return the uploaded image with its size-variant URLs
    */
   @Operation(
+      tags = {"Users"},
       summary = "Upload user image",
       description = "Uploads a profile image for a user. Accepts JPEG, PNG, or WebP up to 5MB.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Image uploaded successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid file or file too large"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "User not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
@@ -166,7 +184,11 @@ public class ImageController {
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ImageResponse> uploadUserImage(
       @Parameter(description = "User ID", example = "1", required = true) @PathVariable Long userId,
-      @Parameter(description = "Image file", required = true) @RequestParam("file")
+      @Parameter(
+              description = "Image file (JPEG, PNG, WebP up to 5MB)",
+              example = "profile.jpg",
+              required = true)
+          @RequestParam("file")
           MultipartFile file)
       throws IOException {
     var image =
@@ -187,10 +209,13 @@ public class ImageController {
    * @return list of images with size-variant URLs
    */
   @Operation(
+      tags = {"Users"},
       summary = "Get user images",
       description = "Retrieves all profile images for a user with signed URLs.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Images retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "User not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
@@ -213,11 +238,14 @@ public class ImageController {
    * @return the new set of images with size-variant URLs
    */
   @Operation(
+      tags = {"Users"},
       summary = "Replace user images",
       description = "Deletes all existing images for a user and uploads new ones.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Images replaced successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid files or file too large"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "User not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
@@ -226,7 +254,11 @@ public class ImageController {
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<List<ImageResponse>> replaceUserImages(
       @Parameter(description = "User ID", example = "1", required = true) @PathVariable Long userId,
-      @Parameter(description = "Image files (multiple)", required = true) @RequestParam("files")
+      @Parameter(
+              description = "Image files (multiple, JPEG/PNG/WebP up to 5MB each)",
+              example = "[\"profile1.jpg\", \"profile2.jpg\"]",
+              required = true)
+          @RequestParam("files")
           List<MultipartFile> files)
       throws IOException {
     deleteImageUseCase.deleteByEntity(ImageEntityType.USER, userId);
@@ -254,10 +286,13 @@ public class ImageController {
    * @return empty response with 204 status
    */
   @Operation(
+      tags = {"Images"},
       summary = "Delete image by ID",
       description = "Permanently deletes an image and all its size variants from storage.",
       responses = {
         @ApiResponse(responseCode = "204", description = "Image deleted successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Image not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })

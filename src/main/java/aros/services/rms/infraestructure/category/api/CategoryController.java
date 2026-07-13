@@ -7,6 +7,7 @@ import aros.services.rms.core.category.port.input.CategoryUseCase;
 import aros.services.rms.infraestructure.category.api.dto.CategoryRequest;
 import aros.services.rms.infraestructure.category.api.dto.CategoryResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,7 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/categories")
 @RequiredArgsConstructor
-@Tag(name = "Product Categories", description = "Menu product category management")
+@Tag(
+    name = "Categories",
+    description = "Operations for managing menu product categories and their enabled status")
 public class CategoryController {
 
   private final CategoryUseCase categoryUseCase;
@@ -39,11 +42,15 @@ public class CategoryController {
    * @return the created category
    */
   @Operation(
+      tags = {"Categories"},
       summary = "Create new category",
       description = "Creates a new product category for the menu.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Category created successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "409", description = "Category name already exists"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
@@ -63,17 +70,21 @@ public class CategoryController {
    * @return the updated category
    */
   @Operation(
+      tags = {"Categories"},
       summary = "Update category",
       description = "Updates the name and description of an existing product category.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Category updated successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Category not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
   public ResponseEntity<CategoryResponse> update(
-      @PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
+      @Parameter(description = "Category ID", example = "1", required = true) @PathVariable Long id,
+      @Valid @RequestBody CategoryRequest request) {
     Category category =
         Category.builder().name(request.name()).description(request.description()).build();
 
@@ -87,10 +98,13 @@ public class CategoryController {
    * @return the list of categories
    */
   @Operation(
+      tags = {"Categories"},
       summary = "Get all categories",
       description = "Returns all product categories from the menu.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Categories retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
@@ -109,15 +123,20 @@ public class CategoryController {
    * @return the category
    */
   @Operation(
+      tags = {"Categories"},
       summary = "Get category by ID",
       description = "Returns a specific product category given its identifier.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Category retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Category not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/{id}")
-  public ResponseEntity<CategoryResponse> findById(@PathVariable Long id) {
+  public ResponseEntity<CategoryResponse> findById(
+      @Parameter(description = "Category ID", example = "1", required = true) @PathVariable
+          Long id) {
     Category category = categoryUseCase.findById(id);
     return ResponseEntity.ok(CategoryResponse.fromDomain(category));
   }
@@ -129,15 +148,20 @@ public class CategoryController {
    * @return the updated category
    */
   @Operation(
+      tags = {"Categories"},
       summary = "Toggle category active status",
       description = "Changes the enabled/disabled status of a product category.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Category status changed successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Category not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/toggle")
-  public ResponseEntity<CategoryResponse> toggleEnabled(@PathVariable Long id) {
+  public ResponseEntity<CategoryResponse> toggleEnabled(
+      @Parameter(description = "Category ID", example = "1", required = true) @PathVariable
+          Long id) {
     Category category = categoryUseCase.toggleEnabled(id);
     return ResponseEntity.ok(CategoryResponse.fromDomain(category));
   }

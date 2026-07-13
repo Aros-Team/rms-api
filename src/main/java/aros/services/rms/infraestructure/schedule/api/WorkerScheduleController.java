@@ -6,6 +6,7 @@ import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import aros.services.rms.infraestructure.schedule.api.dto.WorkerScheduleResponse;
 import aros.services.rms.infraestructure.share.security.JustWorkerOrAdmin;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/workers/me/schedule")
 @RequiredArgsConstructor
-@Tag(name = "My Schedule", description = "Worker's own schedule")
+@Tag(name = "Workers", description = "Operations for workers to query their own assigned shifts")
 public class WorkerScheduleController {
 
   private final GetWorkerShiftsUseCase getWorkerShiftsUseCase;
@@ -29,8 +30,13 @@ public class WorkerScheduleController {
   @GetMapping
   @JustWorkerOrAdmin
   @Operation(
+      tags = {"Workers"},
       summary = "Get my schedule",
-      description = "Returns the authenticated worker's schedule")
+      description = "Returns the authenticated worker's schedule grouped by day of week.")
+  @ApiResponse(responseCode = "200", description = "Schedule retrieved")
+  @ApiResponse(responseCode = "401", description = "Unauthorized")
+  @ApiResponse(responseCode = "403", description = "Forbidden")
+  @ApiResponse(responseCode = "500", description = "Internal server error")
   public ResponseEntity<WorkerScheduleResponse> getMySchedule(@AuthenticationPrincipal Jwt jwt) {
     var userEmail = new UserEmail(jwt.getSubject());
     var user =

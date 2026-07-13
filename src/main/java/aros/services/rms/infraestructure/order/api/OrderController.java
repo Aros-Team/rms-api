@@ -42,7 +42,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor
-@Tag(name = "Orders", description = "Order lifecycle management")
+@Tag(
+    name = "Orders",
+    description =
+        "Operations for the full order lifecycle: creation, preparation, delivery and queries")
 public class OrderController {
 
   private final TakeOrderUseCase takeOrderUseCase;
@@ -61,6 +64,7 @@ public class OrderController {
    * @return the created order
    */
   @Operation(
+      tags = {"Orders"},
       summary = "Create new order",
       description = "Creates a new order with status EN_COLA. Requires an available table.",
       responses = {
@@ -69,6 +73,8 @@ public class OrderController {
             description = "Order created successfully",
             content = @Content(schema = @Schema(implementation = OrderResponse.class))),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Table or product not found"),
         @ApiResponse(responseCode = "409", description = "Table not available"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -106,6 +112,7 @@ public class OrderController {
    * @return the cancelled order
    */
   @Operation(
+      tags = {"Orders"},
       summary = "Cancel order",
       description = "Cancels an existing order that is in EN_COLA status.",
       responses = {
@@ -113,12 +120,16 @@ public class OrderController {
             responseCode = "200",
             description = "Order cancelled successfully",
             content = @Content(schema = @Schema(implementation = OrderResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Order not found"),
         @ApiResponse(responseCode = "409", description = "Order cannot be cancelled"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/cancel")
-  public ResponseEntity<OrderResponse> cancelOrder(@PathVariable Long id) {
+  public ResponseEntity<OrderResponse> cancelOrder(
+      @Parameter(description = "Order ID", example = "1", required = true) @PathVariable Long id) {
     Order order = updateOrderUseCase.cancel(id);
     OrderResponse response = OrderResponse.fromDomain(order);
     orderNotificationService.notifyOrderCancelled(response);
@@ -136,6 +147,7 @@ public class OrderController {
    * @return the updated order
    */
   @Operation(
+      tags = {"Orders"},
       summary = "Update order details",
       description = "Updates the details of an order in EN_COLA status.",
       responses = {
@@ -144,13 +156,16 @@ public class OrderController {
             description = "Order updated successfully",
             content = @Content(schema = @Schema(implementation = OrderResponse.class))),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Order or product not found"),
         @ApiResponse(responseCode = "409", description = "Order cannot be updated"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
   public ResponseEntity<OrderResponse> updateOrder(
-      @PathVariable Long id, @Valid @RequestBody TakeOrderRequest request) {
+      @Parameter(description = "Order ID", example = "1", required = true) @PathVariable Long id,
+      @Valid @RequestBody TakeOrderRequest request) {
     TakeOrderCommand command =
         TakeOrderCommand.builder()
             .tableId(request.tableId())
@@ -176,6 +191,7 @@ public class OrderController {
    * @return the order being prepared
    */
   @Operation(
+      tags = {"Orders"},
       summary = "Process next order",
       description =
           "Takes the oldest order from the queue and changes its status to EN_PREPARACION.",
@@ -184,6 +200,10 @@ public class OrderController {
             responseCode = "200",
             description = "Order moved to preparation",
             content = @Content(schema = @Schema(implementation = OrderResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "No order found in queue"),
         @ApiResponse(responseCode = "409", description = "No orders in queue"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
@@ -202,6 +222,7 @@ public class OrderController {
    * @return the ready order
    */
   @Operation(
+      tags = {"Orders"},
       summary = "Mark order as ready",
       description =
           "Marks a specific order as LISTA for delivery."
@@ -211,12 +232,16 @@ public class OrderController {
             responseCode = "200",
             description = "Order marked as ready",
             content = @Content(schema = @Schema(implementation = OrderResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Order not found"),
         @ApiResponse(responseCode = "409", description = "Order is not in EN_PREPARACION status"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/ready")
-  public ResponseEntity<OrderResponse> markOrderAsReady(@PathVariable Long id) {
+  public ResponseEntity<OrderResponse> markOrderAsReady(
+      @Parameter(description = "Order ID", example = "1", required = true) @PathVariable Long id) {
     Order order = markAsReadyUseCase.markAsReady(id);
     OrderResponse response = OrderResponse.fromDomain(order);
     orderNotificationService.notifyOrderReady(response);
@@ -230,6 +255,7 @@ public class OrderController {
    * @return the delivered order
    */
   @Operation(
+      tags = {"Orders"},
       summary = "Deliver order",
       description =
           "Marks an order as ENTREGADA and releases the table. "
@@ -239,12 +265,16 @@ public class OrderController {
             responseCode = "200",
             description = "Order delivered successfully",
             content = @Content(schema = @Schema(implementation = OrderResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Order not found"),
         @ApiResponse(responseCode = "409", description = "Order is not in LISTA status"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/deliver")
-  public ResponseEntity<OrderResponse> deliverOrder(@PathVariable Long id) {
+  public ResponseEntity<OrderResponse> deliverOrder(
+      @Parameter(description = "Order ID", example = "1", required = true) @PathVariable Long id) {
     Order order = deliveryUseCase.markAsDelivered(id);
     OrderResponse response = OrderResponse.fromDomain(order);
     orderNotificationService.notifyOrderDelivered(response);
@@ -263,6 +293,7 @@ public class OrderController {
    * @return the list of orders
    */
   @Operation(
+      tags = {"Orders"},
       summary = "Query orders",
       description = "Retrieves orders with optional filters by status and date range.",
       responses = {
@@ -274,20 +305,27 @@ public class OrderController {
                     schema = @Schema(implementation = OrderResponse.class),
                     mediaType = "application/json")),
         @ApiResponse(responseCode = "400", description = "Invalid status value"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
   public ResponseEntity<List<OrderResponse>> getOrders(
       @Parameter(
               description =
-                  "Order status filter (EN_COLA, EN_PREPARACION, LISTA, ENTREGADA, CANCELADA)")
+                  "Order status filter (EN_COLA, EN_PREPARACION, LISTA, ENTREGADA, CANCELADA)",
+              example = "EN_COLA")
           @RequestParam(required = false)
           String status,
-      @Parameter(description = "Start date for filtering (ISO DateTime)")
+      @Parameter(
+              description = "Start date for filtering (ISO DateTime)",
+              example = "2026-01-01T00:00:00")
           @RequestParam(required = false)
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
           LocalDateTime startDate,
-      @Parameter(description = "End date for filtering (ISO DateTime)")
+      @Parameter(
+              description = "End date for filtering (ISO DateTime)",
+              example = "2026-12-31T23:59:59")
           @RequestParam(required = false)
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
           LocalDateTime endDate) {

@@ -10,6 +10,7 @@ import aros.services.rms.infraestructure.schedule.api.dto.ScheduleRequest;
 import aros.services.rms.infraestructure.schedule.api.dto.ScheduleResponse;
 import aros.services.rms.infraestructure.share.security.JustAdminUser;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -30,7 +31,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/schedules")
 @RequiredArgsConstructor
-@Tag(name = "Schedules", description = "Schedule management for worker shifts")
+@Tag(
+    name = "Schedules",
+    description = "Operations for managing shift schedules and their definitions")
 public class ScheduleController {
 
   private final CreateScheduleUseCase createScheduleUseCase;
@@ -41,10 +44,17 @@ public class ScheduleController {
   /** Creates a new schedule with shifts. */
   @PostMapping
   @JustAdminUser
-  @Operation(summary = "Create a schedule", description = "Creates a new schedule with shifts")
-  @ApiResponse(responseCode = "201", description = "Schedule created")
-  @ApiResponse(responseCode = "400", description = "Invalid input")
-  @ApiResponse(responseCode = "409", description = "Schedule name already exists")
+  @Operation(
+      summary = "Create a schedule",
+      description = "Creates a new schedule with one or more shifts. Admin access only.",
+      responses = {
+        @ApiResponse(responseCode = "201", description = "Schedule created"),
+        @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "409", description = "Schedule name already exists"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
   public ResponseEntity<ScheduleResponse> create(@Valid @RequestBody ScheduleRequest request) {
     var info =
         new CreateScheduleUseCase.CreateScheduleInfo(
@@ -63,7 +73,14 @@ public class ScheduleController {
   /** Returns all schedules. */
   @GetMapping
   @JustAdminUser
-  @Operation(summary = "List all schedules", description = "Returns all schedules")
+  @Operation(
+      tags = {"Schedules"},
+      summary = "List all schedules",
+      description = "Returns all schedules")
+  @ApiResponse(responseCode = "200", description = "Schedules retrieved")
+  @ApiResponse(responseCode = "401", description = "Unauthorized")
+  @ApiResponse(responseCode = "403", description = "Forbidden")
+  @ApiResponse(responseCode = "500", description = "Internal server error")
   public ResponseEntity<List<ScheduleResponse>> getAll() {
     List<ScheduleResponse> schedules =
         scheduleRepository.findAll().stream().map(ScheduleResponse::fromDomain).toList();
@@ -73,10 +90,18 @@ public class ScheduleController {
   /** Returns a single schedule by ID. */
   @GetMapping("/{id}")
   @JustAdminUser
-  @Operation(summary = "Get schedule by ID", description = "Returns a single schedule with shifts")
+  @Operation(
+      tags = {"Schedules"},
+      summary = "Get schedule by ID",
+      description = "Returns a single schedule with shifts")
   @ApiResponse(responseCode = "200", description = "Schedule found")
+  @ApiResponse(responseCode = "401", description = "Unauthorized")
+  @ApiResponse(responseCode = "403", description = "Forbidden")
   @ApiResponse(responseCode = "404", description = "Schedule not found")
-  public ResponseEntity<ScheduleResponse> getById(@PathVariable Long id) {
+  @ApiResponse(responseCode = "500", description = "Internal server error")
+  public ResponseEntity<ScheduleResponse> getById(
+      @Parameter(description = "Schedule ID", example = "1", required = true) @PathVariable
+          Long id) {
     return scheduleRepository
         .findById(new ScheduleId(id))
         .map(s -> ResponseEntity.ok(ScheduleResponse.fromDomain(s)))
@@ -86,11 +111,19 @@ public class ScheduleController {
   /** Updates an existing schedule. */
   @PutMapping("/{id}")
   @JustAdminUser
-  @Operation(summary = "Update a schedule", description = "Updates an existing schedule")
+  @Operation(
+      tags = {"Schedules"},
+      summary = "Update a schedule",
+      description = "Updates an existing schedule")
   @ApiResponse(responseCode = "200", description = "Schedule updated")
+  @ApiResponse(responseCode = "400", description = "Invalid input")
+  @ApiResponse(responseCode = "401", description = "Unauthorized")
+  @ApiResponse(responseCode = "403", description = "Forbidden")
   @ApiResponse(responseCode = "404", description = "Schedule not found")
+  @ApiResponse(responseCode = "500", description = "Internal server error")
   public ResponseEntity<ScheduleResponse> update(
-      @PathVariable Long id, @Valid @RequestBody ScheduleRequest request) {
+      @Parameter(description = "Schedule ID", example = "1", required = true) @PathVariable Long id,
+      @Valid @RequestBody ScheduleRequest request) {
     var info =
         new UpdateScheduleUseCase.UpdateScheduleInfo(
             request.name(),
@@ -109,11 +142,18 @@ public class ScheduleController {
   @DeleteMapping("/{id}")
   @JustAdminUser
   @Operation(
+      tags = {"Schedules"},
       summary = "Delete a schedule",
-      description = "Deletes a schedule if it has no assignments")
+      description = "Deletes a schedule if it has no active worker assignments.")
   @ApiResponse(responseCode = "204", description = "Schedule deleted")
+  @ApiResponse(responseCode = "401", description = "Unauthorized")
+  @ApiResponse(responseCode = "403", description = "Forbidden")
+  @ApiResponse(responseCode = "404", description = "Schedule not found")
   @ApiResponse(responseCode = "409", description = "Schedule has active assignments")
-  public ResponseEntity<Void> delete(@PathVariable Long id) {
+  @ApiResponse(responseCode = "500", description = "Internal server error")
+  public ResponseEntity<Void> delete(
+      @Parameter(description = "Schedule ID", example = "1", required = true) @PathVariable
+          Long id) {
     deleteScheduleUseCase.delete(new ScheduleId(id));
     return ResponseEntity.noContent().build();
   }

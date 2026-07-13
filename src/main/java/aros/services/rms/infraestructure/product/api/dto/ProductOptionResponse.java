@@ -6,13 +6,12 @@ import aros.services.rms.core.product.domain.ProductOption;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Response DTO for product option data. */
-@Schema(description = "Response DTO para datos de opción de producto")
+@Schema(description = "Response DTO for product option data")
 public record ProductOptionResponse(
-    @Schema(description = "ID de la opción", example = "1") Long id,
-    @Schema(description = "Nombre de la opción", example = "Grande (1.5L)") String name,
-    @Schema(description = "ID de la categoría de opción", example = "1") Long optionCategoryId,
-    @Schema(description = "Nombre de la categoría de opción", example = "Tamaños")
-        String optionCategoryName) {
+    @Schema(description = "Option ID", example = "1") Long id,
+    @Schema(description = "Option name", example = "Large (1.5L)") String name,
+    @Schema(description = "Option category ID", example = "1") Long optionCategoryId,
+    @Schema(description = "Option category name", example = "Sizes") String optionCategoryName) {
 
   /**
    * Creates a response from a domain object.

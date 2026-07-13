@@ -32,7 +32,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/purchases")
 @RequiredArgsConstructor
-@Tag(name = "Purchases", description = "Purchase order registration and history")
+@Tag(
+    name = "Purchases",
+    description = "Operations for registering purchase orders and querying purchase history")
 public class PurchaseOrderController {
 
   private final RegisterPurchaseOrderService registerPurchaseOrderService;
@@ -45,6 +47,7 @@ public class PurchaseOrderController {
    * @return the registered purchase order
    */
   @Operation(
+      tags = {"Purchases"},
       summary = "Register purchase order",
       description =
           "Registers a new purchase order and automatically updates Warehouse stock. "
@@ -55,6 +58,8 @@ public class PurchaseOrderController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid input data or quantityReceived > quantityOrdered"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Supplier or supply variant not found"),
         @ApiResponse(responseCode = "409", description = "Supplier is inactive"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -98,6 +103,7 @@ public class PurchaseOrderController {
    * @return the list of purchase orders
    */
   @Operation(
+      tags = {"Purchases"},
       summary = "List purchase history",
       description =
           "Returns all purchase orders. Optionally filters by supplierId or date range (from/to). "
@@ -105,6 +111,8 @@ public class PurchaseOrderController {
       responses = {
         @ApiResponse(responseCode = "200", description = "Purchase orders retrieved successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid date format"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(
             responseCode = "404",
             description = "Supplier not found (when filtering by supplierId)"),
@@ -149,15 +157,20 @@ public class PurchaseOrderController {
    * @return the purchase order
    */
   @Operation(
+      tags = {"Purchases"},
       summary = "Get purchase order by ID",
       description = "Returns the complete details of a purchase order, including all items.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Purchase order retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Purchase order not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/{id}")
-  public ResponseEntity<PurchaseOrderResponse> findById(@PathVariable Long id) {
+  public ResponseEntity<PurchaseOrderResponse> findById(
+      @Parameter(description = "Purchase order ID", example = "1", required = true) @PathVariable
+          Long id) {
     var order = getPurchaseHistoryUseCase.findById(id);
     return ResponseEntity.ok(PurchaseOrderResponse.fromDomain(order));
   }

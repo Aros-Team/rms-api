@@ -24,7 +24,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/inventory")
 @RequiredArgsConstructor
-@Tag(name = "Inventory Transfers", description = "Supply transfer between storage locations")
+@Tag(
+    name = "Inventory",
+    description = "Operations for transferring supply stock between storage locations")
 public class InventoryTransferController {
 
   private final TransferInventoryUseCase transferInventoryUseCase;
@@ -36,6 +38,7 @@ public class InventoryTransferController {
    * @return the list of transfers
    */
   @Operation(
+      tags = {"Inventory"},
       summary = "Transfer supplies from Warehouse to Kitchen",
       description =
           "Transfers multiple supply variants from Warehouse to Kitchen. "
@@ -46,6 +49,8 @@ public class InventoryTransferController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid input data or insufficient stock"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Variant or storage location not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })

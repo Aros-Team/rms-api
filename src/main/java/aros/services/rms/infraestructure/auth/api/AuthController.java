@@ -29,6 +29,7 @@ import aros.services.rms.infraestructure.share.security.JustAccessToken;
 import aros.services.rms.infraestructure.share.security.OnlyRefreshToken;
 import aros.services.rms.infraestructure.share.security.OnlyTfaToken;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -50,7 +51,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@Tag(name = "Authentication", description = "User authentication and session management")
+@Tag(
+    name = "Auth",
+    description =
+        "Operations for user authentication, session management, 2FA and password recovery")
 @Slf4j
 public class AuthController {
 
@@ -69,6 +73,7 @@ public class AuthController {
    * @throws InvalidCredentialsException if credentials are invalid
    */
   @Operation(
+      tags = {"Auth"},
       summary = "Login",
       description =
           "Authenticates user with email and password. Returns access token and refresh token. "
@@ -76,7 +81,8 @@ public class AuthController {
       responses = {
         @ApiResponse(responseCode = "200", description = "Successful login"),
         @ApiResponse(responseCode = "400", description = "Invalid credentials"),
-        @ApiResponse(responseCode = "401", description = "Authentication failed")
+        @ApiResponse(responseCode = "401", description = "Authentication failed"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping("/login")
   public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request)
@@ -113,6 +119,7 @@ public class AuthController {
    * @throws InvalidCredentialsException if credentials are invalid
    */
   @Operation(
+      tags = {"Auth"},
       summary = "Verify two-factor authentication",
       description =
           "Verifies the 2FA code sent to the user's device. "
@@ -120,7 +127,9 @@ public class AuthController {
       responses = {
         @ApiResponse(responseCode = "200", description = "Successful 2FA verification"),
         @ApiResponse(responseCode = "400", description = "Invalid or expired code"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized")
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping("/verify")
   @OnlyTfaToken
@@ -155,17 +164,26 @@ public class AuthController {
    * @throws InvalidRefreshTokenException if token is invalid
    */
   @Operation(
+      tags = {"Auth"},
       summary = "Refresh access token",
       description =
           "Refreshes the access token using a valid refresh token. "
               + "The refresh token must be sent in the Authorization header.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
-        @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
+        @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping("/refresh")
   @OnlyRefreshToken
-  public ResponseEntity<AuthResponse> refresh(@RequestHeader("Authorization") String token)
+  public ResponseEntity<AuthResponse> refresh(
+      @Parameter(
+              description = "Authorization header with the refresh token",
+              example = "Bearer eyJhbGc...",
+              required = true)
+          @RequestHeader("Authorization")
+          String token)
       throws InvalidRefreshTokenException {
     log.info("User refreshing token");
     if (token.startsWith("Bearer ")) {
@@ -194,6 +212,7 @@ public class AuthController {
    * @throws UserNotFoundException if user not found
    */
   @Operation(
+      tags = {"Auth"},
       summary = "Get current user",
       description =
           "Returns the authenticated user's information "
@@ -201,6 +220,7 @@ public class AuthController {
       responses = {
         @ApiResponse(responseCode = "200", description = "User information retrieved"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "User not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
@@ -232,14 +252,15 @@ public class AuthController {
    * @throws UserNotFoundException if user not found
    */
   @Operation(
+      tags = {"Auth"},
       summary = "Request password reset",
       description =
           "Sends a password reset email with recovery token to the provided email address.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Email de recuperación enviado"),
-        @ApiResponse(responseCode = "400", description = "Email inválido"),
-        @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
-        @ApiResponse(responseCode = "503", description = "Servicio de correo no disponible")
+        @ApiResponse(responseCode = "200", description = "Recovery email sent"),
+        @ApiResponse(responseCode = "400", description = "Invalid email"),
+        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "503", description = "Email service unavailable")
       })
   @PostMapping("/forgot-password")
   public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request)
@@ -256,6 +277,7 @@ public class AuthController {
    * @throws UserNotFoundException if user not found
    */
   @Operation(
+      tags = {"Auth"},
       summary = "Resend password reset email",
       description =
           "Sends a new email with a new password recovery token. "
@@ -279,7 +301,9 @@ public class AuthController {
    *
    * @param request the reset password request
    */
+  @PostMapping("/reset-password")
   @Operation(
+      tags = {"Auth"},
       summary = "Reset password",
       description = "Resets the user's password using the recovery token sent by email.",
       responses = {
@@ -288,7 +312,6 @@ public class AuthController {
         @ApiResponse(responseCode = "404", description = "User not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
-  @PostMapping("/reset-password")
   public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
     log.info("Password reset completed");
     passwordResetUseCase.resetPassword(request.token(), request.newPassword());
@@ -302,6 +325,7 @@ public class AuthController {
    */
   @PostMapping("/setup-password")
   @Operation(
+      tags = {"Auth"},
       summary = "Setup password with token",
       description = "Sets up the password using the setup token received by email.",
       responses = {
@@ -325,6 +349,7 @@ public class AuthController {
    */
   @GetMapping("/setup-account/validate")
   @Operation(
+      tags = {"Auth"},
       summary = "Validate setup token",
       description = "Returns user information to determine if they are admin or employee.",
       responses = {
@@ -333,7 +358,12 @@ public class AuthController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   public ResponseEntity<SetupAccountValidationResponse> validateSetupToken(
-      @RequestParam String token) {
+      @Parameter(
+              description = "Setup token received by email",
+              example = "abc123def456",
+              required = true)
+          @RequestParam
+          String token) {
     log.info("Validating setup token");
     SetupAccountValidationResponse validation = accountSetupUseCase.validateToken(token);
     return ResponseEntity.ok(validation);

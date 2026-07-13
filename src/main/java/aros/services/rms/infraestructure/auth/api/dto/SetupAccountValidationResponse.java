@@ -3,9 +3,14 @@
 package aros.services.rms.infraestructure.auth.api.dto;
 
 import aros.services.rms.core.user.domain.User;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Response DTO for account setup validation. */
-public record SetupAccountValidationResponse(String name, String email, String role) {
+@Schema(description = "Response DTO returned when validating a setup token")
+public record SetupAccountValidationResponse(
+    @Schema(description = "User full name", example = "Jane Doe") String name,
+    @Schema(description = "User email", example = "jane@example.com") String email,
+    @Schema(description = "User role (ADMIN, WORKER, etc.)", example = "ADMIN") String role) {
 
   /**
    * Creates a response from a user domain object.

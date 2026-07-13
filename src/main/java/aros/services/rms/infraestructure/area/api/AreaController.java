@@ -8,6 +8,7 @@ import aros.services.rms.core.area.port.input.AreaUseCase;
 import aros.services.rms.infraestructure.area.api.dto.AreaRequest;
 import aros.services.rms.infraestructure.area.api.dto.AreaResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -28,7 +29,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/areas")
 @RequiredArgsConstructor
-@Tag(name = "Preparation Areas", description = "Restaurant preparation area management")
+@Tag(
+    name = "Areas",
+    description = "Operations for managing restaurant preparation areas and their enabled status")
 public class AreaController {
 
   private final AreaUseCase areaUseCase;
@@ -40,11 +43,14 @@ public class AreaController {
    * @return the created area
    */
   @Operation(
+      tags = {"Areas"},
       summary = "Create new area",
       description = "Creates a new preparation area with the specified name and type.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Area created successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "409", description = "Area name already exists"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
@@ -68,17 +74,21 @@ public class AreaController {
    * @return the updated area
    */
   @Operation(
+      tags = {"Areas"},
       summary = "Update area",
       description = "Updates the name and type of an existing preparation area.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Area updated successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Area not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
   public ResponseEntity<AreaResponse> update(
-      @PathVariable Long id, @Valid @RequestBody AreaRequest request) {
+      @Parameter(description = "Area ID", example = "1", required = true) @PathVariable Long id,
+      @Valid @RequestBody AreaRequest request) {
     Area area =
         Area.builder()
             .name(request.name())
@@ -95,10 +105,13 @@ public class AreaController {
    * @return the list of areas
    */
   @Operation(
+      tags = {"Areas"},
       summary = "Get all areas",
       description = "Returns all preparation areas in the restaurant.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Areas retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
@@ -115,15 +128,19 @@ public class AreaController {
    * @return the area
    */
   @Operation(
+      tags = {"Areas"},
       summary = "Get area by ID",
       description = "Returns a specific preparation area by its identifier.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Area retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Area not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/{id}")
-  public ResponseEntity<AreaResponse> findById(@PathVariable Long id) {
+  public ResponseEntity<AreaResponse> findById(
+      @Parameter(description = "Area ID", example = "1", required = true) @PathVariable Long id) {
     Area area = areaUseCase.findById(id);
     return ResponseEntity.ok(AreaResponse.fromDomain(area));
   }
@@ -135,15 +152,19 @@ public class AreaController {
    * @return the updated area
    */
   @Operation(
+      tags = {"Areas"},
       summary = "Toggle area enabled status",
       description = "Toggles the enabled/disabled status of a preparation area.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Area status changed successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Area not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/toggle")
-  public ResponseEntity<AreaResponse> toggleEnabled(@PathVariable Long id) {
+  public ResponseEntity<AreaResponse> toggleEnabled(
+      @Parameter(description = "Area ID", example = "1", required = true) @PathVariable Long id) {
     Area area = areaUseCase.toggleEnabled(id);
     return ResponseEntity.ok(AreaResponse.fromDomain(area));
   }

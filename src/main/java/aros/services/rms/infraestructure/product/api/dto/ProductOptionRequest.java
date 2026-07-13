@@ -10,15 +10,15 @@ import java.util.List;
 
 /** Request DTO for product option. */
 @Schema(
-    description = "Request DTO para crear o actualizar una opción de producto",
+    description = "Request DTO to create or update a product option",
     example =
-        "{\"name\": \"Grande (1.5L)\", \"optionCategoryId\": 1, "
+        "{\"name\": \"Large (1.5L)\", \"optionCategoryId\": 1, "
             + "\"recipe\": [{\"supplyVariantId\": 1, \"requiredQuantity\": 500.0}]}")
 public record ProductOptionRequest(
-    @Schema(description = "Nombre de la opción", example = "Grande (1.5L)")
+    @Schema(description = "Option name", example = "Large (1.5L)")
         @NotBlank(message = "Option name is required")
         String name,
-    @Schema(description = "ID de la categoría de opción a la que pertenece", example = "1")
+    @Schema(description = "Option category ID this option belongs to", example = "1")
         @NotNull(message = "Option category ID is required")
         Long optionCategoryId,
     @Schema(

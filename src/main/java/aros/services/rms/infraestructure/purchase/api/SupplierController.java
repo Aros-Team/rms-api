@@ -10,6 +10,7 @@ import aros.services.rms.infraestructure.purchase.api.dto.SupplierRequest;
 import aros.services.rms.infraestructure.purchase.api.dto.SupplierResponse;
 import aros.services.rms.infraestructure.purchase.api.dto.SupplierUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,7 +32,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/suppliers")
 @RequiredArgsConstructor
-@Tag(name = "Suppliers", description = "Supplier and distributor management")
+@Tag(
+    name = "Suppliers",
+    description = "Operations for managing suppliers and distributors that provide inventory")
 public class SupplierController {
 
   @Qualifier("createSupplierUseCase")
@@ -50,11 +53,15 @@ public class SupplierController {
    * @return the created supplier
    */
   @Operation(
+      tags = {"Suppliers"},
       summary = "Create supplier",
       description = "Registers a new supplier. New suppliers are active by default.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Supplier created successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "409", description = "Supplier name already exists"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
@@ -72,6 +79,7 @@ public class SupplierController {
    * @return the updated supplier
    */
   @Operation(
+      tags = {"Suppliers"},
       summary = "Update supplier",
       description =
           "Updates the name, contact, and active status of an existing supplier. "
@@ -79,12 +87,16 @@ public class SupplierController {
       responses = {
         @ApiResponse(responseCode = "200", description = "Supplier updated successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Supplier not found"),
+        @ApiResponse(responseCode = "409", description = "Supplier name already exists"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
   public ResponseEntity<SupplierResponse> update(
-      @PathVariable Long id, @Valid @RequestBody SupplierUpdateRequest request) {
+      @Parameter(description = "Supplier ID", example = "1", required = true) @PathVariable Long id,
+      @Valid @RequestBody SupplierUpdateRequest request) {
     var supplier =
         Supplier.builder()
             .name(request.name())
@@ -101,10 +113,13 @@ public class SupplierController {
    * @return the list of suppliers
    */
   @Operation(
+      tags = {"Suppliers"},
       summary = "List all suppliers",
       description = "Returns all suppliers regardless of their active status.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Suppliers retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping

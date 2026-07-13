@@ -382,6 +382,16 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleNoResourceFound(
       org.springframework.web.servlet.resource.NoResourceFoundException e) {
     String path = e.getResourcePath();
+    if (path.endsWith(".map")
+        || path.endsWith(".css")
+        || path.endsWith(".js")
+        || path.endsWith(".png")
+        || path.endsWith(".ico")
+        || path.endsWith(".svg")
+        || path.endsWith(".woff")
+        || path.endsWith(".woff2")) {
+      return ResponseEntity.notFound().build();
+    }
     String message;
     if (path.contains("/products/") || path.contains("/users/")) {
       message =

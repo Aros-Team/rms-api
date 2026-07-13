@@ -14,7 +14,7 @@ import java.math.BigDecimal;
  * 409. Otherwise a new variant is created with stock initialized to zero.
  */
 @Schema(
-    description = "Request payload for creating a new supply variant (presentación física)",
+    description = "Request payload for creating a new supply variant (physical presentation)",
     example = "{\"supplyId\": 3, \"unitId\": 2, \"quantity\": 0.500}")
 public record CreateSupplyVariantRequest(
     @Schema(description = "Supply (insumo) ID — must already exist", example = "3")

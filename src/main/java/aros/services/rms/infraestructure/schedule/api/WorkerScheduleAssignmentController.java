@@ -8,6 +8,7 @@ import aros.services.rms.core.user.domain.UserId;
 import aros.services.rms.infraestructure.schedule.api.dto.AssignScheduleRequest;
 import aros.services.rms.infraestructure.share.security.JustAdminUser;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/workers/{workerId}/schedule-assignments")
 @RequiredArgsConstructor
-@Tag(name = "Worker Schedule Assignments", description = "Assign schedules to workers")
+@Tag(name = "Workers", description = "Operations for assigning shift schedules to workers")
 public class WorkerScheduleAssignmentController {
 
   private final AssignScheduleToWorkerUseCase assignScheduleUseCase;
@@ -37,11 +38,21 @@ public class WorkerScheduleAssignmentController {
   /** Assigns a schedule to a worker. */
   @PostMapping
   @JustAdminUser
-  @Operation(summary = "Assign schedule to worker", description = "Assigns a schedule to a worker")
+  @Operation(
+      tags = {"Workers"},
+      summary = "Assign schedule to worker",
+      description = "Assigns a schedule to a worker. Admin access only.")
   @ApiResponse(responseCode = "201", description = "Schedule assigned")
+  @ApiResponse(responseCode = "400", description = "Invalid input")
+  @ApiResponse(responseCode = "401", description = "Unauthorized")
+  @ApiResponse(responseCode = "403", description = "Forbidden")
+  @ApiResponse(responseCode = "404", description = "Worker or schedule not found")
   @ApiResponse(responseCode = "409", description = "Shift overlap detected")
+  @ApiResponse(responseCode = "500", description = "Internal server error")
   public ResponseEntity<Void> assign(
-      @PathVariable Long workerId, @Valid @RequestBody AssignScheduleRequest request) {
+      @Parameter(description = "Worker ID", example = "1", required = true) @PathVariable
+          Long workerId,
+      @Valid @RequestBody AssignScheduleRequest request) {
     var info =
         new AssignScheduleToWorkerUseCase.AssignInfo(UserId.of(workerId), request.scheduleId());
     assignScheduleUseCase.assign(info);
@@ -52,9 +63,17 @@ public class WorkerScheduleAssignmentController {
   @GetMapping
   @JustAdminUser
   @Operation(
+      tags = {"Workers"},
       summary = "List assignments",
-      description = "Lists all schedule assignments for a worker")
-  public ResponseEntity<List<Long>> getAssignments(@PathVariable Long workerId) {
+      description = "Lists all schedule assignments for a worker.")
+  @ApiResponse(responseCode = "200", description = "Assignments retrieved")
+  @ApiResponse(responseCode = "401", description = "Unauthorized")
+  @ApiResponse(responseCode = "403", description = "Forbidden")
+  @ApiResponse(responseCode = "404", description = "Worker not found")
+  @ApiResponse(responseCode = "500", description = "Internal server error")
+  public ResponseEntity<List<Long>> getAssignments(
+      @Parameter(description = "Worker ID", example = "1", required = true) @PathVariable
+          Long workerId) {
     List<Long> scheduleIds =
         assignmentRepository.findByWorkerId(UserId.of(workerId)).stream()
             .map(a -> a.getScheduleId().value())
@@ -66,10 +85,17 @@ public class WorkerScheduleAssignmentController {
   @DeleteMapping("/{assignmentId}")
   @JustAdminUser
   @Operation(
+      tags = {"Workers"},
       summary = "Remove schedule assignment",
-      description = "Removes a schedule from a worker")
+      description = "Removes a schedule assignment from a worker.")
   @ApiResponse(responseCode = "204", description = "Assignment removed")
-  public ResponseEntity<Void> remove(@PathVariable Long assignmentId) {
+  @ApiResponse(responseCode = "401", description = "Unauthorized")
+  @ApiResponse(responseCode = "403", description = "Forbidden")
+  @ApiResponse(responseCode = "404", description = "Assignment not found")
+  @ApiResponse(responseCode = "500", description = "Internal server error")
+  public ResponseEntity<Void> remove(
+      @Parameter(description = "Assignment ID", example = "1", required = true) @PathVariable
+          Long assignmentId) {
     removeScheduleUseCase.remove(WorkerScheduleAssignmentId.of(assignmentId));
     return ResponseEntity.noContent().build();
   }

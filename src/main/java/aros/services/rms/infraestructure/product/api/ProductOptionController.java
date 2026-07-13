@@ -10,6 +10,7 @@ import aros.services.rms.infraestructure.product.api.dto.ProductOptionRequest;
 import aros.services.rms.infraestructure.product.api.dto.ProductOptionResponse;
 import aros.services.rms.infraestructure.product.api.dto.RecipeItemRequest;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,7 +32,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/product-options")
 @RequiredArgsConstructor
-@Tag(name = "Product Options", description = "Product customization options management")
+@Tag(
+    name = "Product Options",
+    description = "Operations for managing product customization options and their recipes")
 public class ProductOptionController {
 
   private final ProductOptionUseCase productOptionUseCase;
@@ -43,12 +46,16 @@ public class ProductOptionController {
    * @return the created product option
    */
   @Operation(
+      tags = {"Product Options"},
       summary = "Create new product option",
       description = "Creates a new product option linked to an option category.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Product option created successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Option category not found"),
+        @ApiResponse(responseCode = "409", description = "Option name already exists in category"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
@@ -74,17 +81,25 @@ public class ProductOptionController {
    * @return the updated product option
    */
   @Operation(
+      tags = {"Product Options"},
       summary = "Update product option",
-      description = "Updates an existing product option.",
+      description = "Updates an existing product option including its recipe.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Product option updated successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Product option or category not found"),
+        @ApiResponse(
+            responseCode = "409",
+            description = "Product option name already exists in category"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
   public ResponseEntity<ProductOptionResponse> update(
-      @PathVariable Long id, @Valid @RequestBody ProductOptionRequest request) {
+      @Parameter(description = "Product option ID", example = "1", required = true) @PathVariable
+          Long id,
+      @Valid @RequestBody ProductOptionRequest request) {
     List<OptionRecipe> recipe = mapRecipe(request.recipe());
     ProductOption option =
         ProductOption.builder()
@@ -103,10 +118,13 @@ public class ProductOptionController {
    * @return the list of product options
    */
   @Operation(
+      tags = {"Product Options"},
       summary = "Get all product options",
       description = "Returns all product customization options.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Product options retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
@@ -125,15 +143,20 @@ public class ProductOptionController {
    * @return the product option
    */
   @Operation(
+      tags = {"Product Options"},
       summary = "Get product option by ID",
       description = "Returns a specific product option by its identifier.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Product option retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Product option not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/{id}")
-  public ResponseEntity<ProductOptionResponse> findById(@PathVariable Long id) {
+  public ResponseEntity<ProductOptionResponse> findById(
+      @Parameter(description = "Product option ID", example = "1", required = true) @PathVariable
+          Long id) {
     ProductOption option = productOptionUseCase.findById(id);
     return ResponseEntity.ok(ProductOptionResponse.fromDomain(option));
   }

@@ -31,7 +31,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/day-menu")
 @RequiredArgsConstructor
-@Tag(name = "Day Menu", description = "Day menu and history management")
+@Tag(
+    name = "Day Menu",
+    description = "Operations for setting the current day menu and browsing historical menus")
 public class DayMenuController {
 
   private final UpdateDayMenuUseCase updateDayMenuUseCase;
@@ -45,6 +47,7 @@ public class DayMenuController {
    * @return the updated day menu
    */
   @Operation(
+      tags = {"Day Menu"},
       summary = "Update the day menu",
       description =
           "Sets a new product as the day menu. The product must have hasOptions=true. "
@@ -53,7 +56,9 @@ public class DayMenuController {
         @ApiResponse(responseCode = "200", description = "Day menu updated successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid product or incorrect data"),
         @ApiResponse(responseCode = "401", description = "User not authenticated"),
-        @ApiResponse(responseCode = "404", description = "Product not found")
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Product not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping
   public ResponseEntity<DayMenuResponse> update(@Valid @RequestBody UpdateDayMenuRequest request) {
@@ -72,12 +77,15 @@ public class DayMenuController {
    * @return the current day menu or no content
    */
   @Operation(
+      tags = {"Day Menu"},
       summary = "Get the current day menu",
       description = "Returns the active day menu. If none is configured, returns 204 No Content.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Active day menu found"),
         @ApiResponse(responseCode = "204", description = "No day menu configured"),
-        @ApiResponse(responseCode = "401", description = "User not authenticated")
+        @ApiResponse(responseCode = "401", description = "User not authenticated"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/current")
   public ResponseEntity<DayMenuResponse> getCurrent() {
@@ -96,6 +104,7 @@ public class DayMenuController {
    * @return the page of day menu history
    */
   @Operation(
+      tags = {"Day Menu"},
       summary = "Get day menu history",
       description =
           "Returns the paginated history of previous day menus, ordered by effective date "
@@ -103,12 +112,17 @@ public class DayMenuController {
       responses = {
         @ApiResponse(responseCode = "200", description = "History retrieved successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid pagination parameters"),
-        @ApiResponse(responseCode = "401", description = "User not authenticated")
+        @ApiResponse(responseCode = "401", description = "User not authenticated"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/history")
   public ResponseEntity<Page<DayMenuHistoryResponse>> getHistory(
-      @Parameter(description = "Page number") @RequestParam(defaultValue = "0") int page,
-      @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size) {
+      @Parameter(description = "Page number", example = "0") @RequestParam(defaultValue = "0")
+          int page,
+      @Parameter(description = "Page size (default 10, max 100)", example = "10")
+          @RequestParam(defaultValue = "10")
+          int size) {
     if (page < 0) {
       throw new IllegalArgumentException("Page parameter must be greater than or equal to 0");
     }

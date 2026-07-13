@@ -9,12 +9,13 @@ import java.time.LocalDateTime;
 /** Response DTO for day menu. */
 @Schema(description = "Response representing the active day menu")
 public record DayMenuResponse(
-    Long id,
-    Long productId,
-    String productName,
-    Double productBasePrice,
-    LocalDateTime validFrom,
-    String createdBy) {
+    @Schema(description = "Day menu ID", example = "1") Long id,
+    @Schema(description = "Product ID of the day menu", example = "5") Long productId,
+    @Schema(description = "Product name", example = "Burger of the Day") String productName,
+    @Schema(description = "Product base price", example = "15900.00") Double productBasePrice,
+    @Schema(description = "Timestamp from which the menu is valid", example = "2026-07-13T00:00:00")
+        LocalDateTime validFrom,
+    @Schema(description = "Username that set the day menu", example = "admin") String createdBy) {
 
   /**
    * Creates a response from a domain object.

@@ -5,6 +5,8 @@ import aros.services.rms.core.user.domain.UserId;
 import aros.services.rms.infraestructure.schedule.api.dto.TimeLogResponse;
 import aros.services.rms.infraestructure.share.security.JustAdminUser;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.Instant;
 import java.util.List;
@@ -19,7 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/admin/time-logs")
 @RequiredArgsConstructor
-@Tag(name = "Time Logs", description = "Worker time log history")
+@Tag(
+    name = "Time Logs",
+    description = "Operations for querying worker time log history with filters")
 public class TimeLogController {
 
   private final GetTimeLogHistoryUseCase getTimeLogHistoryUseCase;
@@ -27,12 +31,34 @@ public class TimeLogController {
   /** Returns filtered time log entries. */
   @GetMapping
   @JustAdminUser
-  @Operation(summary = "Get time log history", description = "Returns filtered time log entries")
+  @Operation(
+      tags = {"Time Logs"},
+      summary = "Get time log history",
+      description =
+          "Returns worker time log entries filtered by worker, date range, or whether they fall"
+              + " within an assigned shift. Admin access only.")
+  @ApiResponse(responseCode = "200", description = "Time logs retrieved")
+  @ApiResponse(responseCode = "401", description = "Unauthorized")
+  @ApiResponse(responseCode = "403", description = "Forbidden")
+  @ApiResponse(responseCode = "500", description = "Internal server error")
   public ResponseEntity<List<TimeLogResponse>> getTimeLogs(
-      @RequestParam(required = false) Long workerId,
-      @RequestParam(required = false) Instant from,
-      @RequestParam(required = false) Instant to,
-      @RequestParam(required = false) Boolean withinShift) {
+      @Parameter(description = "Filter by worker ID", example = "1") @RequestParam(required = false)
+          Long workerId,
+      @Parameter(
+              description = "Filter from this instant (ISO-8601)",
+              example = "2026-01-01T00:00:00Z")
+          @RequestParam(required = false)
+          Instant from,
+      @Parameter(
+              description = "Filter up to this instant (ISO-8601)",
+              example = "2026-12-31T23:59:59Z")
+          @RequestParam(required = false)
+          Instant to,
+      @Parameter(
+              description = "If true, only entries that fall within an assigned shift",
+              example = "true")
+          @RequestParam(required = false)
+          Boolean withinShift) {
     var filter =
         new GetTimeLogHistoryUseCase.TimeLogFilter(
             workerId != null ? UserId.of(workerId) : null, from, to, withinShift);

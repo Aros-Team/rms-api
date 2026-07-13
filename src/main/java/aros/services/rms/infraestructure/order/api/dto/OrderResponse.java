@@ -11,34 +11,32 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /** Response DTO for order data. */
-@Schema(description = "Response DTO para datos de una orden")
+@Schema(description = "Response DTO for order data")
 public record OrderResponse(
-    @Schema(description = "ID de la orden", example = "1") Long id,
-    @Schema(description = "Fecha y hora de la orden", example = "2026-03-08T14:30:00")
+    @Schema(description = "Order ID", example = "1") Long id,
+    @Schema(description = "Order date and time", example = "2026-03-08T14:30:00")
         LocalDateTime date,
-    @Schema(description = "Estado de la orden", example = "QUEUE") String status,
-    @Schema(description = "ID de la mesa", example = "1") Long tableId,
-    @Schema(description = "Lista de productos en la orden") List<OrderDetailResponse> details) {
+    @Schema(description = "Order status", example = "QUEUE") String status,
+    @Schema(description = "Table ID", example = "1") Long tableId,
+    @Schema(description = "List of products in the order") List<OrderDetailResponse> details) {
 
   /** Detail of a product in the order. */
-  @Schema(description = "Detalle de un producto en la orden")
+  @Schema(description = "Detail of a product in the order")
   public record OrderDetailResponse(
-      @Schema(description = "ID del detalle", example = "1") Long id,
-      @Schema(description = "ID del producto", example = "1") Long productId,
-      @Schema(description = "Nombre del producto", example = "Hamburguesa Clásica")
-          String productName,
-      @Schema(description = "Precio unitario", example = "12.50") Double unitPrice,
-      @Schema(description = "Instrucciones especiales", example = "Sin cebolla")
-          String instructions,
-      @Schema(description = "Opciones seleccionadas del producto")
+      @Schema(description = "Detail ID", example = "1") Long id,
+      @Schema(description = "Product ID", example = "1") Long productId,
+      @Schema(description = "Product name", example = "Classic Burger") String productName,
+      @Schema(description = "Unit price", example = "12.50") Double unitPrice,
+      @Schema(description = "Special instructions", example = "No onions") String instructions,
+      @Schema(description = "Selected product options")
           List<ProductOptionResponse> selectedOptions) {}
 
   /** Selected product option. */
-  @Schema(description = "Opción de producto seleccionada")
+  @Schema(description = "Selected product option")
   public record ProductOptionResponse(
-      @Schema(description = "ID de la opción", example = "1") Long id,
-      @Schema(description = "Nombre de la opción", example = "Grande") String name,
-      @Schema(description = "Nombre de la categoría", example = "Tamaños") String categoryName) {}
+      @Schema(description = "Option ID", example = "1") Long id,
+      @Schema(description = "Option name", example = "Large") String name,
+      @Schema(description = "Category name", example = "Sizes") String categoryName) {}
 
   /**
    * Creates a response from a domain object.

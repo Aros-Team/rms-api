@@ -6,13 +6,11 @@ import aros.services.rms.core.category.domain.OptionCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Response DTO for option category data. */
-@Schema(description = "Response DTO para datos de categoría de opción")
+@Schema(description = "Response DTO for option category data")
 public record OptionCategoryResponse(
-    @Schema(description = "ID de la categoría de opción", example = "1") Long id,
-    @Schema(description = "Nombre de la categoría", example = "Tamaños") String name,
-    @Schema(
-            description = "Descripción de la categoría",
-            example = "Tamaños disponibles para bebidas")
+    @Schema(description = "Option category ID", example = "1") Long id,
+    @Schema(description = "Category name", example = "Sizes") String name,
+    @Schema(description = "Category description", example = "Available sizes for drinks")
         String description) {
 
   /**

@@ -50,8 +50,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/supplies")
 @RequiredArgsConstructor
 @Tag(
-    name = "Supply Catalog",
-    description = "Supply catalog management, including variants and categories")
+    name = "Supplies",
+    description =
+        "Operations for managing the supply catalog: supplies, variants, categories,"
+            + " and units of measure")
 public class SupplyCatalogController {
 
   private final SupplyRepository supplyRepository;
@@ -71,10 +73,13 @@ public class SupplyCatalogController {
    * @return the list of supply categories
    */
   @Operation(
+      tags = {"Supplies"},
       summary = "List all supply categories",
       description = "Returns all supply categories.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Supply categories retrieved"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/categories")
@@ -93,12 +98,16 @@ public class SupplyCatalogController {
    * @return the created supply category
    */
   @Operation(
+      tags = {"Supplies"},
       summary = "Create supply category",
       description = "Creates a new supply category. Returns 409 if the name already exists.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Category created"),
         @ApiResponse(responseCode = "400", description = "Invalid input"),
-        @ApiResponse(responseCode = "409", description = "Category name already exists")
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "409", description = "Category name already exists"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping("/categories")
   @Transactional
@@ -123,12 +132,15 @@ public class SupplyCatalogController {
    * @return the list of units of measure
    */
   @Operation(
+      tags = {"Supplies"},
       summary = "List all units of measure",
       description =
           "Returns all units of measure. "
               + "Use this to populate the unit selector when creating a variant.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Units of measure retrieved"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/units")
@@ -154,6 +166,7 @@ public class SupplyCatalogController {
    * @return the page of supplies
    */
   @Operation(
+      tags = {"Supplies"},
       summary = "List supplies",
       description =
           "Returns supplies with pagination. Filters by categoryId and/or name "
@@ -161,25 +174,32 @@ public class SupplyCatalogController {
       responses = {
         @ApiResponse(responseCode = "200", description = "Supplies retrieved"),
         @ApiResponse(responseCode = "400", description = "Invalid pagination parameters"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
   @Transactional(readOnly = true)
   public ResponseEntity<Page<SupplyResponse>> findAllSupplies(
-      @Parameter(description = "Optional category filter") @RequestParam(required = false)
+      @Parameter(description = "Optional category filter", example = "1")
+          @RequestParam(required = false)
           Long categoryId,
-      @Parameter(description = "Optional name filter (partial, case-insensitive)")
+      @Parameter(
+              description = "Optional name filter (partial, case-insensitive)",
+              example = "sugar")
           @RequestParam(required = false)
           String name,
-      @Parameter(description = "Page number (default 0)") @RequestParam(defaultValue = "0")
+      @Parameter(description = "Page number (default 0)", example = "0")
+          @RequestParam(defaultValue = "0")
           int page,
-      @Parameter(description = "Page size (default 20, max 100)") @RequestParam(defaultValue = "20")
+      @Parameter(description = "Page size (default 20, max 100)", example = "20")
+          @RequestParam(defaultValue = "20")
           int size) {
     if (page < 0) {
-      throw new IllegalArgumentException("El parámetro page debe ser mayor o igual a 0");
+      throw new IllegalArgumentException("Page parameter must be greater than or equal to 0");
     }
     if (size <= 0 || size > 100) {
-      throw new IllegalArgumentException("El parámetro size debe estar entre 1 y 100");
+      throw new IllegalArgumentException("Size parameter must be between 1 and 100");
     }
     var pageable = PageRequest.of(page, size);
 
@@ -205,6 +225,7 @@ public class SupplyCatalogController {
    * @return the created supply
    */
   @Operation(
+      tags = {"Supplies"},
       summary = "Create supply",
       description =
           "Creates a new supply (insumo base). Only requires a name and a categoryId."
@@ -212,8 +233,11 @@ public class SupplyCatalogController {
       responses = {
         @ApiResponse(responseCode = "201", description = "Supply created"),
         @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Category not found"),
-        @ApiResponse(responseCode = "409", description = "Supply name already exists")
+        @ApiResponse(responseCode = "409", description = "Supply name already exists"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
   @Transactional
@@ -251,6 +275,7 @@ public class SupplyCatalogController {
    * @return the list of supply variants
    */
   @Operation(
+      tags = {"Supplies"},
       summary = "List supply variants with stock",
       description =
           "Returns all supply variants with current stock in Bodega and Cocina. "
@@ -258,12 +283,16 @@ public class SupplyCatalogController {
               + "The variant 'id' is the supplyVariantId used in purchase order items.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Supply variants retrieved"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/variants")
   @Transactional(readOnly = true)
   public ResponseEntity<List<SupplyVariantResponse>> findAllVariants(
-      @RequestParam(required = false) Long supplyId) {
+      @Parameter(description = "Optional supply filter", example = "3")
+          @RequestParam(required = false)
+          Long supplyId) {
 
     var variants =
         supplyId != null
@@ -295,6 +324,7 @@ public class SupplyCatalogController {
    * @return the created supply variant
    */
   @Operation(
+      tags = {"Supplies"},
       summary = "Create supply variant",
       description =
           "Creates a new supply variant (physical presentation of a supply) and initializes"
@@ -304,8 +334,11 @@ public class SupplyCatalogController {
       responses = {
         @ApiResponse(responseCode = "201", description = "Variant created with zero stock"),
         @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Supply or unit of measure not found"),
-        @ApiResponse(responseCode = "409", description = "Variant already exists")
+        @ApiResponse(responseCode = "409", description = "Variant already exists"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping("/variants")
   @Transactional
