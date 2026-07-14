@@ -33,14 +33,17 @@ public class SpecialSelectionValidator {
       errors.add("at least one group is required");
     } else {
       for (SpecialSelectionGroup group : config.getGroups()) {
+        if (group.getCategoryId() == null) {
+          errors.add("group must have a categoryId");
+        }
         if (group.getMinSelections() < 1) {
-          errors.add("group '" + group.getName() + "' must have minSelections >= 1");
+          errors.add("group must have minSelections >= 1");
         }
         if (group.getMaxSelections() < group.getMinSelections()) {
-          errors.add("group '" + group.getName() + "' must have maxSelections >= minSelections");
+          errors.add("group must have maxSelections >= minSelections");
         }
-        if (group.getOptions() == null || group.getOptions().isEmpty()) {
-          errors.add("group '" + group.getName() + "' must have at least one option");
+        if (group.getProductIds() == null || group.getProductIds().isEmpty()) {
+          errors.add("group must have at least one product");
         }
       }
     }
@@ -67,7 +70,7 @@ public class SpecialSelectionValidator {
    * Validates the selections captured for a special selection item within an order.
    *
    * @param config the special selection configuration
-   * @param selectedOptionIds the option identifiers selected for the item
+   * @param selectedProductIds the product identifiers selected from the combo groups
    * @param additionIds the addition identifiers selected for the item
    * @param clarifications the clarification answers for the item
    * @throws aros.services.rms.core.specialselection.application.exception
@@ -75,60 +78,56 @@ public class SpecialSelectionValidator {
    */
   public void validateOrderSelections(
       SpecialSelectionConfiguration config,
-      List<Long> selectedOptionIds,
+      List<Long> selectedProductIds,
       List<Long> additionIds,
       List<ClarificationAnswer> clarifications) {
     List<String> errors = new ArrayList<>();
 
-    Set<Long> chosenOptionSet =
-        selectedOptionIds != null
-            ? selectedOptionIds.stream().collect(Collectors.toSet())
+    Set<Long> chosenProductSet =
+        selectedProductIds != null
+            ? selectedProductIds.stream().collect(Collectors.toSet())
             : Set.of();
 
-    Map<String, List<Long>> optionsByGroupName =
+    Map<String, List<Long>> productIdsByGroupDesc =
         config.getGroups().stream()
             .collect(
                 Collectors.toMap(
-                    SpecialSelectionGroup::getName,
-                    g ->
-                        g.getOptions() != null
-                            ? g.getOptions().stream()
-                                .map(opt -> opt.getId())
-                                .collect(Collectors.toList())
-                            : List.of()));
+                    g -> "group_" + g.getId(),
+                    g -> g.getProductIds() != null ? g.getProductIds() : List.of()));
 
-    Set<Long> allValidOptionIds =
-        optionsByGroupName.values().stream().flatMap(List::stream).collect(Collectors.toSet());
+    Set<Long> allValidProductIds =
+        productIdsByGroupDesc.values().stream().flatMap(List::stream).collect(Collectors.toSet());
 
-    for (Long chosenId : chosenOptionSet) {
-      if (!allValidOptionIds.contains(chosenId)) {
-        errors.add("option id=" + chosenId + " is not valid for this combo");
+    for (Long chosenId : chosenProductSet) {
+      if (!allValidProductIds.contains(chosenId)) {
+        errors.add("product id=" + chosenId + " is not valid for this combo");
       }
     }
 
     for (SpecialSelectionGroup group : config.getGroups()) {
-      List<Long> groupOptionIds =
-          group.getOptions() != null
-              ? group.getOptions().stream().map(opt -> opt.getId()).toList()
-              : List.of();
-      long selectedInGroup = chosenOptionSet.stream().filter(groupOptionIds::contains).count();
+      List<Long> groupProductIds =
+          group.getProductIds() != null ? group.getProductIds() : List.of();
+      long selectedInGroup = chosenProductSet.stream().filter(groupProductIds::contains).count();
       if (group.isRequired() && selectedInGroup == 0) {
-        errors.add("group '" + group.getName() + "' is required but no option was selected");
+        errors.add(
+            "group (categoryId="
+                + group.getCategoryId()
+                + ") is required but no product was selected");
       }
       if (selectedInGroup < group.getMinSelections()) {
         errors.add(
-            "group '"
-                + group.getName()
-                + "' requires at least "
+            "group (categoryId="
+                + group.getCategoryId()
+                + ") requires at least "
                 + group.getMinSelections()
                 + " selections, got "
                 + selectedInGroup);
       }
       if (selectedInGroup > group.getMaxSelections()) {
         errors.add(
-            "group '"
-                + group.getName()
-                + "' allows at most "
+            "group (categoryId="
+                + group.getCategoryId()
+                + ") allows at most "
                 + group.getMaxSelections()
                 + " selections, got "
                 + selectedInGroup);

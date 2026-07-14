@@ -274,6 +274,16 @@ public class InventoryMovementService implements InventoryMovementUseCase {
               recipe.getSupplyVariantId(), recipe.getRequiredQuantity(), BigDecimal::add);
         }
       }
+      if (detail.getSelectedProductIds() != null && !detail.getSelectedProductIds().isEmpty()) {
+        for (Long selectedProductId : detail.getSelectedProductIds()) {
+          List<ProductRecipe> selectedRecipes =
+              productRecipeRepositoryPort.findByProductId(selectedProductId);
+          for (ProductRecipe recipe : selectedRecipes) {
+            required.merge(
+                recipe.getSupplyVariantId(), recipe.getRequiredQuantity(), BigDecimal::add);
+          }
+        }
+      }
     }
     return required;
   }

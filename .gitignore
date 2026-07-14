@@ -1,4 +1,3 @@
-HELP.md
 .project
 deploy.sh
 .env
@@ -39,10 +38,6 @@ out/
 
 ### VS Code ###
 .vscode/
-
-### Documentation & Text Files ###
-*.md
-*.txt
 
 ### Others ###
 .kiro

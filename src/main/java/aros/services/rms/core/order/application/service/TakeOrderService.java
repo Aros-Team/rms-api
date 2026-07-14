@@ -136,7 +136,7 @@ public class TakeOrderService implements TakeOrderUseCase {
             SpecialSelectionConfiguration config = configOpt.get();
             specialSelectionValidator.validateOrderSelections(
                 config,
-                detailCommand.getSelectedOptionIds(),
+                detailCommand.getSelectedProductIds(),
                 detailCommand.getAdditionIds(),
                 detailCommand.getClarifications());
             unitPrice =
@@ -151,6 +151,7 @@ public class TakeOrderService implements TakeOrderUseCase {
                 .unitPrice(unitPrice)
                 .instructions(detailCommand.getInstructions())
                 .selectedOptions(selectedOptions)
+                .selectedProductIds(detailCommand.getSelectedProductIds())
                 .additionIds(detailCommand.getAdditionIds())
                 .clarifications(detailCommand.getClarifications())
                 .build();

@@ -1,12 +1,9 @@
 package aros.services.rms.core.specialselection.application.service;
 
-import aros.services.rms.core.inventory.domain.OptionRecipe;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.inventory.domain.SupplyVariant;
-import aros.services.rms.core.inventory.port.output.OptionRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
-import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.specialselection.application.exception.SupplyVariantUnitCostMissingException;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionAddition;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
@@ -24,22 +21,18 @@ import java.util.stream.Collectors;
  */
 public class SpecialSelectionPricingService {
 
-  private final OptionRecipeRepositoryPort optionRecipeRepositoryPort;
   private final ProductRecipeRepositoryPort productRecipeRepositoryPort;
   private final SupplyVariantRepositoryPort supplyVariantRepositoryPort;
 
   /**
    * Creates a new special selection pricing service.
    *
-   * @param optionRecipeRepositoryPort the option recipe repository port
    * @param productRecipeRepositoryPort the product recipe repository port
    * @param supplyVariantRepositoryPort the supply variant repository port
    */
   public SpecialSelectionPricingService(
-      OptionRecipeRepositoryPort optionRecipeRepositoryPort,
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
       SupplyVariantRepositoryPort supplyVariantRepositoryPort) {
-    this.optionRecipeRepositoryPort = optionRecipeRepositoryPort;
     this.productRecipeRepositoryPort = productRecipeRepositoryPort;
     this.supplyVariantRepositoryPort = supplyVariantRepositoryPort;
   }
@@ -76,62 +69,47 @@ public class SpecialSelectionPricingService {
    */
   public SuggestedPrice suggestPrice(
       SpecialSelectionConfiguration config, BigDecimal marginPercent) {
-    Set<Long> allOptionIds =
+    Set<Long> allProductIds =
         config.getGroups().stream()
-            .filter(g -> g.getOptions() != null)
-            .flatMap(g -> g.getOptions().stream().map(ProductOption::getId))
+            .filter(g -> g.getProductIds() != null)
+            .flatMap(g -> g.getProductIds().stream())
             .collect(Collectors.toSet());
 
-    Set<Long> additionOptionIds =
-        config.getAdditions() != null
-            ? config.getAdditions().stream()
-                .map(SpecialSelectionAddition::getOptionId)
-                .collect(Collectors.toSet())
-            : Set.of();
+    List<ProductRecipe> allProductRecipes = new ArrayList<>();
+    for (Long pid : allProductIds) {
+      allProductRecipes.addAll(productRecipeRepositoryPort.findByProductId(pid));
+    }
 
-    allOptionIds.addAll(additionOptionIds);
+    Map<Long, BigDecimal> variantCost = loadVariantCosts(allProductRecipes);
 
-    List<OptionRecipe> allOptionRecipes =
-        optionRecipeRepositoryPort.findByOptionIdIn(new ArrayList<>(allOptionIds));
-
-    Map<Long, BigDecimal> variantCost = loadVariantCosts(allOptionRecipes);
-
-    List<OptionRecipe> missingCostRecipes =
-        allOptionRecipes.stream()
+    List<Long> missingVariantIds =
+        allProductRecipes.stream()
+            .map(ProductRecipe::getSupplyVariantId)
             .filter(
-                r -> {
-                  BigDecimal cost = variantCost.get(r.getSupplyVariantId());
+                vid -> {
+                  BigDecimal cost = variantCost.get(vid);
                   return cost == null || cost.compareTo(BigDecimal.ZERO) == 0;
                 })
+            .distinct()
             .toList();
 
-    if (!missingCostRecipes.isEmpty()) {
-      List<Long> missingVariantIds =
-          missingCostRecipes.stream().map(OptionRecipe::getSupplyVariantId).distinct().toList();
+    if (!missingVariantIds.isEmpty()) {
       throw new SupplyVariantUnitCostMissingException(missingVariantIds);
     }
 
     BigDecimal totalCost = BigDecimal.ZERO;
     List<SuggestedPrice.CostBreakdownItem> breakdown = new ArrayList<>();
 
-    for (Long optionId : allOptionIds) {
-      BigDecimal optionCost = BigDecimal.ZERO;
-      List<OptionRecipe> recipes =
-          allOptionRecipes.stream().filter(r -> r.getOptionId().equals(optionId)).toList();
-      for (OptionRecipe recipe : recipes) {
-        BigDecimal unitCost = variantCost.get(recipe.getSupplyVariantId());
-        if (unitCost != null) {
-          BigDecimal lineCost = recipe.getRequiredQuantity().multiply(unitCost);
-          optionCost = optionCost.add(lineCost);
-        }
-      }
-      if (optionCost.compareTo(BigDecimal.ZERO) > 0) {
-        totalCost = totalCost.add(optionCost);
+    for (ProductRecipe recipe : allProductRecipes) {
+      BigDecimal unitCost = variantCost.get(recipe.getSupplyVariantId());
+      if (unitCost != null) {
+        BigDecimal lineCost = recipe.getRequiredQuantity().multiply(unitCost);
+        totalCost = totalCost.add(lineCost);
         breakdown.add(
             SuggestedPrice.CostBreakdownItem.builder()
-                .optionId(optionId)
-                .name("option:" + optionId)
-                .cost(optionCost)
+                .optionId(null)
+                .name("product:" + recipe.getProductId())
+                .cost(lineCost)
                 .build());
       }
     }
@@ -168,9 +146,9 @@ public class SpecialSelectionPricingService {
         .build();
   }
 
-  private Map<Long, BigDecimal> loadVariantCosts(List<OptionRecipe> recipes) {
+  private Map<Long, BigDecimal> loadVariantCosts(List<ProductRecipe> recipes) {
     Set<Long> variantIds =
-        recipes.stream().map(OptionRecipe::getSupplyVariantId).collect(Collectors.toSet());
+        recipes.stream().map(ProductRecipe::getSupplyVariantId).collect(Collectors.toSet());
     List<SupplyVariant> variants =
         supplyVariantRepositoryPort.findAllById(new ArrayList<>(variantIds));
     return variants.stream()

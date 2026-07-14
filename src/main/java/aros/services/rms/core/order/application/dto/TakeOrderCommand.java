@@ -1,5 +1,3 @@
-/* (C) 2026 */
-
 package aros.services.rms.core.order.application.dto;
 
 import aros.services.rms.core.order.domain.ClarificationAnswer;
@@ -33,6 +31,7 @@ public class TakeOrderCommand {
     private Long productId;
     private String instructions;
     private List<Long> selectedOptionIds;
+    private List<Long> selectedProductIds;
     private List<Long> additionIds;
     private List<ClarificationAnswer> clarifications;
   }

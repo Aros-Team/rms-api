@@ -1,9 +1,7 @@
 package aros.services.rms.infraestructure.specialselection.config;
 
-import aros.services.rms.core.inventory.port.output.OptionRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
-import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.specialselection.application.service.CreateSpecialSelectionService;
 import aros.services.rms.core.specialselection.application.service.DeleteSpecialSelectionService;
 import aros.services.rms.core.specialselection.application.service.GetSpecialSelectionHistoryService;
@@ -58,30 +56,26 @@ public class SpecialSelectionConfigBeans {
   /**
    * Provides the special selection snapshot service bean.
    *
-   * @param productOptionRepositoryPort the product option repository port
    * @return a configured SpecialSelectionSnapshotService instance
    */
   @Bean
-  public SpecialSelectionSnapshotService specialSelectionSnapshotService(
-      ProductOptionRepositoryPort productOptionRepositoryPort) {
-    return new SpecialSelectionSnapshotService(productOptionRepositoryPort);
+  public SpecialSelectionSnapshotService specialSelectionSnapshotService() {
+    return new SpecialSelectionSnapshotService();
   }
 
   /**
    * Provides the special selection pricing service bean.
    *
-   * @param optionRecipeRepositoryPort the option recipe repository port
    * @param productRecipeRepositoryPort the product recipe repository port
    * @param supplyVariantRepositoryPort the supply variant repository port
    * @return a configured SpecialSelectionPricingService instance
    */
   @Bean
   public SpecialSelectionPricingService specialSelectionPricingService(
-      OptionRecipeRepositoryPort optionRecipeRepositoryPort,
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
       SupplyVariantRepositoryPort supplyVariantRepositoryPort) {
     return new SpecialSelectionPricingService(
-        optionRecipeRepositoryPort, productRecipeRepositoryPort, supplyVariantRepositoryPort);
+        productRecipeRepositoryPort, supplyVariantRepositoryPort);
   }
 
   /**

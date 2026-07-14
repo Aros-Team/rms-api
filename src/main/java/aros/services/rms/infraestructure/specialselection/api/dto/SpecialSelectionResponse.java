@@ -26,7 +26,7 @@ public record SpecialSelectionResponse(
     @Schema(description = "Selection type", example = "SPECIAL_SELECTION") String selectionType,
     @Schema(description = "Base recipe cost enabled") boolean baseRecipeEnabled,
     @Schema(description = "Schedule required") boolean schedulingRequired,
-    @Schema(description = "Option groups") List<GroupResponse> groups,
+    @Schema(description = "Product-category groups") List<GroupResponse> groups,
     @Schema(description = "Paid additions") List<AdditionResponse> additions,
     @Schema(description = "Clarification questions") List<QuestionResponse> questions,
     @Schema(description = "Availability schedule") List<ScheduleResponse> schedule) {
@@ -73,27 +73,25 @@ public record SpecialSelectionResponse(
             : Collections.emptyList());
   }
 
-  /** Nested response payload for an option group inside a special selection. */
-  @Schema(description = "Option group")
+  /** Nested response payload for a product-category group inside a special selection. */
+  @Schema(description = "Product-category group")
   public record GroupResponse(
       @Schema(description = "Group ID") Long id,
-      @Schema(description = "Group name") String name,
+      @Schema(description = "Category ID") Long categoryId,
       @Schema(description = "Display order") int displayOrder,
       @Schema(description = "Whether required") boolean required,
       @Schema(description = "Minimum selections") int minSelections,
       @Schema(description = "Maximum selections") int maxSelections,
-      @Schema(description = "Product option IDs") List<Long> optionIds) {
+      @Schema(description = "Product IDs in this group") List<Long> productIds) {
     static GroupResponse fromDomain(SpecialSelectionGroup group) {
       return new GroupResponse(
           group.getId(),
-          group.getName(),
+          group.getCategoryId(),
           group.getDisplayOrder(),
           group.isRequired(),
           group.getMinSelections(),
           group.getMaxSelections(),
-          group.getOptions() != null
-              ? group.getOptions().stream().map(opt -> opt.getId()).collect(Collectors.toList())
-              : Collections.emptyList());
+          group.getProductIds() != null ? group.getProductIds() : Collections.emptyList());
     }
   }
 

@@ -278,23 +278,13 @@ public class SpecialSelectionAdminController {
                 g ->
                     SpecialSelectionGroup.builder()
                         .id(g.id())
-                        .productId(productId)
-                        .name(g.name())
+                        .categoryId(g.categoryId())
                         .displayOrder(g.displayOrder())
                         .required(g.required())
                         .minSelections(g.minSelections())
                         .maxSelections(g.maxSelections())
-                        .options(
-                            g.optionIds() != null
-                                ? g.optionIds().stream()
-                                    .map(
-                                        id ->
-                                            aros.services.rms.core.product.domain.ProductOption
-                                                .builder()
-                                                .id(id)
-                                                .build())
-                                    .collect(Collectors.toList())
-                                : Collections.emptyList())
+                        .productIds(
+                            g.productIds() != null ? g.productIds() : Collections.emptyList())
                         .build())
             .collect(Collectors.toList());
 

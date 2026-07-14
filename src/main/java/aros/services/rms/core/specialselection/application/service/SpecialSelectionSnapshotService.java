@@ -1,7 +1,5 @@
 package aros.services.rms.core.specialselection.application.service;
 
-import aros.services.rms.core.product.domain.ProductOption;
-import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.schedule.domain.DayOfWeek;
 import aros.services.rms.core.specialselection.domain.SelectionType;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionAddition;
@@ -14,11 +12,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -28,15 +23,9 @@ import java.util.stream.Collectors;
 public class SpecialSelectionSnapshotService {
 
   private final ObjectMapper objectMapper;
-  private final ProductOptionRepositoryPort productOptionRepositoryPort;
 
-  /**
-   * Creates a new special selection snapshot service.
-   *
-   * @param productOptionRepositoryPort the product option repository port
-   */
-  public SpecialSelectionSnapshotService(ProductOptionRepositoryPort productOptionRepositoryPort) {
-    this.productOptionRepositoryPort = productOptionRepositoryPort;
+  /** Creates a new special selection snapshot service. */
+  public SpecialSelectionSnapshotService() {
     this.objectMapper =
         new ObjectMapper()
             .registerModule(new JavaTimeModule())
@@ -124,8 +113,7 @@ public class SpecialSelectionSnapshotService {
   }
 
   /**
-   * Builds a configuration from a snapshot, reloading referenced product options from the
-   * repository.
+   * Builds a configuration from a snapshot.
    *
    * @param snapshot the snapshot to convert
    * @return the reconstructed configuration, or null if the snapshot is null
@@ -162,39 +150,19 @@ public class SpecialSelectionSnapshotService {
     if (groupSnapshots == null) {
       return Collections.emptyList();
     }
-    Set<Long> allOptionIds =
-        groupSnapshots.stream()
-            .filter(g -> g.getOptions() != null)
-            .flatMap(
-                g ->
-                    g.getOptions().stream()
-                        .map(SpecialSelectionSnapshot.OptionInGroupSnapshot::getId))
-            .collect(Collectors.toSet());
-    Map<Long, ProductOption> optionMap =
-        allOptionIds.isEmpty()
-            ? Collections.emptyMap()
-            : productOptionRepositoryPort.findAllById(new ArrayList<>(allOptionIds)).stream()
-                .collect(Collectors.toMap(ProductOption::getId, o -> o));
     return groupSnapshots.stream()
         .map(
-            gs -> {
-              List<ProductOption> options =
-                  gs.getOptions() != null
-                      ? gs.getOptions().stream()
-                          .map(os -> optionMap.get(os.getId()))
-                          .filter(o -> o != null)
-                          .collect(Collectors.toList())
-                      : Collections.emptyList();
-              return SpecialSelectionGroup.builder()
-                  .id(gs.getId())
-                  .name(gs.getName())
-                  .displayOrder(gs.getDisplayOrder())
-                  .required(gs.isRequired())
-                  .minSelections(gs.getMinSelections())
-                  .maxSelections(gs.getMaxSelections())
-                  .options(options)
-                  .build();
-            })
+            gs ->
+                SpecialSelectionGroup.builder()
+                    .id(gs.getId())
+                    .categoryId(gs.getCategoryId())
+                    .displayOrder(gs.getDisplayOrder())
+                    .required(gs.isRequired())
+                    .minSelections(gs.getMinSelections())
+                    .maxSelections(gs.getMaxSelections())
+                    .productIds(
+                        gs.getProductIds() != null ? gs.getProductIds() : Collections.emptyList())
+                    .build())
         .collect(Collectors.toList());
   }
 
@@ -254,27 +222,12 @@ public class SpecialSelectionSnapshotService {
   private SpecialSelectionSnapshot.GroupSnapshot toGroupSnapshot(SpecialSelectionGroup group) {
     return SpecialSelectionSnapshot.GroupSnapshot.builder()
         .id(group.getId())
-        .name(group.getName())
+        .categoryId(group.getCategoryId())
         .required(group.isRequired())
         .minSelections(group.getMinSelections())
         .maxSelections(group.getMaxSelections())
         .displayOrder(group.getDisplayOrder())
-        .options(
-            group.getOptions() != null
-                ? group.getOptions().stream()
-                    .map(opt -> toOptionInGroupSnapshot(opt, group.getId()))
-                    .collect(Collectors.toList())
-                : Collections.emptyList())
-        .build();
-  }
-
-  private SpecialSelectionSnapshot.OptionInGroupSnapshot toOptionInGroupSnapshot(
-      ProductOption option, Long groupId) {
-    return SpecialSelectionSnapshot.OptionInGroupSnapshot.builder()
-        .id(option.getId())
-        .name(option.getName())
-        .extraPrice(0.0)
-        .displayOrder(0)
+        .productIds(group.getProductIds() != null ? group.getProductIds() : Collections.emptyList())
         .build();
   }
 

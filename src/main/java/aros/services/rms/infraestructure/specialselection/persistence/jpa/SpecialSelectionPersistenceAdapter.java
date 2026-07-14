@@ -1,12 +1,11 @@
 package aros.services.rms.infraestructure.specialselection.persistence.jpa;
 
-import aros.services.rms.core.product.domain.ProductOption;
+import aros.services.rms.core.category.port.output.CategoryRepositoryPort;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
 import aros.services.rms.core.specialselection.port.output.SpecialSelectionRepositoryPort;
 import aros.services.rms.infraestructure.product.persistence.Product;
-import aros.services.rms.infraestructure.product.persistence.jpa.ProductOptionRepository;
 import aros.services.rms.infraestructure.product.persistence.jpa.ProductRepository;
-import aros.services.rms.infraestructure.specialselection.persistence.ProductProductOptionEntity;
+import aros.services.rms.infraestructure.specialselection.persistence.GroupProductEntity;
 import aros.services.rms.infraestructure.specialselection.persistence.SpecialSelectionAdditionEntity;
 import aros.services.rms.infraestructure.specialselection.persistence.SpecialSelectionGroupEntity;
 import aros.services.rms.infraestructure.specialselection.persistence.SpecialSelectionQuestionEntity;
@@ -16,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -28,9 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class SpecialSelectionPersistenceAdapter implements SpecialSelectionRepositoryPort {
 
   private final ProductRepository productRepository;
-  private final ProductOptionRepository productOptionRepository;
+  private final CategoryRepositoryPort categoryRepositoryPort;
   private final SpecialSelectionGroupRepository groupRepository;
-  private final ProductProductOptionRepository groupOptionRepository;
+  private final GroupProductRepository groupProductRepository;
   private final SpecialSelectionAdditionRepository additionRepository;
   private final SpecialSelectionQuestionRepository questionRepository;
   private final SpecialSelectionScheduleRepository scheduleRepository;
@@ -61,10 +59,10 @@ public class SpecialSelectionPersistenceAdapter implements SpecialSelectionRepos
 
     Map<Long, Long> groupIdMapping = buildGroupIdMapping(config.getGroups(), savedGroups);
 
-    List<ProductProductOptionEntity> optionLinks =
-        mapper.toGroupOptionLinks(productId, config.getGroups(), groupIdMapping);
-    if (!optionLinks.isEmpty()) {
-      groupOptionRepository.saveAll(optionLinks);
+    List<GroupProductEntity> productLinks =
+        mapper.toGroupProductLinks(productId, config.getGroups(), groupIdMapping);
+    if (!productLinks.isEmpty()) {
+      groupProductRepository.saveAll(productLinks);
     }
 
     List<SpecialSelectionAdditionEntity> additions =
@@ -134,7 +132,12 @@ public class SpecialSelectionPersistenceAdapter implements SpecialSelectionRepos
   }
 
   private void deleteChildEntities(Long productId) {
-    groupOptionRepository.deleteByProductId(productId);
+    List<SpecialSelectionGroupEntity> existingGroups = groupRepository.findByProductId(productId);
+    if (!existingGroups.isEmpty()) {
+      List<Long> groupIds =
+          existingGroups.stream().map(SpecialSelectionGroupEntity::getId).toList();
+      groupProductRepository.deleteByGroupIdIn(groupIds);
+    }
     groupRepository.deleteByProductId(productId);
     additionRepository.deleteByProductId(productId);
     questionRepository.deleteByProductId(productId);
@@ -154,49 +157,28 @@ public class SpecialSelectionPersistenceAdapter implements SpecialSelectionRepos
 
     List<Long> groupIds =
         groupEntities.stream().map(SpecialSelectionGroupEntity::getId).collect(Collectors.toList());
-    List<ProductProductOptionEntity> groupOptionLinks =
-        groupIds.isEmpty()
-            ? Collections.emptyList()
-            : groupOptionRepository.findAll().stream()
-                .filter(
-                    l ->
-                        l.getSelectionGroupId() != null
-                            && groupIds.contains(l.getSelectionGroupId()))
-                .collect(Collectors.toList());
 
-    Set<Long> allOptionIds = collectAllOptionIds(groupOptionLinks, additionEntities);
-    List<ProductOption> allOptions =
-        allOptionIds.isEmpty()
-            ? Collections.emptyList()
-            : productOptionRepository.findAllById(allOptionIds).stream()
-                .map(p -> ProductOption.builder().id(p.getId()).name(p.getName()).build())
-                .collect(Collectors.toList());
+    Map<Long, List<Long>> groupProductMap = buildGroupProductMap(groupIds);
 
     return mapper.toDomain(
         productEntity,
         groupEntities,
-        groupOptionLinks,
+        groupProductMap,
         additionEntities,
         questionEntities,
-        scheduleEntities,
-        allOptions);
+        scheduleEntities);
   }
 
-  private Set<Long> collectAllOptionIds(
-      List<ProductProductOptionEntity> groupOptionLinks,
-      List<SpecialSelectionAdditionEntity> additionEntities) {
-    Set<Long> ids = new java.util.HashSet<>();
-    for (ProductProductOptionEntity link : groupOptionLinks) {
-      if (link.getOptionId() != null) {
-        ids.add(link.getOptionId());
-      }
+  private Map<Long, List<Long>> buildGroupProductMap(List<Long> groupIds) {
+    if (groupIds.isEmpty()) {
+      return Collections.emptyMap();
     }
-    for (SpecialSelectionAdditionEntity ae : additionEntities) {
-      if (ae.getOptionId() != null) {
-        ids.add(ae.getOptionId());
-      }
-    }
-    return ids;
+    List<GroupProductEntity> links = groupProductRepository.findByGroupIdIn(groupIds);
+    return links.stream()
+        .collect(
+            Collectors.groupingBy(
+                GroupProductEntity::getGroupId,
+                Collectors.mapping(GroupProductEntity::getProductId, Collectors.toList())));
   }
 
   private Map<Long, Long> buildGroupIdMapping(

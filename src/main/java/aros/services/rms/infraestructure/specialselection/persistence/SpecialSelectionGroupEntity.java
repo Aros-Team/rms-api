@@ -11,7 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** JPA entity representing an option group within a special selection configuration. */
+/** JPA entity representing a product-category group within a special selection configuration. */
 @Entity
 @Table(name = "special_selection_groups")
 @Data
@@ -27,8 +27,8 @@ public class SpecialSelectionGroupEntity {
   @Column(name = "product_id", nullable = false)
   private Long productId;
 
-  @Column(nullable = false)
-  private String name;
+  @Column(name = "category_id")
+  private Long categoryId;
 
   @Column(name = "display_order", nullable = false)
   @Builder.Default

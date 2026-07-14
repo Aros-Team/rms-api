@@ -1,6 +1,5 @@
 package aros.services.rms.infraestructure.specialselection.persistence.jpa;
 
-import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.schedule.domain.DayOfWeek;
 import aros.services.rms.core.specialselection.domain.ChangeType;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionAddition;
@@ -10,7 +9,7 @@ import aros.services.rms.core.specialselection.domain.SpecialSelectionHistory;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionQuestion;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionScheduleEntry;
 import aros.services.rms.infraestructure.product.persistence.Product;
-import aros.services.rms.infraestructure.specialselection.persistence.ProductProductOptionEntity;
+import aros.services.rms.infraestructure.specialselection.persistence.GroupProductEntity;
 import aros.services.rms.infraestructure.specialselection.persistence.SpecialSelectionAdditionEntity;
 import aros.services.rms.infraestructure.specialselection.persistence.SpecialSelectionGroupEntity;
 import aros.services.rms.infraestructure.specialselection.persistence.SpecialSelectionHistoryEntity;
@@ -26,54 +25,28 @@ import org.springframework.stereotype.Component;
 @Component
 public class SpecialSelectionMapper {
 
-  /**
-   * Builds a special selection configuration from the product entity and its associated groups,
-   * options, additions, questions and schedule entries.
-   *
-   * @param productEntity the product entity
-   * @param groupEntities the option group entities
-   * @param groupOptionLinks the links between groups and product options
-   * @param additionEntities the addition entities
-   * @param questionEntities the question entities
-   * @param scheduleEntities the schedule entities
-   * @param allOptions all referenced product options
-   * @return the reconstructed configuration
-   */
+  /** Builds a domain configuration from persisted entities and group-product maps. */
   public SpecialSelectionConfiguration toDomain(
       Product productEntity,
       List<SpecialSelectionGroupEntity> groupEntities,
-      List<ProductProductOptionEntity> groupOptionLinks,
+      Map<Long, List<Long>> groupProductMap,
       List<SpecialSelectionAdditionEntity> additionEntities,
       List<SpecialSelectionQuestionEntity> questionEntities,
-      List<SpecialSelectionScheduleEntity> scheduleEntities,
-      List<ProductOption> allOptions) {
-
-    Map<Long, ProductOption> optionMap =
-        allOptions.stream().collect(Collectors.toMap(ProductOption::getId, o -> o));
-
-    Map<Long, List<ProductProductOptionEntity>> optionLinksByGroup =
-        groupOptionLinks.stream()
-            .filter(l -> l.getSelectionGroupId() != null)
-            .collect(Collectors.groupingBy(ProductProductOptionEntity::getSelectionGroupId));
-
+      List<SpecialSelectionScheduleEntity> scheduleEntities) {
     List<SpecialSelectionGroup> groups =
         groupEntities.stream()
             .map(
                 ge -> {
-                  List<ProductOption> groupOptions =
-                      optionLinksByGroup.getOrDefault(ge.getId(), Collections.emptyList()).stream()
-                          .map(link -> optionMap.get(link.getOptionId()))
-                          .filter(o -> o != null)
-                          .collect(Collectors.toList());
+                  List<Long> productIds =
+                      groupProductMap.getOrDefault(ge.getId(), Collections.emptyList());
                   return SpecialSelectionGroup.builder()
                       .id(ge.getId())
-                      .productId(ge.getProductId())
-                      .name(ge.getName())
                       .displayOrder(ge.getDisplayOrder())
                       .required(ge.isRequired())
                       .minSelections(ge.getMinSelections())
                       .maxSelections(ge.getMaxSelections())
-                      .options(groupOptions)
+                      .categoryId(ge.getCategoryId())
+                      .productIds(productIds)
                       .build();
                 })
             .collect(Collectors.toList());
@@ -86,7 +59,6 @@ public class SpecialSelectionMapper {
                         .id(ae.getId())
                         .productId(ae.getProductId())
                         .optionId(ae.getOptionId())
-                        .option(optionMap.get(ae.getOptionId()))
                         .name(ae.getName())
                         .extraPrice(ae.getExtraPrice())
                         .displayOrder(ae.getDisplayOrder())
@@ -148,13 +120,7 @@ public class SpecialSelectionMapper {
         .build();
   }
 
-  /**
-   * Converts a stored selection type string into its domain enum value, defaulting to STANDARD when
-   * the value is missing or unknown.
-   *
-   * @param value the persisted selection type string
-   * @return the resolved domain SelectionType
-   */
+  /** Converts a stored selection type string to its domain enum. */
   public aros.services.rms.core.specialselection.domain.SelectionType convertSelectionType(
       String value) {
     if (value == null) {
@@ -167,13 +133,7 @@ public class SpecialSelectionMapper {
     }
   }
 
-  /**
-   * Maps the given groups to their JPA entity representation for persistence.
-   *
-   * @param productId the product identifier
-   * @param groups the domain groups
-   * @return list of group entities (empty if the input is null)
-   */
+  /** Converts domain groups to JPA entities for persisting. */
   public List<SpecialSelectionGroupEntity> toGroupEntities(
       Long productId, List<SpecialSelectionGroup> groups) {
     if (groups == null) {
@@ -185,7 +145,7 @@ public class SpecialSelectionMapper {
                 SpecialSelectionGroupEntity.builder()
                     .id(g.getId())
                     .productId(productId)
-                    .name(g.getName())
+                    .categoryId(g.getCategoryId())
                     .displayOrder(g.getDisplayOrder())
                     .required(g.isRequired())
                     .minSelections(g.getMinSelections())
@@ -194,16 +154,8 @@ public class SpecialSelectionMapper {
         .collect(Collectors.toList());
   }
 
-  /**
-   * Maps the given groups to their product-option link entities, applying the provided group id
-   * mapping for persistence.
-   *
-   * @param productId the product identifier
-   * @param groups the domain groups
-   * @param groupIdMapping the mapping from old group ids to newly persisted ids
-   * @return list of product-option link entities
-   */
-  public List<ProductProductOptionEntity> toGroupOptionLinks(
+  /** Converts domain group-product associations to JPA link entities. */
+  public List<GroupProductEntity> toGroupProductLinks(
       Long productId, List<SpecialSelectionGroup> groups, Map<Long, Long> groupIdMapping) {
     if (groups == null) {
       return Collections.emptyList();
@@ -213,30 +165,21 @@ public class SpecialSelectionMapper {
             g -> {
               Long savedGroupId =
                   g.getId() != null ? groupIdMapping.getOrDefault(g.getId(), g.getId()) : null;
-              if (savedGroupId == null || g.getOptions() == null) {
+              if (savedGroupId == null || g.getProductIds() == null) {
                 return java.util.stream.Stream.empty();
               }
-              return g.getOptions().stream()
+              return g.getProductIds().stream()
                   .map(
-                      opt ->
-                          ProductProductOptionEntity.builder()
-                              .productId(productId)
-                              .optionId(opt.getId())
-                              .selectionGroupId(savedGroupId)
-                              .extraPrice(0.0)
-                              .displayOrder(0)
+                      prodId ->
+                          GroupProductEntity.builder()
+                              .groupId(savedGroupId)
+                              .productId(prodId)
                               .build());
             })
         .collect(Collectors.toList());
   }
 
-  /**
-   * Maps the given additions to their JPA entity representation.
-   *
-   * @param productId the product identifier
-   * @param additions the domain additions
-   * @return list of addition entities
-   */
+  /** Converts domain additions to JPA entities for persisting. */
   public List<SpecialSelectionAdditionEntity> toAdditionEntities(
       Long productId, List<SpecialSelectionAddition> additions) {
     if (additions == null) {
@@ -256,13 +199,7 @@ public class SpecialSelectionMapper {
         .collect(Collectors.toList());
   }
 
-  /**
-   * Maps the given questions to their JPA entity representation.
-   *
-   * @param productId the product identifier
-   * @param questions the domain questions
-   * @return list of question entities
-   */
+  /** Converts domain questions to JPA entities for persisting. */
   public List<SpecialSelectionQuestionEntity> toQuestionEntities(
       Long productId, List<SpecialSelectionQuestion> questions) {
     if (questions == null) {
@@ -281,13 +218,7 @@ public class SpecialSelectionMapper {
         .collect(Collectors.toList());
   }
 
-  /**
-   * Maps the given schedule entries to their JPA entity representation.
-   *
-   * @param productId the product identifier
-   * @param schedule the domain schedule entries
-   * @return list of schedule entities
-   */
+  /** Converts domain schedule entries to JPA entities for persisting. */
   public List<SpecialSelectionScheduleEntity> toScheduleEntities(
       Long productId, List<SpecialSelectionScheduleEntry> schedule) {
     if (schedule == null) {
@@ -306,12 +237,7 @@ public class SpecialSelectionMapper {
         .collect(Collectors.toList());
   }
 
-  /**
-   * Maps a history entity to its domain representation.
-   *
-   * @param entity the history entity
-   * @return the domain history entry, or null if the entity is null
-   */
+  /** Converts a history entity to its domain representation. */
   public SpecialSelectionHistory toHistoryDomain(SpecialSelectionHistoryEntity entity) {
     if (entity == null) {
       return null;
@@ -336,12 +262,7 @@ public class SpecialSelectionMapper {
         .build();
   }
 
-  /**
-   * Maps a domain history entry to its JPA entity representation.
-   *
-   * @param domain the domain history entry
-   * @return the history entity, or null if the input is null
-   */
+  /** Converts a domain history object to its JPA entity representation. */
   public SpecialSelectionHistoryEntity toHistoryEntity(SpecialSelectionHistory domain) {
     if (domain == null) {
       return null;

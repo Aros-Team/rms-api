@@ -28,31 +28,19 @@ public class SpecialSelectionSnapshot {
   private List<QuestionSnapshot> questions;
   private List<ScheduleEntrySnapshot> schedule;
 
-  /** Snapshot of a special selection group with its contained options. */
+  /** Snapshot of a product-category group with its contained product IDs. */
   @Data
   @Builder
   @NoArgsConstructor
   @AllArgsConstructor
   public static class GroupSnapshot {
     private Long id;
-    private String name;
+    private Long categoryId;
     private boolean required;
     private int minSelections;
     private int maxSelections;
     private int displayOrder;
-    private List<OptionInGroupSnapshot> options;
-  }
-
-  /** Snapshot of a product option included inside a group. */
-  @Data
-  @Builder
-  @NoArgsConstructor
-  @AllArgsConstructor
-  public static class OptionInGroupSnapshot {
-    private Long id;
-    private String name;
-    private Double extraPrice;
-    private int displayOrder;
+    private List<Long> productIds;
   }
 
   /** Snapshot of an optional addition that can be applied to a special selection. */

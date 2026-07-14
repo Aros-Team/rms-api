@@ -1,5 +1,3 @@
-/* (C) 2026 */
-
 package aros.services.rms.infraestructure.order.api.dto;
 
 import aros.services.rms.core.order.domain.ClarificationAnswer;
@@ -33,6 +31,8 @@ public record TakeOrderRequest(
           String instructions,
       @Schema(description = "Selected product option IDs", example = "[1, 2]")
           List<Long> selectedOptionIds,
+      @Schema(description = "Selected product IDs from combo groups", example = "[1, 2, 3]")
+          List<Long> selectedProductIds,
       @Schema(description = "Special selection addition IDs", example = "[1, 2]")
           List<Long> additionIds,
       @Schema(description = "Clarification answers") List<ClarificationAnswer> clarifications) {}

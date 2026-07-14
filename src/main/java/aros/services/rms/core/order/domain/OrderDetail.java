@@ -1,5 +1,3 @@
-/* (C) 2026 */
-
 package aros.services.rms.core.order.domain;
 
 import aros.services.rms.core.product.domain.Product;
@@ -24,6 +22,7 @@ public class OrderDetail {
   private Double unitPrice;
   private String instructions;
   private List<ProductOption> selectedOptions;
+  private List<Long> selectedProductIds;
   private List<Long> additionIds;
   private List<ClarificationAnswer> clarifications;
 }
