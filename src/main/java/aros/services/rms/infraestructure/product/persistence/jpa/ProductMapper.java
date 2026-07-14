@@ -47,6 +47,7 @@ public class ProductMapper {
         .selectionType(selType)
         .baseRecipeEnabled(entity.isSelectionBaseRecipeEnabled())
         .schedulingRequired(entity.isSchedulingRequired())
+        .estimatedPrepMinutes(entity.getEstimatedPrepMinutes())
         .build();
   }
 
@@ -80,6 +81,7 @@ public class ProductMapper {
                 domain.getSelectionType() != null ? domain.getSelectionType().name() : "STANDARD")
             .selectionBaseRecipeEnabled(domain.isBaseRecipeEnabled())
             .schedulingRequired(domain.isSchedulingRequired())
+            .estimatedPrepMinutes(domain.getEstimatedPrepMinutes())
             .build();
 
     if (domain.getPreparationAreaId() != null) {

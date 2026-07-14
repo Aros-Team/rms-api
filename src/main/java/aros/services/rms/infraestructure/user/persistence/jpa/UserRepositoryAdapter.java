@@ -81,4 +81,10 @@ public class UserRepositoryAdapter implements UserRepositoryPort, AdminRepositor
   public long countByRole(UserRole role) {
     return this.internal.countByRole(role);
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public List<User> findActiveByAreaId(Long areaId) {
+    return this.internal.findActiveByAreaId(areaId).stream().map(userMapper::toDomain).toList();
+  }
 }

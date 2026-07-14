@@ -12,6 +12,7 @@ spring:
 app:
   version: "@project.version@"
   timezone: America/Bogota
+  default-currency: COP
   jwt:
     issuer: rms-api
     expiration-minutes: 360
@@ -19,6 +20,65 @@ app:
     private-key: ${JWT_PRIVATE_KEY:}
   email:
     base-url: ${MAIL_URL:http://localhost:8001}
+  # ---------------------------------------------------------------------------
+  # Cost / monthly-closing configuration (Plans 03, 04, 05)
+  # ---------------------------------------------------------------------------
+  cost:
+    # Global labor cost (COP / hour) — used as the fallback when a product
+    # does not yet have a per-area average salary (Plan 04 §6.1).
+    labor-cost-per-hour: 12000.00
+
+    # Category used when auto-creating a new Supply during purchase preview
+    # (Plan 02 §5.1 step 3.b). Must reference an existing supply_categories.id.
+    default-supply-category-id: 1
+
+    # Statuses counted as "dishes sold" for fixed-cost allocation (Plan 04 §5).
+    # Binds to Set<OrderStatus> in AppCostProperties. Default: every status
+    # except CANCELLED. Narrow this list if business requires cost to be
+    # allocated only on DELIVERED orders. A typo here (e.g. "DELIVERD") fails
+    # startup with a clear ConfigurationProperties error.
+    dish-count:
+      status-filter:
+        - QUEUE
+        - PREPARING
+        - READY
+        - DELIVERED
+
+    # Monthly closing job (Plan 05). Uses ShedLock so only one instance in
+    # the cluster runs the job at a time.
+    monthly-closing:
+      enabled: true
+      # Spring cron (sec min hour day month dayOfWeek). Default: 02:00 on
+      # day 1 of every month in the configured timezone.
+      cron: "0 0 2 1 * *"
+      zone: America/Bogota
+      # Batch size for per-product snapshot loop. Larger = fewer tx, more memory.
+      batch-size: 50
+      # ShedLock window. lockAtMostFor = safety net; lockAtLeastFor prevents
+      # fast re-run on clock skew.
+      lock-at-most-for: PT23H
+      lock-at-least-for: PT5M
+
+  # ---------------------------------------------------------------------------
+  # Inventory / purchasing (Plan 01, 02)
+  # ---------------------------------------------------------------------------
+  inventory:
+    # Default storage location name used by RegisterPurchaseOrder and the
+    # preview/confirm flow when adding stock on a purchase.
+    default-storage-location-name: Bodega
+    # Days a purchase preview stays valid before auto-expiry (Plan 02).
+    preview-ttl-hours: 24
+
+  # ---------------------------------------------------------------------------
+  # Money value object (Plan 06)
+  # ---------------------------------------------------------------------------
+  money:
+    # Standard rounding mode applied to all Money arithmetic. Either HALF_UP
+    # (matches existing CalculateProductCostService; default) or HALF_EVEN
+    # (banker's rounding, IFRS). The weighted-average intermediate pass is
+    # always HALF_UP regardless of this setting, so historical reconciliation
+    # is not affected by flipping display rounding.
+    rounding-mode: HALF_UP
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}

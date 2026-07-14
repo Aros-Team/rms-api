@@ -10,12 +10,15 @@ import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.inventory.port.output.OptionRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
+import aros.services.rms.core.product.application.service.CalculateProductCostService;
 import aros.services.rms.core.product.application.service.ProductOptionService;
 import aros.services.rms.core.product.application.service.ProductService;
+import aros.services.rms.core.product.port.input.CalculateProductCostUseCase;
 import aros.services.rms.core.product.port.input.ProductOptionUseCase;
 import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -60,6 +63,22 @@ public class ProductConfigBeans {
         optionCategoryRepositoryPort,
         optionRecipeRepositoryPort,
         supplyVariantRepositoryPort,
+        logger);
+  }
+
+  /** Creates bean for on-the-fly product cost calculation use case. */
+  @Bean
+  public CalculateProductCostUseCase calculateProductCostUseCase(
+      ProductRepositoryPort productRepositoryPort,
+      ProductRecipeRepositoryPort productRecipeRepositoryPort,
+      SupplyVariantRepositoryPort supplyVariantRepositoryPort,
+      UserRepositoryPort userRepositoryPort,
+      Logger logger) {
+    return new CalculateProductCostService(
+        productRepositoryPort,
+        productRecipeRepositoryPort,
+        supplyVariantRepositoryPort,
+        userRepositoryPort,
         logger);
   }
 }

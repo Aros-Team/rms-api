@@ -5,8 +5,11 @@ package aros.services.rms.infraestructure.product.api;
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.product.domain.Product;
+import aros.services.rms.core.product.domain.ProductCost;
+import aros.services.rms.core.product.port.input.CalculateProductCostUseCase;
 import aros.services.rms.core.product.port.input.ProductOptionUseCase;
 import aros.services.rms.core.product.port.input.ProductUseCase;
+import aros.services.rms.infraestructure.product.api.dto.ProductCostResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductOptionResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductRequest;
 import aros.services.rms.infraestructure.product.api.dto.ProductResponse;
@@ -46,6 +49,7 @@ public class ProductController {
 
   private final ProductUseCase productUseCase;
   private final ProductOptionUseCase productOptionUseCase;
+  private final CalculateProductCostUseCase calculateProductCostUseCase;
 
   /**
    * Creates a new product.
@@ -80,6 +84,7 @@ public class ProductController {
             .preparationAreaId(request.areaId())
             .optionIds(request.optionIds())
             .recipe(recipe)
+            .estimatedPrepMinutes(request.estimatedPrepMinutes())
             .build();
 
     Product created = productUseCase.create(product);
@@ -119,6 +124,7 @@ public class ProductController {
             .preparationAreaId(request.areaId())
             .optionIds(request.optionIds())
             .recipe(recipe)
+            .estimatedPrepMinutes(request.estimatedPrepMinutes())
             .build();
 
     Product updated = productUseCase.update(id, product);
@@ -300,6 +306,34 @@ public class ProductController {
             .map(ProductOptionResponse::fromDomain)
             .collect(Collectors.toList());
     return ResponseEntity.ok(responses);
+  }
+
+  /**
+   * Calculates the on-the-fly production cost of a product.
+   *
+   * @param id the product ID
+   * @return the calculated cost including material and labor components
+   */
+  @Operation(
+      tags = {"Products"},
+      summary = "Calculate production cost",
+      description =
+          "Calculates material + labor cost on-the-fly. "
+              + "Material = recipe quantity * supply variant unit cost. "
+              + "Labor = avg worker hourly rate * estimated prep time.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Cost calculated successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Product not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @GetMapping("/{id}/cost")
+  public ResponseEntity<ProductCostResponse> calculateCost(
+      @Parameter(description = "Product ID", example = "1", required = true) @PathVariable
+          Long id) {
+    ProductCost cost = calculateProductCostUseCase.calculateCost(id);
+    return ResponseEntity.ok(ProductCostResponse.fromDomain(cost));
   }
 
   private List<ProductRecipe> mapRecipe(List<RecipeItemRequest> recipeRequests) {

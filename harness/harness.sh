@@ -129,8 +129,8 @@ else
 
   HAS_INVALID=0
 
-  # Count in_progress activities
-  IP_COUNT=$(grep -cE '"status"\s*:\s*"in_progress"' activities.json || true)
+  # Count in_progress activities (activity-level only — 4-space indent, not task-level 8-space)
+  IP_COUNT=$(grep -cE '^    "status"\s*:\s*"in_progress"' activities.json || true)
   if [ "${IP_COUNT:-0}" -gt 1 ]; then
     fail "Found ${IP_COUNT} activities in in_progress (max 1)"
   fi

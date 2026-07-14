@@ -1,1 +1,141 @@
-[]
+[
+  {
+    "id": 1,
+    "type": "feat",
+    "name": "on-the-fly-cost-calculation",
+    "title": "Cálculo de costo de producción on-the-fly",
+    "description": "Calcular dinámicamente el costo de producir un producto según su receta (insumos + cantidades) y el costo de mano de obra (salario de trabajadores / 160h × tiempo estimado de preparación). El cálculo se hace on-the-fly, no se persiste.",
+    "acceptance": [
+      "Nueva migración V30: columna estimated_prep_minutes en products (nullable)",
+      "Campo estimatedPrepMinutes en Product domain, ProductEntity, ProductResponse, ProductRequest, mappers",
+      "Nuevo domain record ProductCost con totalCost, materialCost, laborCost, breakdown",
+      "Nuevo CalculateProductCostUseCase port + service que calcula materialCost = Σ(quantity × unitCost) y laborCost = (estimatedPrepMinutes/60) × avgHourlyRate",
+      "Nuevo método findActiveByAreaId en UserRepositoryPort + JpaUserRepository",
+      "Nuevo endpoint GET /api/v1/products/{id}/cost que retorna ProductCost",
+      "CalculateProductCostUseCase bean registrado en ProductConfigBeans",
+      "Tests unitarios cubriendo: costo solo materiales, costo con mano de obra, producto sin recipe, workers sin salario",
+      "./harness/harness.sh exit 0"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "V30 migration + Product domain change + JPA entity + DTOs + mappers",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Create ProductCost domain record + CalculateProductCostUseCase port + findActiveByAreaId in UserRepositoryPort",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Implement findActiveByAreaId in JPA repo + adapter, CalculateProductCostService, GET /products/{id}/cost endpoint, bean config",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Write tests + run harness",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 2,
+    "type": "fix",
+    "name": "fix-v29-fk-before-drop-column",
+    "title": "Fix V29 migration: drop FK before dropping column",
+    "description": "V29 fails at runtime because it tries to DROP COLUMN selection_group_id while a foreign key constraint (fk_ppo_group) still references it. MySQL 8 refuses this. Fix: drop the FK constraint before dropping the column.",
+    "acceptance": [
+      "V29 migration drops fk_ppo_group foreign key before attempting ALTER TABLE DROP COLUMN",
+      "./harness/harness.sh exit 0",
+      "App boots successfully with `task run` after the fix"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Fix V29 SQL: add DROP FOREIGN KEY fk_ppo_group before DROP COLUMN",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Verify harness green and app boots",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 3,
+    "type": "feat",
+    "name": "fix-frontend-combo-gaps",
+    "title": "Fix 8 frontend-blocking gaps in combo API",
+    "description": "Address all gaps found in the backend verification checklist (docs/COMBO_BACKEND_VERIFICATION.md) so the FE can fully integrate combos: #2 suggest-price endpoint clarification, #3 enriched breakdown, #4 products filter + selectionType/imageUrl, #6 order response includes combo data, #7 question types, #9 active-toggle PATCH endpoint, #10 WebSocket envelope with changeType, #11 schedule enforcement on orders.",
+    "acceptance": [
+      "#6 OrderResponse.OrderDetailResponse exposes selectedProductIds, additionIds, clarifications",
+      "#6 Resolved names/prices included for products, additions, clarifications in order response",
+      "#11 TakeOrderService and UpdateOrderService call SpecialSelectionAvailabilityService and throw 409 when combo is outside schedule or inactive",
+      "#11 New exception (e.g. SpecialSelectionUnavailableException) maps to HTTP 409",
+      "#10 New SpecialSelectionUpdateEvent envelope { changeType, productId, active, selection }",
+      "#10 WebSocket payload uses envelope; DELETE sends selection: null",
+      "#9 New endpoint PATCH /api/v1/admin/special-selections/{productId}/active accepting { active: boolean }",
+      "#3 SuggestedPriceResponse.CostBreakdownItem includes productId + productName (optionId kept for legacy)",
+      "#4 ProductController GET /api/v1/products accepts includeSelections=true parameter",
+      "#4 ProductResponse exposes selectionType and imageUrl",
+      "#7 QuestionType enum (TEXT, CHOICE, BOOLEAN); V31 migration adds type column to special_selection_questions",
+      "#7 ClarificationAnswer supports multiple-choice and boolean answers",
+      "./harness/harness.sh exit 0"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Order response: expose selectedProductIds, additions, clarifications with resolved names",
+        "status": "in_progress",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Schedule enforcement: TakeOrderService + UpdateOrderService + 409 exception",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "WebSocket envelope: changeType, productId, active, selection fields",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Active-toggle PATCH endpoint + suggest-price enrichment (productId + name in breakdown)",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Products includeSelections filter + selectionType/imageUrl in ProductResponse",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Question types: V31 migration + QuestionType enum + ClarificationAnswer updates",
+        "status": "pending",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Update tests + verify harness green",
+        "status": "pending",
+        "agent": "implementer"
+      }
+    ],
+    "status": "in_progress"
+  }
+]

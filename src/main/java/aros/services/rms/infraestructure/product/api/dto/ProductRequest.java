@@ -41,4 +41,6 @@ public record ProductRequest(
             description = "Recipe items (supply variants and quantities)",
             example = "[{\"supplyVariantId\": 1, \"requiredQuantity\": 250.0}]")
         @Valid
-        List<RecipeItemRequest> recipe) {}
+        List<RecipeItemRequest> recipe,
+    @Schema(description = "Estimated preparation time in minutes", example = "15")
+        Integer estimatedPrepMinutes) {}

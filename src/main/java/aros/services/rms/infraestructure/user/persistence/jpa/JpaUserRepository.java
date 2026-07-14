@@ -55,4 +55,15 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, Long> {
 
   /** Finds users by role that are not deleted. */
   List<UserEntity> findByRoleAndDeletedAtIsNull(UserRole role);
+
+  /**
+   * Finds active (non-deleted) users assigned to a specific area.
+   *
+   * @param areaId the area identifier
+   * @return list of distinct active users in that area
+   */
+  @Query(
+      "SELECT DISTINCT u FROM UserEntity u JOIN u.assignedAreas a "
+          + "WHERE a.id = :areaId AND u.deletedAt IS NULL")
+  List<UserEntity> findActiveByAreaId(@Param("areaId") Long areaId);
 }

@@ -26,7 +26,9 @@ public record ProductResponse(
     @Schema(description = "Preparation area ID", example = "1") Long areaId,
     @Schema(description = "Preparation area name", example = "Cocina") String areaName,
     @Schema(description = "Recipe ingredients required to prepare this product")
-        List<RecipeItemResponse> recipe) {
+        List<RecipeItemResponse> recipe,
+    @Schema(description = "Estimated preparation time in minutes", example = "15")
+        Integer estimatedPrepMinutes) {
 
   /** Nested DTO representing a single recipe item (supply variant + quantity). */
   @Schema(description = "A single ingredient in the product recipe")
@@ -69,6 +71,7 @@ public record ProductResponse(
         product.getCategory() != null ? product.getCategory().getName() : null,
         product.getPreparationAreaId(),
         product.getPreparationAreaName(),
-        recipeItems);
+        recipeItems,
+        product.getEstimatedPrepMinutes());
   }
 }

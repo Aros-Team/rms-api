@@ -66,6 +66,9 @@ public class Product {
   @Builder.Default
   private boolean schedulingRequired = false;
 
+  @Column(name = "estimated_prep_minutes")
+  private Integer estimatedPrepMinutes;
+
   @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
       name = "product_product_options",

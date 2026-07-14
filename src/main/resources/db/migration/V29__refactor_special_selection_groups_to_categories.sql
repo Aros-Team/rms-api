@@ -16,4 +16,5 @@ CREATE TABLE special_selection_group_products (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
+ALTER TABLE product_product_options DROP FOREIGN KEY fk_ppo_group;
 ALTER TABLE product_product_options DROP COLUMN selection_group_id;

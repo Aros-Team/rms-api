@@ -69,6 +69,14 @@ public interface UserRepositoryPort {
   List<User> findByStatus(UserStatus status);
 
   /**
+   * Finds all active (non-deleted) users assigned to a specific area.
+   *
+   * @param areaId the area ID
+   * @return list of active users in that area
+   */
+  List<User> findActiveByAreaId(Long areaId);
+
+  /**
    * Saves a user to the repository.
    *
    * @param user the user to save

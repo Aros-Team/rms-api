@@ -33,4 +33,5 @@ public class Product {
   @Builder.Default private SelectionType selectionType = SelectionType.STANDARD;
   @Builder.Default private boolean baseRecipeEnabled = false;
   @Builder.Default private boolean schedulingRequired = false;
+  private Integer estimatedPrepMinutes;
 }
