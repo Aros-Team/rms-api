@@ -20,6 +20,7 @@ public class SupplyVariantMapper {
         .supplyId(entity.getSupply() != null ? entity.getSupply().getId() : null)
         .unitId(entity.getUnit() != null ? entity.getUnit().getId() : null)
         .quantity(entity.getQuantity())
+        .unitCost(entity.getUnitCost())
         .build();
   }
 
@@ -28,6 +29,10 @@ public class SupplyVariantMapper {
     if (domain == null) {
       return null;
     }
-    return SupplyVariantEntity.builder().id(domain.getId()).quantity(domain.getQuantity()).build();
+    return SupplyVariantEntity.builder()
+        .id(domain.getId())
+        .quantity(domain.getQuantity())
+        .unitCost(domain.getUnitCost())
+        .build();
   }
 }

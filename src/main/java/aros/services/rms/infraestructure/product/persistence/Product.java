@@ -54,6 +54,18 @@ public class Product {
   @JoinColumn(name = "area_id")
   private Area preparationArea;
 
+  @Column(name = "selection_type", nullable = false, length = 20)
+  @Builder.Default
+  private String selectionType = "STANDARD";
+
+  @Column(name = "selection_base_recipe_enabled", nullable = false)
+  @Builder.Default
+  private boolean selectionBaseRecipeEnabled = false;
+
+  @Column(name = "scheduling_required", nullable = false)
+  @Builder.Default
+  private boolean schedulingRequired = false;
+
   @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
       name = "product_product_options",

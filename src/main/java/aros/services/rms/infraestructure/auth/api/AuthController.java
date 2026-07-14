@@ -226,23 +226,27 @@ public class AuthController {
       })
   @GetMapping
   @JustAccessToken
-  public ResponseEntity<UserFullInfoResponse> me(@AuthenticationPrincipal Jwt auth)
-      throws UserNotFoundException {
-    log.info("Fetching current user info");
-    UserFullInfo userInfo = getUserInfoUseCase.getInfo(new UserEmail(auth.getSubject()));
+  public ResponseEntity<UserFullInfoResponse> me(@AuthenticationPrincipal Jwt auth) {
+    log.debug("Fetching current user info");
+    try {
+      UserFullInfo userInfo = getUserInfoUseCase.getInfo(new UserEmail(auth.getSubject()));
 
-    UserFullInfoResponse userInfoResponse =
-        new UserFullInfoResponse(
-            userInfo.id().value(),
-            userInfo.name(),
-            userInfo.document(),
-            userInfo.email().value(),
-            userInfo.address(),
-            userInfo.phone(),
-            userInfo.role(),
-            userInfo.areas());
+      UserFullInfoResponse userInfoResponse =
+          new UserFullInfoResponse(
+              userInfo.id().value(),
+              userInfo.name(),
+              userInfo.document(),
+              userInfo.email().value(),
+              userInfo.address(),
+              userInfo.phone(),
+              userInfo.role(),
+              userInfo.areas());
 
-    return ResponseEntity.ok(userInfoResponse);
+      return ResponseEntity.ok(userInfoResponse);
+    } catch (UserNotFoundException e) {
+      log.debug("Current user not found: {}", e.getMessage());
+      return ResponseEntity.notFound().build();
+    }
   }
 
   /**

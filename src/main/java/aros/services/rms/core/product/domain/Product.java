@@ -4,6 +4,7 @@ package aros.services.rms.core.product.domain;
 
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
+import aros.services.rms.core.specialselection.domain.SelectionType;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,8 +12,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Domain model representing a product in the restaurant menu. Products are linked to a preparation
- * area and a category. Options can be associated freely without any flag restriction.
+ * Represents a sellable product in the catalog, including pricing, category, preparation area and
+ * optional selection type (standard or special selection).
  */
 @Data
 @Builder
@@ -29,4 +30,7 @@ public class Product {
   private String preparationAreaName;
   private List<ProductRecipe> recipe;
   private List<Long> optionIds;
+  @Builder.Default private SelectionType selectionType = SelectionType.STANDARD;
+  @Builder.Default private boolean baseRecipeEnabled = false;
+  @Builder.Default private boolean schedulingRequired = false;
 }

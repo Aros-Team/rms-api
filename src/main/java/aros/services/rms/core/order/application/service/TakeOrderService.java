@@ -16,17 +16,23 @@ import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.core.specialselection.application.service.SpecialSelectionPricingService;
+import aros.services.rms.core.specialselection.application.service.SpecialSelectionValidator;
+import aros.services.rms.core.specialselection.domain.SelectionType;
+import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
+import aros.services.rms.core.specialselection.port.output.SpecialSelectionRepositoryPort;
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.LoggerFactory;
 
 /**
- * Implementación del caso de uso para crear órdenes. Valida mesa disponible y opciones de
- * productos.
+ * Implementation of the use case to take a new order, occupy the table, validate product options
+ * and special selections, and deduct inventory.
  */
 public class TakeOrderService implements TakeOrderUseCase {
 
@@ -38,9 +44,12 @@ public class TakeOrderService implements TakeOrderUseCase {
   private final InventoryStockUseCase inventoryStockUseCase;
   private final InventoryMovementUseCase inventoryMovementUseCase;
   private final BusinessMetricsPort metricsPort;
+  private final SpecialSelectionRepositoryPort specialSelectionRepositoryPort;
+  private final SpecialSelectionValidator specialSelectionValidator;
+  private final SpecialSelectionPricingService specialSelectionPricingService;
 
   /**
-   * Creates a new take order service instance.
+   * Creates a new take order service.
    *
    * @param orderRepositoryPort the order repository port
    * @param tableRepositoryPort the table repository port
@@ -49,6 +58,9 @@ public class TakeOrderService implements TakeOrderUseCase {
    * @param inventoryStockUseCase the inventory stock use case
    * @param inventoryMovementUseCase the inventory movement use case
    * @param metricsPort the business metrics port
+   * @param specialSelectionRepositoryPort the special selection repository port
+   * @param specialSelectionValidator the special selection validator
+   * @param specialSelectionPricingService the special selection pricing service
    */
   public TakeOrderService(
       OrderRepositoryPort orderRepositoryPort,
@@ -57,7 +69,10 @@ public class TakeOrderService implements TakeOrderUseCase {
       ProductOptionRepositoryPort productOptionRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
       InventoryMovementUseCase inventoryMovementUseCase,
-      BusinessMetricsPort metricsPort) {
+      BusinessMetricsPort metricsPort,
+      SpecialSelectionRepositoryPort specialSelectionRepositoryPort,
+      SpecialSelectionValidator specialSelectionValidator,
+      SpecialSelectionPricingService specialSelectionPricingService) {
     this.orderRepositoryPort = orderRepositoryPort;
     this.tableRepositoryPort = tableRepositoryPort;
     this.productRepositoryPort = productRepositoryPort;
@@ -65,12 +80,11 @@ public class TakeOrderService implements TakeOrderUseCase {
     this.inventoryStockUseCase = inventoryStockUseCase;
     this.inventoryMovementUseCase = inventoryMovementUseCase;
     this.metricsPort = metricsPort;
+    this.specialSelectionRepositoryPort = specialSelectionRepositoryPort;
+    this.specialSelectionValidator = specialSelectionValidator;
+    this.specialSelectionPricingService = specialSelectionPricingService;
   }
 
-  /**
-   * {@inheritDoc} Valida mesa disponible, productos y sus opciones. En caso de error libera la
-   * mesa.
-   */
   @Override
   public Order execute(TakeOrderCommand command) {
     log.debug("TakeOrderService.execute called for table {}", command.getTableId());
@@ -105,7 +119,6 @@ public class TakeOrderService implements TakeOrderUseCase {
           selectedOptions =
               productOptionRepositoryPort.findAllById(detailCommand.getSelectedOptionIds());
 
-          // Validar que todas las opciones estén asociadas al producto específico
           for (ProductOption option : selectedOptions) {
             if (!productOptionRepositoryPort.isOptionAssociatedWithProduct(
                 product.getId(), option.getId())) {
@@ -114,18 +127,37 @@ public class TakeOrderService implements TakeOrderUseCase {
           }
         }
 
+        double unitPrice = product.getBasePrice() != null ? product.getBasePrice() : 0.0;
+
+        if (product.getSelectionType() == SelectionType.SPECIAL_SELECTION) {
+          Optional<SpecialSelectionConfiguration> configOpt =
+              specialSelectionRepositoryPort.findById(product.getId());
+          if (configOpt.isPresent()) {
+            SpecialSelectionConfiguration config = configOpt.get();
+            specialSelectionValidator.validateOrderSelections(
+                config,
+                detailCommand.getSelectedOptionIds(),
+                detailCommand.getAdditionIds(),
+                detailCommand.getClarifications());
+            unitPrice =
+                specialSelectionPricingService.computeUnitPrice(
+                    config, detailCommand.getAdditionIds());
+          }
+        }
+
         OrderDetail detail =
             OrderDetail.builder()
                 .product(product)
-                .unitPrice(product.getBasePrice())
+                .unitPrice(unitPrice)
                 .instructions(detailCommand.getInstructions())
                 .selectedOptions(selectedOptions)
+                .additionIds(detailCommand.getAdditionIds())
+                .clarifications(detailCommand.getClarifications())
                 .build();
 
         order.getDetails().add(detail);
       }
 
-      // Check inventory availability before saving
       for (OrderDetail detail : order.getDetails()) {
         List<Long> selectedOptionIds =
             detail.getSelectedOptions() != null
@@ -143,7 +175,6 @@ public class TakeOrderService implements TakeOrderUseCase {
 
       Order savedOrder = orderRepositoryPort.save(order);
 
-      // Deduct inventory after order is saved
       try {
         inventoryMovementUseCase.deductForOrder(savedOrder.getId(), savedOrder.getDetails());
         metricsPort.recordInventoryDeduction(true);

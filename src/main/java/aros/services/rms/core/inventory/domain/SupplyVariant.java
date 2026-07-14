@@ -19,4 +19,5 @@ public class SupplyVariant {
   private Long supplyId;
   private Long unitId;
   private BigDecimal quantity;
+  @Builder.Default private BigDecimal unitCost = BigDecimal.ZERO;
 }

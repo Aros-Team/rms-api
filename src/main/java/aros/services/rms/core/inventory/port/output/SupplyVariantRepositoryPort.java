@@ -3,6 +3,7 @@
 package aros.services.rms.core.inventory.port.output;
 
 import aros.services.rms.core.inventory.domain.SupplyVariant;
+import java.util.List;
 import java.util.Optional;
 
 /** Output port for supply variant persistence operations. */
@@ -23,4 +24,12 @@ public interface SupplyVariantRepositoryPort {
    * @return optional supply variant
    */
   Optional<SupplyVariant> findById(Long id);
+
+  /**
+   * Finds supply variants by their identifiers.
+   *
+   * @param ids the supply variant identifiers
+   * @return list of supply variants matching the given IDs
+   */
+  List<SupplyVariant> findAllById(List<Long> ids);
 }

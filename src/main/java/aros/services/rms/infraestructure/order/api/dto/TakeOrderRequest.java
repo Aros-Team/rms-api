@@ -2,6 +2,7 @@
 
 package aros.services.rms.infraestructure.order.api.dto;
 
+import aros.services.rms.core.order.domain.ClarificationAnswer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -31,5 +32,8 @@ public record TakeOrderRequest(
       @Schema(description = "Special instructions for the product", example = "No onions")
           String instructions,
       @Schema(description = "Selected product option IDs", example = "[1, 2]")
-          List<Long> selectedOptionIds) {}
+          List<Long> selectedOptionIds,
+      @Schema(description = "Special selection addition IDs", example = "[1, 2]")
+          List<Long> additionIds,
+      @Schema(description = "Clarification answers") List<ClarificationAnswer> clarifications) {}
 }

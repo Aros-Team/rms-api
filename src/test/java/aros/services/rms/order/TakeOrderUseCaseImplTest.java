@@ -26,6 +26,9 @@ import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.core.specialselection.application.service.SpecialSelectionPricingService;
+import aros.services.rms.core.specialselection.application.service.SpecialSelectionValidator;
+import aros.services.rms.core.specialselection.port.output.SpecialSelectionRepositoryPort;
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
@@ -52,6 +55,12 @@ class TakeOrderUseCaseImplTest {
 
   @Mock private ProductOptionRepositoryPort productOptionRepositoryPort;
 
+  @Mock private SpecialSelectionRepositoryPort specialSelectionRepositoryPort;
+
+  @Mock private SpecialSelectionValidator specialSelectionValidator;
+
+  @Mock private SpecialSelectionPricingService specialSelectionPricingService;
+
   @Mock private InventoryStockUseCase inventoryStockUseCase;
 
   @Mock private InventoryMovementUseCase inventoryMovementUseCase;
@@ -72,7 +81,10 @@ class TakeOrderUseCaseImplTest {
             productOptionRepositoryPort,
             inventoryStockUseCase,
             inventoryMovementUseCase,
-            metricsPort);
+            metricsPort,
+            specialSelectionRepositoryPort,
+            specialSelectionValidator,
+            specialSelectionPricingService);
   }
 
   @Test

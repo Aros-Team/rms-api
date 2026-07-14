@@ -56,4 +56,27 @@ public interface ProductRepositoryPort {
    * @return page of active products
    */
   Page<Product> findAllActive(Pageable pageable);
+
+  /**
+   * Retrieves all products using the standard selection type.
+   *
+   * @return list of standard selection products
+   */
+  List<Product> findAllStandard();
+
+  /**
+   * Retrieves all products using the standard selection type with pagination.
+   *
+   * @param pageable pagination parameters
+   * @return page of standard selection products
+   */
+  Page<Product> findAllStandard(Pageable pageable);
+
+  /**
+   * Finds products with the standard selection type within the given categories.
+   *
+   * @param categoryIds list of category identifiers
+   * @return list of standard selection products in the specified categories
+   */
+  List<Product> findByCategoryIdsStandard(List<Long> categoryIds);
 }

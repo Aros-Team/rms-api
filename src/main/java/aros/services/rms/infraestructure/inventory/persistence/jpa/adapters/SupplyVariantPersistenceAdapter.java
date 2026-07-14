@@ -6,7 +6,9 @@ import aros.services.rms.core.inventory.domain.SupplyVariant;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.SupplyVariantMapper;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.SupplyVariantRepository;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -26,5 +28,12 @@ public class SupplyVariantPersistenceAdapter implements SupplyVariantRepositoryP
   @Override
   public Optional<SupplyVariant> findById(Long id) {
     return supplyVariantRepository.findById(id).map(supplyVariantMapper::toDomain);
+  }
+
+  @Override
+  public List<SupplyVariant> findAllById(List<Long> ids) {
+    return supplyVariantRepository.findAllById(ids).stream()
+        .map(supplyVariantMapper::toDomain)
+        .collect(Collectors.toList());
   }
 }

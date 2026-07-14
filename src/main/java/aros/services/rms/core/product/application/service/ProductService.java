@@ -287,7 +287,7 @@ public class ProductService implements ProductUseCase {
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000))
   public List<Product> findAllAvailable() {
-    List<Product> allProducts = productRepositoryPort.findAll();
+    List<Product> allProducts = productRepositoryPort.findAllStandard();
     List<Product> availableProducts = new ArrayList<>();
 
     for (Product product : allProducts) {
@@ -331,15 +331,15 @@ public class ProductService implements ProductUseCase {
       backoff = @Backoff(delay = 1000))
   public List<Product> findByCategoryIds(List<Long> categoryIds) {
     if (categoryIds == null || categoryIds.isEmpty()) {
-      return productRepositoryPort.findAll();
+      return productRepositoryPort.findAllStandard();
     }
-    return productRepositoryPort.findByCategoryIds(categoryIds);
+    return productRepositoryPort.findByCategoryIdsStandard(categoryIds);
   }
 
   /** {@inheritDoc} */
   @Override
   public Page<Product> findAllActive(Pageable pageable) {
-    return productRepositoryPort.findAllActive(pageable);
+    return productRepositoryPort.findAllStandard(pageable);
   }
 
   /**

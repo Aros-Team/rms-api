@@ -47,4 +47,7 @@ public class SupplyVariantEntity {
 
   @Column(nullable = false, precision = 10, scale = 3)
   private BigDecimal quantity;
+
+  @Column(name = "unit_cost", precision = 10, scale = 2)
+  private BigDecimal unitCost;
 }

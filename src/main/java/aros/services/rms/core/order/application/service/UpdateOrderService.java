@@ -16,12 +16,18 @@ import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.core.specialselection.application.service.SpecialSelectionPricingService;
+import aros.services.rms.core.specialselection.application.service.SpecialSelectionValidator;
+import aros.services.rms.core.specialselection.domain.SelectionType;
+import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
+import aros.services.rms.core.specialselection.port.output.SpecialSelectionRepositoryPort;
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
 import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.retry.annotation.Backoff;
@@ -29,8 +35,8 @@ import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 
 /**
- * Implementación del caso de uso para actualizar órdenes. Permite cancelar o modificar órdenes en
- * estado QUEUE.
+ * Implementation of the use case to update or cancel an existing order, including reverting and
+ * re-applying inventory deductions.
  */
 public class UpdateOrderService implements UpdateOrderUseCase {
 
@@ -42,9 +48,12 @@ public class UpdateOrderService implements UpdateOrderUseCase {
   private final InventoryStockUseCase inventoryStockUseCase;
   private final InventoryMovementUseCase inventoryMovementUseCase;
   private final BusinessMetricsPort metricsPort;
+  private final SpecialSelectionRepositoryPort specialSelectionRepositoryPort;
+  private final SpecialSelectionValidator specialSelectionValidator;
+  private final SpecialSelectionPricingService specialSelectionPricingService;
 
   /**
-   * Creates a new update order service instance.
+   * Creates a new update order service.
    *
    * @param orderRepositoryPort the order repository port
    * @param tableRepositoryPort the table repository port
@@ -53,6 +62,9 @@ public class UpdateOrderService implements UpdateOrderUseCase {
    * @param inventoryStockUseCase the inventory stock use case
    * @param inventoryMovementUseCase the inventory movement use case
    * @param metricsPort the business metrics port
+   * @param specialSelectionRepositoryPort the special selection repository port
+   * @param specialSelectionValidator the special selection validator
+   * @param specialSelectionPricingService the special selection pricing service
    */
   public UpdateOrderService(
       OrderRepositoryPort orderRepositoryPort,
@@ -61,7 +73,10 @@ public class UpdateOrderService implements UpdateOrderUseCase {
       ProductOptionRepositoryPort productOptionRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
       InventoryMovementUseCase inventoryMovementUseCase,
-      BusinessMetricsPort metricsPort) {
+      BusinessMetricsPort metricsPort,
+      SpecialSelectionRepositoryPort specialSelectionRepositoryPort,
+      SpecialSelectionValidator specialSelectionValidator,
+      SpecialSelectionPricingService specialSelectionPricingService) {
     this.orderRepositoryPort = orderRepositoryPort;
     this.tableRepositoryPort = tableRepositoryPort;
     this.productRepositoryPort = productRepositoryPort;
@@ -69,9 +84,11 @@ public class UpdateOrderService implements UpdateOrderUseCase {
     this.inventoryStockUseCase = inventoryStockUseCase;
     this.inventoryMovementUseCase = inventoryMovementUseCase;
     this.metricsPort = metricsPort;
+    this.specialSelectionRepositoryPort = specialSelectionRepositoryPort;
+    this.specialSelectionValidator = specialSelectionValidator;
+    this.specialSelectionPricingService = specialSelectionPricingService;
   }
 
-  /** {@inheritDoc} Cancela orden en QUEUE y libera la mesa. */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -100,7 +117,6 @@ public class UpdateOrderService implements UpdateOrderUseCase {
     return savedOrder;
   }
 
-  /** {@inheritDoc} Actualiza detalles de orden en QUEUE. Valida productos y opciones. */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
@@ -133,18 +149,37 @@ public class UpdateOrderService implements UpdateOrderUseCase {
             productOptionRepositoryPort.findAllById(detailCommand.getSelectedOptionIds());
       }
 
+      double unitPrice = product.getBasePrice() != null ? product.getBasePrice() : 0.0;
+
+      if (product.getSelectionType() == SelectionType.SPECIAL_SELECTION) {
+        Optional<SpecialSelectionConfiguration> configOpt =
+            specialSelectionRepositoryPort.findById(product.getId());
+        if (configOpt.isPresent()) {
+          SpecialSelectionConfiguration config = configOpt.get();
+          specialSelectionValidator.validateOrderSelections(
+              config,
+              detailCommand.getSelectedOptionIds(),
+              detailCommand.getAdditionIds(),
+              detailCommand.getClarifications());
+          unitPrice =
+              specialSelectionPricingService.computeUnitPrice(
+                  config, detailCommand.getAdditionIds());
+        }
+      }
+
       OrderDetail detail =
           OrderDetail.builder()
               .product(product)
-              .unitPrice(product.getBasePrice())
+              .unitPrice(unitPrice)
               .instructions(detailCommand.getInstructions())
               .selectedOptions(selectedOptions)
+              .additionIds(detailCommand.getAdditionIds())
+              .clarifications(detailCommand.getClarifications())
               .build();
 
       newDetails.add(detail);
     }
 
-    // Check inventory availability for new details
     for (OrderDetail detail : newDetails) {
       List<Long> selectedOptionIds =
           detail.getSelectedOptions() != null
@@ -160,7 +195,6 @@ public class UpdateOrderService implements UpdateOrderUseCase {
       }
     }
 
-    // Revert previous inventory deductions (return stock to locations)
     if (order.getDetails() != null && !order.getDetails().isEmpty()) {
       try {
         inventoryMovementUseCase.revertDeductionsForOrder(order.getId(), order.getDetails());
@@ -173,7 +207,6 @@ public class UpdateOrderService implements UpdateOrderUseCase {
     order.setDetails(newDetails);
     Order savedOrder = orderRepositoryPort.save(order);
 
-    // Deduct inventory for new details
     try {
       inventoryMovementUseCase.deductForOrder(savedOrder.getId(), savedOrder.getDetails());
       metricsPort.recordInventoryDeduction(true);
@@ -186,10 +219,10 @@ public class UpdateOrderService implements UpdateOrderUseCase {
   }
 
   /**
-   * Recovery handler for cancel operation when database is unavailable.
+   * Recovery handler for the cancel operation when the database is unavailable.
    *
    * @param e the data access exception
-   * @param id the order identifier being cancelled
+   * @param id the order identifier
    * @return never returns, always throws ServiceUnavailableException
    * @throws ServiceUnavailableException when database is unavailable
    */
@@ -200,11 +233,11 @@ public class UpdateOrderService implements UpdateOrderUseCase {
   }
 
   /**
-   * Recovery handler for update operation when database is unavailable.
+   * Recovery handler for the update operation when the database is unavailable.
    *
    * @param e the data access exception
-   * @param id the order identifier being updated
-   * @param command the order update command
+   * @param id the order identifier
+   * @param command the take order command
    * @return never returns, always throws ServiceUnavailableException
    * @throws ServiceUnavailableException when database is unavailable
    */

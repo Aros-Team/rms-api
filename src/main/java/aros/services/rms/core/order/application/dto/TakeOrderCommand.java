@@ -2,6 +2,7 @@
 
 package aros.services.rms.core.order.application.dto;
 
+import aros.services.rms.core.order.domain.ClarificationAnswer;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,5 +33,7 @@ public class TakeOrderCommand {
     private Long productId;
     private String instructions;
     private List<Long> selectedOptionIds;
+    private List<Long> additionIds;
+    private List<ClarificationAnswer> clarifications;
   }
 }

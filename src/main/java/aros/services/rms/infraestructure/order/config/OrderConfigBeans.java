@@ -19,24 +19,21 @@ import aros.services.rms.core.order.port.input.UpdateOrderUseCase;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.core.specialselection.application.service.SpecialSelectionPricingService;
+import aros.services.rms.core.specialselection.application.service.SpecialSelectionValidator;
+import aros.services.rms.core.specialselection.port.output.SpecialSelectionRepositoryPort;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Configuración de beans para el módulo de órdenes. Registra todos los casos de uso relacionados
- * con gestión de órdenes.
- *
- * <p>Core use case implementations are registered as named beans (no @Transactional). The
- * transactional wrappers are annotated with @Primary so Spring injects them wherever the use case
- * ports are required.
- */
+/** Spring configuration providing beans for the order-related use cases. */
 @Configuration
 public class OrderConfigBeans {
 
   /**
-   * Registers the core take order use case impl as a named bean. It has no @Transactional —
-   * transaction boundaries are managed by TakeOrderTransactionalService.
+   * Provides the take order use case implementation.
+   *
+   * @return a configured TakeOrderService instance
    */
   @Bean("takeOrderUseCaseImpl")
   public TakeOrderService takeOrderUseCaseImpl(
@@ -46,7 +43,10 @@ public class OrderConfigBeans {
       ProductOptionRepositoryPort productOptionRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
       InventoryMovementUseCase inventoryMovementUseCase,
-      BusinessMetricsPort metricsPort) {
+      BusinessMetricsPort metricsPort,
+      SpecialSelectionRepositoryPort specialSelectionRepositoryPort,
+      SpecialSelectionValidator specialSelectionValidator,
+      SpecialSelectionPricingService specialSelectionPricingService) {
     return new TakeOrderService(
         orderRepositoryPort,
         tableRepositoryPort,
@@ -54,10 +54,17 @@ public class OrderConfigBeans {
         productOptionRepositoryPort,
         inventoryStockUseCase,
         inventoryMovementUseCase,
-        metricsPort);
+        metricsPort,
+        specialSelectionRepositoryPort,
+        specialSelectionValidator,
+        specialSelectionPricingService);
   }
 
-  /** Crea bean para actualizar órdenes existentes. */
+  /**
+   * Provides the update order use case implementation.
+   *
+   * @return a configured UpdateOrderService instance
+   */
   @Bean
   public UpdateOrderUseCase updateOrderUseCase(
       OrderRepositoryPort orderRepositoryPort,
@@ -66,7 +73,10 @@ public class OrderConfigBeans {
       ProductOptionRepositoryPort productOptionRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
       InventoryMovementUseCase inventoryMovementUseCase,
-      BusinessMetricsPort metricsPort) {
+      BusinessMetricsPort metricsPort,
+      SpecialSelectionRepositoryPort specialSelectionRepositoryPort,
+      SpecialSelectionValidator specialSelectionValidator,
+      SpecialSelectionPricingService specialSelectionPricingService) {
     return new UpdateOrderService(
         orderRepositoryPort,
         tableRepositoryPort,
@@ -74,24 +84,39 @@ public class OrderConfigBeans {
         productOptionRepositoryPort,
         inventoryStockUseCase,
         inventoryMovementUseCase,
-        metricsPort);
+        metricsPort,
+        specialSelectionRepositoryPort,
+        specialSelectionValidator,
+        specialSelectionPricingService);
   }
 
-  /** Crea bean para pasar órdenes de cola a preparación. */
+  /**
+   * Provides the preparation use case implementation.
+   *
+   * @return a configured PreparationService instance
+   */
   @Bean
   public PreparationUseCase preparationUseCase(
       OrderRepositoryPort orderRepositoryPort, BusinessMetricsPort metricsPort) {
     return new PreparationService(orderRepositoryPort, metricsPort);
   }
 
-  /** Crea bean para marcar órdenes como listas (READY). */
+  /**
+   * Provides the mark as ready use case implementation.
+   *
+   * @return a configured MarkAsReadyService instance
+   */
   @Bean
   public MarkAsReadyUseCase markAsReadyUseCase(
       OrderRepositoryPort orderRepositoryPort, BusinessMetricsPort metricsPort) {
     return new MarkAsReadyService(orderRepositoryPort, metricsPort);
   }
 
-  /** Crea bean para entregar órdenes al cliente. */
+  /**
+   * Provides the delivery use case implementation.
+   *
+   * @return a configured DeliveryService instance
+   */
   @Bean
   public DeliveryUseCase deliveryUseCase(
       OrderRepositoryPort orderRepositoryPort,
@@ -100,7 +125,11 @@ public class OrderConfigBeans {
     return new DeliveryService(orderRepositoryPort, tableRepositoryPort, metricsPort);
   }
 
-  /** Crea bean para consultar órdenes. */
+  /**
+   * Provides the order query use case implementation.
+   *
+   * @return a configured OrderQueryService instance
+   */
   @Bean
   public OrderQueryUseCase orderQueryUseCase(OrderRepositoryPort orderRepositoryPort) {
     return new OrderQueryService(orderRepositoryPort);

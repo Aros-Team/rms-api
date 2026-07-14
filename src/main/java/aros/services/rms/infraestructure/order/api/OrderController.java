@@ -92,6 +92,8 @@ public class OrderController {
                                 .productId(detail.productId())
                                 .instructions(detail.instructions())
                                 .selectedOptionIds(detail.selectedOptionIds())
+                                .additionIds(detail.additionIds())
+                                .clarifications(detail.clarifications())
                                 .build())
                     .collect(Collectors.toList()))
             .build();
@@ -177,6 +179,8 @@ public class OrderController {
                                 .productId(detail.productId())
                                 .instructions(detail.instructions())
                                 .selectedOptionIds(detail.selectedOptionIds())
+                                .additionIds(detail.additionIds())
+                                .clarifications(detail.clarifications())
                                 .build())
                     .collect(Collectors.toList()))
             .build();

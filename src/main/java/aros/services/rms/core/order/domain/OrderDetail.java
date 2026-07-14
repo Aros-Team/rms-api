@@ -11,8 +11,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Domain model representing a single item in an order with its selected options and special
- * instructions.
+ * Represents a single line item within an order, including the product, its selected options and
+ * any clarifications or additions captured when the order was taken.
  */
 @Data
 @Builder
@@ -24,4 +24,6 @@ public class OrderDetail {
   private Double unitPrice;
   private String instructions;
   private List<ProductOption> selectedOptions;
+  private List<Long> additionIds;
+  private List<ClarificationAnswer> clarifications;
 }

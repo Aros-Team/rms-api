@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.product.persistence.jpa;
 
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
+import aros.services.rms.core.specialselection.domain.SelectionType;
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
 import aros.services.rms.infraestructure.category.persistence.jpa.CategoryMapper;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,14 @@ public class ProductMapper {
 
     // Note: optionIds are not loaded here to avoid LazyInitializationException.
     // They are only populated when explicitly needed (e.g., after association operations).
+    SelectionType selType = SelectionType.STANDARD;
+    if (entity.getSelectionType() != null) {
+      try {
+        selType = SelectionType.valueOf(entity.getSelectionType());
+      } catch (IllegalArgumentException e) {
+        selType = SelectionType.STANDARD;
+      }
+    }
     return Product.builder()
         .id(entity.getId())
         .name(entity.getName())
@@ -35,6 +44,9 @@ public class ProductMapper {
             entity.getPreparationArea() != null ? entity.getPreparationArea().getId() : null)
         .preparationAreaName(
             entity.getPreparationArea() != null ? entity.getPreparationArea().getName() : null)
+        .selectionType(selType)
+        .baseRecipeEnabled(entity.isSelectionBaseRecipeEnabled())
+        .schedulingRequired(entity.isSchedulingRequired())
         .build();
   }
 
@@ -64,6 +76,10 @@ public class ProductMapper {
             .basePrice(domain.getBasePrice())
             .active(domain.isActive())
             .category(categoryMapper.toEntity(domain.getCategory()))
+            .selectionType(
+                domain.getSelectionType() != null ? domain.getSelectionType().name() : "STANDARD")
+            .selectionBaseRecipeEnabled(domain.isBaseRecipeEnabled())
+            .schedulingRequired(domain.isSchedulingRequired())
             .build();
 
     if (domain.getPreparationAreaId() != null) {
