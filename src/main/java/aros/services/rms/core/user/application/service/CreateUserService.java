@@ -63,7 +63,8 @@ public class CreateUserService implements CreateUserUseCase {
 
   @Override
   public CreateUserResult create(CreateUserInfo info) throws UserAlreadyExistsException {
-    boolean exists = this.userPort.existsByEmailOrDocument(info.document(), info.email().value());
+    boolean exists =
+        this.userPort.existsActiveByEmailOrDocument(info.document(), info.email().value());
 
     if (exists) {
       throw new UserAlreadyExistsException(

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /** Exception advice for User operations. */
-@RestControllerAdvice(assignableTypes = {UserController.class})
+@RestControllerAdvice(assignableTypes = {WorkerController.class})
 @Order(1)
 public class UserAdvice {
   /** Handles UserAlreadyExistsException. */

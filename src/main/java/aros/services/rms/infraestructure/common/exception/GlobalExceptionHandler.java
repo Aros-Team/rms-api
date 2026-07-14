@@ -393,10 +393,10 @@ public class GlobalExceptionHandler {
       return ResponseEntity.notFound().build();
     }
     String message;
-    if (path.contains("/products/") || path.contains("/users/")) {
+    if (path.contains("/products/") || path.contains("/workers/")) {
       message =
           "Invalid image endpoint format."
-              + " Use: /api/v1/products/{productId}/images or /api/v1/users/{userId}/images";
+              + " Use: /api/v1/products/{productId}/images or /api/v1/workers/{workerId}/images";
     } else {
       message = "Endpoint not found: " + path;
     }

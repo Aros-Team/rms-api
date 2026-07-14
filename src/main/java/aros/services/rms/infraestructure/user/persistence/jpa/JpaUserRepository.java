@@ -12,8 +12,9 @@ import org.springframework.data.repository.query.Param;
 
 /** JPA repository for UserEntity. */
 public interface JpaUserRepository extends JpaRepository<UserEntity, Long> {
-  /** Finds a user by email. */
-  Optional<UserEntity> findByEmail(String email);
+  /** Finds an active (non-deleted) user by email. */
+  @Query("SELECT u FROM UserEntity u WHERE u.email = :email AND u.deletedAt IS NULL")
+  Optional<UserEntity> findByEmail(@Param("email") String email);
 
   /** Finds a user by email with assigned areas. */
   @Query(
@@ -21,8 +22,16 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, Long> {
           + "WHERE u.email = :email AND u.deletedAt IS NULL")
   Optional<UserEntity> findByEmailWithAreas(String email);
 
-  /** Checks if a user exists by document or email. */
+  /** Checks if a user exists by document or email (including deleted). */
   boolean existsByDocumentOrEmail(String document, String email);
+
+  /** Checks if a non-deleted user exists by document or email. */
+  @Query(
+      "SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END "
+          + "FROM UserEntity u "
+          + "WHERE (u.document = :document OR u.email = :email) AND u.deletedAt IS NULL")
+  boolean existsActiveByDocumentOrEmail(
+      @Param("document") String document, @Param("email") String email);
 
   /** Checks if a user exists by document, email and not deleted. */
   @Query(

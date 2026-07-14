@@ -36,13 +36,22 @@ public interface UserRepositoryPort {
   Optional<User> findById(UserId id);
 
   /**
-   * Checks if a user exists by email or document.
+   * Checks if a user exists by email or document (including soft-deleted).
    *
    * @param document the document to check
    * @param email the email to check
    * @return true if a user exists with either
    */
   boolean existsByEmailOrDocument(String document, String email);
+
+  /**
+   * Checks if an active (non-deleted) user exists by email or document.
+   *
+   * @param document the document to check
+   * @param email the email to check
+   * @return true if an active user exists with either
+   */
+  boolean existsActiveByEmailOrDocument(String document, String email);
 
   /**
    * Retrieves all users.

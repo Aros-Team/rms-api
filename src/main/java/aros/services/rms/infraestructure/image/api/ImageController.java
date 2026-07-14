@@ -158,32 +158,33 @@ public class ImageController {
         uploadedImages.stream().map(ImageResponse::fromDomain).collect(Collectors.toList()));
   }
 
-  // ==================== USER IMAGES ====================
+  // ==================== WORKER IMAGES ====================
 
   /**
-   * Uploads a single profile image for a user.
+   * Uploads a single profile image for a worker.
    *
-   * @param userId target user ID
+   * @param workerId target worker ID
    * @param file multipart file to upload
    * @return the uploaded image with its size-variant URLs
    */
   @Operation(
-      tags = {"Users"},
-      summary = "Upload user image",
-      description = "Uploads a profile image for a user. Accepts JPEG, PNG, or WebP up to 5MB.",
+      tags = {"Workers"},
+      summary = "Upload worker image",
+      description = "Uploads a profile image for a worker. Accepts JPEG, PNG, or WebP up to 5MB.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Image uploaded successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid file or file too large"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden"),
-        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "404", description = "Worker not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping(
-      value = "/api/v1/users/{userId}/images",
+      value = "/api/v1/workers/{workerId}/images",
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<ImageResponse> uploadUserImage(
-      @Parameter(description = "User ID", example = "1", required = true) @PathVariable Long userId,
+  public ResponseEntity<ImageResponse> uploadWorkerImage(
+      @Parameter(description = "Worker ID", example = "1", required = true) @PathVariable
+          Long workerId,
       @Parameter(
               description = "Image file (JPEG, PNG, WebP up to 5MB)",
               example = "profile.jpg",
@@ -194,7 +195,7 @@ public class ImageController {
     var image =
         uploadImageUseCase.upload(
             ImageEntityType.USER,
-            userId,
+            workerId,
             file.getOriginalFilename(),
             file.getContentType(),
             file.getBytes());
@@ -203,57 +204,58 @@ public class ImageController {
   }
 
   /**
-   * Lists all profile images for a user.
+   * Lists all profile images for a worker.
    *
-   * @param userId target user ID
+   * @param workerId target worker ID
    * @return list of images with size-variant URLs
    */
   @Operation(
-      tags = {"Users"},
-      summary = "Get user images",
-      description = "Retrieves all profile images for a user with signed URLs.",
+      tags = {"Workers"},
+      summary = "Get worker images",
+      description = "Retrieves all profile images for a worker with signed URLs.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Images retrieved successfully"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden"),
-        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "404", description = "Worker not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
-  @GetMapping("/api/v1/users/{userId}/images")
-  public ResponseEntity<List<ImageResponse>> getUserImages(
-      @Parameter(description = "User ID", example = "1", required = true) @PathVariable
-          Long userId) {
+  @GetMapping("/api/v1/workers/{workerId}/images")
+  public ResponseEntity<List<ImageResponse>> getWorkerImages(
+      @Parameter(description = "Worker ID", example = "1", required = true) @PathVariable
+          Long workerId) {
     List<ImageResponse> responses =
-        getImagesUseCase.getByEntity(ImageEntityType.USER, userId).stream()
+        getImagesUseCase.getByEntity(ImageEntityType.USER, workerId).stream()
             .map(ImageResponse::fromDomain)
             .collect(Collectors.toList());
     return ResponseEntity.ok(responses);
   }
 
   /**
-   * Replaces all profile images of a user with the provided set.
+   * Replaces all profile images of a worker with the provided set.
    *
-   * @param userId target user ID
+   * @param workerId target worker ID
    * @param files new image files to upload
    * @return the new set of images with size-variant URLs
    */
   @Operation(
-      tags = {"Users"},
-      summary = "Replace user images",
-      description = "Deletes all existing images for a user and uploads new ones.",
+      tags = {"Workers"},
+      summary = "Replace worker images",
+      description = "Deletes all existing images for a worker and uploads new ones.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Images replaced successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid files or file too large"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden"),
-        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "404", description = "Worker not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping(
-      value = "/api/v1/users/{userId}/images",
+      value = "/api/v1/workers/{workerId}/images",
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<List<ImageResponse>> replaceUserImages(
-      @Parameter(description = "User ID", example = "1", required = true) @PathVariable Long userId,
+  public ResponseEntity<List<ImageResponse>> replaceWorkerImages(
+      @Parameter(description = "Worker ID", example = "1", required = true) @PathVariable
+          Long workerId,
       @Parameter(
               description = "Image files (multiple, JPEG/PNG/WebP up to 5MB each)",
               example = "[\"profile1.jpg\", \"profile2.jpg\"]",
@@ -261,13 +263,13 @@ public class ImageController {
           @RequestParam("files")
           List<MultipartFile> files)
       throws IOException {
-    deleteImageUseCase.deleteByEntity(ImageEntityType.USER, userId);
+    deleteImageUseCase.deleteByEntity(ImageEntityType.USER, workerId);
     List<ImageWithUrls> uploadedImages = new java.util.ArrayList<>();
     for (MultipartFile file : files) {
       EntityImage image =
           uploadImageUseCase.upload(
               ImageEntityType.USER,
-              userId,
+              workerId,
               file.getOriginalFilename(),
               file.getContentType(),
               file.getBytes());

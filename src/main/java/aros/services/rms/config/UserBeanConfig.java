@@ -9,13 +9,16 @@ import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.user.application.service.ChangePasswordService;
 import aros.services.rms.core.user.application.service.CreateUserService;
 import aros.services.rms.core.user.application.service.GetAllUsersService;
+import aros.services.rms.core.user.application.service.GetAllWorkersService;
 import aros.services.rms.core.user.application.service.GetSalaryHistoryService;
 import aros.services.rms.core.user.port.input.ChangePasswordUseCase;
 import aros.services.rms.core.user.port.input.CreateUserUseCase;
 import aros.services.rms.core.user.port.input.GetAllUsersUseCase;
+import aros.services.rms.core.user.port.input.GetAllWorkersUseCase;
 import aros.services.rms.core.user.port.input.GetSalaryHistoryUseCase;
 import aros.services.rms.core.user.port.output.SalaryHistoryRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
+import aros.services.rms.core.user.port.output.WorkerRepositoryPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -91,5 +94,16 @@ public class UserBeanConfig {
   public GetSalaryHistoryUseCase getSalaryHistoryUseCase(
       UserRepositoryPort userPort, SalaryHistoryRepositoryPort salaryHistoryPort) {
     return new GetSalaryHistoryService(userPort, salaryHistoryPort);
+  }
+
+  /**
+   * Creates the get all workers use case.
+   *
+   * @param workerRepositoryPort worker repository port
+   * @return configured GetAllWorkersUseCase
+   */
+  @Bean
+  public GetAllWorkersUseCase getAllWorkersUseCase(WorkerRepositoryPort workerRepositoryPort) {
+    return new GetAllWorkersService(workerRepositoryPort);
   }
 }

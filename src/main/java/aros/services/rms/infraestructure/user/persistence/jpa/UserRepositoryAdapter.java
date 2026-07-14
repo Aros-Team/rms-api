@@ -49,10 +49,15 @@ public class UserRepositoryAdapter implements UserRepositoryPort, AdminRepositor
     return userMapper.toDomain(this.internal.save(userMapper.toEntity(user)));
   }
 
-  /** Checks if a user exists by email or document. */
+  /** Checks if a user exists by email or document (including deleted). */
   @Override
   public boolean existsByEmailOrDocument(String document, String email) {
     return this.internal.existsByDocumentOrEmail(document, email);
+  }
+
+  /** Checks if a non-deleted user exists by email or document. */
+  public boolean existsActiveByEmailOrDocument(String document, String email) {
+    return this.internal.existsActiveByDocumentOrEmail(document, email);
   }
 
   /** Finds all non-deleted users. */

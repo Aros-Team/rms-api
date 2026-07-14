@@ -109,7 +109,7 @@ class CreateUserServiceTest {
 
   @Test
   void shouldCreateUserSuccessfully() throws UserAlreadyExistsException {
-    when(userPort.existsByEmailOrDocument(DOCUMENT, EMAIL.value())).thenReturn(false);
+    when(userPort.existsActiveByEmailOrDocument(DOCUMENT, EMAIL.value())).thenReturn(false);
     when(areaPort.existsAllByIds(AREAS)).thenReturn(true);
     when(userPort.save(any(User.class)))
         .thenAnswer(invocation -> userWithId(invocation.getArgument(0), 1L));
@@ -139,7 +139,7 @@ class CreateUserServiceTest {
 
   @Test
   void shouldThrow_whenDocumentOrEmailAlreadyExists() {
-    when(userPort.existsByEmailOrDocument(DOCUMENT, EMAIL.value())).thenReturn(true);
+    when(userPort.existsActiveByEmailOrDocument(DOCUMENT, EMAIL.value())).thenReturn(true);
 
     assertThrows(UserAlreadyExistsException.class, () -> createUserService.create(validInfo));
 
@@ -154,7 +154,7 @@ class CreateUserServiceTest {
 
   @Test
   void shouldThrow_whenAreaNotFound() {
-    when(userPort.existsByEmailOrDocument(DOCUMENT, EMAIL.value())).thenReturn(false);
+    when(userPort.existsActiveByEmailOrDocument(DOCUMENT, EMAIL.value())).thenReturn(false);
     when(areaPort.existsAllByIds(AREAS)).thenReturn(false);
 
     assertThrows(AreaNotFoundException.class, () -> createUserService.create(validInfo));
@@ -170,7 +170,7 @@ class CreateUserServiceTest {
 
   @Test
   void shouldSetStatusError_whenEmailFails() throws UserAlreadyExistsException {
-    when(userPort.existsByEmailOrDocument(DOCUMENT, EMAIL.value())).thenReturn(false);
+    when(userPort.existsActiveByEmailOrDocument(DOCUMENT, EMAIL.value())).thenReturn(false);
     when(areaPort.existsAllByIds(AREAS)).thenReturn(true);
     when(userPort.save(any(User.class)))
         .thenAnswer(invocation -> userWithId(invocation.getArgument(0), 1L));
@@ -197,7 +197,7 @@ class CreateUserServiceTest {
   @Test
   void shouldCreateSalaryHistoryEntry_whenUserCreatedWithSalary()
       throws UserAlreadyExistsException {
-    when(userPort.existsByEmailOrDocument(DOCUMENT, EMAIL.value())).thenReturn(false);
+    when(userPort.existsActiveByEmailOrDocument(DOCUMENT, EMAIL.value())).thenReturn(false);
     when(areaPort.existsAllByIds(AREAS)).thenReturn(true);
     when(userPort.save(any(User.class)))
         .thenAnswer(invocation -> userWithId(invocation.getArgument(0), 1L));
@@ -225,7 +225,7 @@ class CreateUserServiceTest {
   @Test
   void shouldNotCreateSalaryHistoryEntry_whenUserCreatedWithoutSalary()
       throws UserAlreadyExistsException {
-    when(userPort.existsByEmailOrDocument(DOCUMENT, EMAIL.value())).thenReturn(false);
+    when(userPort.existsActiveByEmailOrDocument(DOCUMENT, EMAIL.value())).thenReturn(false);
     when(areaPort.existsAllByIds(AREAS)).thenReturn(true);
     when(userPort.save(any(User.class)))
         .thenAnswer(invocation -> userWithId(invocation.getArgument(0), 1L));
