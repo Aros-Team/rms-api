@@ -1,5 +1,11 @@
 # Changelog
 
+## [v2.1.0](https://github.com/Aros-Team/rms-api/releases/tag/v2.1.0)
+
+### Features
+
+- add stimated product cost
+
 ## [v2.0.0](https://github.com/Aros-Team/rms-api/releases/tag/v2.0.0)
 
 ### Features
