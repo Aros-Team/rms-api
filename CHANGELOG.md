@@ -1,5 +1,30 @@
 # Changelog
 
+## [v2.0.0](https://github.com/Aros-Team/rms-api/releases/tag/v2.0.0)
+
+### Features
+
+- add WebSocket topic for cancelled orders notifications
+- notify table status changes from orders and admin actions
+- **BREAKING**: add product image management with local storage support
+- add employees endpoint, product pagination with inactive filter, and supplies pagination
+- salary history
+- workers schedule
+- **special-selection**: full Special Selection (combo) module replacing day menu
+
+### Bug Fixes
+
+- error message for area when create/update user
+- error for area on user creation/update
+- salary history test and user test modification
+- code quality
+- repair V8 seed data area and inventory storage locations
+- auth error response crashes with HttpMediaTypeNotAcceptableException
+- PageImpl serialization warning - use PagedModel VIA_DTO
+- PageImpl serialization warning
+- expand allowed password symbols to all ASCII, centralize validation
+- test are possible
+
 ## [v1.0.0](https://github.com/Aros-Team/rms-api/releases/tag/v1.0.0)
 
 ### Bug Fixes
