@@ -343,6 +343,19 @@ public class ProductService implements ProductUseCase {
   }
 
   /**
+   * {@inheritDoc} When includeSelections is true, returns all active products including special
+   * selections. Otherwise delegates to {@link #findAllActive(Pageable)} which returns only standard
+   * products.
+   */
+  @Override
+  public Page<Product> findAllActive(Pageable pageable, boolean includeSelections) {
+    if (includeSelections) {
+      return productRepositoryPort.findAllActive(pageable);
+    }
+    return productRepositoryPort.findAllStandard(pageable);
+  }
+
+  /**
    * Recovery handler for findByCategoryIds operation when database is unavailable.
    *
    * @param e the data access exception

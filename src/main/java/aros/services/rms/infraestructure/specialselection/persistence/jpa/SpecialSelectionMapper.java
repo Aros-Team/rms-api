@@ -2,6 +2,7 @@ package aros.services.rms.infraestructure.specialselection.persistence.jpa;
 
 import aros.services.rms.core.schedule.domain.DayOfWeek;
 import aros.services.rms.core.specialselection.domain.ChangeType;
+import aros.services.rms.core.specialselection.domain.QuestionType;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionAddition;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionGroup;
@@ -75,6 +76,7 @@ public class SpecialSelectionMapper {
                         .question(qe.getQuestion())
                         .required(qe.isRequired())
                         .displayOrder(qe.getDisplayOrder())
+                        .questionType(convertQuestionType(qe.getQuestionType()))
                         .build())
             .collect(Collectors.toList());
 
@@ -130,6 +132,18 @@ public class SpecialSelectionMapper {
       return aros.services.rms.core.specialselection.domain.SelectionType.valueOf(value);
     } catch (IllegalArgumentException e) {
       return aros.services.rms.core.specialselection.domain.SelectionType.STANDARD;
+    }
+  }
+
+  /** Converts a stored question type string to its domain enum, defaulting to TEXT. */
+  public QuestionType convertQuestionType(String value) {
+    if (value == null) {
+      return QuestionType.TEXT;
+    }
+    try {
+      return QuestionType.valueOf(value);
+    } catch (IllegalArgumentException e) {
+      return QuestionType.TEXT;
     }
   }
 
@@ -214,6 +228,7 @@ public class SpecialSelectionMapper {
                     .question(q.getQuestion())
                     .required(q.isRequired())
                     .displayOrder(q.getDisplayOrder())
+                    .questionType(q.getQuestionType() != null ? q.getQuestionType().name() : "TEXT")
                     .build())
         .collect(Collectors.toList());
   }

@@ -1,6 +1,8 @@
 package aros.services.rms.infraestructure.specialselection.api;
 
 import aros.services.rms.core.schedule.domain.DayOfWeek;
+import aros.services.rms.core.specialselection.domain.ChangeType;
+import aros.services.rms.core.specialselection.domain.QuestionType;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionAddition;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionGroup;
@@ -13,6 +15,7 @@ import aros.services.rms.core.specialselection.port.input.GetSpecialSelectionHis
 import aros.services.rms.core.specialselection.port.input.GetSpecialSelectionUseCase;
 import aros.services.rms.core.specialselection.port.input.RevertSpecialSelectionUseCase;
 import aros.services.rms.core.specialselection.port.input.SuggestSpecialSelectionPriceUseCase;
+import aros.services.rms.core.specialselection.port.input.UpdateSpecialSelectionActiveUseCase;
 import aros.services.rms.core.specialselection.port.input.UpdateSpecialSelectionPriceUseCase;
 import aros.services.rms.core.specialselection.port.input.UpdateSpecialSelectionScheduleUseCase;
 import aros.services.rms.core.specialselection.port.input.UpdateSpecialSelectionUseCase;
@@ -23,6 +26,7 @@ import aros.services.rms.infraestructure.specialselection.api.dto.SpecialSelecti
 import aros.services.rms.infraestructure.specialselection.api.dto.SpecialSelectionSchedulePatchRequest;
 import aros.services.rms.infraestructure.specialselection.api.dto.SuggestedPriceRequest;
 import aros.services.rms.infraestructure.specialselection.api.dto.SuggestedPriceResponse;
+import aros.services.rms.infraestructure.specialselection.api.dto.UpdateSpecialSelectionActiveRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,6 +43,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -61,6 +66,7 @@ public class SpecialSelectionAdminController {
 
   private final CreateSpecialSelectionUseCase createUseCase;
   private final UpdateSpecialSelectionUseCase updateUseCase;
+  private final UpdateSpecialSelectionActiveUseCase updateActiveUseCase;
   private final UpdateSpecialSelectionPriceUseCase updatePriceUseCase;
   private final UpdateSpecialSelectionScheduleUseCase updateScheduleUseCase;
   private final DeleteSpecialSelectionUseCase deleteUseCase;
@@ -87,7 +93,7 @@ public class SpecialSelectionAdminController {
     SpecialSelectionConfiguration config = toDomain(request, request.productId());
     SpecialSelectionConfiguration saved = createUseCase.execute(config, currentUser());
     SpecialSelectionResponse response = SpecialSelectionResponse.fromDomain(saved);
-    notificationService.notifySpecialSelectionUpdated(response);
+    notificationService.notifySpecialSelectionUpdated(ChangeType.CREATE, response);
     return ResponseEntity.ok(response);
   }
 
@@ -107,7 +113,7 @@ public class SpecialSelectionAdminController {
     SpecialSelectionConfiguration config = toDomain(request, productId);
     SpecialSelectionConfiguration saved = updateUseCase.execute(productId, config, currentUser());
     SpecialSelectionResponse response = SpecialSelectionResponse.fromDomain(saved);
-    notificationService.notifySpecialSelectionUpdated(response);
+    notificationService.notifySpecialSelectionUpdated(ChangeType.UPDATE, response);
     return ResponseEntity.ok(response);
   }
 
@@ -127,7 +133,31 @@ public class SpecialSelectionAdminController {
     SpecialSelectionConfiguration saved =
         updatePriceUseCase.execute(productId, request.basePrice(), currentUser());
     SpecialSelectionResponse response = SpecialSelectionResponse.fromDomain(saved);
-    notificationService.notifySpecialSelectionUpdated(response);
+    notificationService.notifySpecialSelectionUpdated(ChangeType.PRICE_CHANGE, response);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Updates only the active flag of an existing special selection.
+   *
+   * @param productId the product identifier
+   * @param request the active patch payload
+   * @param changedBy the user performing the update (defaults to "admin")
+   * @return the updated special selection wrapped in a 200 response
+   */
+  @PatchMapping("/{productId}/active")
+  @Operation(
+      summary = "Toggle active status",
+      description = "Sets the combo's active flag without replacing the full configuration")
+  @ApiResponse(responseCode = "200", description = "Active status updated")
+  public ResponseEntity<SpecialSelectionResponse> updateActive(
+      @PathVariable Long productId,
+      @Valid @RequestBody UpdateSpecialSelectionActiveRequest request,
+      @RequestParam(defaultValue = "admin") String changedBy) {
+    SpecialSelectionConfiguration saved =
+        updateActiveUseCase.execute(productId, request.active(), changedBy);
+    SpecialSelectionResponse response = SpecialSelectionResponse.fromDomain(saved);
+    notificationService.notifySpecialSelectionUpdated(ChangeType.UPDATE, response);
     return ResponseEntity.ok(response);
   }
 
@@ -159,7 +189,7 @@ public class SpecialSelectionAdminController {
     SpecialSelectionConfiguration saved =
         updateScheduleUseCase.execute(productId, schedule, currentUser());
     SpecialSelectionResponse response = SpecialSelectionResponse.fromDomain(saved);
-    notificationService.notifySpecialSelectionUpdated(response);
+    notificationService.notifySpecialSelectionUpdated(ChangeType.SCHEDULE_CHANGE, response);
     return ResponseEntity.ok(response);
   }
 
@@ -175,6 +205,7 @@ public class SpecialSelectionAdminController {
       description = "Soft delete — sets active=false and records a DELETE history entry")
   public ResponseEntity<Void> delete(@PathVariable Long productId) {
     deleteUseCase.execute(productId, currentUser());
+    notificationService.notifySpecialSelectionUpdated(ChangeType.DELETE, null);
     return ResponseEntity.ok().build();
   }
 
@@ -250,7 +281,7 @@ public class SpecialSelectionAdminController {
       @PathVariable Long productId, @PathVariable int version) {
     SpecialSelectionConfiguration saved = revertUseCase.execute(productId, version, currentUser());
     SpecialSelectionResponse response = SpecialSelectionResponse.fromDomain(saved);
-    notificationService.notifySpecialSelectionUpdated(response);
+    notificationService.notifySpecialSelectionUpdated(ChangeType.UPDATE, response);
     return ResponseEntity.ok(response);
   }
 
@@ -310,6 +341,7 @@ public class SpecialSelectionAdminController {
                         .question(q.question())
                         .required(q.required())
                         .displayOrder(q.displayOrder())
+                        .questionType(convertQuestionType(q.questionType()))
                         .build())
             .collect(Collectors.toList());
 
@@ -345,5 +377,16 @@ public class SpecialSelectionAdminController {
       return "system";
     }
     return auth.getName();
+  }
+
+  private QuestionType convertQuestionType(String value) {
+    if (value == null) {
+      return QuestionType.TEXT;
+    }
+    try {
+      return QuestionType.valueOf(value);
+    } catch (IllegalArgumentException e) {
+      return QuestionType.TEXT;
+    }
   }
 }

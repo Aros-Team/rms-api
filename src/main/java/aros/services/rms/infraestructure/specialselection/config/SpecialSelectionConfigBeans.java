@@ -2,6 +2,7 @@ package aros.services.rms.infraestructure.specialselection.config;
 
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
+import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import aros.services.rms.core.specialselection.application.service.CreateSpecialSelectionService;
 import aros.services.rms.core.specialselection.application.service.DeleteSpecialSelectionService;
 import aros.services.rms.core.specialselection.application.service.GetSpecialSelectionHistoryService;
@@ -12,6 +13,7 @@ import aros.services.rms.core.specialselection.application.service.SpecialSelect
 import aros.services.rms.core.specialselection.application.service.SpecialSelectionSnapshotService;
 import aros.services.rms.core.specialselection.application.service.SpecialSelectionValidator;
 import aros.services.rms.core.specialselection.application.service.SuggestSpecialSelectionPriceService;
+import aros.services.rms.core.specialselection.application.service.UpdateSpecialSelectionActiveService;
 import aros.services.rms.core.specialselection.application.service.UpdateSpecialSelectionPriceService;
 import aros.services.rms.core.specialselection.application.service.UpdateSpecialSelectionScheduleService;
 import aros.services.rms.core.specialselection.application.service.UpdateSpecialSelectionService;
@@ -21,6 +23,7 @@ import aros.services.rms.core.specialselection.port.input.GetSpecialSelectionHis
 import aros.services.rms.core.specialselection.port.input.GetSpecialSelectionUseCase;
 import aros.services.rms.core.specialselection.port.input.RevertSpecialSelectionUseCase;
 import aros.services.rms.core.specialselection.port.input.SuggestSpecialSelectionPriceUseCase;
+import aros.services.rms.core.specialselection.port.input.UpdateSpecialSelectionActiveUseCase;
 import aros.services.rms.core.specialselection.port.input.UpdateSpecialSelectionPriceUseCase;
 import aros.services.rms.core.specialselection.port.input.UpdateSpecialSelectionScheduleUseCase;
 import aros.services.rms.core.specialselection.port.input.UpdateSpecialSelectionUseCase;
@@ -68,14 +71,16 @@ public class SpecialSelectionConfigBeans {
    *
    * @param productRecipeRepositoryPort the product recipe repository port
    * @param supplyVariantRepositoryPort the supply variant repository port
+   * @param productRepositoryPort the product repository port
    * @return a configured SpecialSelectionPricingService instance
    */
   @Bean
   public SpecialSelectionPricingService specialSelectionPricingService(
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
-      SupplyVariantRepositoryPort supplyVariantRepositoryPort) {
+      SupplyVariantRepositoryPort supplyVariantRepositoryPort,
+      ProductRepositoryPort productRepositoryPort) {
     return new SpecialSelectionPricingService(
-        productRecipeRepositoryPort, supplyVariantRepositoryPort);
+        productRecipeRepositoryPort, supplyVariantRepositoryPort, productRepositoryPort);
   }
 
   /**
@@ -119,6 +124,23 @@ public class SpecialSelectionConfigBeans {
       SpecialSelectionHistoryRepositoryPort historyRepositoryPort,
       SpecialSelectionSnapshotService snapshotService) {
     return new UpdateSpecialSelectionPriceService(
+        repositoryPort, historyRepositoryPort, snapshotService);
+  }
+
+  /**
+   * Provides the update special selection active use case bean.
+   *
+   * @param repositoryPort the special selection repository port
+   * @param historyRepositoryPort the special selection history repository port
+   * @param snapshotService the special selection snapshot service
+   * @return a configured UpdateSpecialSelectionActiveService instance
+   */
+  @Bean
+  public UpdateSpecialSelectionActiveUseCase updateSpecialSelectionActiveUseCase(
+      SpecialSelectionRepositoryPort repositoryPort,
+      SpecialSelectionHistoryRepositoryPort historyRepositoryPort,
+      SpecialSelectionSnapshotService snapshotService) {
+    return new UpdateSpecialSelectionActiveService(
         repositoryPort, historyRepositoryPort, snapshotService);
   }
 

@@ -1,6 +1,7 @@
 package aros.services.rms.core.specialselection.application.service;
 
 import aros.services.rms.core.schedule.domain.DayOfWeek;
+import aros.services.rms.core.specialselection.domain.QuestionType;
 import aros.services.rms.core.specialselection.domain.SelectionType;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionAddition;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
@@ -197,6 +198,7 @@ public class SpecialSelectionSnapshotService {
                     .question(qs.getQuestion())
                     .required(qs.isRequired())
                     .displayOrder(qs.getDisplayOrder())
+                    .questionType(convertQuestionType(qs.getQuestionType()))
                     .build())
         .collect(Collectors.toList());
   }
@@ -249,6 +251,8 @@ public class SpecialSelectionSnapshotService {
         .question(question.getQuestion())
         .required(question.isRequired())
         .displayOrder(question.getDisplayOrder())
+        .questionType(
+            question.getQuestionType() != null ? question.getQuestionType().name() : "TEXT")
         .build();
   }
 
@@ -260,5 +264,16 @@ public class SpecialSelectionSnapshotService {
         .startTime(entry.getStartTime())
         .endTime(entry.getEndTime())
         .build();
+  }
+
+  private QuestionType convertQuestionType(String value) {
+    if (value == null) {
+      return QuestionType.TEXT;
+    }
+    try {
+      return QuestionType.valueOf(value);
+    } catch (IllegalArgumentException e) {
+      return QuestionType.TEXT;
+    }
   }
 }

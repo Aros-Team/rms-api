@@ -66,6 +66,7 @@ public class SpecialSelectionSnapshot {
     private String question;
     private boolean required;
     private int displayOrder;
+    private String questionType;
   }
 
   /** Snapshot of a weekly availability window for the special selection. */

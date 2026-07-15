@@ -40,4 +40,8 @@ public class SpecialSelectionQuestionEntity {
   @Column(name = "display_order")
   @Builder.Default
   private int displayOrder = 0;
+
+  @Column(name = "question_type", nullable = false, length = 20)
+  @Builder.Default
+  private String questionType = "TEXT";
 }

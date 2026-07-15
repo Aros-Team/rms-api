@@ -26,8 +26,12 @@ import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.core.specialselection.application.exception.SpecialSelectionNotAvailableException;
+import aros.services.rms.core.specialselection.application.service.SpecialSelectionAvailabilityService;
 import aros.services.rms.core.specialselection.application.service.SpecialSelectionPricingService;
 import aros.services.rms.core.specialselection.application.service.SpecialSelectionValidator;
+import aros.services.rms.core.specialselection.domain.SelectionType;
+import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
 import aros.services.rms.core.specialselection.port.output.SpecialSelectionRepositoryPort;
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
@@ -61,6 +65,8 @@ class TakeOrderUseCaseImplTest {
 
   @Mock private SpecialSelectionPricingService specialSelectionPricingService;
 
+  @Mock private SpecialSelectionAvailabilityService specialSelectionAvailabilityService;
+
   @Mock private InventoryStockUseCase inventoryStockUseCase;
 
   @Mock private InventoryMovementUseCase inventoryMovementUseCase;
@@ -84,7 +90,8 @@ class TakeOrderUseCaseImplTest {
             metricsPort,
             specialSelectionRepositoryPort,
             specialSelectionValidator,
-            specialSelectionPricingService);
+            specialSelectionPricingService,
+            specialSelectionAvailabilityService);
   }
 
   @Test
@@ -451,5 +458,50 @@ class TakeOrderUseCaseImplTest {
 
     // Assert: deductForOrder debe haberse invocado exactamente una vez
     verify(inventoryMovementUseCase, times(1)).deductForOrder(any(), any());
+  }
+
+  @Test
+  void shouldThrowSpecialSelectionUnavailable_whenComboOutsideActiveSchedule() {
+    Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
+    Product product =
+        Product.builder()
+            .id(10L)
+            .name("Combo Meal")
+            .basePrice(25.0)
+            .selectionType(SelectionType.SPECIAL_SELECTION)
+            .category(Category.builder().id(1L).name("Food").build())
+            .build();
+    SpecialSelectionConfiguration config =
+        SpecialSelectionConfiguration.builder()
+            .productId(10L)
+            .active(true)
+            .schedulingRequired(true)
+            .build();
+
+    when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(10L)).thenReturn(Optional.of(product));
+    when(specialSelectionRepositoryPort.findById(10L)).thenReturn(Optional.of(config));
+    when(specialSelectionAvailabilityService.isAvailable(any(), any())).thenReturn(false);
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(1L)
+            .details(
+                List.of(
+                    TakeOrderCommand.OrderDetailCommand.builder()
+                        .productId(10L)
+                        .instructions(null)
+                        .selectedOptionIds(null)
+                        .selectedProductIds(List.of(1L, 2L))
+                        .build()))
+            .build();
+
+    SpecialSelectionNotAvailableException exception =
+        assertThrows(
+            SpecialSelectionNotAvailableException.class, () -> takeOrderUseCase.execute(command));
+
+    assertEquals(10L, exception.getProductId());
+    assertEquals(TableStatus.AVAILABLE, table.getStatus());
+    verify(orderRepositoryPort, never()).save(any(Order.class));
   }
 }

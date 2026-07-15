@@ -28,8 +28,15 @@ public record OrderResponse(
       @Schema(description = "Product name", example = "Classic Burger") String productName,
       @Schema(description = "Unit price", example = "12.50") Double unitPrice,
       @Schema(description = "Special instructions", example = "No onions") String instructions,
-      @Schema(description = "Selected product options")
-          List<ProductOptionResponse> selectedOptions) {}
+      @Schema(description = "Selected product options") List<ProductOptionResponse> selectedOptions,
+      @Schema(description = "Selected combo product IDs", example = "[101, 103]")
+          List<Long> selectedProductIds,
+      @Schema(description = "Resolved selected combo products")
+          List<SelectedProductResponse> selectedProducts,
+      @Schema(description = "Selected addition IDs", example = "[5, 6]") List<Long> additionIds,
+      @Schema(description = "Resolved selected additions")
+          List<SelectedAdditionResponse> selectedAdditions,
+      @Schema(description = "Clarification answers") List<ClarificationResponse> clarifications) {}
 
   /** Selected product option. */
   @Schema(description = "Selected product option")
@@ -37,6 +44,27 @@ public record OrderResponse(
       @Schema(description = "Option ID", example = "1") Long id,
       @Schema(description = "Option name", example = "Large") String name,
       @Schema(description = "Category name", example = "Sizes") String categoryName) {}
+
+  /** Resolved selected combo product. */
+  @Schema(description = "Resolved selected combo product")
+  public record SelectedProductResponse(
+      @Schema(description = "Product ID") Long id,
+      @Schema(description = "Product name") String name,
+      @Schema(description = "Base price") Double basePrice) {}
+
+  /** Resolved selected addition. */
+  @Schema(description = "Resolved selected addition")
+  public record SelectedAdditionResponse(
+      @Schema(description = "Addition ID") Long id,
+      @Schema(description = "Addition name") String name,
+      @Schema(description = "Extra price") Double extraPrice) {}
+
+  /** Clarification answer to a special selection question. */
+  @Schema(description = "Clarification answer to a special selection question")
+  public record ClarificationResponse(
+      @Schema(description = "Question ID") Long questionId,
+      @Schema(description = "Question text") String question,
+      @Schema(description = "Answer") String answer) {}
 
   /**
    * Creates a response from a domain object.
@@ -75,6 +103,15 @@ public record OrderResponse(
         detail.getSelectedOptions() != null
             ? detail.getSelectedOptions().stream()
                 .map(OrderResponse::fromDomainOption)
+                .collect(Collectors.toList())
+            : null,
+        detail.getSelectedProductIds(),
+        null,
+        detail.getAdditionIds(),
+        null,
+        detail.getClarifications() != null
+            ? detail.getClarifications().stream()
+                .map(ca -> new ClarificationResponse(ca.getQuestionId(), null, ca.getAnswer()))
                 .collect(Collectors.toList())
             : null);
   }

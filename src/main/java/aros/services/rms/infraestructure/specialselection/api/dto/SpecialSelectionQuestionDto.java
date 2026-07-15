@@ -11,4 +11,6 @@ public record SpecialSelectionQuestionDto(
     @Schema(description = "Question ID (null for new)", example = "1") Long id,
     @Schema(description = "Question text", example = "¿Alguna alergia?") @NotBlank String question,
     @Schema(description = "Whether answer is required", example = "false") boolean required,
-    @Schema(description = "Display order", example = "1") int displayOrder) {}
+    @Schema(description = "Display order", example = "1") int displayOrder,
+    @Schema(description = "Question type (TEXT, CHOICE, BOOLEAN)", example = "TEXT")
+        String questionType) {}

@@ -1,7 +1,9 @@
 package aros.services.rms.infraestructure.specialselection.api;
 
 import aros.services.rms.core.common.notification.port.output.NotificationPort;
+import aros.services.rms.core.specialselection.domain.ChangeType;
 import aros.services.rms.infraestructure.specialselection.api.dto.SpecialSelectionResponse;
+import aros.services.rms.infraestructure.specialselection.api.dto.SpecialSelectionUpdateEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,16 +21,23 @@ public class SpecialSelectionNotificationService {
   /**
    * Sends a notification to subscribers that a special selection has been updated.
    *
-   * @param config the updated special selection payload
+   * @param changeType the type of change that occurred
+   * @param config the updated special selection payload (null for DELETE events)
    */
-  public void notifySpecialSelectionUpdated(SpecialSelectionResponse config) {
+  public void notifySpecialSelectionUpdated(
+      ChangeType changeType, SpecialSelectionResponse config) {
+    SpecialSelectionUpdateEvent event = SpecialSelectionUpdateEvent.of(changeType.name(), config);
     try {
-      notificationPort.notify(TOPIC_SPECIAL_SELECTIONS_UPDATED, config);
-      log.info("Special selection notification sent: productId={}", config.productId());
+      notificationPort.notify(TOPIC_SPECIAL_SELECTIONS_UPDATED, event);
+      log.info(
+          "Special selection notification sent: changeType={}, productId={}",
+          changeType,
+          event.productId());
     } catch (Exception e) {
       log.error(
-          "Failed to send special selection notification: productId={}, error={}",
-          config.productId(),
+          "Failed to send special selection notification: changeType={}, productId={}, error={}",
+          changeType,
+          event.productId(),
           e.getMessage(),
           e);
     }

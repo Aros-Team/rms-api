@@ -54,6 +54,16 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
   }
 
   @Override
+  public List<Product> findAllById(List<Long> ids) {
+    if (ids == null || ids.isEmpty()) {
+      return List.of();
+    }
+    return productRepository.findAllById(ids).stream()
+        .map(productMapper::toProductDomain)
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public Page<Product> findAllActive(Pageable pageable) {
     return productRepository.findAllActive(true, pageable).map(productMapper::toProductDomain);
   }

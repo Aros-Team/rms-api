@@ -76,4 +76,14 @@ public interface ProductUseCase {
    * @return page of active products
    */
   Page<Product> findAllActive(Pageable pageable);
+
+  /**
+   * Retrieves all active products with pagination, optionally including special selection products.
+   * When {@code includeSelections} is false (default), only standard products are returned.
+   *
+   * @param pageable pagination parameters
+   * @param includeSelections if true, include special selection products
+   * @return page of active products
+   */
+  Page<Product> findAllActive(Pageable pageable, boolean includeSelections);
 }

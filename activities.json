@@ -96,46 +96,46 @@
       {
         "id": "a",
         "description": "Order response: expose selectedProductIds, additions, clarifications with resolved names",
-        "status": "in_progress",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
         "description": "Schedule enforcement: TakeOrderService + UpdateOrderService + 409 exception",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
         "description": "WebSocket envelope: changeType, productId, active, selection fields",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
         "description": "Active-toggle PATCH endpoint + suggest-price enrichment (productId + name in breakdown)",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "e",
         "description": "Products includeSelections filter + selectionType/imageUrl in ProductResponse",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "f",
         "description": "Question types: V31 migration + QuestionType enum + ClarificationAnswer updates",
-        "status": "pending",
+        "status": "done",
         "agent": "implementer"
       },
       {
         "id": "g",
         "description": "Update tests + verify harness green",
-        "status": "pending",
-        "agent": "implementer"
+        "status": "done",
+        "agent": "reviewer"
       }
     ],
-    "status": "in_progress"
+    "status": "done"
   }
 ]

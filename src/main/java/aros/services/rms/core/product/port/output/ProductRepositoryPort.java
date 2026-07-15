@@ -34,6 +34,14 @@ public interface ProductRepositoryPort {
   List<Product> findAll();
 
   /**
+   * Finds all products by their identifiers.
+   *
+   * @param ids list of product identifiers
+   * @return list of products matching the given identifiers
+   */
+  List<Product> findAllById(List<Long> ids);
+
+  /**
    * Finds all products for specific categories.
    *
    * @param categoryIds list of category identifiers

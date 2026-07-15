@@ -28,7 +28,13 @@ public record ProductResponse(
     @Schema(description = "Recipe ingredients required to prepare this product")
         List<RecipeItemResponse> recipe,
     @Schema(description = "Estimated preparation time in minutes", example = "15")
-        Integer estimatedPrepMinutes) {
+        Integer estimatedPrepMinutes,
+    @Schema(
+            description = "Selection type (SPECIAL_SELECTION or STANDARD)",
+            example = "SPECIAL_SELECTION")
+        String selectionType,
+    @Schema(description = "Primary image URL", example = "/api/v1/products/123/images")
+        String imageUrl) {
 
   /** Nested DTO representing a single recipe item (supply variant + quantity). */
   @Schema(description = "A single ingredient in the product recipe")
@@ -72,6 +78,36 @@ public record ProductResponse(
         product.getPreparationAreaId(),
         product.getPreparationAreaName(),
         recipeItems,
-        product.getEstimatedPrepMinutes());
+        product.getEstimatedPrepMinutes(),
+        product.getSelectionType() != null ? product.getSelectionType().name() : "STANDARD",
+        null);
+  }
+
+  /**
+   * Creates a response from a domain object with the primary image URL resolved separately.
+   *
+   * @param product the product
+   * @param imageUrl the resolved primary image URL (may be null)
+   * @return the response DTO
+   */
+  public static ProductResponse fromDomain(Product product, String imageUrl) {
+    ProductResponse base = fromDomain(product);
+    if (base == null) {
+      return null;
+    }
+    return new ProductResponse(
+        base.id(),
+        base.name(),
+        base.description(),
+        base.basePrice(),
+        base.active(),
+        base.categoryId(),
+        base.categoryName(),
+        base.areaId(),
+        base.areaName(),
+        base.recipe(),
+        base.estimatedPrepMinutes(),
+        base.selectionType(),
+        imageUrl);
   }
 }

@@ -19,6 +19,7 @@ import aros.services.rms.core.order.port.input.UpdateOrderUseCase;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.core.specialselection.application.service.SpecialSelectionAvailabilityService;
 import aros.services.rms.core.specialselection.application.service.SpecialSelectionPricingService;
 import aros.services.rms.core.specialselection.application.service.SpecialSelectionValidator;
 import aros.services.rms.core.specialselection.port.output.SpecialSelectionRepositoryPort;
@@ -46,7 +47,8 @@ public class OrderConfigBeans {
       BusinessMetricsPort metricsPort,
       SpecialSelectionRepositoryPort specialSelectionRepositoryPort,
       SpecialSelectionValidator specialSelectionValidator,
-      SpecialSelectionPricingService specialSelectionPricingService) {
+      SpecialSelectionPricingService specialSelectionPricingService,
+      SpecialSelectionAvailabilityService specialSelectionAvailabilityService) {
     return new TakeOrderService(
         orderRepositoryPort,
         tableRepositoryPort,
@@ -57,7 +59,8 @@ public class OrderConfigBeans {
         metricsPort,
         specialSelectionRepositoryPort,
         specialSelectionValidator,
-        specialSelectionPricingService);
+        specialSelectionPricingService,
+        specialSelectionAvailabilityService);
   }
 
   /**
@@ -76,7 +79,8 @@ public class OrderConfigBeans {
       BusinessMetricsPort metricsPort,
       SpecialSelectionRepositoryPort specialSelectionRepositoryPort,
       SpecialSelectionValidator specialSelectionValidator,
-      SpecialSelectionPricingService specialSelectionPricingService) {
+      SpecialSelectionPricingService specialSelectionPricingService,
+      SpecialSelectionAvailabilityService specialSelectionAvailabilityService) {
     return new UpdateOrderService(
         orderRepositoryPort,
         tableRepositoryPort,
@@ -87,7 +91,8 @@ public class OrderConfigBeans {
         metricsPort,
         specialSelectionRepositoryPort,
         specialSelectionValidator,
-        specialSelectionPricingService);
+        specialSelectionPricingService,
+        specialSelectionAvailabilityService);
   }
 
   /**

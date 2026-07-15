@@ -29,6 +29,7 @@ public class SuggestedPrice {
   @AllArgsConstructor
   public static class CostBreakdownItem {
     private Long optionId;
+    private Long productId;
     private String name;
     private BigDecimal cost;
   }

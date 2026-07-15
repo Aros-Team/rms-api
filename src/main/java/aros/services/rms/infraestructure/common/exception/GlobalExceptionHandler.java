@@ -23,6 +23,7 @@ import aros.services.rms.core.schedule.application.exception.ScheduleNotFoundExc
 import aros.services.rms.core.schedule.application.exception.ShiftOverlapException;
 import aros.services.rms.core.schedule.application.exception.WorkerNotInShiftException;
 import aros.services.rms.core.schedule.application.exception.WorkerScheduleAssignmentNotFoundException;
+import aros.services.rms.core.specialselection.application.exception.SpecialSelectionNotAvailableException;
 import aros.services.rms.core.table.application.exception.InvalidTableStatusException;
 import aros.services.rms.core.user.application.exception.InvalidSalaryException;
 import java.util.Map;
@@ -109,6 +110,13 @@ public class GlobalExceptionHandler {
   }
 
   // --- Inventory exceptions ---
+
+  /** Handles SpecialSelectionNotAvailableException. */
+  @ExceptionHandler(SpecialSelectionNotAvailableException.class)
+  public ResponseEntity<ErrorResponse> handleSpecialSelectionNotAvailable(
+      SpecialSelectionNotAvailableException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
 
   /** Handles InsufficientStockException. */
   @ExceptionHandler(InsufficientStockException.class)
@@ -308,6 +316,9 @@ public class GlobalExceptionHandler {
       }
       if (cause instanceof InvalidProductOptionException ex) {
         return handleInvalidProductOption(ex);
+      }
+      if (cause instanceof SpecialSelectionNotAvailableException ex) {
+        return handleSpecialSelectionNotAvailable(ex);
       }
     }
     log.error(

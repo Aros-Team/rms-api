@@ -1,6 +1,7 @@
 package aros.services.rms.core.specialselection.application.service;
 
 import aros.services.rms.core.order.domain.ClarificationAnswer;
+import aros.services.rms.core.specialselection.domain.QuestionType;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionAddition;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionGroup;
@@ -162,14 +163,25 @@ public class SpecialSelectionValidator {
       }
       for (SpecialSelectionQuestion q : config.getQuestions()) {
         if (q.isRequired()) {
-          boolean answered =
+          ClarificationAnswer matchingAnswer =
               clarifications.stream()
-                  .anyMatch(
-                      ca ->
-                          ca.getQuestionId().equals(q.getId())
-                              && ca.getAnswer() != null
-                              && !ca.getAnswer().isBlank());
-          if (!answered) {
+                  .filter(ca -> ca.getQuestionId().equals(q.getId()))
+                  .findFirst()
+                  .orElse(null);
+          boolean hasAnswer =
+              matchingAnswer != null
+                  && matchingAnswer.getAnswer() != null
+                  && !matchingAnswer.getAnswer().isBlank();
+          QuestionType type = q.getQuestionType() != null ? q.getQuestionType() : QuestionType.TEXT;
+          if (!hasAnswer && type != QuestionType.BOOLEAN) {
+            errors.add("question '" + q.getQuestion() + "' is required but not answered");
+          } else if (type == QuestionType.BOOLEAN && matchingAnswer != null) {
+            String ans = matchingAnswer.getAnswer();
+            if (ans == null || (!ans.equalsIgnoreCase("true") && !ans.equalsIgnoreCase("false"))) {
+              errors.add(
+                  "question '" + q.getQuestion() + "' requires a boolean answer (true/false)");
+            }
+          } else if (!hasAnswer) {
             errors.add("question '" + q.getQuestion() + "' is required but not answered");
           }
         }

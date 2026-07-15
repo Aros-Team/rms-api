@@ -12,6 +12,7 @@ import aros.services.rms.core.order.port.input.PreparationUseCase;
 import aros.services.rms.core.order.port.input.TakeOrderUseCase;
 import aros.services.rms.core.order.port.input.UpdateOrderUseCase;
 import aros.services.rms.infraestructure.order.api.dto.OrderResponse;
+import aros.services.rms.infraestructure.order.api.dto.OrderResponseMapper;
 import aros.services.rms.infraestructure.order.api.dto.TakeOrderRequest;
 import aros.services.rms.infraestructure.table.api.TableNotificationService;
 import aros.services.rms.infraestructure.table.api.dto.TableResponse;
@@ -56,6 +57,7 @@ public class OrderController {
   private final OrderQueryUseCase orderQueryUseCase;
   private final OrderNotificationService orderNotificationService;
   private final TableNotificationService tableNotificationService;
+  private final OrderResponseMapper orderResponseMapper;
 
   /**
    * Takes a new order.
@@ -100,7 +102,7 @@ public class OrderController {
             .build();
 
     Order order = takeOrderUseCase.execute(command);
-    OrderResponse response = OrderResponse.fromDomain(order);
+    OrderResponse response = orderResponseMapper.toResponse(order);
     orderNotificationService.notifyOrderCreated(response);
     if (order.getTable() != null) {
       tableNotificationService.notifyTableStatusChanged(TableResponse.fromDomain(order.getTable()));
@@ -134,7 +136,7 @@ public class OrderController {
   public ResponseEntity<OrderResponse> cancelOrder(
       @Parameter(description = "Order ID", example = "1", required = true) @PathVariable Long id) {
     Order order = updateOrderUseCase.cancel(id);
-    OrderResponse response = OrderResponse.fromDomain(order);
+    OrderResponse response = orderResponseMapper.toResponse(order);
     orderNotificationService.notifyOrderCancelled(response);
     if (order.getTable() != null) {
       tableNotificationService.notifyTableStatusChanged(TableResponse.fromDomain(order.getTable()));
@@ -188,7 +190,7 @@ public class OrderController {
             .build();
 
     Order order = updateOrderUseCase.update(id, command);
-    return ResponseEntity.ok(OrderResponse.fromDomain(order));
+    return ResponseEntity.ok(orderResponseMapper.toResponse(order));
   }
 
   /**
@@ -216,7 +218,7 @@ public class OrderController {
   @PutMapping("/prepare")
   public ResponseEntity<OrderResponse> prepareNextOrder() {
     Order order = preparationUseCase.processNextOrder();
-    OrderResponse response = OrderResponse.fromDomain(order);
+    OrderResponse response = orderResponseMapper.toResponse(order);
     orderNotificationService.notifyOrderPreparing(response);
     return ResponseEntity.ok(response);
   }
@@ -249,7 +251,7 @@ public class OrderController {
   public ResponseEntity<OrderResponse> markOrderAsReady(
       @Parameter(description = "Order ID", example = "1", required = true) @PathVariable Long id) {
     Order order = markAsReadyUseCase.markAsReady(id);
-    OrderResponse response = OrderResponse.fromDomain(order);
+    OrderResponse response = orderResponseMapper.toResponse(order);
     orderNotificationService.notifyOrderReady(response);
     return ResponseEntity.ok(response);
   }
@@ -282,7 +284,7 @@ public class OrderController {
   public ResponseEntity<OrderResponse> deliverOrder(
       @Parameter(description = "Order ID", example = "1", required = true) @PathVariable Long id) {
     Order order = deliveryUseCase.markAsDelivered(id);
-    OrderResponse response = OrderResponse.fromDomain(order);
+    OrderResponse response = orderResponseMapper.toResponse(order);
     orderNotificationService.notifyOrderDelivered(response);
     if (order.getTable() != null) {
       tableNotificationService.notifyTableStatusChanged(TableResponse.fromDomain(order.getTable()));
@@ -342,7 +344,7 @@ public class OrderController {
 
     List<Order> orders = orderQueryUseCase.findOrders(orderStatus, startDate, endDate);
     List<OrderResponse> responses =
-        orders.stream().map(OrderResponse::fromDomain).collect(Collectors.toList());
+        orders.stream().map(orderResponseMapper::toResponse).collect(Collectors.toList());
     return ResponseEntity.ok(responses);
   }
 }

@@ -30,7 +30,10 @@ public record SuggestedPriceResponse(
         price.getMarginPercent(),
         price.getBreakdown() != null
             ? price.getBreakdown().stream()
-                .map(b -> new CostBreakdownItem(b.getOptionId(), b.getName(), b.getCost()))
+                .map(
+                    b ->
+                        new CostBreakdownItem(
+                            b.getOptionId(), b.getProductId(), b.getName(), b.getCost()))
                 .collect(Collectors.toList())
             : null);
   }
@@ -39,6 +42,7 @@ public record SuggestedPriceResponse(
   @Schema(description = "Individual cost item")
   public record CostBreakdownItem(
       @Schema(description = "Product option ID (null for base recipe)") Long optionId,
-      @Schema(description = "Item name") String name,
+      @Schema(description = "Product ID (null for base recipe)") Long productId,
+      @Schema(description = "Item display name") String name,
       @Schema(description = "Cost") BigDecimal cost) {}
 }

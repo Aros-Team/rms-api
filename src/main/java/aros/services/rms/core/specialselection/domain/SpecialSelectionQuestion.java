@@ -19,4 +19,5 @@ public class SpecialSelectionQuestion {
   private String question;
   private boolean required;
   private int displayOrder;
+  @Builder.Default private QuestionType questionType = QuestionType.TEXT;
 }

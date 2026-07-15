@@ -119,13 +119,15 @@ public record SpecialSelectionResponse(
       @Schema(description = "Question ID") Long id,
       @Schema(description = "Question text") String question,
       @Schema(description = "Whether required") boolean required,
-      @Schema(description = "Display order") int displayOrder) {
+      @Schema(description = "Display order") int displayOrder,
+      @Schema(description = "Question type", example = "TEXT") String questionType) {
     static QuestionResponse fromDomain(SpecialSelectionQuestion question) {
       return new QuestionResponse(
           question.getId(),
           question.getQuestion(),
           question.isRequired(),
-          question.getDisplayOrder());
+          question.getDisplayOrder(),
+          question.getQuestionType() != null ? question.getQuestionType().name() : "TEXT");
     }
   }
 

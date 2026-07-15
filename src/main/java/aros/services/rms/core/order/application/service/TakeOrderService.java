@@ -16,6 +16,8 @@ import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.core.specialselection.application.exception.SpecialSelectionNotAvailableException;
+import aros.services.rms.core.specialselection.application.service.SpecialSelectionAvailabilityService;
 import aros.services.rms.core.specialselection.application.service.SpecialSelectionPricingService;
 import aros.services.rms.core.specialselection.application.service.SpecialSelectionValidator;
 import aros.services.rms.core.specialselection.domain.SelectionType;
@@ -47,6 +49,7 @@ public class TakeOrderService implements TakeOrderUseCase {
   private final SpecialSelectionRepositoryPort specialSelectionRepositoryPort;
   private final SpecialSelectionValidator specialSelectionValidator;
   private final SpecialSelectionPricingService specialSelectionPricingService;
+  private final SpecialSelectionAvailabilityService specialSelectionAvailabilityService;
 
   /**
    * Creates a new take order service.
@@ -61,6 +64,7 @@ public class TakeOrderService implements TakeOrderUseCase {
    * @param specialSelectionRepositoryPort the special selection repository port
    * @param specialSelectionValidator the special selection validator
    * @param specialSelectionPricingService the special selection pricing service
+   * @param specialSelectionAvailabilityService the special selection availability service
    */
   public TakeOrderService(
       OrderRepositoryPort orderRepositoryPort,
@@ -72,7 +76,8 @@ public class TakeOrderService implements TakeOrderUseCase {
       BusinessMetricsPort metricsPort,
       SpecialSelectionRepositoryPort specialSelectionRepositoryPort,
       SpecialSelectionValidator specialSelectionValidator,
-      SpecialSelectionPricingService specialSelectionPricingService) {
+      SpecialSelectionPricingService specialSelectionPricingService,
+      SpecialSelectionAvailabilityService specialSelectionAvailabilityService) {
     this.orderRepositoryPort = orderRepositoryPort;
     this.tableRepositoryPort = tableRepositoryPort;
     this.productRepositoryPort = productRepositoryPort;
@@ -83,6 +88,7 @@ public class TakeOrderService implements TakeOrderUseCase {
     this.specialSelectionRepositoryPort = specialSelectionRepositoryPort;
     this.specialSelectionValidator = specialSelectionValidator;
     this.specialSelectionPricingService = specialSelectionPricingService;
+    this.specialSelectionAvailabilityService = specialSelectionAvailabilityService;
   }
 
   @Override
@@ -134,6 +140,10 @@ public class TakeOrderService implements TakeOrderUseCase {
               specialSelectionRepositoryPort.findById(product.getId());
           if (configOpt.isPresent()) {
             SpecialSelectionConfiguration config = configOpt.get();
+            if (!specialSelectionAvailabilityService.isAvailable(
+                config, java.time.LocalDateTime.now())) {
+              throw new SpecialSelectionNotAvailableException(product.getId());
+            }
             specialSelectionValidator.validateOrderSelections(
                 config,
                 detailCommand.getSelectedProductIds(),

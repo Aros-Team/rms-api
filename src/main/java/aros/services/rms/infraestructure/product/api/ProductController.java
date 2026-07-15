@@ -138,6 +138,7 @@ public class ProductController {
    * @param page page number (default 0)
    * @param size page size (default 20, max 100)
    * @param includeInactive if true, include inactive products (default false)
+   * @param includeSelections if true, include special selection products (default false)
    * @return the list of products
    */
   @Operation(
@@ -145,8 +146,9 @@ public class ProductController {
       summary = "Get all products",
       description =
           "Returns a paginated list of products. "
-              + "By default only returns active products. "
-              + "Can be filtered by category using the 'categories' parameter.",
+              + "By default only returns active standard products. "
+              + "Can be filtered by category using the 'categories' parameter. "
+              + "Use includeSelections=true to also return special selection products.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Products retrieved successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid pagination parameters"),
@@ -167,7 +169,12 @@ public class ProductController {
           int size,
       @Parameter(description = "Include inactive products (default false)", example = "false")
           @RequestParam(defaultValue = "false")
-          boolean includeInactive) {
+          boolean includeInactive,
+      @Parameter(
+              description = "Include special selection products (default false)",
+              example = "false")
+          @RequestParam(defaultValue = "false")
+          boolean includeSelections) {
     if (page < 0) {
       throw new IllegalArgumentException("Page parameter must be greater than or equal to 0");
     }
@@ -187,7 +194,10 @@ public class ProductController {
             start < productResponses.size() ? productResponses.subList(start, end) : List.of();
         responses = new PageImpl<>(pagedContent, pageable, productResponses.size());
       } else {
-        responses = productUseCase.findAllActive(pageable).map(ProductResponse::fromDomain);
+        responses =
+            productUseCase
+                .findAllActive(pageable, includeSelections)
+                .map(ProductResponse::fromDomain);
       }
     } else {
       List<Product> filteredProducts = productUseCase.findByCategoryIds(categories);

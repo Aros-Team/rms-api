@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.area.application.exception.AreaNotFoundException;
@@ -30,6 +31,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class ProductUseCaseImplTest {
@@ -151,5 +155,53 @@ class ProductUseCaseImplTest {
     List<Product> result = productUseCase.findAll();
 
     assertEquals(2, result.size());
+  }
+
+  @Test
+  void shouldFindAllActiveWithSelections() {
+    Pageable pageable = PageRequest.of(0, 20);
+    List<Product> products =
+        List.of(
+            Product.builder()
+                .id(1L)
+                .name("Burger")
+                .selectionType(
+                    aros.services.rms.core.specialselection.domain.SelectionType.STANDARD)
+                .build(),
+            Product.builder()
+                .id(2L)
+                .name("Special")
+                .selectionType(
+                    aros.services.rms.core.specialselection.domain.SelectionType.SPECIAL_SELECTION)
+                .build());
+    PageImpl<Product> page = new PageImpl<>(products, pageable, 2);
+
+    when(productRepositoryPort.findAllActive(pageable)).thenReturn(page);
+
+    var result = productUseCase.findAllActive(pageable, true);
+
+    assertEquals(2, result.getTotalElements());
+    verify(productRepositoryPort).findAllActive(pageable);
+  }
+
+  @Test
+  void shouldFindAllActiveWithoutSelections() {
+    Pageable pageable = PageRequest.of(0, 20);
+    List<Product> products =
+        List.of(
+            Product.builder()
+                .id(1L)
+                .name("Burger")
+                .selectionType(
+                    aros.services.rms.core.specialselection.domain.SelectionType.STANDARD)
+                .build());
+    PageImpl<Product> page = new PageImpl<>(products, pageable, 1);
+
+    when(productRepositoryPort.findAllStandard(pageable)).thenReturn(page);
+
+    var result = productUseCase.findAllActive(pageable, false);
+
+    assertEquals(1, result.getTotalElements());
+    verify(productRepositoryPort).findAllStandard(pageable);
   }
 }

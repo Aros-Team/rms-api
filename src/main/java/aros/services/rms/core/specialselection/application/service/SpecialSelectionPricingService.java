@@ -4,14 +4,18 @@ import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.inventory.domain.SupplyVariant;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
+import aros.services.rms.core.product.domain.Product;
+import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import aros.services.rms.core.specialselection.application.exception.SupplyVariantUnitCostMissingException;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionAddition;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
 import aros.services.rms.core.specialselection.domain.SuggestedPrice;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,18 +27,22 @@ public class SpecialSelectionPricingService {
 
   private final ProductRecipeRepositoryPort productRecipeRepositoryPort;
   private final SupplyVariantRepositoryPort supplyVariantRepositoryPort;
+  private final ProductRepositoryPort productRepositoryPort;
 
   /**
    * Creates a new special selection pricing service.
    *
    * @param productRecipeRepositoryPort the product recipe repository port
    * @param supplyVariantRepositoryPort the supply variant repository port
+   * @param productRepositoryPort the product repository port
    */
   public SpecialSelectionPricingService(
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
-      SupplyVariantRepositoryPort supplyVariantRepositoryPort) {
+      SupplyVariantRepositoryPort supplyVariantRepositoryPort,
+      ProductRepositoryPort productRepositoryPort) {
     this.productRecipeRepositoryPort = productRecipeRepositoryPort;
     this.supplyVariantRepositoryPort = supplyVariantRepositoryPort;
+    this.productRepositoryPort = productRepositoryPort;
   }
 
   /**
@@ -82,6 +90,14 @@ public class SpecialSelectionPricingService {
 
     Map<Long, BigDecimal> variantCost = loadVariantCosts(allProductRecipes);
 
+    // Collect all product IDs referenced in recipes and resolve names
+    Set<Long> referencedProductIds =
+        allProductRecipes.stream().map(ProductRecipe::getProductId).collect(Collectors.toSet());
+    if (config.isBaseRecipeEnabled()) {
+      referencedProductIds.add(config.getProductId());
+    }
+    Map<Long, Product> productById = loadProducts(referencedProductIds);
+
     List<Long> missingVariantIds =
         allProductRecipes.stream()
             .map(ProductRecipe::getSupplyVariantId)
@@ -105,10 +121,15 @@ public class SpecialSelectionPricingService {
       if (unitCost != null) {
         BigDecimal lineCost = recipe.getRequiredQuantity().multiply(unitCost);
         totalCost = totalCost.add(lineCost);
+        String productName =
+            productById.containsKey(recipe.getProductId())
+                ? productById.get(recipe.getProductId()).getName()
+                : "product:" + recipe.getProductId();
         breakdown.add(
             SuggestedPrice.CostBreakdownItem.builder()
                 .optionId(null)
-                .name("product:" + recipe.getProductId())
+                .productId(recipe.getProductId())
+                .name(productName)
                 .cost(lineCost)
                 .build());
       }
@@ -117,6 +138,10 @@ public class SpecialSelectionPricingService {
     if (config.isBaseRecipeEnabled()) {
       List<ProductRecipe> baseRecipes =
           productRecipeRepositoryPort.findByProductId(config.getProductId());
+      String baseProductName =
+          productById.containsKey(config.getProductId())
+              ? productById.get(config.getProductId()).getName()
+              : "base:" + config.getProductId();
       for (ProductRecipe recipe : baseRecipes) {
         BigDecimal unitCost = variantCost.get(recipe.getSupplyVariantId());
         if (unitCost != null) {
@@ -125,7 +150,8 @@ public class SpecialSelectionPricingService {
           breakdown.add(
               SuggestedPrice.CostBreakdownItem.builder()
                   .optionId(null)
-                  .name("base:" + recipe.getSupplyVariantId())
+                  .productId(null)
+                  .name(baseProductName + ":" + recipe.getSupplyVariantId())
                   .cost(lineCost)
                   .build());
         }
@@ -156,5 +182,14 @@ public class SpecialSelectionPricingService {
             Collectors.toMap(
                 SupplyVariant::getId,
                 v -> v.getUnitCost() != null ? v.getUnitCost() : BigDecimal.ZERO));
+  }
+
+  private Map<Long, Product> loadProducts(Set<Long> productIds) {
+    Map<Long, Product> result = new HashMap<>();
+    for (Long pid : productIds) {
+      Optional<Product> product = productRepositoryPort.findById(pid);
+      product.ifPresent(p -> result.put(pid, p));
+    }
+    return result;
   }
 }
