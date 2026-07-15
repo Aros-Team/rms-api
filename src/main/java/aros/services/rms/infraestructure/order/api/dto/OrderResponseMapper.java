@@ -73,7 +73,7 @@ public class OrderResponseMapper {
         detail.getId(),
         detail.getProduct() != null ? detail.getProduct().getId() : null,
         detail.getProduct() != null ? detail.getProduct().getName() : null,
-        detail.getUnitPrice(),
+        detail.getUnitPrice() != null ? detail.getUnitPrice().amount().doubleValue() : null,
         detail.getInstructions(),
         detail.getSelectedOptions() != null
             ? detail.getSelectedOptions().stream()
@@ -140,7 +140,11 @@ public class OrderResponseMapper {
                 return new SelectedProductResponse(id, null, null);
               }
               return new SelectedProductResponse(
-                  product.getId(), product.getName(), product.getBasePrice());
+                  product.getId(),
+                  product.getName(),
+                  product.getBasePrice() != null
+                      ? product.getBasePrice().amount().doubleValue()
+                      : null);
             })
         .collect(Collectors.toList());
   }

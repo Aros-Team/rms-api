@@ -3,8 +3,10 @@
 package aros.services.rms.core.product.domain;
 
 import aros.services.rms.core.category.domain.Category;
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.specialselection.domain.SelectionType;
+import java.util.Currency;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +25,7 @@ public class Product {
   private Long id;
   private String name;
   private String description;
-  private Double basePrice;
+  @Builder.Default private Money basePrice = Money.zero(Currency.getInstance("COP"));
   @Builder.Default private boolean active = true;
   private Category category;
   private Long preparationAreaId;

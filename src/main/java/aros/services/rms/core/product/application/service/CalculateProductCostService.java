@@ -63,7 +63,7 @@ public class CalculateProductCostService implements CalculateProductCostUseCase 
               .collect(
                   Collectors.toMap(
                       v -> v.getId(),
-                      v -> v.getUnitCost() != null ? v.getUnitCost() : BigDecimal.ZERO,
+                      v -> v.getUnitCost() != null ? v.getUnitCost().amount() : BigDecimal.ZERO,
                       (a, b) -> a));
 
       for (var recipe : recipes) {
@@ -98,6 +98,7 @@ public class CalculateProductCostService implements CalculateProductCostUseCase 
                       w ->
                           w.getSalary()
                               .value()
+                              .amount()
                               .divide(MONTHLY_HOURS, CALC_SCALE, RoundingMode.HALF_UP))
                   .reduce(BigDecimal.ZERO, BigDecimal::add)
                   .divide(BigDecimal.valueOf(paidWorkers.size()), CALC_SCALE, RoundingMode.HALF_UP);

@@ -2,7 +2,9 @@
 
 package aros.services.rms.core.purchase.domain;
 
+import aros.services.rms.core.common.money.domain.Money;
 import java.math.BigDecimal;
+import java.util.Currency;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,5 +22,5 @@ public class PurchaseOrderItem {
   private Long supplyVariantId;
   private BigDecimal quantityOrdered;
   private BigDecimal quantityReceived;
-  private BigDecimal unitPrice;
+  @Builder.Default private Money unitPrice = Money.zero(Currency.getInstance("COP"));
 }

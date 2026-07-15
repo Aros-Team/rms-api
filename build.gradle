@@ -129,6 +129,14 @@ if (envFile.exists()) {
 tasks.named('test') {
 	useJUnitPlatform()
 
+	// Force XML output for test results (workaround for Gradle 9 binary results file race)
+	systemProperty 'junit.platform.reporting.open.xml.enabled', 'true'
+
+	// Allow env var reflection for JwksControllerRotationIT
+	jvmArgs += [
+		'--add-opens', 'java.base/java.lang=ALL-UNNAMED'
+	]
+
     envVars.each { key, value ->
         environment key, value
     }

@@ -41,7 +41,7 @@ public record PurchaseOrderResponse(
         order.getSupplierId(),
         order.getRegisteredById(),
         order.getPurchasedAt(),
-        order.getTotalAmount(),
+        order.getTotalAmount() != null ? order.getTotalAmount().amount() : null,
         order.getNotes(),
         order.getCreatedAt(),
         items);

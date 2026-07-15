@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.application.service.InventoryMovementService;
 import aros.services.rms.core.inventory.domain.InventoryMovement;
 import aros.services.rms.core.inventory.domain.InventoryStock;
@@ -26,6 +27,7 @@ import aros.services.rms.core.purchase.port.output.PurchaseOrderRepositoryPort;
 import aros.services.rms.core.purchase.port.output.SupplierRepositoryPort;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -116,7 +118,7 @@ class InventoryMovementServiceTest {
             .supplyVariantId(VARIANT_ID)
             .quantityOrdered(new BigDecimal("10"))
             .quantityReceived(new BigDecimal("10"))
-            .unitPrice(new BigDecimal("2.50"))
+            .unitPrice(new Money(new BigDecimal("2.50"), Currency.getInstance("COP")))
             .build();
 
     PurchaseOrder order =
@@ -124,7 +126,7 @@ class InventoryMovementServiceTest {
             .supplierId(SUPPLIER_ID)
             .registeredById(1L)
             .purchasedAt(LocalDateTime.now())
-            .totalAmount(new BigDecimal("25.00"))
+            .totalAmount(new Money(new BigDecimal("25.00"), Currency.getInstance("COP")))
             .items(List.of(item))
             .build();
 
@@ -183,7 +185,7 @@ class InventoryMovementServiceTest {
             .supplyVariantId(VARIANT_ID)
             .quantityOrdered(new BigDecimal("10"))
             .quantityReceived(new BigDecimal("10"))
-            .unitPrice(new BigDecimal("2.50"))
+            .unitPrice(new Money(new BigDecimal("2.50"), Currency.getInstance("COP")))
             .build();
 
     PurchaseOrder order =
@@ -191,7 +193,7 @@ class InventoryMovementServiceTest {
             .supplierId(SUPPLIER_ID)
             .registeredById(1L)
             .purchasedAt(LocalDateTime.now())
-            .totalAmount(new BigDecimal("25.00"))
+            .totalAmount(new Money(new BigDecimal("25.00"), Currency.getInstance("COP")))
             .items(List.of(item))
             .build();
 

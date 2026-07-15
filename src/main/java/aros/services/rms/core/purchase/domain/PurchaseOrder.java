@@ -2,8 +2,9 @@
 
 package aros.services.rms.core.purchase.domain;
 
-import java.math.BigDecimal;
+import aros.services.rms.core.common.money.domain.Money;
 import java.time.LocalDateTime;
+import java.util.Currency;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,7 +22,7 @@ public class PurchaseOrder {
   private Long supplierId;
   private Long registeredById;
   private LocalDateTime purchasedAt;
-  private BigDecimal totalAmount;
+  @Builder.Default private Money totalAmount = Money.zero(Currency.getInstance("COP"));
   private String notes;
   private LocalDateTime createdAt;
   private List<PurchaseOrderItem> items;

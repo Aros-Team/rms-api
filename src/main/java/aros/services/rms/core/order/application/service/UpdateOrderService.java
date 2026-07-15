@@ -3,6 +3,7 @@
 package aros.services.rms.core.order.application.service;
 
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
@@ -27,7 +28,9 @@ import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
 import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.LoggerFactory;
@@ -155,7 +158,7 @@ public class UpdateOrderService implements UpdateOrderUseCase {
             productOptionRepositoryPort.findAllById(detailCommand.getSelectedOptionIds());
       }
 
-      double unitPrice = product.getBasePrice() != null ? product.getBasePrice() : 0.0;
+      Money unitPrice = product.getBasePrice();
 
       if (product.getSelectionType() == SelectionType.SPECIAL_SELECTION) {
         Optional<SpecialSelectionConfiguration> configOpt =
@@ -171,9 +174,10 @@ public class UpdateOrderService implements UpdateOrderUseCase {
               detailCommand.getSelectedProductIds(),
               detailCommand.getAdditionIds(),
               detailCommand.getClarifications());
-          unitPrice =
+          Double computedPrice =
               specialSelectionPricingService.computeUnitPrice(
                   config, detailCommand.getAdditionIds());
+          unitPrice = new Money(BigDecimal.valueOf(computedPrice), Currency.getInstance("COP"));
         }
       }
 

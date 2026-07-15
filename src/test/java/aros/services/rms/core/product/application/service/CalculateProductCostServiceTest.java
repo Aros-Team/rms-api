@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.area.domain.AreaId;
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.inventory.domain.SupplyVariant;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
@@ -27,6 +28,7 @@ import aros.services.rms.core.user.domain.UserRole;
 import aros.services.rms.core.user.domain.UserStatus;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -125,9 +127,18 @@ class CalculateProductCostServiceTest {
 
     List<SupplyVariant> variants =
         List.of(
-            SupplyVariant.builder().id(10L).unitCost(new BigDecimal("1000")).build(),
-            SupplyVariant.builder().id(11L).unitCost(new BigDecimal("500")).build(),
-            SupplyVariant.builder().id(12L).unitCost(new BigDecimal("200")).build());
+            SupplyVariant.builder()
+                .id(10L)
+                .unitCost(new Money(new BigDecimal("1000"), Currency.getInstance("COP")))
+                .build(),
+            SupplyVariant.builder()
+                .id(11L)
+                .unitCost(new Money(new BigDecimal("500"), Currency.getInstance("COP")))
+                .build(),
+            SupplyVariant.builder()
+                .id(12L)
+                .unitCost(new Money(new BigDecimal("200"), Currency.getInstance("COP")))
+                .build());
 
     when(productRepositoryPort.findById(PRODUCT_ID)).thenReturn(Optional.of(product));
     when(productRecipeRepositoryPort.findByProductId(PRODUCT_ID)).thenReturn(recipes);
@@ -166,7 +177,11 @@ class CalculateProductCostServiceTest {
                 .build());
 
     List<SupplyVariant> variants =
-        List.of(SupplyVariant.builder().id(10L).unitCost(new BigDecimal("1000")).build());
+        List.of(
+            SupplyVariant.builder()
+                .id(10L)
+                .unitCost(new Money(new BigDecimal("1000"), Currency.getInstance("COP")))
+                .build());
 
     User worker = buildWorker(99L, new BigDecimal("1600000"));
 
@@ -215,7 +230,11 @@ class CalculateProductCostServiceTest {
                 .build());
 
     List<SupplyVariant> variants =
-        List.of(SupplyVariant.builder().id(10L).unitCost(new BigDecimal("500")).build());
+        List.of(
+            SupplyVariant.builder()
+                .id(10L)
+                .unitCost(new Money(new BigDecimal("500"), Currency.getInstance("COP")))
+                .build());
 
     when(productRepositoryPort.findById(PRODUCT_ID)).thenReturn(Optional.of(product));
     when(productRecipeRepositoryPort.findByProductId(PRODUCT_ID)).thenReturn(recipes);

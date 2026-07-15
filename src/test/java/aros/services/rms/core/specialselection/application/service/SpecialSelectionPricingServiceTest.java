@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.inventory.domain.SupplyVariant;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
@@ -16,6 +17,7 @@ import aros.services.rms.core.specialselection.domain.SpecialSelectionConfigurat
 import aros.services.rms.core.specialselection.domain.SpecialSelectionGroup;
 import aros.services.rms.core.specialselection.domain.SuggestedPrice;
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,9 +73,15 @@ class SpecialSelectionPricingServiceTest {
             .build();
 
     SupplyVariant variant10 =
-        SupplyVariant.builder().id(VARIANT_10).unitCost(new BigDecimal("500")).build();
+        SupplyVariant.builder()
+            .id(VARIANT_10)
+            .unitCost(new Money(new BigDecimal("500"), Currency.getInstance("COP")))
+            .build();
     SupplyVariant variant20 =
-        SupplyVariant.builder().id(VARIANT_20).unitCost(new BigDecimal("300")).build();
+        SupplyVariant.builder()
+            .id(VARIANT_20)
+            .unitCost(new Money(new BigDecimal("300"), Currency.getInstance("COP")))
+            .build();
 
     Product productA = Product.builder().id(PRODUCT_ID_A).name("Hamburger").build();
     Product productB = Product.builder().id(PRODUCT_ID_B).name("French Fries").build();
@@ -126,7 +134,10 @@ class SpecialSelectionPricingServiceTest {
             .build();
 
     SupplyVariant variant =
-        SupplyVariant.builder().id(VARIANT_10).unitCost(new BigDecimal("500")).build();
+        SupplyVariant.builder()
+            .id(VARIANT_10)
+            .unitCost(new Money(new BigDecimal("500"), Currency.getInstance("COP")))
+            .build();
 
     when(productRecipeRepositoryPort.findByProductId(PRODUCT_ID_A)).thenReturn(List.of(recipe));
     when(productRecipeRepositoryPort.findByProductId(PRODUCT_ID_B)).thenReturn(List.of());
@@ -164,9 +175,15 @@ class SpecialSelectionPricingServiceTest {
             .build();
 
     SupplyVariant variant10 =
-        SupplyVariant.builder().id(VARIANT_10).unitCost(new BigDecimal("100")).build();
+        SupplyVariant.builder()
+            .id(VARIANT_10)
+            .unitCost(new Money(new BigDecimal("100"), Currency.getInstance("COP")))
+            .build();
     SupplyVariant variant20 =
-        SupplyVariant.builder().id(VARIANT_20).unitCost(new BigDecimal("50")).build();
+        SupplyVariant.builder()
+            .id(VARIANT_20)
+            .unitCost(new Money(new BigDecimal("50"), Currency.getInstance("COP")))
+            .build();
 
     Product groupProduct = Product.builder().id(PRODUCT_ID_A).name("Patty").build();
     Product baseProduct = Product.builder().id(BASE_PRODUCT_ID).name("Burger Combo").build();

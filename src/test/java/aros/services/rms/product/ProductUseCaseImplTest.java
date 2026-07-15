@@ -16,6 +16,7 @@ import aros.services.rms.core.category.application.exception.CategoryNotFoundExc
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.category.port.output.CategoryRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
@@ -24,6 +25,8 @@ import aros.services.rms.core.product.application.service.ProductService;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,7 +71,7 @@ class ProductUseCaseImplTest {
     Product product =
         Product.builder()
             .name("Burger")
-            .basePrice(10.0)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
             .category(Category.builder().id(1L).build())
             .preparationAreaId(1L)
             .build();
@@ -76,7 +79,7 @@ class ProductUseCaseImplTest {
         Product.builder()
             .id(1L)
             .name("Burger")
-            .basePrice(10.0)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
             .active(true)
             .category(Category.builder().id(1L).name("Food").build())
             .preparationAreaId(1L)
@@ -98,7 +101,7 @@ class ProductUseCaseImplTest {
     Product product =
         Product.builder()
             .name("Burger")
-            .basePrice(10.0)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
             .category(Category.builder().id(1L).build())
             .preparationAreaId(99L)
             .build();
@@ -113,7 +116,7 @@ class ProductUseCaseImplTest {
     Product product =
         Product.builder()
             .name("Burger")
-            .basePrice(10.0)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
             .category(Category.builder().id(99L).build())
             .preparationAreaId(1L)
             .build();
@@ -126,8 +129,20 @@ class ProductUseCaseImplTest {
 
   @Test
   void shouldDisableProductSuccessfully() {
-    Product existing = Product.builder().id(1L).name("Burger").active(true).basePrice(10.0).build();
-    Product saved = Product.builder().id(1L).name("Burger").active(false).basePrice(10.0).build();
+    Product existing =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .active(true)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .build();
+    Product saved =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .active(false)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .build();
 
     when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(existing));
     when(productRepositoryPort.save(any(Product.class))).thenReturn(saved);

@@ -2,8 +2,10 @@
 
 package aros.services.rms.infraestructure.inventory.persistence.jpa;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.domain.SupplyVariant;
 import aros.services.rms.infraestructure.inventory.persistence.SupplyVariantEntity;
+import java.util.Currency;
 import org.springframework.stereotype.Component;
 
 /** Mapper between SupplyVariant domain model and SupplyVariantEntity JPA entity. */
@@ -20,7 +22,7 @@ public class SupplyVariantMapper {
         .supplyId(entity.getSupply() != null ? entity.getSupply().getId() : null)
         .unitId(entity.getUnit() != null ? entity.getUnit().getId() : null)
         .quantity(entity.getQuantity())
-        .unitCost(entity.getUnitCost())
+        .unitCost(new Money(entity.getUnitCost(), Currency.getInstance("COP")))
         .build();
   }
 
@@ -32,7 +34,7 @@ public class SupplyVariantMapper {
     return SupplyVariantEntity.builder()
         .id(domain.getId())
         .quantity(domain.getQuantity())
-        .unitCost(domain.getUnitCost())
+        .unitCost(domain.getUnitCost().amount())
         .build();
   }
 }

@@ -3,6 +3,8 @@
 package aros.services.rms.infraestructure.auth.jwt;
 
 import aros.services.rms.core.area.domain.AreaId;
+import aros.services.rms.core.auth.domain.jwk.exception.NoActiveSigningKeyException;
+import aros.services.rms.core.auth.domain.jwk.port.output.JwkSourcePort;
 import aros.services.rms.core.user.domain.UserRole;
 import java.time.Duration;
 import java.time.Instant;
@@ -11,6 +13,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -28,6 +32,7 @@ public class JwtServiceImpl implements JwtService {
 
   private final JwtEncoder jwtEncoder;
   private final JwtDecoder jwtDecoder;
+  private final JwkSourcePort jwkSourcePort;
   private final String issuer;
 
   /**
@@ -35,14 +40,17 @@ public class JwtServiceImpl implements JwtService {
    *
    * @param jwtEncoder the JWT encoder
    * @param jwtDecoder the JWT decoder
+   * @param jwkSourcePort the JWK source port for active key lookup
    * @param issuer the token issuer
    */
   public JwtServiceImpl(
       JwtEncoder jwtEncoder,
       JwtDecoder jwtDecoder,
+      JwkSourcePort jwkSourcePort,
       @Value("${app.jwt.issuer:rms-api}") String issuer) {
     this.jwtEncoder = jwtEncoder;
     this.jwtDecoder = jwtDecoder;
+    this.jwkSourcePort = jwkSourcePort;
     this.issuer = issuer;
   }
 
@@ -71,7 +79,7 @@ public class JwtServiceImpl implements JwtService {
             .claim("restricted", restricted)
             .build();
 
-    return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    return jwtEncoder.encode(withKid(claims)).getTokenValue();
   }
 
   @Override
@@ -92,7 +100,7 @@ public class JwtServiceImpl implements JwtService {
             .claim("type", "refresh")
             .build();
 
-    return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    return jwtEncoder.encode(withKid(claims)).getTokenValue();
   }
 
   @Override
@@ -113,7 +121,20 @@ public class JwtServiceImpl implements JwtService {
             .claim("type", "tfa")
             .build();
 
-    return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    return jwtEncoder.encode(withKid(claims)).getTokenValue();
+  }
+
+  private JwtEncoderParameters withKid(JwtClaimsSet claims) {
+    JwsHeader header =
+        JwsHeader.with(SignatureAlgorithm.RS256)
+            .keyId(
+                jwkSourcePort
+                    .activeSigningKey()
+                    .orElseThrow(NoActiveSigningKeyException::new)
+                    .kid()
+                    .value())
+            .build();
+    return JwtEncoderParameters.from(header, claims);
   }
 
   @Override

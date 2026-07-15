@@ -2,6 +2,7 @@
 
 package aros.services.rms.infraestructure.purchase.api;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
 import aros.services.rms.core.purchase.domain.PurchaseOrderItem;
 import aros.services.rms.core.purchase.port.input.GetPurchaseHistoryUseCase;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
+import java.util.Currency;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -76,7 +78,7 @@ public class PurchaseOrderController {
                         .supplyVariantId(itemReq.supplyVariantId())
                         .quantityOrdered(itemReq.quantityOrdered())
                         .quantityReceived(itemReq.quantityReceived())
-                        .unitPrice(itemReq.unitPrice())
+                        .unitPrice(new Money(itemReq.unitPrice(), Currency.getInstance("COP")))
                         .build())
             .collect(Collectors.toList());
 
@@ -85,7 +87,7 @@ public class PurchaseOrderController {
             .supplierId(request.supplierId())
             .registeredById(request.registeredById())
             .purchasedAt(request.purchasedAt())
-            .totalAmount(request.totalAmount())
+            .totalAmount(new Money(request.totalAmount(), Currency.getInstance("COP")))
             .notes(request.notes())
             .items(items)
             .build();

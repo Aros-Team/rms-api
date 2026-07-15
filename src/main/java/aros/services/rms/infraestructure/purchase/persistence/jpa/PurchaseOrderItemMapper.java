@@ -2,10 +2,12 @@
 
 package aros.services.rms.infraestructure.purchase.persistence.jpa;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.purchase.domain.PurchaseOrderItem;
 import aros.services.rms.infraestructure.inventory.persistence.SupplyVariantEntity;
 import aros.services.rms.infraestructure.purchase.persistence.PurchaseOrderEntity;
 import aros.services.rms.infraestructure.purchase.persistence.PurchaseOrderItemEntity;
+import java.util.Currency;
 import org.springframework.stereotype.Component;
 
 /** Mapper between PurchaseOrderItem domain model and PurchaseOrderItemEntity JPA entity. */
@@ -30,7 +32,7 @@ public class PurchaseOrderItemMapper {
             entity.getSupplyVariant() != null ? entity.getSupplyVariant().getId() : null)
         .quantityOrdered(entity.getQuantityOrdered())
         .quantityReceived(entity.getQuantityReceived())
-        .unitPrice(entity.getUnitPrice())
+        .unitPrice(new Money(entity.getUnitPrice(), Currency.getInstance("COP")))
         .build();
   }
 
@@ -49,7 +51,7 @@ public class PurchaseOrderItemMapper {
             .id(domain.getId())
             .quantityOrdered(domain.getQuantityOrdered())
             .quantityReceived(domain.getQuantityReceived())
-            .unitPrice(domain.getUnitPrice())
+            .unitPrice(domain.getUnitPrice().amount())
             .build();
 
     if (domain.getPurchaseOrderId() != null) {

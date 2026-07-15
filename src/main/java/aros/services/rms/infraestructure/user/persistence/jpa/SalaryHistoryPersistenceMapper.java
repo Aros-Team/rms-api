@@ -64,6 +64,6 @@ public interface SalaryHistoryPersistenceMapper {
     if (salary == null) {
       return null;
     }
-    return salary.value();
+    return salary.value().amount();
   }
 }

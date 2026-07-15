@@ -3,6 +3,7 @@
 package aros.services.rms.infraestructure.product.api;
 
 import aros.services.rms.core.category.domain.Category;
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductCost;
@@ -19,7 +20,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -79,7 +82,8 @@ public class ProductController {
         Product.builder()
             .name(request.name())
             .description(request.description())
-            .basePrice(request.basePrice())
+            .basePrice(
+                new Money(BigDecimal.valueOf(request.basePrice()), Currency.getInstance("COP")))
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())
             .optionIds(request.optionIds())
@@ -119,7 +123,8 @@ public class ProductController {
         Product.builder()
             .name(request.name())
             .description(request.description())
-            .basePrice(request.basePrice())
+            .basePrice(
+                new Money(BigDecimal.valueOf(request.basePrice()), Currency.getInstance("COP")))
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())
             .optionIds(request.optionIds())

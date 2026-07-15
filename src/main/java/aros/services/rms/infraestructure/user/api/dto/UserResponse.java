@@ -35,6 +35,6 @@ public record UserResponse(
         user.getRole(),
         user.getStatus(),
         user.getAssignedAreas().stream().map(areaId -> areaId.value()).toList(),
-        user.getSalary() != null ? user.getSalary().value() : null);
+        user.getSalary() != null ? user.getSalary().value().amount() : null);
   }
 }

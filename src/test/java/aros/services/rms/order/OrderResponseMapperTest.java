@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.order.domain.ClarificationAnswer;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
@@ -27,7 +28,9 @@ import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.infraestructure.order.api.dto.OrderResponse;
 import aros.services.rms.infraestructure.order.api.dto.OrderResponseMapper;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,9 +64,24 @@ class OrderResponseMapperTest {
   @Test
   void should_resolveSelectedProductsAndAdditions_when_comboOrder() {
     // Arrange
-    Product burger = Product.builder().id(10L).name("Burger").basePrice(12.5).build();
-    Product fries = Product.builder().id(11L).name("Fries").basePrice(5.0).build();
-    Product drink = Product.builder().id(12L).name("Drink").basePrice(3.0).build();
+    Product burger =
+        Product.builder()
+            .id(10L)
+            .name("Burger")
+            .basePrice(new Money(BigDecimal.valueOf(12.5), Currency.getInstance("COP")))
+            .build();
+    Product fries =
+        Product.builder()
+            .id(11L)
+            .name("Fries")
+            .basePrice(new Money(BigDecimal.valueOf(5.0), Currency.getInstance("COP")))
+            .build();
+    Product drink =
+        Product.builder()
+            .id(12L)
+            .name("Drink")
+            .basePrice(new Money(BigDecimal.valueOf(3.0), Currency.getInstance("COP")))
+            .build();
 
     SpecialSelectionAddition addition =
         SpecialSelectionAddition.builder().id(5L).name("Extra Cheese").extraPrice(2.0).build();
@@ -83,7 +101,7 @@ class OrderResponseMapperTest {
         OrderDetail.builder()
             .id(1L)
             .product(burger)
-            .unitPrice(12.5)
+            .unitPrice(new Money(BigDecimal.valueOf(12.5), Currency.getInstance("COP")))
             .instructions("No onions")
             .selectedOptions(List.of(option))
             .selectedProductIds(List.of(10L, 11L))
@@ -144,12 +162,17 @@ class OrderResponseMapperTest {
   @Test
   void should_returnEmptyLists_when_noComboData() {
     // Arrange
-    Product product = Product.builder().id(1L).name("Pizza").basePrice(15.0).build();
+    Product product =
+        Product.builder()
+            .id(1L)
+            .name("Pizza")
+            .basePrice(new Money(BigDecimal.valueOf(15.0), Currency.getInstance("COP")))
+            .build();
     OrderDetail detail =
         OrderDetail.builder()
             .id(1L)
             .product(product)
-            .unitPrice(15.0)
+            .unitPrice(new Money(BigDecimal.valueOf(15.0), Currency.getInstance("COP")))
             .instructions(null)
             .selectedOptions(null)
             .selectedProductIds(null)
@@ -183,13 +206,18 @@ class OrderResponseMapperTest {
   @Test
   void should_handleMissingProductsGracefully_when_productNotFound() {
     // Arrange
-    Product detailProduct = Product.builder().id(1L).name("Combo").basePrice(20.0).build();
+    Product detailProduct =
+        Product.builder()
+            .id(1L)
+            .name("Combo")
+            .basePrice(new Money(BigDecimal.valueOf(20.0), Currency.getInstance("COP")))
+            .build();
 
     OrderDetail detail =
         OrderDetail.builder()
             .id(1L)
             .product(detailProduct)
-            .unitPrice(20.0)
+            .unitPrice(new Money(BigDecimal.valueOf(20.0), Currency.getInstance("COP")))
             .selectedProductIds(List.of(99L))
             .build();
 

@@ -137,5 +137,94 @@
       }
     ],
     "status": "done"
+  },
+  {
+    "id": 4,
+    "type": "chore",
+    "name": "money-value-object-refactor",
+    "title": "Money value object refactor — centralize BigDecimal money handling",
+    "description": "Create canonical Money record under core/common/money/domain/ to replace every raw monetary BigDecimal across all bounded contexts. Includes domain record, exceptions, MoneyCalculator helpers, BigDecimal→Money mappers, Jackson serializer, and a harness grep rule forbidding BigDecimal in domain/ outside the money package. All columns stay DECIMAL; mappers convert in/out. Non-breaking at DB level, but response shape changes ({amount, currency} wrapper).",
+    "acceptance": [
+      "Money record + MoneyCalculator + all exceptions exist under core/common/money/ with full unit test coverage",
+      "All monetary domain fields listed in Plan 06 §5 are typed as Money (SupplyVariant.unitCost, Product.basePrice, PurchaseOrder.totalAmount, PurchaseOrderItem.unitPrice, PurchaseSessionItem.lineTotal, PurchasePreviewLine.*.unitCost, OrderDetail.unitPrice, Salary.amount, SalaryHistoryEntry.old/newSalary)",
+      "All mappers convert BigDecimal ↔ Money losslessly",
+      "Jackson serializer emits { amount, currency } shape",
+      "Harness grep rule added: no import java.math.BigDecimal in domain/ outside common/money/ — green",
+      "No regression in ./harness/harness.sh"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Core domain: Money record, RoundingMode re-export, MoneyContext, CurrencyMismatchException, NegativeMoneyException, DivisionByZeroMoneyException, InvalidMoneyScaleException. Full MoneyTest + MoneyCalculatorTest (weightedAverage, splitEvenly, applyPercentage)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Application: MoneyCalculator pure helpers (weightedAverage, splitEvenly, applyPercentage, laborCost, taxSplit). Wire existing CalculateProductCostService CALC_SCALE=6 pattern.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Migrate all domain fields + mappers: SupplyVariant, Product, PurchaseOrder/Item, PurchaseSessionItem, PurchasePreviewLine, OrderDetail, Salary, SalaryHistoryEntry. Every BigDecimal → Money in domain, BigDecimal ↔ Money in mapper.",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Jackson MoneyJsonSerializer + config. AppMoneyProperties (rounding-mode). Harness grep rule. Remove raw BigDecimal imports from domain/ outside common/money/. Verify harness green.",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 5,
+    "type": "feat",
+    "name": "public-jwks-endpoint",
+    "title": "Public JWKS endpoint at /.well-known/jwks.json",
+    "description": "Expose the public half of the API's signing keys in RFC 7517 JWKS format at GET /.well-known/jwks.json. Supports single-key (backwards compatible) and multi-key rotation via env vars. Adds deterministic kid derivation (SHA-256 of public key DER), kid header on all generated JWTs, and a Nimbus JWKSource-based JwtEncoder. No new dependencies needed.",
+    "acceptance": [
+      "JwtConfigValidator extended to read single-key and multi-key env vars without breaking existing deployments",
+      "Every RSAKey built in SecurityConfig carries a kid derived by JwkKeyIdDeriver.from(publicKey)",
+      "JwtServiceImpl includes the kid JWS header on every generated token (access, refresh, TFA)",
+      "GET /.well-known/jwks.json returns RFC 7517-compliant JSON, public material only (no d, p, q, etc.)",
+      "Endpoint is in permitAll() of SecurityConfig (production branch) — reachable without auth",
+      "Content-Type: application/jwk-set+json",
+      "Cache-Control: public, max-age=3600 + ETag set",
+      "X-Content-Type-Options: nosniff header present",
+      "CORS open for this path",
+      "ProblemDetail (RFC 7807) returned on 503 when no keys configured",
+      "./harness/harness.sh exits 0"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Domain layer: JwkKey, JwkKeyId, JwkAlgorithm, JwkUse, JwksDocument records + exceptions (JwkKeyNotFoundException, DuplicateJwkKeyIdException, NoActiveSigningKeyException, InvalidJwkConfigurationException) + PublishJwksUseCase port + JwkSourcePort",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Infrastructure: JwkKeyIdDeriver (SHA-256 from public key DER), extended JwtConfigValidator (single-key + multi-key env var parsing), JwkSourceAdapter, JwksCacheProperties, AppJwtProperties update",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Controller + Security + JwtServiceImpl: JwksController, permit-all + CORS in SecurityConfig, kid header in JwtServiceImpl.sign(), Nimbus JWKSource-based JwtEncoder bean",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Tests: JwkKeyIdDeriverTest, JwkSourceAdapterTest, PublishJwksServiceTest, JwksControllerWebMvcTest, JwksControllerSecurityIntegrationTest, JwksResponseSchemaTest, JwksCachePropertiesBindingTest. Verify harness green.",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
   }
-]
+]  

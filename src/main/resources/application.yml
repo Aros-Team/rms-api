@@ -18,6 +18,8 @@ app:
     expiration-minutes: 360
     public-key: ${JWT_PUBLIC_KEY:}
     private-key: ${JWT_PRIVATE_KEY:}
+    jwks:
+      max-age: PT1H
   email:
     base-url: ${MAIL_URL:http://localhost:8001}
   # ---------------------------------------------------------------------------

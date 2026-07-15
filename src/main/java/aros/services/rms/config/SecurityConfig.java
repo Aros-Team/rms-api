@@ -2,15 +2,22 @@
 
 package aros.services.rms.config;
 
+import aros.services.rms.core.auth.domain.jwk.JwkKey;
+import aros.services.rms.core.auth.domain.jwk.JwksDocument;
+import aros.services.rms.core.auth.domain.jwk.exception.NoActiveSigningKeyException;
+import aros.services.rms.infraestructure.auth.jwk.JwkSourceAdapter;
 import aros.services.rms.infraestructure.common.config.JwtConfigValidator;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -107,17 +114,27 @@ public class SecurityConfig {
   }
 
   /**
-   * Creates the JWT encoder for token generation.
+   * Creates the JWT encoder backed by a JWKSource that selects the active signing key dynamically.
    *
-   * @param rsaKey RSA key for signing
-   * @return JwtEncoder instance or null if key is null
+   * @param adapter adapter that loads all configured JWK keys
+   * @return JwtEncoder instance or null if keys are not configured
    */
   @Bean
-  public JwtEncoder jwtEncoder(@Nullable RSAKey rsaKey) {
-    if (rsaKey == null) {
+  public JwtEncoder jwtEncoder(JwkSourceAdapter adapter) {
+    if (!jwtConfigValidator.isConfigured()) {
       return null;
     }
-    return new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(rsaKey)));
+    JWKSource<SecurityContext> source =
+        (jwkSelector, context) -> {
+          JwksDocument doc = adapter.loadAll();
+          JWKSet jwkSet = new JWKSet(doc.keys().stream().map(JwkKey::publicJwk).toList());
+          List<JWK> matches = jwkSelector.select(jwkSet);
+          if (matches.isEmpty()) {
+            throw new NoActiveSigningKeyException();
+          }
+          return matches;
+        };
+    return new NimbusJwtEncoder(source);
   }
 
   /**
@@ -153,7 +170,8 @@ public class SecurityConfig {
                           "/health/**",
                           "/health",
                           "/metrics/**",
-                          "/api/v1/images/local/**")
+                          "/api/v1/images/local/**",
+                          "/.well-known/jwks.json")
                       .permitAll()
                       .anyRequest()
                       .authenticated())
@@ -174,7 +192,8 @@ public class SecurityConfig {
                       "/v3/api-docs/**",
                       "/health/**",
                       "/health",
-                      "/metrics/**")
+                      "/metrics/**",
+                      "/.well-known/jwks.json")
                   .permitAll()
                   .anyRequest()
                   .permitAll());

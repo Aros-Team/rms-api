@@ -181,7 +181,7 @@ public class SpecialSelectionPricingService {
         .collect(
             Collectors.toMap(
                 SupplyVariant::getId,
-                v -> v.getUnitCost() != null ? v.getUnitCost() : BigDecimal.ZERO));
+                v -> v.getUnitCost() != null ? v.getUnitCost().amount() : BigDecimal.ZERO));
   }
 
   private Map<Long, Product> loadProducts(Set<Long> productIds) {

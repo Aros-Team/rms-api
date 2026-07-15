@@ -2,11 +2,14 @@
 
 package aros.services.rms.infraestructure.product.persistence.jpa;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.specialselection.domain.SelectionType;
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
 import aros.services.rms.infraestructure.category.persistence.jpa.CategoryMapper;
+import java.math.BigDecimal;
+import java.util.Currency;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +40,10 @@ public class ProductMapper {
     return Product.builder()
         .id(entity.getId())
         .name(entity.getName())
-        .basePrice(entity.getBasePrice())
+        .basePrice(
+            entity.getBasePrice() != null
+                ? new Money(BigDecimal.valueOf(entity.getBasePrice()), Currency.getInstance("COP"))
+                : Money.zero(Currency.getInstance("COP")))
         .active(entity.isActive())
         .category(categoryMapper.toDomain(entity.getCategory()))
         .preparationAreaId(
@@ -74,7 +80,7 @@ public class ProductMapper {
         aros.services.rms.infraestructure.product.persistence.Product.builder()
             .id(domain.getId())
             .name(domain.getName())
-            .basePrice(domain.getBasePrice())
+            .basePrice(domain.getBasePrice().amount().doubleValue())
             .active(domain.isActive())
             .category(categoryMapper.toEntity(domain.getCategory()))
             .selectionType(

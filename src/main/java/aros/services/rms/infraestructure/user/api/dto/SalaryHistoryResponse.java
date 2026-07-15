@@ -28,8 +28,8 @@ public record SalaryHistoryResponse(
    */
   public static SalaryHistoryResponse fromDomain(SalaryHistoryEntry entry) {
     return new SalaryHistoryResponse(
-        entry.getOldSalary() != null ? entry.getOldSalary().value() : null,
-        entry.getNewSalary() != null ? entry.getNewSalary().value() : null,
+        entry.getOldSalary() != null ? entry.getOldSalary().value().amount() : null,
+        entry.getNewSalary() != null ? entry.getNewSalary().value().amount() : null,
         entry.getChangedAt(),
         entry.getReason(),
         entry.getObservations());

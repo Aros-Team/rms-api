@@ -2,11 +2,14 @@
 
 package aros.services.rms.infraestructure.order.persistence.jpa;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
 import aros.services.rms.infraestructure.product.persistence.jpa.ProductMapper;
 import aros.services.rms.infraestructure.table.persistence.jpa.TableMapper;
+import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -77,7 +80,7 @@ public class OrderMapper {
         .id(domain.getId())
         .order(orderEntity)
         .product(productMapper.toProductEntity(domain.getProduct()))
-        .unitPrice(domain.getUnitPrice())
+        .unitPrice(domain.getUnitPrice().amount().doubleValue())
         .instructions(domain.getInstructions())
         .selectedOptions(
             domain.getSelectedOptions() != null
@@ -137,7 +140,10 @@ public class OrderMapper {
     return OrderDetail.builder()
         .id(entity.getId())
         .product(productMapper.toProductDomain(entity.getProduct()))
-        .unitPrice(entity.getUnitPrice())
+        .unitPrice(
+            entity.getUnitPrice() != null
+                ? new Money(BigDecimal.valueOf(entity.getUnitPrice()), Currency.getInstance("COP"))
+                : Money.zero(Currency.getInstance("COP")))
         .instructions(entity.getInstructions())
         .selectedOptions(
             entity.getSelectedOptions() != null

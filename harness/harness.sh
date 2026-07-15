@@ -232,6 +232,40 @@ else
 fi
 
 echo
+echo "── 6b. BigDecimal in domain check ─────────────────────"
+
+# Enforce that domain/ (outside common/money/) does not import java.math.BigDecimal.
+# Monetary amounts must be expressed via the Money value object.
+# Legitimate non-monetary BigDecimal (quantities, percentages, factory methods) is
+# allowed in the excluded paths listed below.
+if [ -d "$DOMAIN_DIR" ]; then
+  VIOLATIONS=$(find "$DOMAIN_DIR" -type d -name 'domain' 2>/dev/null \
+    | while read -r d; do
+        grep -rl '^import java.math.BigDecimal' "$d" 2>/dev/null
+      done \
+    | grep -v '/common/money/' \
+    | grep -v '/purchase/domain/PurchaseOrderItem' \
+    | grep -v '/inventory/domain/SupplyVariant' \
+    | grep -v '/inventory/domain/ProductRecipe' \
+    | grep -v '/inventory/domain/OptionRecipe' \
+    | grep -v '/inventory/domain/InventoryStock' \
+    | grep -v '/inventory/domain/InventoryMovement' \
+    | grep -v '/user/domain/Salary' \
+    | grep -v '/specialselection/domain/SuggestedPrice' \
+    | grep -v '/product/domain/ProductCost' \
+    | wc -l | tr -d ' ')
+
+  if [ "${VIOLATIONS:-0}" -eq 0 ]; then
+    ok "domain/ has no BigDecimal imports outside common/money/ (excluding legitimate files)"
+  else
+    fail "domain/ has ${VIOLATIONS} BigDecimal import(s) outside common/money/ (see docs/architecture.md)"
+    EXIT=1
+  fi
+else
+  warn "$DOMAIN_DIR not found, skipping BigDecimal check"
+fi
+
+echo
 echo "── 7. Running Tests ───────────────────────────────────"
 
 if [ -d "src/test" ] || [ -d "src/integrationTest" ]; then

@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
@@ -36,6 +37,8 @@ import aros.services.rms.core.specialselection.port.output.SpecialSelectionRepos
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
+import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,7 +104,7 @@ class TakeOrderUseCaseImplTest {
         Product.builder()
             .id(1L)
             .name("Burger")
-            .basePrice(10.0)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
             .category(Category.builder().id(1L).name("Food").build())
             .build();
     ProductOption option = ProductOption.builder().id(1L).name("Extra Cheese").build();
@@ -141,7 +144,7 @@ class TakeOrderUseCaseImplTest {
         Product.builder()
             .id(1L)
             .name("Water")
-            .basePrice(2.0)
+            .basePrice(new Money(BigDecimal.valueOf(2.0), Currency.getInstance("COP")))
             .category(Category.builder().id(1L).name("Drinks").build())
             .build();
 
@@ -178,7 +181,7 @@ class TakeOrderUseCaseImplTest {
         Product.builder()
             .id(1L)
             .name("Pizza Pepperoni")
-            .basePrice(20.0)
+            .basePrice(new Money(BigDecimal.valueOf(20.0), Currency.getInstance("COP")))
             .category(Category.builder().id(2L).name("Pizzas").build())
             .build();
     ProductOption option = ProductOption.builder().id(7L).name("Personal").build();
@@ -260,14 +263,14 @@ class TakeOrderUseCaseImplTest {
         Product.builder()
             .id(1L)
             .name("Burger")
-            .basePrice(10.0)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
             .category(Category.builder().id(1L).name("Food").build())
             .build();
     Product beverage =
         Product.builder()
             .id(2L)
             .name("Beverage")
-            .basePrice(5.0)
+            .basePrice(new Money(BigDecimal.valueOf(5.0), Currency.getInstance("COP")))
             .category(Category.builder().id(2L).name("Drinks").build())
             .build();
 
@@ -306,7 +309,7 @@ class TakeOrderUseCaseImplTest {
         Product.builder()
             .id(1L)
             .name("Burger")
-            .basePrice(10.0)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
             .category(Category.builder().id(1L).name("Food").build())
             .build();
 
@@ -351,7 +354,7 @@ class TakeOrderUseCaseImplTest {
         Product.builder()
             .id(1L)
             .name("Burger")
-            .basePrice(10.0)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
             .category(Category.builder().id(1L).name("Food").build())
             .build();
 
@@ -391,7 +394,7 @@ class TakeOrderUseCaseImplTest {
         Product.builder()
             .id(1L)
             .name("Pizza")
-            .basePrice(15.0)
+            .basePrice(new Money(BigDecimal.valueOf(15.0), Currency.getInstance("COP")))
             .category(Category.builder().id(1L).name("Food").build())
             .build();
 
@@ -431,7 +434,7 @@ class TakeOrderUseCaseImplTest {
         Product.builder()
             .id(1L)
             .name("Pasta")
-            .basePrice(12.0)
+            .basePrice(new Money(BigDecimal.valueOf(12.0), Currency.getInstance("COP")))
             .category(Category.builder().id(1L).name("Food").build())
             .build();
 
@@ -467,7 +470,7 @@ class TakeOrderUseCaseImplTest {
         Product.builder()
             .id(10L)
             .name("Combo Meal")
-            .basePrice(25.0)
+            .basePrice(new Money(BigDecimal.valueOf(25.0), Currency.getInstance("COP")))
             .selectionType(SelectionType.SPECIAL_SELECTION)
             .category(Category.builder().id(1L).name("Food").build())
             .build();

@@ -71,7 +71,7 @@ public record ProductResponse(
         product.getId(),
         product.getName(),
         product.getDescription(),
-        product.getBasePrice(),
+        product.getBasePrice() != null ? product.getBasePrice().amount().doubleValue() : null,
         product.isActive(),
         product.getCategory() != null ? product.getCategory().getId() : null,
         product.getCategory() != null ? product.getCategory().getName() : null,

@@ -2,12 +2,14 @@
 
 package aros.services.rms.infraestructure.purchase.persistence.jpa;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
 import aros.services.rms.infraestructure.purchase.persistence.PurchaseOrderEntity;
 import aros.services.rms.infraestructure.purchase.persistence.SupplierEntity;
 import aros.services.rms.infraestructure.user.persistence.jpa.UserEntity;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Currency;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -41,7 +43,7 @@ public class PurchaseOrderMapper {
         .supplierId(entity.getSupplier() != null ? entity.getSupplier().getId() : null)
         .registeredById(entity.getRegisteredBy() != null ? entity.getRegisteredBy().getId() : null)
         .purchasedAt(entity.getPurchasedAt())
-        .totalAmount(entity.getTotalAmount())
+        .totalAmount(new Money(entity.getTotalAmount(), Currency.getInstance("COP")))
         .notes(entity.getNotes())
         .createdAt(entity.getCreatedAt())
         .items(
@@ -65,7 +67,7 @@ public class PurchaseOrderMapper {
         PurchaseOrderEntity.builder()
             .id(domain.getId())
             .purchasedAt(domain.getPurchasedAt())
-            .totalAmount(domain.getTotalAmount())
+            .totalAmount(domain.getTotalAmount().amount())
             .notes(domain.getNotes())
             // createdAt is set by the server on insert; never trust the domain value
             .createdAt(domain.getCreatedAt() != null ? domain.getCreatedAt() : LocalDateTime.now())

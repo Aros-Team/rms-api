@@ -27,6 +27,6 @@ public record PurchaseOrderItemResponse(
         item.getSupplyVariantId(),
         item.getQuantityOrdered(),
         item.getQuantityReceived(),
-        item.getUnitPrice());
+        item.getUnitPrice() != null ? item.getUnitPrice().amount() : null);
   }
 }

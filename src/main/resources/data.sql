@@ -114,144 +114,146 @@ INSERT IGNORE INTO supplies (name, supply_category_id) VALUES
 -- =============================================================================
 -- SUPPLY VARIANTS (supply_id, unit_id, quantity is UNIQUE -> INSERT IGNORE)
 -- units_of_measure seeded by V23: g=1, kg=2, l=3, u=4, lb=5, pz=6, paq=7, bot=8, lat=9
+-- unit_cost in COP, added by V27 (DECIMAL(10,2) NOT NULL DEFAULT 0.00)
+-- Prices are realistic Colombian (COP) reference values per category range.
 -- =============================================================================
-INSERT IGNORE INTO supply_variants (supply_id, unit_id, quantity) VALUES
-    -- Carne de Res Molida: 150g / 100g
-    (1,  1, 150.000), (1,  1, 100.000),
-    -- Pollo Apanado: 180g
-    (2,  1, 180.000),
-    -- Lenteja Preparada: 150g
-    (3,  1, 150.000),
-    -- Pechuga de Pollo: 200g / 100g
-    (4,  1, 200.000), (4,  1, 100.000),
-    -- Carne de Cerdo: 200g
-    (5,  1, 200.000),
-    -- Camarón Tigre: 6u
-    (6,  4,   6.000),
-    -- Baby Beef: 300g
-    (7,  1, 300.000),
-    -- Churrasco: 300g
-    (8,  1, 300.000),
-    -- Entrecot: 300g
-    (9,  1, 300.000),
-    -- Huevo: 1u / 2u
-    (10, 4,   1.000), (10, 4,   2.000),
-    -- Lechuga Crespa: 20g
-    (11, 1,  20.000),
-    -- Tomate: 2u
-    (12, 4,   2.000),
-    -- Cebolla Blanca: 10g
-    (13, 1,  10.000),
-    -- Pepinillos: 3u
-    (14, 4,   3.000),
-    -- Pimentón Verde: 30g
-    (15, 1,  30.000),
-    -- Hierbabuena Fresca: 2u
-    (16, 4,   2.000),
-    -- Albahaca Fresca: 1u
-    (17, 4,   1.000),
-    -- Champiñón Laminado: 80g
-    (18, 1,  80.000),
-    -- Repollo: 50g
-    (19, 1,  50.000),
-    -- Zanahoria: 30g
-    (20, 1,  30.000),
-    -- Plátano Maduro: 0.5u
-    (21, 4,   0.500),
-    -- Papa Criolla: 150g
-    (22, 1, 150.000),
-    -- Yuca: 150g
-    (23, 1, 150.000),
-    -- Papa Salada: 1u
-    (24, 4,   1.000),
-    -- Queso Cheddar: 2u
-    (25, 4,   2.000),
-    -- Queso Mozzarella: 2 láminas / 200g rallado
-    (26, 4,   2.000), (26, 1, 200.000),
-    -- Queso Parmesano: 15g
-    (27, 1,  15.000),
-    -- Queso Crema: 80g
-    (28, 1,  80.000),
-    -- Crema de Leche: 100ml (0.100 l)
-    (29, 3,   0.100),
-    -- Mantequilla: 30g
-    (30, 1,  30.000),
-    -- Pan Brioche: 1u
-    (31, 4,   1.000),
-    -- Pan Francés: 1u
-    (32, 4,   1.000),
-    -- Harina de Trigo: 400g
-    (33, 1, 400.000),
-    -- Levadura Seca: 10g
-    (34, 1,  10.000),
-    -- Salsa de Tomate Base: 100ml
-    (35, 3,   0.100),
-    -- Chimichurri Preparado: 10g
-    (36, 1,  10.000),
-    -- Crema de Coco: 30ml
-    (37, 3,   0.030),
-    -- Sal Refinada: 5g
-    (38, 1,   5.000),
-    -- Sal Parrillera: 5g
-    (39, 1,   5.000),
-    -- Orégano Seco: 1u
-    (40, 4,   1.000),
-    -- Pimienta Negra: 1u
-    (41, 4,   1.000),
-    -- Tocineta Ahumada: 2 tiras / 50g
-    (42, 4,   2.000), (42, 1,  50.000),
-    -- Pepperoni: 100g
-    (43, 1, 100.000),
-    -- Jamón Cocido: 100g
-    (44, 1, 100.000),
-    -- Bocadillo: 80g
-    (45, 1,  80.000),
-    -- Limón Tahití: 2u
-    (46, 4,   2.000),
-    -- Pulpa de Mango: 100g
-    (47, 1, 100.000),
-    -- Pulpa de Mora: 100g
-    (48, 1, 100.000),
-    -- Pulpa de Lulo: 100g
-    (49, 1, 100.000),
-    -- Piña en Almíbar: 60g
-    (50, 1,  60.000),
-    -- Azúcar Blanca: 20g
-    (51, 1,  20.000),
-    -- Stevia: 1u
-    (52, 4,   1.000),
-    -- Miel de Abejas: 15ml
-    (53, 3,   0.015),
-    -- Empaque Caja Cartón: 1u
-    (54, 4,   1.000),
-    -- Vaso Plástico: 1u
-    (55, 4,   1.000),
-    -- Vaso de Vidrio: 1u
-    (56, 4,   1.000),
-    -- Pitillo de Papel: 2u
-    (57, 4,   2.000),
-    -- Papa a la Francesa Congelada: 150g
-    (58, 1, 150.000),
-    -- Papa en Cascos: 150g
-    (59, 1, 150.000),
-    -- Patacón Prefrito: 1u
-    (60, 4,   1.000),
-    -- Arroz Blanco: 100g
-    (61, 1, 100.000),
-    -- Frijol Cargamanto: 80g
-    (62, 1,  80.000),
-    -- Lenteja Seca: 80g
-    (63, 1,  80.000),
-    -- Maíz Tierno en Lata: 40g
-    (64, 1,  40.000),
-    -- Pasta Larga Fettuccine: 200g
-    (65, 1, 200.000),
-    -- Pasta Corta Penne: 200g / 100g
-    (66, 1, 200.000), (66, 1, 100.000),
-    -- Aceite Vegetal: 10ml
-    (67, 3,   0.010),
-    -- Hielo en Cubo: 150g
-    (68, 1, 150.000);
+INSERT IGNORE INTO supply_variants (supply_id, unit_id, quantity, unit_cost) VALUES
+    -- Carne de Res Molida: 150g / 100g (~35,000 COP/kg)
+    (1,  1, 150.000,  5250.00), (1,  1, 100.000,  3500.00),
+    -- Pollo Apanado: 180g (~28,000 COP/kg)
+    (2,  1, 180.000,  5040.00),
+    -- Lenteja Preparada: 150g (~12,000 COP/kg)
+    (3,  1, 150.000,  1800.00),
+    -- Pechuga de Pollo: 200g / 100g (~25,000 COP/kg)
+    (4,  1, 200.000,  5000.00), (4,  1, 100.000,  2500.00),
+    -- Carne de Cerdo: 200g (~30,000 COP/kg)
+    (5,  1, 200.000,  6000.00),
+    -- Camarón Tigre: 6u (~120g, ~80,000 COP/kg)
+    (6,  4,   6.000,  9600.00),
+    -- Baby Beef: 300g (~45,000 COP/kg)
+    (7,  1, 300.000, 13500.00),
+    -- Churrasco: 300g (~42,000 COP/kg)
+    (8,  1, 300.000, 12600.00),
+    -- Entrecot: 300g (~48,000 COP/kg)
+    (9,  1, 300.000, 14400.00),
+    -- Huevo: 1u / 2u (~800 COP/u)
+    (10, 4,   1.000,   800.00), (10, 4,   2.000,  1600.00),
+    -- Lechuga Crespa: 20g (~3,500 COP/kg)
+    (11, 1,  20.000,    70.00),
+    -- Tomate: 2u (~120g, ~4,000 COP/kg)
+    (12, 4,   2.000,   480.00),
+    -- Cebolla Blanca: 10g (~3,000 COP/kg)
+    (13, 1,  10.000,    30.00),
+    -- Pepinillos: 3u (~60g, ~8,000 COP/kg)
+    (14, 4,   3.000,   480.00),
+    -- Pimentón Verde: 30g (~5,000 COP/kg)
+    (15, 1,  30.000,   150.00),
+    -- Hierbabuena Fresca: 2u (~10g, ~12,000 COP/kg)
+    (16, 4,   2.000,   120.00),
+    -- Albahaca Fresca: 1u (~5g, ~15,000 COP/kg)
+    (17, 4,   1.000,    75.00),
+    -- Champiñón Laminado: 80g (~9,000 COP/kg)
+    (18, 1,  80.000,   720.00),
+    -- Repollo: 50g (~2,500 COP/kg)
+    (19, 1,  50.000,   125.00),
+    -- Zanahoria: 30g (~3,000 COP/kg)
+    (20, 1,  30.000,    90.00),
+    -- Plátano Maduro: 0.5u (~150g, ~3,500 COP/kg)
+    (21, 4,   0.500,   525.00),
+    -- Papa Criolla: 150g (~5,000 COP/kg)
+    (22, 1, 150.000,   750.00),
+    -- Yuca: 150g (~3,500 COP/kg)
+    (23, 1, 150.000,   525.00),
+    -- Papa Salada: 1u (~200g, ~4,500 COP/kg)
+    (24, 4,   1.000,   900.00),
+    -- Queso Cheddar: 2u (~60g, ~35,000 COP/kg)
+    (25, 4,   2.000,  2100.00),
+    -- Queso Mozzarella: 2 láminas / 200g rallado (~28,000 COP/kg)
+    (26, 4,   2.000,  1680.00), (26, 1, 200.000,  5600.00),
+    -- Queso Parmesano: 15g (~65,000 COP/kg)
+    (27, 1,  15.000,   975.00),
+    -- Queso Crema: 80g (~20,000 COP/kg)
+    (28, 1,  80.000,  1600.00),
+    -- Crema de Leche: 100ml / 0.100 l (~22,000 COP/l)
+    (29, 3,   0.100,  2200.00),
+    -- Mantequilla: 30g (~30,000 COP/kg)
+    (30, 1,  30.000,   900.00),
+    -- Pan Brioche: 1u (~2,500 COP/u)
+    (31, 4,   1.000,  2500.00),
+    -- Pan Francés: 1u (~1,500 COP/u)
+    (32, 4,   1.000,  1500.00),
+    -- Harina de Trigo: 400g (~4,500 COP/kg)
+    (33, 1, 400.000,  1800.00),
+    -- Levadura Seca: 10g (~18,000 COP/kg)
+    (34, 1,  10.000,   180.00),
+    -- Salsa de Tomate Base: 100ml / 0.100 l (~12,000 COP/l)
+    (35, 3,   0.100,  1200.00),
+    -- Chimichurri Preparado: 10g (~25,000 COP/kg)
+    (36, 1,  10.000,   250.00),
+    -- Crema de Coco: 30ml / 0.030 l (~18,000 COP/l)
+    (37, 3,   0.030,   540.00),
+    -- Sal Refinada: 5g (~1,200 COP/kg)
+    (38, 1,   5.000,     6.00),
+    -- Sal Parrillera: 5g (~2,500 COP/kg)
+    (39, 1,   5.000,    12.50),
+    -- Orégano Seco: 1u (~2g, ~25,000 COP/kg)
+    (40, 4,   1.000,    50.00),
+    -- Pimienta Negra: 1u (~2g, ~45,000 COP/kg)
+    (41, 4,   1.000,    90.00),
+    -- Tocineta Ahumada: 2 tiras / 50g (~35,000 COP/kg)
+    (42, 4,   2.000,  1400.00), (42, 1,  50.000,  1750.00),
+    -- Pepperoni: 100g (~32,000 COP/kg)
+    (43, 1, 100.000,  3200.00),
+    -- Jamón Cocido: 100g (~22,000 COP/kg)
+    (44, 1, 100.000,  2200.00),
+    -- Bocadillo: 80g (~18,000 COP/kg)
+    (45, 1,  80.000,  1440.00),
+    -- Limón Tahití: 2u (~120g, ~5,000 COP/kg)
+    (46, 4,   2.000,   600.00),
+    -- Pulpa de Mango: 100g (~12,000 COP/kg)
+    (47, 1, 100.000,  1200.00),
+    -- Pulpa de Mora: 100g (~14,000 COP/kg)
+    (48, 1, 100.000,  1400.00),
+    -- Pulpa de Lulo: 100g (~13,000 COP/kg)
+    (49, 1, 100.000,  1300.00),
+    -- Piña en Almíbar: 60g (~9,000 COP/kg)
+    (50, 1,  60.000,   540.00),
+    -- Azúcar Blanca: 20g (~4,000 COP/kg)
+    (51, 1,  20.000,    80.00),
+    -- Stevia: 1u (~1g, ~25,000 COP/kg)
+    (52, 4,   1.000,    25.00),
+    -- Miel de Abejas: 15ml / 0.015 l (~22,000 COP/l)
+    (53, 3,   0.015,   330.00),
+    -- Empaque Caja Cartón: 1u (~1,200 COP/u)
+    (54, 4,   1.000,  1200.00),
+    -- Vaso Plástico: 1u (~350 COP/u)
+    (55, 4,   1.000,   350.00),
+    -- Vaso de Vidrio: 1u (~1,500 COP/u)
+    (56, 4,   1.000,  1500.00),
+    -- Pitillo de Papel: 2u (~300 COP/u)
+    (57, 4,   2.000,   600.00),
+    -- Papa a la Francesa Congelada: 150g (~10,000 COP/kg)
+    (58, 1, 150.000,  1500.00),
+    -- Papa en Cascos: 150g (~11,000 COP/kg)
+    (59, 1, 150.000,  1650.00),
+    -- Patacón Prefrito: 1u (~120g, ~12,000 COP/kg)
+    (60, 4,   1.000,  1440.00),
+    -- Arroz Blanco: 100g (~4,500 COP/kg)
+    (61, 1, 100.000,   450.00),
+    -- Frijol Cargamanto: 80g (~12,000 COP/kg)
+    (62, 1,  80.000,   960.00),
+    -- Lenteja Seca: 80g (~7,000 COP/kg)
+    (63, 1,  80.000,   560.00),
+    -- Maíz Tierno en Lata: 40g (~8,000 COP/kg)
+    (64, 1,  40.000,   320.00),
+    -- Pasta Larga Fettuccine: 200g (~7,500 COP/kg)
+    (65, 1, 200.000,  1500.00),
+    -- Pasta Corta Penne: 200g / 100g (~7,000 COP/kg)
+    (66, 1, 200.000,  1400.00), (66, 1, 100.000,   700.00),
+    -- Aceite Vegetal: 10ml / 0.010 l (~15,000 COP/l)
+    (67, 3,   0.010,   150.00),
+    -- Hielo en Cubo: 150g (~2,500 COP/kg)
+    (68, 1, 150.000,   375.00);
 
 -- =============================================================================
 -- INVENTORY STOCK (supply_variant_id, storage_location_id is UNIQUE -> INSERT IGNORE)
@@ -455,93 +457,93 @@ FROM dual WHERE @ocat_count = 0;
 -- =============================================================================
 SET @prod_count = (SELECT COUNT(*) FROM products);
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Hamburguesa Double Bacon Cheese', 28000.00, TRUE, 1, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Hamburguesa Double Bacon Cheese', 28000.00, TRUE, 1, 1, 10
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Menú del Día', 18000.00, TRUE, 2, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Menú del Día', 18000.00, TRUE, 2, 1, 25
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Pizza Especial Familiar', 38000.00, TRUE, 3, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Pizza Especial Familiar', 38000.00, TRUE, 3, 1, 25
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Pasta de la Casa', 22000.00, TRUE, 4, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Pasta de la Casa', 22000.00, TRUE, 4, 1, 18
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Corte de Res Premium', 55000.00, TRUE, 5, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Corte de Res Premium', 55000.00, TRUE, 5, 1, 22
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Limonada / Jugo Natural', 8000.00, TRUE, 6, 3
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Limonada / Jugo Natural', 8000.00, TRUE, 6, 3, 5
 FROM dual WHERE @prod_count = 0;
 
 -- V20 extra products
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Hamburguesa Clásica', 18000.00, TRUE, 1, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Hamburguesa Clásica', 18000.00, TRUE, 1, 1, 8
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Hamburguesa BBQ', 32000.00, TRUE, 1, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Hamburguesa BBQ', 32000.00, TRUE, 1, 1, 10
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Hamburguesa Veggie', 22000.00, TRUE, 1, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Hamburguesa Veggie', 22000.00, TRUE, 1, 1, 12
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Bandeja Paisa', 25000.00, TRUE, 2, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Bandeja Paisa', 25000.00, TRUE, 2, 1, 30
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Sancocho de Gallina', 22000.00, TRUE, 2, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Sancocho de Gallina', 22000.00, TRUE, 2, 1, 35
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Ajiaco Santafereño', 20000.00, TRUE, 2, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Ajiaco Santafereño', 20000.00, TRUE, 2, 1, 35
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Pizza Personal', 22000.00, TRUE, 3, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Pizza Personal', 22000.00, TRUE, 3, 1, 20
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Pizza Vegetariana', 32000.00, TRUE, 3, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Pizza Vegetariana', 32000.00, TRUE, 3, 1, 22
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Pizza Hawaiana', 30000.00, TRUE, 3, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Pizza Hawaiana', 30000.00, TRUE, 3, 1, 20
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Lasagna Clásica', 25000.00, TRUE, 4, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Lasagna Clásica', 25000.00, TRUE, 4, 1, 25
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Spaghetti Carbonara', 24000.00, TRUE, 4, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Spaghetti Carbonara', 24000.00, TRUE, 4, 1, 18
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Costillas BBQ', 42000.00, TRUE, 5, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Costillas BBQ', 42000.00, TRUE, 5, 1, 25
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Lomo de Cerdo', 38000.00, TRUE, 5, 1
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Lomo de Cerdo', 38000.00, TRUE, 5, 1, 20
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Malteada', 12000.00, TRUE, 6, 3
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Malteada', 12000.00, TRUE, 6, 3, 5
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Agua de Coco', 6000.00, TRUE, 6, 3
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Agua de Coco', 6000.00, TRUE, 6, 3, 3
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id)
-SELECT 'Té Helado', 7000.00, TRUE, 6, 3
+INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Té Helado', 7000.00, TRUE, 6, 3, 3
 FROM dual WHERE @prod_count = 0;
 
 -- =============================================================================
