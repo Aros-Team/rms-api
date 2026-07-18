@@ -1,5 +1,69 @@
 [
   {
+    "id": 8,
+    "type": "feat",
+    "name": "prime-cost-and-margins",
+    "title": "Prime Cost & Margins (analytics module 1)",
+    "description": "Implement the Prime Cost & Margins analysis endpoint per the A6 contract. Includes: monthly_financial_summary table (daily rollups), COGS calculation (inventory_movements + purchase_orders), labor cost (time_logs × salary/160), prime_cost_pct, GET /api/v1/analytics/prime-cost endpoint with all time buckets (daily/weekly/monthly/yearly).",
+    "acceptance": [
+      "V33 migration: creates monthly_financial_summary table (period_key, bucket, net_sales, gross_sales, discounts, comped, cogs_food, cogs_beverage, cogs_alcohol, cogs_other, food_cogs_pct, labor_foh, labor_boh, labor_total, labor_pct, prime_cost, prime_cost_pct, updated_at TIMESTAMP, UNIQUE(period_key, bucket))",
+      "V33 migration: CREATE INDEX idx_mfs_period ON monthly_financial_summary (bucket, period_key)",
+      "MonthlyFinancialSummary domain record",
+      "MonthlyFinancialSummaryRepositoryPort + JPA entity + adapter",
+      "RollupDailyJob: @Scheduled @SchedulerLock cron that aggregates yesterday's orders + purchases + inventory movements into a daily monthly_financial_summary row",
+      "COGS calculation: Σ(inventory_movements.quantity * supply_variant.unit_cost) grouped by supply_category.food_type (FOOD/BEVERAGE/ALCOHOL/OTHER), filtered to movements between period start/end",
+      "Labor cost calculation: Σ(time_logs.hours * user.salary / 160) grouped by user.area (FOH/BOH via FK to areas table). If salary is NULL, skip that worker with a warning log.",
+      "Net sales calculation: Σ(order_details.unit_price) - discounts - comped for orders in period",
+      "GetPrimeCostUseCase port + GetPrimeCostService (reads from monthly_financial_summary, returns a series for the requested time bucket range)",
+      "PrimeCostController: GET /api/v1/analytics/prime-cost with Bearer auth + @PreAuthorize(ADMIN)",
+      "PrimeCostResponse DTO matching the A6 contract shape (PrimeCostReport with series[], period, dataCompleteness)",
+      "PrimeCostResponseMapper (domain → DTO)",
+      "No BigDecimal-in-domain violations (§6b): all monetary amounts use Money wrapper; category percentages stay BigDecimal (not money)",
+      "No Spring/JPA in domain/ (§6)",
+      "Tests: RollupDailyJob aggregates correctly (mock inventory, orders, time_logs); GetPrimeCostService returns series for daily/weekly/monthly/yearly; controller returns 200/401/403",
+      "./harness/harness.sh exit 0 (all 8 sections [OK])"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "V33 migration: monthly_financial_summary table + index",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Domain: MonthlyFinancialSummary record + Get/Refresh ports + repository port",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Infrastructure: JPA entity + adapter + controller (GET /prime-cost) + DTO + mapper",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Application: RollupDailyJob (COGS + Labor + NetSales aggregation) + GetPrimeCostService",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Tests: RollupDailyJob aggregation, GetPrimeCostService, controller auth, harness green",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Reviewer: validates V33 down-migration, COGS math, hexagonal layering, Money wrapper, harness 8/8 [OK]",
+        "status": "done",
+        "agent": "reviewer"
+      }
+    ],
+    "status": "done"
+  },
+  {
     "id": 7,
     "type": "feat",
     "name": "analytics-pre-req-schema",

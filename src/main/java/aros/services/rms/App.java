@@ -3,10 +3,12 @@
 package aros.services.rms;
 
 import aros.services.rms.config.AppProperties;
+import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Root application class for the RMS (Restaurant Management System) service.
@@ -17,6 +19,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @SpringBootApplication
 @EnableConfigurationProperties(AppProperties.class)
 @EnableAsync
+@EnableScheduling
+@EnableSchedulerLock(defaultLockAtMostFor = "PT10M")
 public class App {
 
   /**

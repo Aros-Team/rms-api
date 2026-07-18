@@ -245,6 +245,8 @@ if [ -d "$DOMAIN_DIR" ]; then
       done \
     | grep -v '/common/money/' \
     | grep -v '/analytics/domain/AnalyticsConfig' \
+    | grep -v '/analytics/domain/MonthlyFinancialSummary' \
+    | grep -v '/analytics/domain/PrimeCostReport' \
     | grep -v '/analytics/domain/port/in/UpdateAnalyticsConfigUseCase' \
     | grep -v '/purchase/domain/PurchaseOrderItem' \
     | grep -v '/inventory/domain/SupplyVariant' \

@@ -72,7 +72,6 @@ totalCost    = materialCost + laborCost
 | Task | Description |
 |---|---|
 | a (implementer) | `Money` record, 4 exceptions (`CurrencyMismatchException`, `NegativeMoneyException`, `DivisionByZeroMoneyException`, `InvalidMoneyScaleException`), `MoneyCalculator` static helpers, 34 unit tests |
-| b (absorbed into a) | MoneyCalculator already built in task a |
 | c (implementer) | 30 files migrated: SupplyVariant, Product, PurchaseOrder, PurchaseOrderItem, OrderDetail, Salary + 7 mappers (BigDecimal ↔ Money) + 7 test files + 2 controllers |
 | d (implementer) | Jackson `MoneyJsonSerializer`, `AppMoneyProperties` (rounding-mode), `MoneyConfig`, `app.money` yml section, harness section 6b grep rule |
 
@@ -183,3 +182,78 @@ PATCH  /api/v1/analytics/alerts/{id}/read
 | A12 | feat  | Variance Alerts (module 5) — nightly @Scheduled |
 
 ---
+
+## 2026-07-17 — Activity 8: Prime Cost & Margins (analytics module 1)
+
+**Goal:** Implement the Prime Cost & Margins analysis module per the A8 contract. Provides daily COGS (inventory), labor (time_logs), and margin calculations with all time-bucket queries.
+
+**Approach:**
+- COGS = Σ(DEDUCTION inventory movements × supply_variant.unit_cost) grouped by supply_categories.food_type (FOOD/BEVERAGE/ALCOHOL/OTHER)
+- Labor = Σ(user.salary / 160 × shift hours from time_logs→schedule_shifts) grouped by user_assigned_areas (FOH/BOH)
+- Net sales = Σ(order_details.unit_price) - discounts - comped
+- RollupDailyJob: @Scheduled @SchedulerLock daily at 2 AM, aggregates yesterday into monthly_financial_summary
+- GET /api/v1/analytics/prime-cost returns full PrimeCostReport with series[], period, dataCompleteness
+
+**Deliverables (all 24 acceptance items met):**
+
+| # | Deliverable |
+|---|-------------|
+| 1 | V33 migration: `monthly_financial_summary` table + UNIQUE(period_key, bucket) + `supply_categories.food_type` + seeded categories |
+| 2 | V33: `CREATE INDEX idx_mfs_period ON monthly_financial_summary(bucket, period_key)` |
+| 3 | `MonthlyFinancialSummary` domain record |
+| 4 | `MonthlyFinancialSummaryRepositoryPort` + JPA entity + adapter + mapper |
+| 5 | `RollupDailyJob`: @Scheduled @SchedulerLock cron at 2 AM |
+| 6 | COGS: native SQL with `inventory_movements` + `supply_variant` + `supply_categories` joins |
+| 7 | Labor: native SQL with `time_logs` + `schedule_shifts` + `users` + `user_assigned_areas` |
+| 8 | Net sales: native SQL with `order_details` + `orders` |
+| 9 | `GetPrimeCostUseCase` port + `GetPrimeCostService` reading from summary table |
+| 10 | `PrimeCostController`: GET with @PreAuthorize(ADMIN) |
+| 11 | `PrimeCostReportResponse` DTO with nested series, period, margins |
+| 12 | `PrimeCostReportMapper` (domain → DTO) |
+| 13 | §6b: no BigDecimal in domain/ outside money package |
+| 14 | §6: no Spring/JPA in domain/ |
+| 15 | V34 migration: `shedlock` table for distributed locking |
+| 16 | `@EnableScheduling` + `@EnableSchedulerLock` in App.java |
+| 17 | `LockProvider` bean in `AnalyticsConfigBeans` |
+| 18 | 4 test classes: RefreshPrimeCostServiceTest, GetPrimeCostServiceTest, PrimeCostControllerWebMvcTest, RollupDailyJobTest |
+
+**New/changed files (24 total):**
+```
+src/main/resources/db/migration/V33__prime_cost_monthly_summary.sql
+src/main/resources/db/migration/V34__add_shedlock_table.sql
+src/main/java/aros/services/rms/core/analytics/domain/MonthlyFinancialSummary.java
+src/main/java/aros/services/rms/core/analytics/domain/PrimeCostReport.java
+src/main/java/aros/services/rms/core/analytics/domain/GetPrimeCostUseCase.java
+src/main/java/aros/services/rms/core/analytics/domain/RefreshPrimeCostUseCase.java
+src/main/java/aros/services/rms/core/analytics/domain/MonthlyFinancialSummaryRepositoryPort.java
+src/main/java/aros/services/rms/core/analytics/domain/exception/PrimeCostPeriodNotFoundException.java
+src/main/java/aros/services/rms/core/analytics/infrastructure/persistence/entity/MonthlyFinancialSummaryEntity.java
+src/main/java/aros/services/rms/core/analytics/infrastructure/persistence/mapper/MonthlyFinancialSummaryMapper.java
+src/main/java/aros/services/rms/core/analytics/infrastructure/persistence/repository/JpaMonthlyFinancialSummaryRepository.java
+src/main/java/aros/services/rms/core/analytics/infrastructure/persistence/adapter/MonthlyFinancialSummaryRepositoryAdapter.java
+src/main/java/aros/services/rms/core/analytics/infrastructure/rest/PrimeCostController.java
+src/main/java/aros/services/rms/core/analytics/infrastructure/rest/dto/PrimeCostReportResponse.java
+src/main/java/aros/services/rms/core/analytics/infrastructure/rest/dto/MoneyDto.java
+src/main/java/aros/services/rms/core/analytics/infrastructure/rest/mapper/PrimeCostReportMapper.java
+src/main/java/aros/services/rms/core/analytics/application/service/RefreshPrimeCostService.java
+src/main/java/aros/services/rms/core/analytics/application/service/GetPrimeCostService.java
+src/main/java/aros/services/rms/core/analytics/application/config/RollupDailyJob.java
+src/main/java/aros/services/rms/core/analytics/application/config/AnalyticsConfigBeans.java
+src/main/java/aros/services/rms/App.java                      (modified)
+src/test/java/aros/services/rms/core/analytics/application/service/RefreshPrimeCostServiceTest.java
+src/test/java/aros/services/rms/core/analytics/application/service/GetPrimeCostServiceTest.java
+src/test/java/aros/services/rms/core/analytics/infrastructure/rest/PrimeCostControllerWebMvcTest.java
+src/test/java/aros/services/rms/core/analytics/application/config/RollupDailyJobTest.java
+```
+
+**Task breakdown:**
+- a (implementer) — V33 migration
+- b (implementer) — Domain layer (6 files)
+- c (implementer) — Infrastructure (8 files)
+- d (implementer) — Application: services + job + config (5 files)
+- e (implementer) — Tests (4 test classes)
+- f (reviewer) — Validated post-checkstyle-fix: harness 8/8 [OK]
+
+**Harness:** all 8 sections `[OK]`
+
+**Follow-up pipeline:** A9 Menu Engineering BCG (module 2)
