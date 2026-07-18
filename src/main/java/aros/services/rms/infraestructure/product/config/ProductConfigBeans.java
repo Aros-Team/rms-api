@@ -19,6 +19,7 @@ import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -38,6 +39,7 @@ public class ProductConfigBeans {
       SupplyVariantRepositoryPort supplyVariantRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
       ProductOptionRepositoryPort productOptionRepositoryPort,
+      ApplicationEventPublisher eventPublisher,
       Logger logger) {
     return new ProductService(
         productRepositoryPort,
@@ -47,6 +49,7 @@ public class ProductConfigBeans {
         supplyVariantRepositoryPort,
         inventoryStockUseCase,
         productOptionRepositoryPort,
+        eventPublisher,
         logger);
   }
 

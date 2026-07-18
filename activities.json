@@ -1,415 +1,67 @@
 [
   {
-    "id": 8,
+    "id": 9,
     "type": "feat",
-    "name": "prime-cost-and-margins",
-    "title": "Prime Cost & Margins (analytics module 1)",
-    "description": "Implement the Prime Cost & Margins analysis endpoint per the A6 contract. Includes: monthly_financial_summary table (daily rollups), COGS calculation (inventory_movements + purchase_orders), labor cost (time_logs × salary/160), prime_cost_pct, GET /api/v1/analytics/prime-cost endpoint with all time buckets (daily/weekly/monthly/yearly).",
+    "name": "menu-engineering-bcg",
+    "title": "Menu Engineering BCG (analytics module 2)",
+    "description": "Implement Menu Engineering BCG quadrant analysis per A6 contract. For each active product, compute units_sold, revenue, recipe_cost, gp_per_unit, contribution, median volume & margin, then assign quadrant (STAR/PLOWHORSE/PUZZLE/DOG). Pre-compute into menu_performance_cache via scheduled job; invalidate on product price/recipe change.",
     "acceptance": [
-      "V33 migration: creates monthly_financial_summary table (period_key, bucket, net_sales, gross_sales, discounts, comped, cogs_food, cogs_beverage, cogs_alcohol, cogs_other, food_cogs_pct, labor_foh, labor_boh, labor_total, labor_pct, prime_cost, prime_cost_pct, updated_at TIMESTAMP, UNIQUE(period_key, bucket))",
-      "V33 migration: CREATE INDEX idx_mfs_period ON monthly_financial_summary (bucket, period_key)",
-      "MonthlyFinancialSummary domain record",
-      "MonthlyFinancialSummaryRepositoryPort + JPA entity + adapter",
-      "RollupDailyJob: @Scheduled @SchedulerLock cron that aggregates yesterday's orders + purchases + inventory movements into a daily monthly_financial_summary row",
-      "COGS calculation: Σ(inventory_movements.quantity * supply_variant.unit_cost) grouped by supply_category.food_type (FOOD/BEVERAGE/ALCOHOL/OTHER), filtered to movements between period start/end",
-      "Labor cost calculation: Σ(time_logs.hours * user.salary / 160) grouped by user.area (FOH/BOH via FK to areas table). If salary is NULL, skip that worker with a warning log.",
-      "Net sales calculation: Σ(order_details.unit_price) - discounts - comped for orders in period",
-      "GetPrimeCostUseCase port + GetPrimeCostService (reads from monthly_financial_summary, returns a series for the requested time bucket range)",
-      "PrimeCostController: GET /api/v1/analytics/prime-cost with Bearer auth + @PreAuthorize(ADMIN)",
-      "PrimeCostResponse DTO matching the A6 contract shape (PrimeCostReport with series[], period, dataCompleteness)",
-      "PrimeCostResponseMapper (domain → DTO)",
-      "No BigDecimal-in-domain violations (§6b): all monetary amounts use Money wrapper; category percentages stay BigDecimal (not money)",
+      "V35 migration: CREATE TABLE menu_performance_cache with columns (product_id, product_name, category_id, category_name, period_key, bucket, units_sold INT, revenue DECIMAL(14,2), recipe_cost DECIMAL(14,2), gross_profit_per_unit DECIMAL(14,2), total_contribution DECIMAL(14,2), quadrant VARCHAR(20), updated_at TIMESTAMP, UNIQUE(product_id, period_key, bucket))",
+      "V35 migration: CREATE INDEX idx_mpc_period ON menu_performance_cache (bucket, period_key)",
+      "MenuEngineeringReport domain record with nested PeriodInfo, MenuItemSummary, CacheStatus fields per §5.2 contract shape",
+      "MenuEngineeringCacheRepositoryPort + JPA entity + adapter for CRUD on cache table",
+      "RefreshMenuEngineeringService: computes BCG for all active products in a period. Math: units_sold = COUNT(order_details) per product; revenue = Σ(unit_price); recipe_cost = Σ(ProductRecipe.requiredQuantity × SupplyVariant.unitCost); gp_per_unit = sell_price − recipe_cost; contribution = units_sold × gp_per_unit; median_volume = median(units_sold); median_margin = median(gp_per_unit); quadrant assignment per §5.2",
+      "RefreshMenuEngineeringService uses OrderDetailRepositoryPort + ProductRepositoryPort + SupplyVariantRepositoryPort + ProductRecipeRepositoryPort for aggregation",
+      "ProductUpdatedEvent + RecipeUpdatedEvent: Spring ApplicationEvent published on product price change / recipe change, with event listener that sets cache as stale (or triggers immediate refresh)",
+      "RefreshMenuEngineeringJob: @Scheduled @SchedulerLock at 3:00 AM daily, refreshes cache for last 13 months",
+      "GetMenuEngineeringUseCase port + GetMenuEngineeringService (reads from cache table, returns series for requested time bucket range)",
+      "MenuEngineeringController: GET /api/v1/analytics/menu-engineering with Bearer auth + @PreAuthorize(ADMIN) + optional ?categoryId= filter",
+      "MenuEngineeringReportResponse DTO matching the A6 contract shape (§5.2): nested period, median, items[], cacheStatus, dataCompleteness",
+      "MenuEngineeringReportMapper (domain → DTO)",
+      "Cache invalidation: on product.base_price change → invalidate all cache rows for that product; on any product_recipes change → invalidate all cache rows for that product",
+      "No BigDecimal-in-domain violations (§6b): all monetary amounts use Money wrapper; quadrant and counts stay plain types",
       "No Spring/JPA in domain/ (§6)",
-      "Tests: RollupDailyJob aggregates correctly (mock inventory, orders, time_logs); GetPrimeCostService returns series for daily/weekly/monthly/yearly; controller returns 200/401/403",
+      "Tests: RefreshMenuEngineeringService (aggregation + median + quadrant assignment), GetMenuEngineeringService (series fill), controller (200/401/403), job cron",
       "./harness/harness.sh exit 0 (all 8 sections [OK])"
     ],
     "tasks": [
       {
         "id": "a",
-        "description": "V33 migration: monthly_financial_summary table + index",
+        "description": "V35 migration: menu_performance_cache table + index",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
-        "description": "Domain: MonthlyFinancialSummary record + Get/Refresh ports + repository port",
+        "description": "Domain: MenuEngineeringReport + BCGQuadrant enum + ports (Get/Refresh/repository)",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
-        "description": "Infrastructure: JPA entity + adapter + controller (GET /prime-cost) + DTO + mapper",
+        "description": "Infrastructure: JPA entity + adapter + controller (GET /menu-engineering) + DTOs + mapper",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
-        "description": "Application: RollupDailyJob (COGS + Labor + NetSales aggregation) + GetPrimeCostService",
+        "description": "Application: RefreshMenuEngineeringService (aggregation + median + quadrant) + GetMenuEngineeringService + RefreshMenuEngineeringJob (3 AM cron)",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "e",
-        "description": "Tests: RollupDailyJob aggregation, GetPrimeCostService, controller auth, harness green",
+        "description": "Tests: Refresh service (aggregation + median + quadrant), Get service (series), controller (200/401/403), job",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "f",
-        "description": "Reviewer: validates V33 down-migration, COGS math, hexagonal layering, Money wrapper, harness 8/8 [OK]",
-        "status": "done",
+        "description": "Reviewer: validates V35 down-migration, BCG math, hexagonal layering, Money wrapper, invalidation events, harness 8/8",
+        "status": "pending",
         "agent": "reviewer"
-      }
-    ],
-    "status": "done"
-  },
-  {
-    "id": 7,
-    "type": "feat",
-    "name": "analytics-pre-req-schema",
-    "title": "Analytics pre-req schema: order timestamps + analytics_config",
-    "description": "Add the business-essential columns and singleton table required by the analytics modules defined in A6. Specifically: orders.party_size (cohort per-cover math), orders.open_time/close_time (RevPASH math) with composite index, analytics_config singleton table holding operating hours + alert thresholds. Labor cost math derives hourly rate from existing users.salary / 160 (Activity 1 pattern) — no duplicate column.",
-    "acceptance": [
-      "V32 Flyway migration: ALTER TABLE orders ADD party_size INT NULL, ADD open_time TIMESTAMP NULL, ADD close_time TIMESTAMP NULL",
-      "V32: CREATE INDEX idx_orders_open_close ON orders (open_time, close_time)",
-      "V32: CREATE TABLE analytics_config (id INT PRIMARY KEY, default_open TIME NOT NULL, default_close TIME NOT NULL, lunch_start TIME NOT NULL, lunch_end TIME NOT NULL, dinner_start TIME NOT NULL, dinner_end TIME NOT NULL, food_cost_deviation_pp DECIMAL(5,2) NOT NULL DEFAULT 2.00, labor_cost_deviation_pp DECIMAL(5,2) NOT NULL DEFAULT 3.00, sales_drop_yoy_pct DECIMAL(5,2) NOT NULL DEFAULT 10.00, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, updated_by BIGINT NULL, FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL)",
-      "V32: seed analytics_config with id=1, default_open=11:00, default_close=23:00, lunch 11:00–15:00, dinner 18:00–23:00, thresholds 2.00/3.00/10.00",
-      "V32 is reversible (down-migration drops index + columns + table)",
-      "Order domain adds partySize (Integer nullable), openTime (LocalDateTime nullable), closeTime (LocalDateTime nullable) with Lombok @Builder.Default",
-      "OrderEntity (JPA) + OrderMapper updated; existing rows keep NULL (back-compat)",
-      "OrderResponse exposes partySize, openTime, closeTime as nullable fields (ISO-8601)",
-      "AnalyticsConfig domain record + exceptions (InvalidAnalyticsConfigException, AnalyticsConfigNotFoundException) + AnalyticsConfigRepositoryPort + GetAnalyticsConfigUseCase + UpdateAnalyticsConfigUseCase ports",
-      "AnalyticsConfigEntity + JpaAnalyticsConfigRepository + AnalyticsConfigRepositoryAdapter",
-      "AnalyticsConfigController GET /api/v1/analytics/config (admin only) + PATCH /api/v1/analytics/config (admin only, validates threshold ranges + time ordering)",
-      "AnalyticsConfigResponse + UpdateAnalyticsConfigRequest DTOs + mapper",
-      "Existing analytics GET endpoints (none yet — defined in A8-A12) must NOT reference analytics_config in this activity",
-      "All new domain code passes harness §6 (no Spring/JPA imports) and §6b (no BigDecimal outside money)",
-      "Tests: OrderMapper handles null new fields; AnalyticsConfigController returns 401/403 for non-admin; PATCH persists + bumps updated_at + sets updated_by from JWT; threshold validation (negative pp rejected); time ordering (default_open < default_close enforced)",
-      "./harness/harness.sh exit 0 (all 8 sections [OK])"
-    ],
-    "tasks": [
-      {
-        "id": "a",
-        "description": "Write V32__analytics_pre_req_schema.sql under src/main/resources/db/migration/: ALTER orders + CREATE INDEX + CREATE analytics_config + seed row. Include down-migration comments for reversibility. Run ./gradlew flywayInfo in H2 to confirm parses.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "b",
-        "description": "Domain layer: add partySize/openTime/closeTime to Order (nullable). Create AnalyticsConfig record + 2 exceptions + 2 ports (Get, Update) + AnalyticsConfigRepositoryPort",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "c",
-        "description": "Infrastructure: AnalyticsConfigEntity + JpaAnalyticsConfigRepository + AnalyticsConfigRepositoryAdapter; OrderEntity new columns + OrderMapper null-safe; AnalyticsConfigController (GET + PATCH) + DTOs + mapper; @PreAuthorize hasRole('ADMIN') on controller",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "d",
-        "description": "Application services: GetAnalyticsConfigService, UpdateAnalyticsConfigService with threshold + time-ordering validation; bean wiring in a new AnalyticsConfigBeans config class",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "e",
-        "description": "Tests: OrderMapper null-safety, AnalyticsConfigControllerWebMvcTest (401/403/200), UpdateAnalyticsConfigServiceTest (validates threshold ranges and time ordering, bumps updated_at/updated_by), harness green",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "f",
-        "description": "Reviewer: validates V32 down-migration, back-compat on existing rows, hexagonal layering (no Spring/JPA in domain), Money wrapper consistent, RFC 7807 error mapping for new exceptions, harness 8/8 [OK]; mark A7 done",
-        "status": "done",
-        "agent": "reviewer"
-      }
-    ],
-    "status": "done"
-  },
-  {
-    "id": 1,
-    "type": "feat",
-    "name": "on-the-fly-cost-calculation",
-    "title": "Cálculo de costo de producción on-the-fly",
-    "description": "Calcular dinámicamente el costo de producir un producto según su receta (insumos + cantidades) y el costo de mano de obra (salario de trabajadores / 160h × tiempo estimado de preparación). El cálculo se hace on-the-fly, no se persiste.",
-    "acceptance": [
-      "Nueva migración V30: columna estimated_prep_minutes en products (nullable)",
-      "Campo estimatedPrepMinutes en Product domain, ProductEntity, ProductResponse, ProductRequest, mappers",
-      "Nuevo domain record ProductCost con totalCost, materialCost, laborCost, breakdown",
-      "Nuevo CalculateProductCostUseCase port + service que calcula materialCost = Σ(quantity × unitCost) y laborCost = (estimatedPrepMinutes/60) × avgHourlyRate",
-      "Nuevo método findActiveByAreaId en UserRepositoryPort + JpaUserRepository",
-      "Nuevo endpoint GET /api/v1/products/{id}/cost que retorna ProductCost",
-      "CalculateProductCostUseCase bean registrado en ProductConfigBeans",
-      "Tests unitarios cubriendo: costo solo materiales, costo con mano de obra, producto sin recipe, workers sin salario",
-      "./harness/harness.sh exit 0"
-    ],
-    "tasks": [
-      {
-        "id": "a",
-        "description": "V30 migration + Product domain change + JPA entity + DTOs + mappers",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "b",
-        "description": "Create ProductCost domain record + CalculateProductCostUseCase port + findActiveByAreaId in UserRepositoryPort",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "c",
-        "description": "Implement findActiveByAreaId in JPA repo + adapter, CalculateProductCostService, GET /products/{id}/cost endpoint, bean config",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "d",
-        "description": "Write tests + run harness",
-        "status": "done",
-        "agent": "implementer"
-      }
-    ],
-    "status": "done"
-  },
-  {
-    "id": 2,
-    "type": "fix",
-    "name": "fix-v29-fk-before-drop-column",
-    "title": "Fix V29 migration: drop FK before dropping column",
-    "description": "V29 fails at runtime because it tries to DROP COLUMN selection_group_id while a foreign key constraint (fk_ppo_group) still references it. MySQL 8 refuses this. Fix: drop the FK constraint before dropping the column.",
-    "acceptance": [
-      "V29 migration drops fk_ppo_group foreign key before attempting ALTER TABLE DROP COLUMN",
-      "./harness/harness.sh exit 0",
-      "App boots successfully with `task run` after the fix"
-    ],
-    "tasks": [
-      {
-        "id": "a",
-        "description": "Fix V29 SQL: add DROP FOREIGN KEY fk_ppo_group before DROP COLUMN",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "b",
-        "description": "Verify harness green and app boots",
-        "status": "done",
-        "agent": "implementer"
-      }
-    ],
-    "status": "done"
-  },
-  {
-    "id": 3,
-    "type": "feat",
-    "name": "fix-frontend-combo-gaps",
-    "title": "Fix 8 frontend-blocking gaps in combo API",
-    "description": "Address all gaps found in the backend verification checklist (docs/COMBO_BACKEND_VERIFICATION.md) so the FE can fully integrate combos: #2 suggest-price endpoint clarification, #3 enriched breakdown, #4 products filter + selectionType/imageUrl, #6 order response includes combo data, #7 question types, #9 active-toggle PATCH endpoint, #10 WebSocket envelope with changeType, #11 schedule enforcement on orders.",
-    "acceptance": [
-      "#6 OrderResponse.OrderDetailResponse exposes selectedProductIds, additionIds, clarifications",
-      "#6 Resolved names/prices included for products, additions, clarifications in order response",
-      "#11 TakeOrderService and UpdateOrderService call SpecialSelectionAvailabilityService and throw 409 when combo is outside schedule or inactive",
-      "#11 New exception (e.g. SpecialSelectionUnavailableException) maps to HTTP 409",
-      "#10 New SpecialSelectionUpdateEvent envelope { changeType, productId, active, selection }",
-      "#10 WebSocket payload uses envelope; DELETE sends selection: null",
-      "#9 New endpoint PATCH /api/v1/admin/special-selections/{productId}/active accepting { active: boolean }",
-      "#3 SuggestedPriceResponse.CostBreakdownItem includes productId + productName (optionId kept for legacy)",
-      "#4 ProductController GET /api/v1/products accepts includeSelections=true parameter",
-      "#4 ProductResponse exposes selectionType and imageUrl",
-      "#7 QuestionType enum (TEXT, CHOICE, BOOLEAN); V31 migration adds type column to special_selection_questions",
-      "#7 ClarificationAnswer supports multiple-choice and boolean answers",
-      "./harness/harness.sh exit 0"
-    ],
-    "tasks": [
-      {
-        "id": "a",
-        "description": "Order response: expose selectedProductIds, additions, clarifications with resolved names",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "b",
-        "description": "Schedule enforcement: TakeOrderService + UpdateOrderService + 409 exception",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "c",
-        "description": "WebSocket envelope: changeType, productId, active, selection fields",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "d",
-        "description": "Active-toggle PATCH endpoint + suggest-price enrichment (productId + name in breakdown)",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "e",
-        "description": "Products includeSelections filter + selectionType/imageUrl in ProductResponse",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "f",
-        "description": "Question types: V31 migration + QuestionType enum + ClarificationAnswer updates",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "g",
-        "description": "Update tests + verify harness green",
-        "status": "done",
-        "agent": "reviewer"
-      }
-    ],
-    "status": "done"
-  },
-  {
-    "id": 4,
-    "type": "chore",
-    "name": "money-value-object-refactor",
-    "title": "Money value object refactor — centralize BigDecimal money handling",
-    "description": "Create canonical Money record under core/common/money/domain/ to replace every raw monetary BigDecimal across all bounded contexts. Includes domain record, exceptions, MoneyCalculator helpers, BigDecimal→Money mappers, Jackson serializer, and a harness grep rule forbidding BigDecimal in domain/ outside the money package. All columns stay DECIMAL; mappers convert in/out. Non-breaking at DB level, but response shape changes ({amount, currency} wrapper).",
-    "acceptance": [
-      "Money record + MoneyCalculator + all exceptions exist under core/common/money/ with full unit test coverage",
-      "All monetary domain fields listed in Plan 06 §5 are typed as Money (SupplyVariant.unitCost, Product.basePrice, PurchaseOrder.totalAmount, PurchaseOrderItem.unitPrice, PurchaseSessionItem.lineTotal, PurchasePreviewLine.*.unitCost, OrderDetail.unitPrice, Salary.amount, SalaryHistoryEntry.old/newSalary)",
-      "All mappers convert BigDecimal ↔ Money losslessly",
-      "Jackson serializer emits { amount, currency } shape",
-      "Harness grep rule added: no import java.math.BigDecimal in domain/ outside common/money/ — green",
-      "No regression in ./harness/harness.sh"
-    ],
-    "tasks": [
-      {
-        "id": "a",
-        "description": "Core domain: Money record, RoundingMode re-export, MoneyContext, CurrencyMismatchException, NegativeMoneyException, DivisionByZeroMoneyException, InvalidMoneyScaleException. Full MoneyTest + MoneyCalculatorTest (weightedAverage, splitEvenly, applyPercentage)",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "b",
-        "description": "Application: MoneyCalculator pure helpers (weightedAverage, splitEvenly, applyPercentage, laborCost, taxSplit). Wire existing CalculateProductCostService CALC_SCALE=6 pattern.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "c",
-        "description": "Migrate all domain fields + mappers: SupplyVariant, Product, PurchaseOrder/Item, PurchaseSessionItem, PurchasePreviewLine, OrderDetail, Salary, SalaryHistoryEntry. Every BigDecimal → Money in domain, BigDecimal ↔ Money in mapper.",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "d",
-        "description": "Jackson MoneyJsonSerializer + config. AppMoneyProperties (rounding-mode). Harness grep rule. Remove raw BigDecimal imports from domain/ outside common/money/. Verify harness green.",
-        "status": "done",
-        "agent": "implementer"
-      }
-    ],
-    "status": "done"
-  },
-  {
-    "id": 6,
-    "type": "chore",
-    "name": "analytics-api-contract",
-    "title": "Analytics API contract (OpenAPI + narrative) for the 5-module FE page",
-    "description": "Define the public API contract for the /api/v1/analytics/** surface that powers the FE analytics page. Covers 5 modules: Prime Cost & Margins, Menu Engineering (BCG), Operational Efficiency (RevPASH & Turns), Customer Cohort, Variance Alerts. Author OpenAPI 3.1 spec + business narrative doc so the FE team can start in parallel (mock server, generated TS types). Backend implementation is opened as follow-up activities (A7-A12) after this contract is reviewed.",
-    "acceptance": [
-      "docs/contracts/analytics.md exists with: scope, auth rules, time-bucket rules, money wrapper, per-module math + response shapes, RFC 7807 error model, data-source assumptions & fallback strategy, frontend integration recipe",
-      "docs/contracts/analytics.yaml exists as a valid OpenAPI 3.1 document covering 6 paths (GET prime-cost, GET menu-engineering, GET operations, GET cohort, GET alerts, PATCH alerts/{id}/read) with shared parameters (Bucket, From, To) and ProblemDetail error responses",
-      "YAML validates via @apidevtools/swagger-cli (or equivalent) with zero errors",
-      "All money fields use the { amount, currency } Money wrapper from Activity 4",
-      "Time buckets supported: daily | weekly | monthly | yearly via Bucket + From + To params",
-      "Auth documented as ROLE_ADMIN only, JWT bearer",
-      "Cohort module documented as 'client = order' (no customers table) per user instruction; fingerprint strategy enum included",
-      "Data-source assumptions section lists which missing tables/columns are required by the business model vs intentionally skipped",
-      "./harness/harness.sh exit 0 (no code changes; harness stays green)"
-    ],
-    "tasks": [
-      {
-        "id": "a",
-        "description": "Write docs/contracts/analytics.md — business narrative covering scope, auth, time buckets, per-module math & response shapes, error model, data-source assumptions, FE integration recipe",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "b",
-        "description": "Write docs/contracts/analytics.yaml — OpenAPI 3.1 spec with 6 paths, shared params, ProblemDetail error responses, Money wrapper, all enums (TimeBucket, DataCompleteness, AlertSeverity, AlertStatus, AlertType, Quadrant, DayPart, FingerprintStrategy)",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "c",
-        "description": "Validate YAML with @apidevtools/swagger-cli; fix any errors until 0 reported",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "d",
-        "description": "Register A6 in activities.json + write progress/current.md plan for follow-up activities (A7-A12)",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "e",
-        "description": "Reviewer validates contract matches user spec end-to-end (5 modules, time buckets, money wrapper, auth, error model, cohort 'client = order' decision, missing-table strategy); run ./harness/harness.sh and confirm green; mark A6 done",
-        "status": "done",
-        "agent": "reviewer"
-      },
-      {
-        "id": "f",
-        "description": "Post-review fixes applied per reviewer: (1) RevPASH math corrected (removed extra /60), (2) MoneyNumber renamed to MetricValue with description clarifying non-monetary, (3) orders(open_time, close_time) index recommendation added to §5.3, (4) Module 1 COGS formula generalized to sum all categories, (5) Module 3 example numbers reconciled (LUNCH covers 42, DINNER covers 54)",
-        "status": "done",
-        "agent": "implementer"
-      }
-    ],
-    "status": "done"
-  },
-  {
-    "id": 5,
-    "type": "feat",
-    "name": "public-jwks-endpoint",
-    "title": "Public JWKS endpoint at /.well-known/jwks.json",
-    "description": "Expose the public half of the API's signing keys in RFC 7517 JWKS format at GET /.well-known/jwks.json. Supports single-key (backwards compatible) and multi-key rotation via env vars. Adds deterministic kid derivation (SHA-256 of public key DER), kid header on all generated JWTs, and a Nimbus JWKSource-based JwtEncoder. No new dependencies needed.",
-    "acceptance": [
-      "JwtConfigValidator extended to read single-key and multi-key env vars without breaking existing deployments",
-      "Every RSAKey built in SecurityConfig carries a kid derived by JwkKeyIdDeriver.from(publicKey)",
-      "JwtServiceImpl includes the kid JWS header on every generated token (access, refresh, TFA)",
-      "GET /.well-known/jwks.json returns RFC 7517-compliant JSON, public material only (no d, p, q, etc.)",
-      "Endpoint is in permitAll() of SecurityConfig (production branch) — reachable without auth",
-      "Content-Type: application/jwk-set+json",
-      "Cache-Control: public, max-age=3600 + ETag set",
-      "X-Content-Type-Options: nosniff header present",
-      "CORS open for this path",
-      "ProblemDetail (RFC 7807) returned on 503 when no keys configured",
-      "./harness/harness.sh exits 0"
-    ],
-    "tasks": [
-      {
-        "id": "a",
-        "description": "Domain layer: JwkKey, JwkKeyId, JwkAlgorithm, JwkUse, JwksDocument records + exceptions (JwkKeyNotFoundException, DuplicateJwkKeyIdException, NoActiveSigningKeyException, InvalidJwkConfigurationException) + PublishJwksUseCase port + JwkSourcePort",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "b",
-        "description": "Infrastructure: JwkKeyIdDeriver (SHA-256 from public key DER), extended JwtConfigValidator (single-key + multi-key env var parsing), JwkSourceAdapter, JwksCacheProperties, AppJwtProperties update",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "c",
-        "description": "Controller + Security + JwtServiceImpl: JwksController, permit-all + CORS in SecurityConfig, kid header in JwtServiceImpl.sign(), Nimbus JWKSource-based JwtEncoder bean",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "d",
-        "description": "Tests: JwkKeyIdDeriverTest, JwkSourceAdapterTest, PublishJwksServiceTest, JwksControllerWebMvcTest, JwksControllerSecurityIntegrationTest, JwksResponseSchemaTest, JwksCachePropertiesBindingTest. Verify harness green.",
-        "status": "done",
-        "agent": "implementer"
       }
     ],
     "status": "done"
   }
-]  
+]

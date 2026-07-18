@@ -14,14 +14,17 @@ import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.product.domain.Product;
+import aros.services.rms.core.product.domain.event.ProductUpdatedEvent;
 import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,6 +46,7 @@ public class ProductService implements ProductUseCase {
   private final SupplyVariantRepositoryPort supplyVariantRepositoryPort;
   private final InventoryStockUseCase inventoryStockUseCase;
   private final ProductOptionRepositoryPort productOptionRepositoryPort;
+  private final ApplicationEventPublisher eventPublisher;
   private final Logger logger;
 
   /**
@@ -65,6 +69,7 @@ public class ProductService implements ProductUseCase {
       SupplyVariantRepositoryPort supplyVariantRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
       ProductOptionRepositoryPort productOptionRepositoryPort,
+      ApplicationEventPublisher eventPublisher,
       Logger logger) {
     this.productRepositoryPort = productRepositoryPort;
     this.areaRepositoryPort = areaRepositoryPort;
@@ -73,6 +78,7 @@ public class ProductService implements ProductUseCase {
     this.supplyVariantRepositoryPort = supplyVariantRepositoryPort;
     this.inventoryStockUseCase = inventoryStockUseCase;
     this.productOptionRepositoryPort = productOptionRepositoryPort;
+    this.eventPublisher = eventPublisher;
     this.logger = logger;
   }
 
@@ -111,6 +117,13 @@ public class ProductService implements ProductUseCase {
 
     if (product.getOptionIds() != null && !product.getOptionIds().isEmpty()) {
       productOptionRepositoryPort.associateOptionsToProduct(saved.getId(), product.getOptionIds());
+    }
+
+    // Publish events for cache invalidation (menu engineering)
+    if (product.getRecipe() != null && !product.getRecipe().isEmpty()) {
+      eventPublisher.publishEvent(
+          new aros.services.rms.core.inventory.domain.event.RecipeUpdatedEvent(
+              saved.getId(), Instant.now()));
     }
 
     return saved;
@@ -163,6 +176,12 @@ public class ProductService implements ProductUseCase {
     if (product.getOptionIds() != null && !product.getOptionIds().isEmpty()) {
       productOptionRepositoryPort.associateOptionsToProduct(saved.getId(), product.getOptionIds());
     }
+
+    // Publish events for cache invalidation (menu engineering)
+    eventPublisher.publishEvent(new ProductUpdatedEvent(saved.getId(), Instant.now()));
+    eventPublisher.publishEvent(
+        new aros.services.rms.core.inventory.domain.event.RecipeUpdatedEvent(
+            saved.getId(), Instant.now()));
 
     return saved;
   }
