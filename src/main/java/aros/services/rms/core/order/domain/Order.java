@@ -27,4 +27,7 @@ public class Order {
   private Table table;
   private List<OrderDetail> details;
   @Builder.Default private Set<Long> preparationAreaIds = new HashSet<>();
+  private Integer partySize;
+  private LocalDateTime openTime;
+  private LocalDateTime closeTime;
 }

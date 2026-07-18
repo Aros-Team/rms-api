@@ -5,6 +5,7 @@ package aros.services.rms.infraestructure.order.persistence;
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
 import aros.services.rms.infraestructure.table.persistence.Table;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -60,4 +61,13 @@ public class Order {
       inverseJoinColumns = @JoinColumn(name = "area_id"))
   @Builder.Default
   private Set<Area> preparationAreas = new HashSet<>();
+
+  @Column(name = "party_size")
+  private Integer partySize;
+
+  @Column(name = "open_time")
+  private LocalDateTime openTime;
+
+  @Column(name = "close_time")
+  private LocalDateTime closeTime;
 }

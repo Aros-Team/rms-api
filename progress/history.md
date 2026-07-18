@@ -103,3 +103,83 @@ totalCost    = materialCost + laborCost
 **Files touched (count):** 60+ src files, 3 docs/plans, activities.json, application.yml, build.gradle, harness.sh, data.sql.
 
 ---
+
+## 2026-07-17 — Activity 7: Analytics pre-req schema
+
+**Goal:** Add business-essential columns and tables for analytics modules A8-A12.
+
+**Scope per user:**
+- `orders.party_size INT NULL`, `orders.open_time TIMESTAMP NULL`, `orders.close_time TIMESTAMP NULL`
+- `CREATE INDEX idx_orders_open_close ON orders(open_time, close_time)`
+- `CREATE TABLE analytics_config` (singleton, operating hours + alert thresholds)
+- Seed row with defaults (11-23h, lunch 11-15, dinner 18-23, thresholds 2/3/10)
+- No `users.hourly_rate` (derived from `salary/160` per Activity 1 pattern)
+- No `customers` table (client = order per user decision)
+
+**Deliverables:**
+
+| Task | Agent | Description |
+|------|-------|-------------|
+| a | implementer | V32 Flyway migration: ALTER orders + idx + analytics_config + seed |
+| b | implementer | Domain: Order +3 fields + AnalyticsConfig record + 2 exceptions + 3 ports |
+| c | implementer | Infra: analytics persistence + JPA/entity/mapper/controller (GET/PATCH) |
+| d | implementer | Application: Get/Update config services + Clock bean wiring |
+| e | implementer | Tests: OrderMapper null-safety + 6 controller tests + 9 service tests |
+| f | reviewer | VERDICT: PASS — 1 minor (unmapped exceptions) fixed post-review |
+
+**New endpoints:**
+- `GET /api/v1/analytics/config` (admin, returns config + thresholds)
+- `PATCH /api/v1/analytics/config` (admin, validates thresholds + time ordering)
+
+**Harness:** all 8 sections `[OK]`
+
+**Follow-up pipeline (next):** A8 Prime Cost & Margins (module 1)
+
+---
+
+## 2026-07-17 — Activity 6: Analytics API contract (5-module FE page)
+
+**Goal:** Define the public API contract powering the FE analytics page. Backend-only deliverable: OpenAPI 3.1 spec + business narrative. Implementation follows in A7–A12.
+
+**Scope (per user confirmation):**
+- Backend + stub OpenAPI. FE consumes the contract via `openapi-typescript` / `prism mock`.
+- Cohort module: "client = order" — **no `customers` table** per user instruction.
+- Pre-req tables created only if business-essential: `users.hourly_rate`, `orders.open_time`/`close_time`, `analytics_config` singleton.
+- Auth: `ROLE_ADMIN` only.
+- Time buckets: daily | weekly | monthly | yearly.
+
+**Deliverables:**
+
+| Task | Description |
+|------|-------------|
+| a (implementer) | `docs/contracts/analytics.md` — 380-line business narrative (scope, auth, time buckets, per-module math, RFC 7807 errors, data-source assumptions, FE recipe) |
+| b (implementer) | `docs/contracts/analytics.yaml` — OpenAPI 3.1, 6 paths, 17 schemas, 3 shared params, 5 reusable responses |
+| c (implementer) | Validated via `@apidevtools/swagger-cli` — 0 errors |
+| d (implementer) | A6 registered in `activities.json`; `progress/current.md` plan for A7–A12 |
+| e (reviewer) | **VERDICT: PASS**. All 9 acceptance items satisfied; user-spec coverage complete at module level. 3 actionable defects flagged for fix-before-A10 |
+| f (implementer) | Post-review fixes: (1) RevPASH math corrected (extra `/60` removed); (2) `MoneyNumber` renamed → `MetricValue` with non-monetary description; (3) `(open_time, close_time)` index recommendation added to §5.3; (4) Module 1 COGS formula generalized to sum all categories; (5) Module 3 example numbers reconciled |
+
+**6 endpoints defined:**
+```
+GET    /api/v1/analytics/prime-cost
+GET    /api/v1/analytics/menu-engineering
+GET    /api/v1/analytics/operations
+GET    /api/v1/analytics/cohort
+GET    /api/v1/analytics/alerts
+PATCH  /api/v1/analytics/alerts/{id}/read
+```
+
+**Harness:** all 8 sections `[OK]` (no code changes; docs only).
+
+**Follow-up activity pipeline (planned, not yet opened):**
+
+| ID | Type | Scope |
+|----|------|-------|
+| A7  | feat  | Pre-req schema: `users.hourly_rate`, `orders.open_time`/`close_time`, `analytics_config` singleton |
+| A8  | feat  | Prime Cost & Margins (module 1) |
+| A9  | feat  | Menu Engineering BCG (module 2) |
+| A10 | feat  | RevPASH & Turns (module 3) |
+| A11 | feat  | Customer Cohort (module 4) |
+| A12 | feat  | Variance Alerts (module 5) — nightly @Scheduled |
+
+---

@@ -55,6 +55,9 @@ public class OrderResponseMapper {
         order.getDate(),
         order.getStatus() != null ? order.getStatus().name() : null,
         order.getTable() != null ? order.getTable().getId() : null,
+        order.getPartySize(),
+        order.getOpenTime(),
+        order.getCloseTime(),
         details);
   }
 

@@ -2,6 +2,8 @@
 
 package aros.services.rms.infraestructure.common.exception;
 
+import aros.services.rms.core.analytics.domain.exception.AnalyticsConfigNotFoundException;
+import aros.services.rms.core.analytics.domain.exception.InvalidAnalyticsConfigException;
 import aros.services.rms.core.auth.application.exception.InvalidCredentialsException;
 import aros.services.rms.core.auth.application.exception.InvalidRefreshTokenException;
 import aros.services.rms.core.auth.application.exception.UserNotFoundException;
@@ -248,6 +250,23 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleWorkerScheduleAssignmentNotFound(
       WorkerScheduleAssignmentNotFoundException e) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  // --- Analytics exceptions ---
+
+  /** Handles AnalyticsConfigNotFoundException. */
+  @ExceptionHandler(AnalyticsConfigNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleAnalyticsConfigNotFound(
+      AnalyticsConfigNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  /** Handles InvalidAnalyticsConfigException. */
+  @ExceptionHandler(InvalidAnalyticsConfigException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidAnalyticsConfig(
+      InvalidAnalyticsConfigException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
   }
 
   // --- Missing handlers referenced in ExhaustedRetryException ---

@@ -44,6 +44,9 @@ public class OrderMapper {
                         domain.getStatus().name())
                     : null)
             .table(tableMapper.toEntity(domain.getTable()))
+            .partySize(domain.getPartySize())
+            .openTime(domain.getOpenTime())
+            .closeTime(domain.getCloseTime())
             .build();
 
     if (domain.getDetails() != null) {
@@ -115,6 +118,9 @@ public class OrderMapper {
                 ? aros.services.rms.core.order.domain.OrderStatus.valueOf(entity.getStatus().name())
                 : null)
         .table(tableMapper.toDomain(entity.getTable()))
+        .partySize(entity.getPartySize())
+        .openTime(entity.getOpenTime())
+        .closeTime(entity.getCloseTime())
         .details(
             entity.getDetails() != null
                 ? entity.getDetails().stream()

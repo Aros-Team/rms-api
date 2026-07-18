@@ -5,6 +5,8 @@ package aros.services.rms.infraestructure.order.api.dto;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
 import aros.services.rms.core.product.domain.ProductOption;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +20,17 @@ public record OrderResponse(
         LocalDateTime date,
     @Schema(description = "Order status", example = "QUEUE") String status,
     @Schema(description = "Table ID", example = "1") Long tableId,
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+        @Schema(description = "Number of guests covered by the order", nullable = true)
+        Integer partySize,
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
+        @Schema(description = "Time when table occupancy started", nullable = true)
+        LocalDateTime openTime,
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
+        @Schema(description = "Time when table occupancy ended", nullable = true)
+        LocalDateTime closeTime,
     @Schema(description = "List of products in the order") List<OrderDetailResponse> details) {
 
   /** Detail of a product in the order. */
@@ -82,6 +95,9 @@ public record OrderResponse(
         order.getDate(),
         order.getStatus() != null ? order.getStatus().name() : null,
         order.getTable() != null ? order.getTable().getId() : null,
+        order.getPartySize(),
+        order.getOpenTime(),
+        order.getCloseTime(),
         order.getDetails() != null
             ? order.getDetails().stream()
                 .map(OrderResponse::fromDomainDetail)
