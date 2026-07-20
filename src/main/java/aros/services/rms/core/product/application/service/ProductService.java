@@ -9,6 +9,7 @@ import aros.services.rms.core.category.port.output.CategoryRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFoundException;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
+import aros.services.rms.core.inventory.domain.event.RecipeUpdatedEvent;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
@@ -121,9 +122,7 @@ public class ProductService implements ProductUseCase {
 
     // Publish events for cache invalidation (menu engineering)
     if (product.getRecipe() != null && !product.getRecipe().isEmpty()) {
-      eventPublisher.publishEvent(
-          new aros.services.rms.core.inventory.domain.event.RecipeUpdatedEvent(
-              saved.getId(), Instant.now()));
+      eventPublisher.publishEvent(new RecipeUpdatedEvent(saved.getId(), Instant.now()));
     }
 
     return saved;
@@ -179,9 +178,7 @@ public class ProductService implements ProductUseCase {
 
     // Publish events for cache invalidation (menu engineering)
     eventPublisher.publishEvent(new ProductUpdatedEvent(saved.getId(), Instant.now()));
-    eventPublisher.publishEvent(
-        new aros.services.rms.core.inventory.domain.event.RecipeUpdatedEvent(
-            saved.getId(), Instant.now()));
+    eventPublisher.publishEvent(new RecipeUpdatedEvent(saved.getId(), Instant.now()));
 
     return saved;
   }

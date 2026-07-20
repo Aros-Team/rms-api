@@ -58,7 +58,7 @@
       {
         "id": "f",
         "description": "Reviewer: validates V35 down-migration, BCG math, hexagonal layering, Money wrapper, invalidation events, harness 8/8",
-        "status": "pending",
+        "status": "done",
         "agent": "reviewer"
       }
     ],

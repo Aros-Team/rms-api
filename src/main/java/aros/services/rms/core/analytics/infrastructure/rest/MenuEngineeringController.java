@@ -45,7 +45,6 @@ public class MenuEngineeringController {
   @ApiResponse(responseCode = "400", description = "Invalid period format or bucket")
   @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
   @ApiResponse(responseCode = "403", description = "Authenticated user lacks ROLE_ADMIN")
-  @ApiResponse(responseCode = "404", description = "No data found for the requested range")
   @ApiResponse(responseCode = "422", description = "Invalid range (to < from or range > 366 days)")
   public MenuEngineeringReportResponse getMenuEngineering(
       @RequestParam String bucket,
