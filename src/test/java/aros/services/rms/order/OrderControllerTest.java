@@ -25,8 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -39,9 +37,8 @@ import org.springframework.web.context.WebApplicationContext;
  * shouldReturn400_whenTableNotFound E-P-03: shouldReturn409_whenTableIsOccupied E-P-04:
  * shouldReturn400_whenProductNotFound E-P-05: shouldReturn409_whenInsufficientStock
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-@ActiveProfiles("test")
-@TestPropertySource(
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     properties = {
       "spring.flyway.enabled=false",
       "spring.jpa.hibernate.ddl-auto=create-drop",
@@ -49,7 +46,7 @@ import org.springframework.web.context.WebApplicationContext;
       "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MYSQL",
       "spring.datasource.driver-class-name=org.h2.Driver",
       "spring.datasource.username=sa",
-      "spring.datasource.password=",
+      "spring.datasource.password=sa",
       "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
       "app.admin.email=admin@test.local",
       "app.admin.dummy-email=test@test.local",
