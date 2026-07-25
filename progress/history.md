@@ -282,3 +282,24 @@ src/test/java/aros/services/rms/core/analytics/application/config/RollupDailyJob
 **Harness:** sections 1-8 `[OK]` (407 tests pass).
 
 **Quirk:** task-executor made unauthorized Java changes (`@PreAuthorize` swap, DTO fields) — reverted; only `data.sql` + `activities.json` changed.
+
+## 2026-07-24 extension — Q3 seed expansion + auth/CME fixes + paginated orders
+
+**Follow-up fixes found while testing:**
+1. **CME in `Area.java`** — Lombok `@Data` generated `hashCode()` accessing lazy `orders` collection during Hibernate `PersistentSet.injectLoadedState` → `ConcurrentModificationException`. Fixed: `@Data` → `@Getter @Setter @ToString` + ID-only `equals`/`hashCode`.
+2. **Dev-mode auth broken** — `SecurityConfig` dev branch had `.anyRequest().permitAll()` but no `oauth2ResourceServer`. JWT tokens from login were never validated → no authenticated principal → `@PreAuthorize` failed with AccessDenied. Fixed: added `.oauth2ResourceServer(...)` to dev branch.
+3. **Analytics controllers use wrong `@PreAuthorize`** — `hasRole('ADMIN')` checks Spring Security `ROLE_ADMIN` GrantedAuthority, but no authority mapper existed. Changed to `principal.claims['role'] == 'ADMIN'` matching infra pattern.
+4. **Swagger Spanish→English status names** — `EN_COLA`→`QUEUE`, `EN_PREPARACION`→`PREPARING`, `LISTA`→`READY`, `ENTREGADA`→`DELIVERED`, `CANCELADA`→`CANCELLED`.
+5. **Q3 seed expanded** — Jul+Aug+Sep 2026 via different modulo constants per month.
+
+**New feature — paginated order history:**
+- `GET /api/v1/orders` now supports `page`, `size`, `sort`, `statuses` (comma-separated)
+- Returns `PageResponse<T>`: `{items, total, page, size, total_pages}`
+- New domain record `OrderQueryResult`, generic DTO `PageResponse<T>`
+- Backward-compatible: existing `status` param still works
+
+**Files changed:** 21 files, 1042 insertions, 96 deletions
+
+**Harness:** all 8 sections `[OK]` (407 tests pass)
+
+**Commit:** `4622a6c`
