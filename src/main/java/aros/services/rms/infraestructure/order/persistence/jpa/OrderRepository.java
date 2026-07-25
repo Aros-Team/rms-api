@@ -8,6 +8,8 @@ import jakarta.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -46,6 +48,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   List<Order> findByDateBetween(LocalDateTime startDate, LocalDateTime endDate);
 
   /**
+   * Finds paginated orders between dates.
+   *
+   * @param startDate the start date
+   * @param endDate the end date
+   * @param pageable the pagination info
+   * @return the paginated orders
+   */
+  Page<Order> findByDateBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
+
+  /**
    * Finds orders by status and between dates.
    *
    * @param status the order status
@@ -55,4 +67,28 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
    */
   List<Order> findByStatusAndDateBetween(
       OrderStatus status, LocalDateTime startDate, LocalDateTime endDate);
+
+  /**
+   * Finds paginated orders by status list.
+   *
+   * @param statuses the order statuses
+   * @param pageable the pagination info
+   * @return the paginated orders
+   */
+  Page<Order> findByStatusIn(List<OrderStatus> statuses, Pageable pageable);
+
+  /**
+   * Finds paginated orders by status list and between dates.
+   *
+   * @param statuses the order statuses
+   * @param startDate the start date
+   * @param endDate the end date
+   * @param pageable the pagination info
+   * @return the paginated orders
+   */
+  Page<Order> findByStatusInAndDateBetween(
+      List<OrderStatus> statuses,
+      LocalDateTime startDate,
+      LocalDateTime endDate,
+      Pageable pageable);
 }

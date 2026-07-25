@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.order.api;
 
 import aros.services.rms.core.order.application.dto.TakeOrderCommand;
 import aros.services.rms.core.order.domain.Order;
+import aros.services.rms.core.order.domain.OrderQueryResult;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.input.DeliveryUseCase;
 import aros.services.rms.core.order.port.input.MarkAsReadyUseCase;
@@ -11,6 +12,7 @@ import aros.services.rms.core.order.port.input.OrderQueryUseCase;
 import aros.services.rms.core.order.port.input.PreparationUseCase;
 import aros.services.rms.core.order.port.input.TakeOrderUseCase;
 import aros.services.rms.core.order.port.input.UpdateOrderUseCase;
+import aros.services.rms.infraestructure.common.dto.PageResponse;
 import aros.services.rms.infraestructure.order.api.dto.OrderResponse;
 import aros.services.rms.infraestructure.order.api.dto.OrderResponseMapper;
 import aros.services.rms.infraestructure.order.api.dto.TakeOrderRequest;
@@ -24,6 +26,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -68,7 +71,7 @@ public class OrderController {
   @Operation(
       tags = {"Orders"},
       summary = "Create new order",
-      description = "Creates a new order with status EN_COLA. Requires an available table.",
+      description = "Creates a new order with status QUEUE. Requires an available table.",
       responses = {
         @ApiResponse(
             responseCode = "201",
@@ -119,7 +122,7 @@ public class OrderController {
   @Operation(
       tags = {"Orders"},
       summary = "Cancel order",
-      description = "Cancels an existing order that is in EN_COLA status.",
+      description = "Cancels an existing order that is in QUEUE status.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -154,7 +157,7 @@ public class OrderController {
   @Operation(
       tags = {"Orders"},
       summary = "Update order details",
-      description = "Updates the details of an order in EN_COLA status.",
+      description = "Updates the details of an order in QUEUE status.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -201,8 +204,7 @@ public class OrderController {
   @Operation(
       tags = {"Orders"},
       summary = "Process next order",
-      description =
-          "Takes the oldest order from the queue and changes its status to EN_PREPARACION.",
+      description = "Takes the oldest order from the queue and changes its status to PREPARING.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -233,8 +235,8 @@ public class OrderController {
       tags = {"Orders"},
       summary = "Mark order as ready",
       description =
-          "Marks a specific order as LISTA for delivery."
-              + " Changes status from EN_PREPARACION to LISTA.",
+          "Marks a specific order as READY for delivery."
+              + " Changes status from PREPARING to READY.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -244,7 +246,7 @@ public class OrderController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Order not found"),
-        @ApiResponse(responseCode = "409", description = "Order is not in EN_PREPARACION status"),
+        @ApiResponse(responseCode = "409", description = "Order is not in PREPARING status"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/ready")
@@ -266,8 +268,8 @@ public class OrderController {
       tags = {"Orders"},
       summary = "Deliver order",
       description =
-          "Marks an order as ENTREGADA and releases the table. "
-              + "Changes status from LISTA to ENTREGADA.",
+          "Marks an order as DELIVERED and releases the table. "
+              + "Changes status from READY to DELIVERED.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -277,7 +279,7 @@ public class OrderController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Order not found"),
-        @ApiResponse(responseCode = "409", description = "Order is not in LISTA status"),
+        @ApiResponse(responseCode = "409", description = "Order is not in READY status"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/deliver")
@@ -293,24 +295,29 @@ public class OrderController {
   }
 
   /**
-   * Queries orders with optional filters.
+   * Queries orders with optional filters and pagination.
    *
-   * @param status the order status filter
+   * @param status the single order status filter (backward compat)
+   * @param statuses comma-separated order statuses filter
    * @param startDate the start date filter
    * @param endDate the end date filter
-   * @return the list of orders
+   * @param page the page number (0-based)
+   * @param size the page size
+   * @param sort the sort field and direction
+   * @return the paginated list of orders
    */
   @Operation(
       tags = {"Orders"},
       summary = "Query orders",
-      description = "Retrieves orders with optional filters by status and date range.",
+      description =
+          "Retrieves orders with optional filters by status and date range, with pagination.",
       responses = {
         @ApiResponse(
             responseCode = "200",
             description = "Orders retrieved successfully",
             content =
                 @Content(
-                    schema = @Schema(implementation = OrderResponse.class),
+                    schema = @Schema(implementation = PageResponse.class),
                     mediaType = "application/json")),
         @ApiResponse(responseCode = "400", description = "Invalid status value"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -318,13 +325,19 @@ public class OrderController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
-  public ResponseEntity<List<OrderResponse>> getOrders(
+  public ResponseEntity<PageResponse<OrderResponse>> getOrders(
       @Parameter(
-              description =
-                  "Order status filter (EN_COLA, EN_PREPARACION, LISTA, ENTREGADA, CANCELADA)",
-              example = "EN_COLA")
+              description = "Order status filter (QUEUE, PREPARING, READY, DELIVERED, CANCELLED)",
+              example = "QUEUE")
           @RequestParam(required = false)
           String status,
+      @Parameter(
+              description =
+                  "Comma-separated order statuses filter"
+                      + " (QUEUE, PREPARING, READY, DELIVERED, CANCELLED)",
+              example = "QUEUE,READY")
+          @RequestParam(required = false)
+          String statuses,
       @Parameter(
               description = "Start date for filtering (ISO DateTime)",
               example = "2026-01-01T00:00:00")
@@ -336,15 +349,29 @@ public class OrderController {
               example = "2026-12-31T23:59:59")
           @RequestParam(required = false)
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-          LocalDateTime endDate) {
-    OrderStatus orderStatus = null;
-    if (status != null && !status.isBlank()) {
-      orderStatus = OrderStatus.valueOf(status.toUpperCase());
+          LocalDateTime endDate,
+      @Parameter(description = "Page number (0-based)", example = "0")
+          @RequestParam(defaultValue = "0")
+          int page,
+      @Parameter(description = "Page size", example = "20") @RequestParam(defaultValue = "20")
+          int size,
+      @Parameter(description = "Sort field and direction (e.g. date,desc)", example = "date,desc")
+          @RequestParam(defaultValue = "date,desc")
+          String sort) {
+    List<OrderStatus> orderStatuses = new ArrayList<>();
+    if (statuses != null && !statuses.isBlank()) {
+      for (String s : statuses.split(",")) {
+        orderStatuses.add(OrderStatus.valueOf(s.trim().toUpperCase()));
+      }
+    } else if (status != null && !status.isBlank()) {
+      orderStatuses.add(OrderStatus.valueOf(status.toUpperCase()));
     }
 
-    List<Order> orders = orderQueryUseCase.findOrders(orderStatus, startDate, endDate);
+    OrderQueryResult result =
+        orderQueryUseCase.findOrdersPage(orderStatuses, startDate, endDate, page, size, sort);
     List<OrderResponse> responses =
-        orders.stream().map(orderResponseMapper::toResponse).collect(Collectors.toList());
-    return ResponseEntity.ok(responses);
+        result.items().stream().map(orderResponseMapper::toResponse).collect(Collectors.toList());
+    return ResponseEntity.ok(
+        PageResponse.of(responses, result.total(), result.page(), result.size()));
   }
 }

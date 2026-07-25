@@ -1,65 +1,43 @@
 [
   {
-    "id": 9,
-    "type": "feat",
-    "name": "menu-engineering-bcg",
-    "title": "Menu Engineering BCG (analytics module 2)",
-    "description": "Implement Menu Engineering BCG quadrant analysis per A6 contract. For each active product, compute units_sold, revenue, recipe_cost, gp_per_unit, contribution, median volume & margin, then assign quadrant (STAR/PLOWHORSE/PUZZLE/DOG). Pre-compute into menu_performance_cache via scheduled job; invalidate on product price/recipe change.",
+    "id": 1,
+    "type": "chore",
+    "name": "seed-month-stats-data",
+    "title": "Seed July 2026 statistics data in data.sql",
+    "description": "Append realistic test data (users, schedules, shifts, time logs, orders, order details, inventory deductions) simulating a full month of restaurant operations for July 2026 so the menu engineering BCG report and prime cost report endpoints return non-empty data.",
     "acceptance": [
-      "V35 migration: CREATE TABLE menu_performance_cache with columns (product_id, product_name, category_id, category_name, period_key, bucket, units_sold INT, revenue DECIMAL(14,2), recipe_cost DECIMAL(14,2), gross_profit_per_unit DECIMAL(14,2), total_contribution DECIMAL(14,2), quadrant VARCHAR(20), updated_at TIMESTAMP, UNIQUE(product_id, period_key, bucket))",
-      "V35 migration: CREATE INDEX idx_mpc_period ON menu_performance_cache (bucket, period_key)",
-      "MenuEngineeringReport domain record with nested PeriodInfo, MenuItemSummary, CacheStatus fields per §5.2 contract shape",
-      "MenuEngineeringCacheRepositoryPort + JPA entity + adapter for CRUD on cache table",
-      "RefreshMenuEngineeringService: computes BCG for all active products in a period. Math: units_sold = COUNT(order_details) per product; revenue = Σ(unit_price); recipe_cost = Σ(ProductRecipe.requiredQuantity × SupplyVariant.unitCost); gp_per_unit = sell_price − recipe_cost; contribution = units_sold × gp_per_unit; median_volume = median(units_sold); median_margin = median(gp_per_unit); quadrant assignment per §5.2",
-      "RefreshMenuEngineeringService uses OrderDetailRepositoryPort + ProductRepositoryPort + SupplyVariantRepositoryPort + ProductRecipeRepositoryPort for aggregation",
-      "ProductUpdatedEvent + RecipeUpdatedEvent: Spring ApplicationEvent published on product price change / recipe change, with event listener that sets cache as stale (or triggers immediate refresh)",
-      "RefreshMenuEngineeringJob: @Scheduled @SchedulerLock at 3:00 AM daily, refreshes cache for last 13 months",
-      "GetMenuEngineeringUseCase port + GetMenuEngineeringService (reads from cache table, returns series for requested time bucket range)",
-      "MenuEngineeringController: GET /api/v1/analytics/menu-engineering with Bearer auth + @PreAuthorize(ADMIN) + optional ?categoryId= filter",
-      "MenuEngineeringReportResponse DTO matching the A6 contract shape (§5.2): nested period, median, items[], cacheStatus, dataCompleteness",
-      "MenuEngineeringReportMapper (domain → DTO)",
-      "Cache invalidation: on product.base_price change → invalidate all cache rows for that product; on any product_recipes change → invalidate all cache rows for that product",
-      "No BigDecimal-in-domain violations (§6b): all monetary amounts use Money wrapper; quadrant and counts stay plain types",
-      "No Spring/JPA in domain/ (§6)",
-      "Tests: RefreshMenuEngineeringService (aggregation + median + quadrant assignment), GetMenuEngineeringService (series fill), controller (200/401/403), job cron",
-      "./harness/harness.sh exit 0 (all 8 sections [OK])"
+      "data.sql extended with INSERT blocks for: users (1 admin + >=6 workers with salary), schedule, schedule_shifts, worker_schedule_assignments, user_assigned_areas, time_logs (IN entries), orders, order_details, order_detail_options, order_preparation_areas, inventory_movements (DEDUCTION linked to orders)",
+      "All orders fall within 2026-07-01 .. 2026-07-31, status DELIVERED, with realistic open_time/close_time/party_size",
+      "Idempotent: pre-existing July 2026 rows are cleared before insertion",
+      "Distribution: weekends busier; lunch peak 12-14, dinner peak 19-22",
+      "Top-selling products appear more frequently in order_details",
+      "inventory_movements DEDUCTION rows reference the order they came from",
+      "./harness/harness.sh all [OK]"
     ],
     "tasks": [
       {
         "id": "a",
-        "description": "V35 migration: menu_performance_cache table + index",
+        "description": "Extend data.sql with idempotent July 2026 seed: users, schedule, shifts, assignments, areas, time_logs",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "b",
-        "description": "Domain: MenuEngineeringReport + BCGQuadrant enum + ports (Get/Refresh/repository)",
+        "description": "Generate ~2000 orders across July 2026 using CTE-based series; order_details with top-seller bias; order_detail_options; order_preparation_areas",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "c",
-        "description": "Infrastructure: JPA entity + adapter + controller (GET /menu-engineering) + DTOs + mapper",
+        "description": "Generate inventory_movements of type DEDUCTION linked to each order for COGS",
         "status": "done",
         "agent": "implementer"
       },
       {
         "id": "d",
-        "description": "Application: RefreshMenuEngineeringService (aggregation + median + quadrant) + GetMenuEngineeringService + RefreshMenuEngineeringJob (3 AM cron)",
+        "description": "Run ./gradlew spotlessApply and ./harness/harness.sh; verify all OK",
         "status": "done",
         "agent": "implementer"
-      },
-      {
-        "id": "e",
-        "description": "Tests: Refresh service (aggregation + median + quadrant), Get service (series), controller (200/401/403), job",
-        "status": "done",
-        "agent": "implementer"
-      },
-      {
-        "id": "f",
-        "description": "Reviewer: validates V35 down-migration, BCG math, hexagonal layering, Money wrapper, invalidation events, harness 8/8",
-        "status": "done",
-        "agent": "reviewer"
       }
     ],
     "status": "done"

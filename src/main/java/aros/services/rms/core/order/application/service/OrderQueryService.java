@@ -3,6 +3,7 @@
 package aros.services.rms.core.order.application.service;
 
 import aros.services.rms.core.order.domain.Order;
+import aros.services.rms.core.order.domain.OrderQueryResult;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.input.OrderQueryUseCase;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
@@ -81,6 +82,58 @@ public class OrderQueryService implements OrderQueryUseCase {
   public List<Order> recoverFindOrders(
       DataAccessException e, OrderStatus status, LocalDateTime startDate, LocalDateTime endDate) {
     log.warn("BD no disponible - fallback para findOrders: {}", e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public OrderQueryResult findOrdersPage(
+      List<OrderStatus> statuses,
+      LocalDateTime startDate,
+      LocalDateTime endDate,
+      int page,
+      int size,
+      String sort) {
+    boolean hasDates = startDate != null && endDate != null;
+
+    if (hasDates && endDate.isAfter(LocalDateTime.now())) {
+      throw new IllegalArgumentException("End date cannot be in the future");
+    }
+
+    if (hasDates && startDate.isAfter(endDate)) {
+      throw new IllegalArgumentException("Start date cannot be after end date");
+    }
+
+    return orderRepositoryPort.findOrdersPage(statuses, startDate, endDate, page, size, sort);
+  }
+
+  /**
+   * Recovery handler for findOrdersPage operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param statuses the order statuses filter
+   * @param startDate the start date filter
+   * @param endDate the end date filter
+   * @param page the page number
+   * @param size the page size
+   * @param sort the sort specification
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
+  @Recover
+  public OrderQueryResult recoverFindOrdersPage(
+      DataAccessException e,
+      List<OrderStatus> statuses,
+      LocalDateTime startDate,
+      LocalDateTime endDate,
+      int page,
+      int size,
+      String sort) {
+    log.warn("BD no disponible - fallback para findOrdersPage: {}", e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 }

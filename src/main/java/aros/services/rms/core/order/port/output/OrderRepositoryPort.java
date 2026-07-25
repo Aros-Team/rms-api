@@ -3,6 +3,7 @@
 package aros.services.rms.core.order.port.output;
 
 import aros.services.rms.core.order.domain.Order;
+import aros.services.rms.core.order.domain.OrderQueryResult;
 import aros.services.rms.core.order.domain.OrderStatus;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -68,4 +69,23 @@ public interface OrderRepositoryPort {
    */
   List<Order> findByStatusAndDateBetween(
       OrderStatus status, LocalDateTime startDate, LocalDateTime endDate);
+
+  /**
+   * Finds orders with pagination and optional filters.
+   *
+   * @param statuses list of statuses (empty/null = no filter)
+   * @param startDate start date (null = no filter)
+   * @param endDate end date (null = no filter)
+   * @param page page number (0-based)
+   * @param size page size
+   * @param sort sort field and direction (e.g. "date,desc")
+   * @return paginated result
+   */
+  OrderQueryResult findOrdersPage(
+      List<OrderStatus> statuses,
+      LocalDateTime startDate,
+      LocalDateTime endDate,
+      int page,
+      int size,
+      String sort);
 }

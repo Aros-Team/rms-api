@@ -3,6 +3,7 @@
 package aros.services.rms.infraestructure.order.persistence.jpa;
 
 import aros.services.rms.core.order.domain.Order;
+import aros.services.rms.core.order.domain.OrderQueryResult;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
 import jakarta.transaction.Transactional;
@@ -11,6 +12,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 /** Adapter for order persistence. */
@@ -100,5 +104,71 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
     return orderRepository.findByStatusAndDateBetween(infraStatus, startDate, endDate).stream()
         .map(orderMapper::toDomain)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public OrderQueryResult findOrdersPage(
+      List<OrderStatus> statuses,
+      LocalDateTime startDate,
+      LocalDateTime endDate,
+      int page,
+      int size,
+      String sort) {
+    Sort springSort = parseSort(sort);
+    PageRequest pageable = PageRequest.of(page, size, springSort);
+
+    boolean hasStatuses = statuses != null && !statuses.isEmpty();
+    boolean hasDates = startDate != null && endDate != null;
+
+    Page<aros.services.rms.infraestructure.order.persistence.Order> result;
+    if (hasStatuses && hasDates) {
+      List<aros.services.rms.infraestructure.order.persistence.OrderStatus> infraStatuses =
+          statuses.stream()
+              .map(
+                  s ->
+                      aros.services.rms.infraestructure.order.persistence.OrderStatus.valueOf(
+                          s.name()))
+              .collect(Collectors.toList());
+      result =
+          orderRepository.findByStatusInAndDateBetween(infraStatuses, startDate, endDate, pageable);
+    } else if (hasStatuses) {
+      List<aros.services.rms.infraestructure.order.persistence.OrderStatus> infraStatuses =
+          statuses.stream()
+              .map(
+                  s ->
+                      aros.services.rms.infraestructure.order.persistence.OrderStatus.valueOf(
+                          s.name()))
+              .collect(Collectors.toList());
+      result = orderRepository.findByStatusIn(infraStatuses, pageable);
+    } else if (hasDates) {
+      result = orderRepository.findByDateBetween(startDate, endDate, pageable);
+    } else {
+      result = orderRepository.findAll(pageable);
+    }
+
+    List<Order> domains =
+        result.getContent().stream().map(orderMapper::toDomain).collect(Collectors.toList());
+
+    return new OrderQueryResult(domains, result.getTotalElements(), page, size);
+  }
+
+  private static Sort parseSort(String sort) {
+    if (sort == null || sort.isBlank()) {
+      return Sort.by(Sort.Direction.DESC, "date");
+    }
+    String[] parts = sort.split(",");
+    String field = "date";
+    Sort.Direction direction = Sort.Direction.DESC;
+    if (parts.length >= 1 && !parts[0].isBlank()) {
+      field = parts[0].trim();
+    }
+    if (parts.length >= 2 && !parts[1].isBlank()) {
+      try {
+        direction = Sort.Direction.fromString(parts[1].trim());
+      } catch (IllegalArgumentException e) {
+        direction = Sort.Direction.DESC;
+      }
+    }
+    return Sort.by(direction, field);
   }
 }

@@ -6,12 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.order.application.service.OrderQueryService;
 import aros.services.rms.core.order.domain.Order;
+import aros.services.rms.core.order.domain.OrderQueryResult;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
 import java.time.LocalDateTime;
@@ -157,5 +160,101 @@ class OrderQueryUseCaseImplTest {
 
     assertNotNull(result);
     verify(orderRepositoryPort, times(1)).findAll();
+  }
+
+  // ---------------------------------------------------------------------------
+  // findOrdersPage tests
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldFindOrdersPage_whenNoFiltersProvided() {
+    OrderQueryResult expected =
+        new OrderQueryResult(
+            List.of(Order.builder().id(1L).build(), Order.builder().id(2L).build()), 2L, 0, 20);
+
+    when(orderRepositoryPort.findOrdersPage(List.of(), null, null, 0, 20, "date,desc"))
+        .thenReturn(expected);
+
+    OrderQueryResult result =
+        orderQueryUseCase.findOrdersPage(List.of(), null, null, 0, 20, "date,desc");
+
+    assertNotNull(result);
+    assertEquals(2, result.items().size());
+    assertEquals(2L, result.total());
+    assertEquals(0, result.page());
+    assertEquals(20, result.size());
+    verify(orderRepositoryPort, times(1)).findOrdersPage(List.of(), null, null, 0, 20, "date,desc");
+  }
+
+  @Test
+  void shouldFindOrdersPage_whenStatusesProvided() {
+    List<OrderStatus> statuses = List.of(OrderStatus.QUEUE, OrderStatus.PREPARING);
+    OrderQueryResult expected =
+        new OrderQueryResult(
+            List.of(Order.builder().id(1L).status(OrderStatus.QUEUE).build()), 1L, 0, 20);
+
+    when(orderRepositoryPort.findOrdersPage(statuses, null, null, 0, 20, "date,desc"))
+        .thenReturn(expected);
+
+    OrderQueryResult result =
+        orderQueryUseCase.findOrdersPage(statuses, null, null, 0, 20, "date,desc");
+
+    assertNotNull(result);
+    assertEquals(1, result.items().size());
+    assertEquals(1L, result.total());
+    verify(orderRepositoryPort, times(1)).findOrdersPage(statuses, null, null, 0, 20, "date,desc");
+  }
+
+  @Test
+  void shouldFindOrdersPage_whenDatesProvided() {
+    LocalDateTime startDate = LocalDateTime.now().minusDays(7);
+    LocalDateTime endDate = LocalDateTime.now();
+    OrderQueryResult expected =
+        new OrderQueryResult(List.of(Order.builder().id(1L).build()), 1L, 0, 20);
+
+    when(orderRepositoryPort.findOrdersPage(List.of(), startDate, endDate, 0, 20, "date,desc"))
+        .thenReturn(expected);
+
+    OrderQueryResult result =
+        orderQueryUseCase.findOrdersPage(List.of(), startDate, endDate, 0, 20, "date,desc");
+
+    assertNotNull(result);
+    assertEquals(1, result.items().size());
+    verify(orderRepositoryPort, times(1))
+        .findOrdersPage(List.of(), startDate, endDate, 0, 20, "date,desc");
+  }
+
+  @Test
+  void shouldThrowException_whenEndDateIsInFuture_forFindOrdersPage() {
+    LocalDateTime startDate = LocalDateTime.now().minusDays(7);
+    LocalDateTime endDate = LocalDateTime.now().plusDays(1);
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                orderQueryUseCase.findOrdersPage(
+                    List.of(), startDate, endDate, 0, 20, "date,desc"));
+
+    assertEquals("End date cannot be in the future", exception.getMessage());
+    verify(orderRepositoryPort, times(0))
+        .findOrdersPage(any(), any(), any(), anyInt(), anyInt(), anyString());
+  }
+
+  @Test
+  void shouldThrowException_whenStartDateIsAfterEndDate_forFindOrdersPage() {
+    LocalDateTime startDate = LocalDateTime.now();
+    LocalDateTime endDate = LocalDateTime.now().minusDays(1);
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                orderQueryUseCase.findOrdersPage(
+                    List.of(), startDate, endDate, 0, 20, "date,desc"));
+
+    assertEquals("Start date cannot be after end date", exception.getMessage());
+    verify(orderRepositoryPort, times(0))
+        .findOrdersPage(any(), any(), any(), anyInt(), anyInt(), anyString());
   }
 }

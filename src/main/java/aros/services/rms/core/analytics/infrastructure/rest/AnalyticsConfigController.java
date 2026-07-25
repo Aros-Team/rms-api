@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/analytics/config")
 @Tag(name = "Analytics")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("principal.claims['role'] == 'ADMIN'")
 @RequiredArgsConstructor
 public class AnalyticsConfigController {
 

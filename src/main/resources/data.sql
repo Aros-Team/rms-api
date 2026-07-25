@@ -820,3 +820,317 @@ INSERT IGNORE INTO option_recipes (option_id, supply_variant_id, required_quanti
     (54, 56, 1.000), (55, 57, 1.000), (56, 58, 1.000),
     -- Sabor Especial Bebida
     (57, 41, 1.000), (58, 19, 1.000);
+
+-- =============================================================================
+-- Q3 2026 STATISTICS SEED (Jul + Aug + Sep, idempotent, append-only)
+-- =============================================================================
+-- Simulates three months (Jul/Aug/Sep 2026) of restaurant operations.
+-- Re-runnable: cleanup runs first in FK order. Varies order volume and
+-- product mix per month via different CTE seed constants.
+--   * users document 'TEST-%' / email '*.test@rms.local' / user_id 1001-1006
+--   * schedules name 'Turno%' / schedule_id 1 / shift_id 1..14
+--   * orders id 100001+ / order_details id 200001+ / inventory_movements id auto
+--   * Jul: baseline (slot filter 3, key 7/31)
+--   * Aug: busier    (slot filter 4, key 11/37)
+--   * Sep: quieter   (slot filter 2, key 13/41)
+-- =============================================================================
+
+-- Clean any prior Q3 2026 seeded data (idempotent re-run safety).
+-- Order matters: clear child tables first because of FK constraints.
+DELETE FROM order_detail_options
+  WHERE order_detail_id IN (
+    SELECT id FROM order_details
+    WHERE order_id IN (SELECT id FROM orders WHERE date >= '2026-07-01' AND date < '2026-10-01'));
+DELETE FROM order_details
+  WHERE order_id IN (SELECT id FROM orders WHERE date >= '2026-07-01' AND date < '2026-10-01');
+DELETE FROM order_preparation_areas
+  WHERE order_id IN (SELECT id FROM orders WHERE date >= '2026-07-01' AND date < '2026-10-01');
+DELETE FROM inventory_movements
+  WHERE created_at >= '2026-07-01' AND created_at < '2026-10-01';
+DELETE FROM time_logs
+  WHERE timestamp >= '2026-07-01' AND timestamp < '2026-10-01';
+DELETE FROM orders WHERE date >= '2026-07-01' AND date < '2026-10-01';
+DELETE FROM worker_schedule_assignments
+  WHERE schedule_id IN (SELECT id FROM schedules WHERE name LIKE 'Turno%');
+DELETE FROM schedule_shifts
+  WHERE schedule_id IN (SELECT id FROM schedules WHERE name LIKE 'Turno%');
+DELETE FROM schedules WHERE name LIKE 'Turno%';
+DELETE FROM user_assigned_areas
+  WHERE user_id IN (SELECT id FROM users WHERE document LIKE 'TEST-%');
+DELETE FROM users WHERE document LIKE 'TEST-%';
+
+-- =============================================================================
+-- TEST USERS (6 workers only; admin is auto-created by AdminInitializer)
+-- 1001-1002 = FOH (Servicio + Caja) at 2,500,000 COP/month
+-- 1003-1006 = BOH (Cocina) at 2,800,000 COP/month
+-- =============================================================================
+INSERT INTO users (id, document, name, email, password, address, phone, role, status, salary) VALUES
+  (1001, 'TEST-WK-1',    'Trabajador 1', 'wk1.test@rms.local',     NULL, 'Calle 1 #1-01', '3000000001', 'WORKER', 'ACTIVE', 2500000.00),
+  (1002, 'TEST-WK-2',    'Trabajador 2', 'wk2.test@rms.local',     NULL, 'Calle 1 #1-02', '3000000002', 'WORKER', 'ACTIVE', 2500000.00),
+  (1003, 'TEST-WK-3',    'Trabajador 3', 'wk3.test@rms.local',     NULL, 'Calle 1 #1-03', '3000000003', 'WORKER', 'ACTIVE', 2800000.00),
+  (1004, 'TEST-WK-4',    'Trabajador 4', 'wk4.test@rms.local',     NULL, 'Calle 1 #1-04', '3000000004', 'WORKER', 'ACTIVE', 2800000.00),
+  (1005, 'TEST-WK-5',    'Trabajador 5', 'wk5.test@rms.local',     NULL, 'Calle 1 #1-05', '3000000005', 'WORKER', 'ACTIVE', 2800000.00),
+  (1006, 'TEST-WK-6',    'Trabajador 6', 'wk6.test@rms.local',     NULL, 'Calle 1 #1-06', '3000000006', 'WORKER', 'ACTIVE', 2800000.00);
+
+-- =============================================================================
+-- USER ASSIGNED AREAS (PK user_id + area_id -> INSERT IGNORE)
+-- Areas: 1=Cocina(KITCHEN), 2=Servicio(SERVICE), 3=Bar(BAR), 4=Caja(CASH)
+-- =============================================================================
+INSERT IGNORE INTO user_assigned_areas (user_id, area_id) VALUES
+  (1001, 2), (1001, 4), (1002, 2), (1002, 4),
+  (1003, 1), (1004, 1), (1005, 1), (1006, 1);
+
+-- =============================================================================
+-- SCHEDULE + SHIFTS (deterministic IDs)
+-- 1 schedule ("Turno Estándar") + 14 shifts (2 per day-of-week).
+-- Lunch 11:00-15:00 (4h) ids 1..7, Dinner 18:00-23:00 (5h) ids 8..14.
+-- DAYOFWEEK returns 1=Sun..7=Sat; (DAYOFWEEK + 5) % 7 + 1 maps to 1..7.
+-- =============================================================================
+INSERT INTO schedules (id, name, description) VALUES (1, 'Turno Estándar', 'Turno de operación 11:00-23:00');
+
+INSERT INTO schedule_shifts (id, schedule_id, day_of_week, start_time, end_time) VALUES
+  (1, 1, 'MONDAY', '11:00:00', '15:00:00'), (2, 1, 'TUESDAY', '11:00:00', '15:00:00'),
+  (3, 1, 'WEDNESDAY', '11:00:00', '15:00:00'), (4, 1, 'THURSDAY', '11:00:00', '15:00:00'),
+  (5, 1, 'FRIDAY', '11:00:00', '15:00:00'), (6, 1, 'SATURDAY', '11:00:00', '15:00:00'),
+  (7, 1, 'SUNDAY', '11:00:00', '15:00:00'),
+  (8, 1, 'MONDAY', '18:00:00', '23:00:00'), (9, 1, 'TUESDAY', '18:00:00', '23:00:00'),
+  (10, 1, 'WEDNESDAY', '18:00:00', '23:00:00'), (11, 1, 'THURSDAY', '18:00:00', '23:00:00'),
+  (12, 1, 'FRIDAY', '18:00:00', '23:00:00'), (13, 1, 'SATURDAY', '18:00:00', '23:00:00'),
+  (14, 1, 'SUNDAY', '18:00:00', '23:00:00');
+
+-- =============================================================================
+-- WORKER SCHEDULE ASSIGNMENTS (UNIQUE worker_id + schedule_id -> INSERT IGNORE)
+-- =============================================================================
+INSERT IGNORE INTO worker_schedule_assignments (worker_id, schedule_id) VALUES
+  (1001, 1), (1002, 1), (1003, 1), (1004, 1), (1005, 1), (1006, 1);
+
+-- =============================================================================
+-- TIME LOGS (6 workers x 92 days = 552 rows)
+-- Slots 0/2/4 => lunch shift (ids 1..7), slots 1/3/5 => dinner shift (ids 8..14).
+-- =============================================================================
+INSERT INTO time_logs (worker_id, timestamp, type, within_shift, related_shift_id)
+WITH RECURSIVE
+  days  AS (SELECT 0 AS d UNION ALL SELECT d + 1 FROM days WHERE d < 91),
+  slots AS (SELECT 0 AS slot UNION ALL SELECT slot + 1 FROM slots WHERE slot < 5)
+SELECT
+  1001 + slots.slot,
+  CASE WHEN slots.slot IN (0, 2, 4)
+       THEN TIMESTAMP('2026-07-01 11:30:00') + INTERVAL days.d DAY
+       ELSE TIMESTAMP('2026-07-01 18:30:00') + INTERVAL days.d DAY
+  END,
+  'IN', TRUE,
+  CASE WHEN slots.slot IN (0, 2, 4)
+       THEN ((DAYOFWEEK('2026-07-01' + INTERVAL days.d DAY) + 5) % 7) + 1
+       ELSE ((DAYOFWEEK('2026-07-01' + INTERVAL days.d DAY) + 5) % 7) + 8
+  END
+FROM days CROSS JOIN slots;
+
+-- =============================================================================
+-- ORDERS (3 months, ~6500 total, varying volume per month)
+-- 8-min slots base 12:00. Each month uses a different weekday filter:
+--   Jul: baseline   — NOT (dow in 2,3,4 AND n % 3 = 0)
+--   Aug: busier     — NOT (dow in 2,3,4 AND n % 4 = 0)  (75% kept → ~2600 orders)
+--   Sep: quieter    — NOT (dow in 2,3,4 AND n % 2 = 0)  (50% kept → ~1700 orders)
+-- =============================================================================
+INSERT INTO orders (id, date, status, table_id, party_size, open_time, close_time)
+WITH RECURSIVE
+  days AS (SELECT 0 AS d UNION ALL SELECT d + 1 FROM days WHERE d < 91),
+  slots AS (SELECT 0 AS n UNION ALL SELECT n + 1 FROM slots WHERE n < 75),
+  base_ts AS (
+    SELECT
+      days.d, slots.n,
+      TIMESTAMP('2026-07-01 12:00:00') + INTERVAL days.d DAY + INTERVAL (slots.n * 8) MINUTE AS bt,
+      HOUR(TIMESTAMP('2026-07-01 12:00:00') + INTERVAL (slots.n * 8) MINUTE) AS hr,
+      DAYOFWEEK('2026-07-01' + INTERVAL days.d DAY) AS dow
+    FROM days CROSS JOIN slots
+  )
+SELECT
+  ROW_NUMBER() OVER (ORDER BY bt.d, bt.n) + 100000,
+  bt.bt,
+  'DELIVERED',
+  (bt.n % 5) + 1,
+  2 + ((bt.n + bt.d) % 3),
+  bt.bt,
+  bt.bt + INTERVAL 45 MINUTE
+FROM base_ts bt
+WHERE bt.hr BETWEEN 11 AND 22
+  AND CASE
+    WHEN bt.d < 31  THEN NOT (bt.dow IN (2,3,4) AND (bt.n % 3) = 0)  -- Jul
+    WHEN bt.d < 62  THEN NOT (bt.dow IN (2,3,4) AND (bt.n % 4) = 0)  -- Aug
+    ELSE                 NOT (bt.dow IN (2,3,4) AND (bt.n % 2) = 0)  -- Sep
+  END;
+
+-- =============================================================================
+-- ORDER DETAILS (2-4 per order, weighted toward top sellers)
+-- Product selection key varies by month: Jul=7/31, Aug=11/37, Sep=13/41.
+-- product_list weight ranges stay the same but the different key produces
+-- a different distribution each month (different products dominate).
+-- =============================================================================
+INSERT INTO order_details (id, order_id, product_id, unit_price, instructions)
+WITH RECURSIVE
+  detail_idx AS (SELECT 0 AS k UNION ALL SELECT k + 1 FROM detail_idx WHERE k < 3),
+  product_list AS (
+    SELECT  0 AS lo, 14 AS hi,  7 AS pid, 18000.00 AS price
+    UNION ALL SELECT 15, 28, 13, 22000.00
+    UNION ALL SELECT 29, 40,  6,  8000.00
+    UNION ALL SELECT 41, 50,  2, 18000.00
+    UNION ALL SELECT 51, 58,  1, 28000.00
+    UNION ALL SELECT 59, 64, 12, 20000.00
+    UNION ALL SELECT 65, 70, 10, 25000.00
+    UNION ALL SELECT 71, 75,  5, 55000.00
+    UNION ALL SELECT 76, 80, 17, 24000.00
+    UNION ALL SELECT 81, 85, 16, 25000.00
+    UNION ALL SELECT 86, 89, 20, 12000.00
+    UNION ALL SELECT 90, 92, 18, 42000.00
+    UNION ALL SELECT 93, 95, 19, 38000.00
+    UNION ALL SELECT 96, 97, 22,  7000.00
+    UNION ALL SELECT 98, 99, 21,  6000.00
+  )
+SELECT
+  ROW_NUMBER() OVER (ORDER BY o.id, d.k) + 200000,
+  o.id,
+  p.pid,
+  p.price,
+  NULL
+FROM orders o
+CROSS JOIN detail_idx d
+CROSS JOIN product_list p
+WHERE o.date >= '2026-07-01' AND o.date < '2026-10-01'
+  AND d.k < 2 + ((o.id + d.k) % 3)
+  AND CASE
+    WHEN o.date < '2026-08-01' THEN ((o.id * 7 + d.k * 31) % 100)
+    WHEN o.date < '2026-09-01' THEN ((o.id * 11 + d.k * 37) % 100)
+    ELSE                            ((o.id * 13 + d.k * 41) % 100)
+  END BETWEEN p.lo AND p.hi;
+
+-- =============================================================================
+-- ORDER DETAIL OPTIONS (PK -> INSERT IGNORE)
+-- =============================================================================
+INSERT IGNORE INTO order_detail_options (order_detail_id, option_id)
+SELECT od.id, ((od.id * 11) % 10) + 1
+FROM order_details od
+JOIN orders o ON o.id = od.order_id
+WHERE o.date >= '2026-07-01' AND o.date < '2026-10-01'
+  AND od.product_id IN (1, 7) AND ((od.id * 13) % 4) = 0
+UNION ALL
+SELECT od.id, (((od.id * 17) % 6) + 14)
+FROM order_details od
+JOIN orders o ON o.id = od.order_id
+WHERE o.date >= '2026-07-01' AND o.date < '2026-10-01'
+  AND od.product_id = 2 AND ((od.id * 19) % 3) = 0
+UNION ALL
+SELECT od.id, (((od.id * 23) % 3) + 23)
+FROM order_details od
+JOIN orders o ON o.id = od.order_id
+WHERE o.date >= '2026-07-01' AND o.date < '2026-10-01'
+  AND od.product_id IN (3, 13, 14, 15) AND ((od.id * 29) % 5) = 0;
+
+-- =============================================================================
+-- ORDER PREPARATION AREAS (PK -> INSERT IGNORE)
+-- =============================================================================
+INSERT IGNORE INTO order_preparation_areas (order_id, area_id)
+SELECT DISTINCT o.id, 1 FROM orders o
+WHERE o.date >= '2026-07-01' AND o.date < '2026-10-01';
+
+INSERT IGNORE INTO order_preparation_areas (order_id, area_id)
+SELECT DISTINCT o.id, 3 FROM orders o
+JOIN order_details od ON od.order_id = o.id
+WHERE o.date >= '2026-07-01' AND o.date < '2026-10-01'
+  AND od.product_id IN (6, 20, 21, 22);
+
+-- =============================================================================
+-- INVENTORY MOVEMENTS — DEDUCTION (COGS source for prime cost)
+-- =============================================================================
+INSERT INTO inventory_movements (supply_variant_id, from_storage_location_id, to_storage_location_id, quantity, movement_type, reference_order_id, created_at)
+SELECT pr.supply_variant_id, 2, NULL, pr.required_quantity, 'DEDUCTION', od.order_id, o.date + INTERVAL 5 MINUTE
+FROM order_details od
+JOIN orders o ON o.id = od.order_id
+JOIN product_recipes pr ON pr.product_id = od.product_id
+WHERE o.date >= '2026-07-01' AND o.date < '2026-10-01';
+
+-- =============================================================================
+-- INVENTORY MOVEMENTS — TRANSFER (Bodega -> Cocina, daily restock)
+-- =============================================================================
+INSERT INTO inventory_movements (supply_variant_id, from_storage_location_id, to_storage_location_id, quantity, movement_type, reference_order_id, created_at)
+WITH RECURSIVE
+  days AS (SELECT 0 AS d UNION ALL SELECT d + 1 FROM days WHERE d < 91),
+  variants AS (SELECT 35 AS vid UNION ALL SELECT 36 UNION ALL SELECT 37 UNION ALL SELECT 38)
+SELECT variants.vid, 1, 2, 10.000, 'TRANSFER', NULL, TIMESTAMP('2026-07-01 09:00:00') + INTERVAL days.d DAY
+FROM days CROSS JOIN variants;
+
+-- =============================================================================
+-- MONTHLY FINANCIAL SUMMARY (for Prime Cost report)
+-- Computes net_sales and cogs from actual seeded data, labor from known
+-- worker/shift structure (2 FOH + 4 BOH, lunch 4h + dinner 5h).
+-- UNIQUE (period_key, bucket) -> INSERT ON DUPLICATE KEY UPDATE for idempotency.
+-- =============================================================================
+INSERT INTO monthly_financial_summary
+    (period_key, bucket, net_sales, gross_sales, discounts, comped,
+     cogs_food, cogs_beverage, cogs_alcohol, cogs_other, food_cogs_pct,
+     labor_foh, labor_boh, labor_total, labor_pct,
+     prime_cost, prime_cost_pct, gross_profit_pct, net_profit_pct, data_completeness)
+WITH
+monthly_revenue AS (
+  SELECT DATE_FORMAT(o.date, '%Y-%m') AS m, SUM(od.unit_price) AS sales
+  FROM orders o JOIN order_details od ON od.order_id = o.id
+  WHERE o.date >= '2026-07-01' AND o.date < '2026-10-01'
+  GROUP BY m
+),
+monthly_cogs AS (
+  SELECT DATE_FORMAT(o.date, '%Y-%m') AS m,
+         COALESCE(SUM(CASE WHEN sc.food_type = 'FOOD' THEN im.quantity * sv.unit_cost END), 0) AS food,
+         COALESCE(SUM(CASE WHEN sc.food_type = 'BEVERAGE' THEN im.quantity * sv.unit_cost END), 0) AS bev,
+         COALESCE(SUM(CASE WHEN sc.food_type = 'ALCOHOL' THEN im.quantity * sv.unit_cost END), 0) AS alc,
+         COALESCE(SUM(CASE WHEN sc.food_type = 'OTHER' THEN im.quantity * sv.unit_cost END), 0) AS oth
+  FROM inventory_movements im
+  JOIN supply_variants sv ON sv.id = im.supply_variant_id
+  JOIN supplies s ON s.id = sv.supply_id
+  JOIN supply_categories sc ON sc.id = s.supply_category_id
+  JOIN orders o ON o.id = im.reference_order_id
+  WHERE im.movement_type = 'DEDUCTION' AND o.date >= '2026-07-01' AND o.date < '2026-10-01'
+  GROUP BY m
+)
+SELECT
+  r.m, 'monthly',
+  r.sales, r.sales, 0, 0,
+  c.food, c.bev, c.alc, c.oth,
+  ROUND(c.food / NULLIF(c.food + c.bev + c.alc + c.oth, 0) * 100, 2),
+  CASE r.m
+    WHEN '2026-07' THEN  4359375 WHEN '2026-08' THEN  4359375 WHEN '2026-09' THEN  4218750
+    ELSE 0 END,
+  CASE r.m
+    WHEN '2026-07' THEN  9765000 WHEN '2026-08' THEN  9765000 WHEN '2026-09' THEN  9450000
+    ELSE 0 END,
+  CASE r.m
+    WHEN '2026-07' THEN 14124375 WHEN '2026-08' THEN 14124375 WHEN '2026-09' THEN 13668750
+    ELSE 0 END,
+  ROUND(CASE r.m
+    WHEN '2026-07' THEN 14124375 WHEN '2026-08' THEN 14124375 WHEN '2026-09' THEN 13668750
+    ELSE 0 END / NULLIF(r.sales, 0) * 100, 2),
+  CASE r.m
+    WHEN '2026-07' THEN ROUND(c.food + c.bev + c.alc + c.oth + 14124375, 2)
+    WHEN '2026-08' THEN ROUND(c.food + c.bev + c.alc + c.oth + 14124375, 2)
+    WHEN '2026-09' THEN ROUND(c.food + c.bev + c.alc + c.oth + 13668750, 2)
+    ELSE 0 END,
+  ROUND(CASE r.m
+    WHEN '2026-07' THEN (c.food + c.bev + c.alc + c.oth + 14124375)
+    WHEN '2026-08' THEN (c.food + c.bev + c.alc + c.oth + 14124375)
+    WHEN '2026-09' THEN (c.food + c.bev + c.alc + c.oth + 13668750)
+    ELSE 0 END / NULLIF(r.sales, 0) * 100, 2),
+  ROUND((1 - CASE r.m
+    WHEN '2026-07' THEN (c.food + c.bev + c.alc + c.oth + 14124375)
+    WHEN '2026-08' THEN (c.food + c.bev + c.alc + c.oth + 14124375)
+    WHEN '2026-09' THEN (c.food + c.bev + c.alc + c.oth + 13668750)
+    ELSE 0 END / NULLIF(r.sales, 0)) * 100, 2),
+  ROUND((1 - CASE r.m
+    WHEN '2026-07' THEN (c.food + c.bev + c.alc + c.oth + 14124375)
+    WHEN '2026-08' THEN (c.food + c.bev + c.alc + c.oth + 14124375)
+    WHEN '2026-09' THEN (c.food + c.bev + c.alc + c.oth + 13668750)
+    ELSE 0 END / NULLIF(r.sales, 0)) * 100, 2),
+  'FULL'
+FROM monthly_revenue r
+LEFT JOIN monthly_cogs c ON c.m = r.m
+ON DUPLICATE KEY UPDATE
+  net_sales = VALUES(net_sales), gross_sales = VALUES(gross_sales),
+  cogs_food = VALUES(cogs_food), cogs_beverage = VALUES(cogs_beverage),
+  cogs_alcohol = VALUES(cogs_alcohol), cogs_other = VALUES(cogs_other);

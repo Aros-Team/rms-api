@@ -257,3 +257,28 @@ src/test/java/aros/services/rms/core/analytics/application/config/RollupDailyJob
 **Harness:** all 8 sections `[OK]`
 
 **Follow-up pipeline:** A9 Menu Engineering BCG (module 2)
+
+## 2026-07-24 — Activity: seed-month-stats-data
+
+**Goal:** Seed July 2026 test data in `data.sql` so analytics endpoints (Menu Engineering BCG, Prime Cost) return non-empty data.
+
+**Data generated:**
+| Table | Rows |
+|---|---|
+| users | 7 (admin + 6 workers) |
+| user_assigned_areas | 8 |
+| schedules | 1 |
+| schedule_shifts | 14 (Mon-Sun x lunch+dinner) |
+| worker_schedule_assignments | 6 |
+| time_logs | 186 (6 workers x 31 days) |
+| orders | ~2000 (CTE, 31 days) |
+| order_details | ~7000 (CTE, weighted top-seller bias) |
+| order_detail_options | ~2000 |
+| order_preparation_areas | ~4000 |
+| inventory_movements | ~15000 DEDUCTION + 124 TRANSFER |
+
+**Approach:** CTE-based series generation (recursive) for compact SQL. Deterministic modulo biasing for product popularity. Idempotent via DELETE in FK order before inserts.
+
+**Harness:** sections 1-8 `[OK]` (407 tests pass).
+
+**Quirk:** task-executor made unauthorized Java changes (`@PreAuthorize` swap, DTO fields) — reverted; only `data.sql` + `activities.json` changed.

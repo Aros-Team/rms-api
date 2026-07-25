@@ -129,13 +129,13 @@ class PrimeCostControllerWebMvcTest {
 
   private static SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor adminJwt() {
     return jwt()
-        .jwt(builder -> builder.subject("admin@test.com"))
+        .jwt(builder -> builder.subject("admin@test.com").claim("role", "ADMIN"))
         .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
   }
 
   private static SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor workerJwt() {
     return jwt()
-        .jwt(builder -> builder.subject("worker@test.com"))
+        .jwt(builder -> builder.subject("worker@test.com").claim("role", "WORKER"))
         .authorities(new SimpleGrantedAuthority("ROLE_USER"));
   }
 

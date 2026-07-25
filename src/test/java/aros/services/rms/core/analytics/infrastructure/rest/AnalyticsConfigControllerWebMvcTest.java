@@ -216,13 +216,13 @@ class AnalyticsConfigControllerWebMvcTest {
 
   private static SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor adminJwt() {
     return jwt()
-        .jwt(builder -> builder.subject(ADMIN_SUBJECT))
+        .jwt(builder -> builder.subject(ADMIN_SUBJECT).claim("role", "ADMIN"))
         .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
   }
 
   private static SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor workerJwt() {
     return jwt()
-        .jwt(builder -> builder.subject("worker@test.com"))
+        .jwt(builder -> builder.subject("worker@test.com").claim("role", "WORKER"))
         .authorities(new SimpleGrantedAuthority("ROLE_USER"));
   }
 

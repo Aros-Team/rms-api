@@ -178,25 +178,26 @@ public class SecurityConfig {
           .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
     } else {
       http.authorizeHttpRequests(
-          auth ->
-              auth.requestMatchers(
-                      "/api/auth/login",
-                      "/api/auth/forgot-password",
-                      "/api/auth/resend-password",
-                      "/api/auth/reset-password",
-                      "/api/auth/setup-password",
-                      "/api/auth/setup-account/validate",
-                      "/ws/**",
-                      "/swagger-ui/**",
-                      "/swagger-ui.html",
-                      "/v3/api-docs/**",
-                      "/health/**",
-                      "/health",
-                      "/metrics/**",
-                      "/.well-known/jwks.json")
-                  .permitAll()
-                  .anyRequest()
-                  .permitAll());
+              auth ->
+                  auth.requestMatchers(
+                          "/api/auth/login",
+                          "/api/auth/forgot-password",
+                          "/api/auth/resend-password",
+                          "/api/auth/reset-password",
+                          "/api/auth/setup-password",
+                          "/api/auth/setup-account/validate",
+                          "/ws/**",
+                          "/swagger-ui/**",
+                          "/swagger-ui.html",
+                          "/v3/api-docs/**",
+                          "/health/**",
+                          "/health",
+                          "/metrics/**",
+                          "/.well-known/jwks.json")
+                      .permitAll()
+                      .anyRequest()
+                      .permitAll())
+          .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
     }
 
     return http.build();
