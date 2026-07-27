@@ -1,5 +1,21 @@
 # Changelog
 
+## [v2.2.0](https://github.com/Aros-Team/rms-api/releases/tag/v2.2.0)
+
+### Features
+
+- fix 8 frontend-blocking combo API gaps
+- money value object + public JWKS endpoint
+- **analytics**: API contract + pre-req schema (V32 migration, analytics config endpoints, order timestamps)
+- **analytics**: prime cost & margins module (V33+V34, aggregation, GET endpoint)
+- **analytics**: menu engineering BCG module (V35, quadrant analysis, cache, invalidation events)
+- **orders**: add paginated history endpoint with filtering
+
+### Bug Fixes
+
+- **menu-engineering**: review fixes — extract JPA to infra adapter, add event handler tests, remove dead exception
+- **test**: make JwksControllerSecurityIntegrationTest work without MySQL (use H2 + @MockitoBean AdminInitializer)
+
 ## [v2.1.0](https://github.com/Aros-Team/rms-api/releases/tag/v2.1.0)
 
 ### Features
