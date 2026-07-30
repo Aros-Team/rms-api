@@ -5,6 +5,7 @@ package aros.services.rms.core.analytics.infrastructure.rest;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import aros.services.rms.core.analytics.domain.BcgQuadrant;
@@ -14,6 +15,8 @@ import aros.services.rms.core.analytics.domain.MenuEngineeringReport.MedianInfo;
 import aros.services.rms.core.analytics.domain.MenuEngineeringReport.MenuItemSummary;
 import aros.services.rms.core.analytics.domain.MenuEngineeringReport.PeriodInfo;
 import aros.services.rms.core.analytics.domain.port.in.GetMenuEngineeringUseCase;
+import aros.services.rms.core.analytics.infrastructure.rest.dto.MenuEngineeringReportResponse;
+import aros.services.rms.core.analytics.infrastructure.rest.dto.MoneyDto;
 import aros.services.rms.core.analytics.infrastructure.rest.mapper.MenuEngineeringReportMapper;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
@@ -21,6 +24,7 @@ import java.time.Instant;
 import java.util.Currency;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
@@ -83,6 +87,8 @@ class MenuEngineeringControllerWebMvcTest {
     MenuEngineeringReport report = sampleReport();
     when(getMenuEngineeringUseCase.execute("monthly", "2026-07", "2026-07", null))
         .thenReturn(report);
+    when(menuEngineeringReportMapper.toResponse(ArgumentMatchers.any(MenuEngineeringReport.class)))
+        .thenReturn(sampleReportResponse());
 
     mockMvc
         .perform(
@@ -91,7 +97,9 @@ class MenuEngineeringControllerWebMvcTest {
                 .param("from", "2026-07")
                 .param("to", "2026-07")
                 .with(adminJwt()))
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items[0].avgOptionCost").exists())
+        .andExpect(jsonPath("$.items[0].effectiveCost").exists());
   }
 
   // ---------------------------------------------------------------------------
@@ -168,6 +176,8 @@ class MenuEngineeringControllerWebMvcTest {
             320,
             Money.of("9600000.00", COP),
             Money.of("3200000.00", COP),
+            Money.of("0.00", COP),
+            Money.of("3200000.00", COP),
             Money.of("20000.00", COP),
             Money.of("6400000.00", COP),
             BcgQuadrant.STAR);
@@ -179,5 +189,28 @@ class MenuEngineeringControllerWebMvcTest {
         new CacheStatus(Instant.parse("2026-07-17T02:00:00Z"), "v17", 86400),
         "FULL",
         List.of());
+  }
+
+  private static MenuEngineeringReportResponse sampleReportResponse() {
+    MoneyDto money = MoneyDto.builder().amount("0.00").currency("COP").build();
+    MenuEngineeringReportResponse.MenuItemResponse item =
+        MenuEngineeringReportResponse.MenuItemResponse.builder()
+            .productId(42L)
+            .productName("Lomo en salsa")
+            .categoryId(3L)
+            .categoryName("Platos fuertes")
+            .unitsSold(320)
+            .revenue(money)
+            .recipeCost(money)
+            .avgOptionCost(money)
+            .effectiveCost(money)
+            .grossProfitPerUnit(money)
+            .totalContribution(money)
+            .quadrant("STAR")
+            .build();
+    return MenuEngineeringReportResponse.builder()
+        .items(List.of(item))
+        .dataCompleteness("FULL")
+        .build();
   }
 }

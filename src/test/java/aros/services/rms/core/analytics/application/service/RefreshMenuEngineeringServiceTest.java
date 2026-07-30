@@ -57,6 +57,8 @@ class RefreshMenuEngineeringServiceTest {
     when(aggregationPort.loadSalesByProduct(any(LocalDate.class), any(LocalDate.class)))
         .thenReturn(sales);
     when(aggregationPort.loadRecipeCostByProduct()).thenReturn(recipeCosts);
+    when(aggregationPort.loadAvgOptionCostByProduct(any(LocalDate.class), any(LocalDate.class)))
+        .thenReturn(Map.of());
 
     RefreshMenuEngineeringService service =
         new RefreshMenuEngineeringService(aggregationPort, cacheRepo);
@@ -101,6 +103,8 @@ class RefreshMenuEngineeringServiceTest {
     when(aggregationPort.loadSalesByProduct(any(LocalDate.class), any(LocalDate.class)))
         .thenReturn(List.of());
     when(aggregationPort.loadRecipeCostByProduct()).thenReturn(Map.of());
+    when(aggregationPort.loadAvgOptionCostByProduct(any(LocalDate.class), any(LocalDate.class)))
+        .thenReturn(Map.of());
 
     RefreshMenuEngineeringService service =
         new RefreshMenuEngineeringService(aggregationPort, cacheRepo);
@@ -113,5 +117,118 @@ class RefreshMenuEngineeringServiceTest {
     assertEquals(1L, item.productId());
     assertEquals(0, item.unitsSold());
     assertEquals(BcgQuadrant.STAR, item.quadrant());
+  }
+
+  @Test
+  void shouldPropagateAvgOptionCostAndEffectiveCost() {
+    MenuEngineeringAggregationPort aggregationPort = mock(MenuEngineeringAggregationPort.class);
+    MenuEngineeringCacheRepositoryPort cacheRepo = mock(MenuEngineeringCacheRepositoryPort.class);
+
+    ActiveProduct p1 =
+        new ActiveProduct(1L, "P1", new Money(BigDecimal.valueOf(20000), COP), 1L, "A");
+    List<SalesData> sales =
+        List.of(new SalesData(1L, 10, new Money(BigDecimal.valueOf(200000), COP)));
+
+    Map<Long, Money> recipeCosts = Map.of(1L, new Money(BigDecimal.valueOf(5000), COP));
+    Map<Long, Money> avgOptions = Map.of(1L, new Money(BigDecimal.valueOf(1000), COP));
+
+    when(aggregationPort.loadActiveProducts()).thenReturn(List.of(p1));
+    when(aggregationPort.loadSalesByProduct(any(LocalDate.class), any(LocalDate.class)))
+        .thenReturn(sales);
+    when(aggregationPort.loadRecipeCostByProduct()).thenReturn(recipeCosts);
+    when(aggregationPort.loadAvgOptionCostByProduct(any(LocalDate.class), any(LocalDate.class)))
+        .thenReturn(avgOptions);
+
+    RefreshMenuEngineeringService service =
+        new RefreshMenuEngineeringService(aggregationPort, cacheRepo);
+    service.refresh("monthly", "2026-07");
+
+    ArgumentCaptor<MenuItemSummary> captor = ArgumentCaptor.forClass(MenuItemSummary.class);
+    verify(cacheRepo).upsert(captor.capture(), anyString(), anyString(), anyString());
+
+    MenuItemSummary item = captor.getValue();
+    assertEquals(new Money(BigDecimal.valueOf(5000), COP), item.recipeCost());
+    assertEquals(new Money(BigDecimal.valueOf(1000), COP), item.avgOptionCost());
+    assertEquals(new Money(BigDecimal.valueOf(6000), COP), item.effectiveCost());
+    assertEquals(new Money(BigDecimal.valueOf(14000), COP), item.grossProfitPerUnit());
+  }
+
+  @Test
+  void shouldDefaultAvgOptionCostToZeroWhenMissing() {
+    MenuEngineeringAggregationPort aggregationPort = mock(MenuEngineeringAggregationPort.class);
+    MenuEngineeringCacheRepositoryPort cacheRepo = mock(MenuEngineeringCacheRepositoryPort.class);
+
+    ActiveProduct p1 =
+        new ActiveProduct(1L, "P1", new Money(BigDecimal.valueOf(20000), COP), 1L, "A");
+    when(aggregationPort.loadActiveProducts()).thenReturn(List.of(p1));
+    when(aggregationPort.loadSalesByProduct(any(), any())).thenReturn(List.of());
+    when(aggregationPort.loadRecipeCostByProduct()).thenReturn(Map.of());
+    when(aggregationPort.loadAvgOptionCostByProduct(any(), any())).thenReturn(Map.of());
+
+    RefreshMenuEngineeringService service =
+        new RefreshMenuEngineeringService(aggregationPort, cacheRepo);
+    service.refresh("monthly", "2026-07");
+
+    ArgumentCaptor<MenuItemSummary> captor = ArgumentCaptor.forClass(MenuItemSummary.class);
+    verify(cacheRepo).upsert(captor.capture(), anyString(), anyString(), anyString());
+
+    MenuItemSummary item = captor.getValue();
+    assertEquals(Money.zero(COP), item.avgOptionCost());
+    assertEquals(Money.zero(COP), item.effectiveCost());
+    assertEquals(new Money(BigDecimal.valueOf(20000), COP), item.grossProfitPerUnit());
+  }
+
+  @Test
+  void shouldAssignQuadrantBasedOnEffectiveCostMargin_notRecipeCost() {
+    MenuEngineeringAggregationPort aggregationPort = mock(MenuEngineeringAggregationPort.class);
+    MenuEngineeringCacheRepositoryPort cacheRepo = mock(MenuEngineeringCacheRepositoryPort.class);
+
+    ActiveProduct p1 =
+        new ActiveProduct(1L, "P1", new Money(BigDecimal.valueOf(20000), COP), 1L, "A");
+    ActiveProduct p2 =
+        new ActiveProduct(2L, "P2", new Money(BigDecimal.valueOf(20000), COP), 1L, "A");
+
+    List<ActiveProduct> products = List.of(p1, p2);
+    List<SalesData> sales =
+        List.of(
+            new SalesData(1L, 100, new Money(BigDecimal.valueOf(2000000), COP)),
+            new SalesData(2L, 100, new Money(BigDecimal.valueOf(2000000), COP)));
+
+    Map<Long, Money> recipeCosts =
+        Map.of(
+            1L, new Money(BigDecimal.valueOf(2000), COP),
+            2L, new Money(BigDecimal.valueOf(2000), COP));
+    Map<Long, Money> avgOptions =
+        Map.of(
+            1L, new Money(BigDecimal.valueOf(1000), COP),
+            2L, new Money(BigDecimal.valueOf(18000), COP));
+
+    when(aggregationPort.loadActiveProducts()).thenReturn(products);
+    when(aggregationPort.loadSalesByProduct(any(LocalDate.class), any(LocalDate.class)))
+        .thenReturn(sales);
+    when(aggregationPort.loadRecipeCostByProduct()).thenReturn(recipeCosts);
+    when(aggregationPort.loadAvgOptionCostByProduct(any(LocalDate.class), any(LocalDate.class)))
+        .thenReturn(avgOptions);
+
+    RefreshMenuEngineeringService service =
+        new RefreshMenuEngineeringService(aggregationPort, cacheRepo);
+    service.refresh("monthly", "2026-07");
+
+    ArgumentCaptor<MenuItemSummary> captor = ArgumentCaptor.forClass(MenuItemSummary.class);
+    verify(cacheRepo, times(2)).upsert(captor.capture(), anyString(), anyString(), anyString());
+
+    List<MenuItemSummary> sorted =
+        captor.getAllValues().stream()
+            .sorted((a, b) -> Long.compare(a.productId(), b.productId()))
+            .toList();
+    MenuItemSummary p1Item = sorted.get(0);
+    assertEquals(new Money(BigDecimal.valueOf(3000), COP), p1Item.effectiveCost());
+    assertEquals(new Money(BigDecimal.valueOf(17000), COP), p1Item.grossProfitPerUnit());
+    assertEquals(BcgQuadrant.STAR, p1Item.quadrant());
+
+    MenuItemSummary p2Item = sorted.get(1);
+    assertEquals(new Money(BigDecimal.valueOf(20000), COP), p2Item.effectiveCost());
+    assertEquals(Money.zero(COP), p2Item.grossProfitPerUnit());
+    assertEquals(BcgQuadrant.PLOWHORSE, p2Item.quadrant());
   }
 }

@@ -1,1 +1,151 @@
-[]
+[
+  {
+    "id": 1,
+    "type": "feat",
+    "name": "menu-engineering-effective-cost",
+    "title": "Menu engineering: avg option cost + effective cost",
+    "description": "Add avg_option_cost (historical average of options chosen per order) and effective_cost (= recipeCost + avgOptionCost) to menu engineering analytics. The BCG quadrant now uses effective_cost for gross profit per unit, while recipeCost remains visible for kitchen operations.",
+    "acceptance": [
+      "V36 migration adds avg_option_cost and effective_cost columns to menu_performance_cache with backfill (effective_cost = recipe_cost for existing rows)",
+      "V36 migration header documents the V37 conditional index migration as a performance fallback",
+      "MenuEngineeringAggregationPort exposes loadAvgOptionCostByProduct(start, end)",
+      "MenuEngineeringAggregationJpaAdapter implements it via CTE materialized per-order then AVG per product, with LEFT JOINs to handle products with no chosen options",
+      "MenuItemSummary record adds avgOptionCost and effectiveCost fields",
+      "RefreshMenuEngineeringService computes effectiveCost and uses it for grossProfitPerUnit (feeds BCG), keeps recipeCost in the summary",
+      "MenuPerformanceCacheEntity + mapper AND MenuPerformanceCacheRepositoryAdapter.merge persist avg_option_cost and effective_cost (both INSERT and UPDATE paths)",
+      "MenuEngineeringReportResponse.MenuItemResponse DTO exposes avgOptionCost and effectiveCost as MoneyDto fields",
+      "analytics.yaml (OpenAPI spec) documents the two new fields with explicit descriptions and required-list membership",
+      "Unit tests cover: (a) product with chosen options has avgOptionCost > 0 and effectiveCost = recipe + avg, (b) product with no chosen options has avgOptionCost = 0, (c) BCG quadrant classification depends on effective-cost-derived GP (changing option cost can move a product to a different quadrant)",
+      "./harness/harness.sh exits 0"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "V36 migration already created (in reflog); confirm presence at src/main/resources/db/migration/V36__add_menu_engineering_avg_and_effective_cost.sql",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Add loadAvgOptionCostByProduct(start, end) to MenuEngineeringAggregationPort (port interface)",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Implement loadAvgOptionCostByProduct in MenuEngineeringAggregationJpaAdapter with LEFT JOINs on order_detail_options × option_recipes × supply_variants, AVG per product within the period",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Extend MenuItemSummary record with avgOptionCost and effectiveCost fields between recipeCost and grossProfitPerUnit",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Update RefreshMenuEngineeringService: load avgOptionCost, compute effectiveCost, use it for grossProfitPerUnit (BCG), keep recipeCost in MenuItemSummary",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Update MenuPerformanceCacheEntity + mapper (toDomain and toEntity) and MenuPerformanceCacheRepositoryAdapter.merge to persist avg_option_cost and effective_cost",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Update MenuEngineeringReportResponse.MenuItemResponse DTO + MenuEngineeringReportMapper to expose avgOptionCost and effectiveCost as MoneyDto; update grossProfitPerUnit @Schema description to 'sell price - effective cost'",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "h",
+        "description": "Update analytics.yaml OpenAPI spec (MenuEngineeringItem schema) + analytics.md JSON example to document the two new fields with descriptions and required-list membership",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "i",
+        "description": "Update JUnit tests (RefreshMenuEngineeringServiceTest with 3 cases incl. BCG-vs-effective-cost, MenuEngineeringBcgTest, GetMenuEngineeringServiceTest, MenuEngineeringControllerWebMvcTest) for new 12-field MenuItemSummary signature and jsonPath assertions",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "j",
+        "description": "Run ./gradlew spotlessApply, checkstyleMain, checkstyleTest, test, ./harness/harness.sh",
+        "status": "done",
+        "agent": "reviewer"
+      }
+    ],
+    "status": "done"
+  },
+  {
+    "id": 2,
+    "type": "fix",
+    "name": "data-sql-almuerzo-ejecutivo-cleanup",
+    "title": "Remove Almuerzo Ejecutivo category + recategorize Colombian dishes",
+    "description": "User requested removing 'Almuerzo Ejecutivo' as a product concept. The category (id=2) holds 4 products: Menú del Día (the executive lunch itself), Bandeja Paisa, Sancocho de Gallina, Ajiaco Santafereño (traditional Colombian dishes). Since the FK requires each product to have a valid category_id, removing the category alone breaks 3 products. Solution: remove the category + Menú del Día, create a new 'Platos Típicos' category (reusing freed id=2), and let the 3 traditional dishes continue pointing at id=2.",
+    "acceptance": [
+      "data.sql no longer creates the 'Almuerzo Ejecutivo' category",
+      "data.sql no longer creates the 'Menú del Día' product",
+      "data.sql no longer creates the Almuerzo-related option categories (Proteína/Principio/Acompañamiento Almuerzo)",
+      "data.sql no longer creates the option products for those categories",
+      "data.sql no longer creates product_product_options linking Menú del Día to options",
+      "data.sql no longer creates product_recipes for Menú del Día",
+      "data.sql no longer creates option_recipes for the Almuerzo options",
+      "data.sql no longer creates order_detail_options filters referencing product_id = 2",
+      "Bandeja Paisa, Sancocho de Gallina and Ajiaco Santafereño continue pointing at category_id=2 (which is now 'Platos Típicos')",
+      "Comment header above PRODUCTS section is updated: 'Almuerzo Ejecutivo=2' → 'Platos Típicos=2'",
+      "FK-safe cascade renumbering applied so data.sql initializes cleanly under MySQL AUTO_INCREMENT",
+      "./harness/harness.sh exits 0 (data.sql initializes without FK violation; §5 OK)"
+    ],
+    "tasks": [
+      {
+        "id": "a",
+        "description": "Remove 'Almuerzo Ejecutivo' category INSERT",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "b",
+        "description": "Add new 'Platos Típicos' category INSERT in the freed slot",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "c",
+        "description": "Remove 'Menú del Día' product INSERT + 3 Almuerzo option_categories INSERTs + product_recipes entry for Menú del Día",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "d",
+        "description": "Remove 9 Almuerzo product_options, product_product_options for product 2, both order_detail_options UNION-ALL blocks, and option_recipes for options 14-22",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "e",
+        "description": "Update the PRODUCTS section comment header to 'Platos Típicos=2'",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "f",
+        "description": "Apply FK-safe cascade renumbering (option_category_id, option_id, product_id) so data.sql works under MySQL AUTO_INCREMENT",
+        "status": "done",
+        "agent": "implementer"
+      },
+      {
+        "id": "g",
+        "description": "Run ./harness/harness.sh — all 8 sections [OK]",
+        "status": "done",
+        "agent": "implementer"
+      }
+    ],
+    "status": "done"
+  }
+]

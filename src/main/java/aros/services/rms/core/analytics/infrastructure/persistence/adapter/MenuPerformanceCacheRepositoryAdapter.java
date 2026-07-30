@@ -75,6 +75,8 @@ public class MenuPerformanceCacheRepositoryAdapter implements MenuEngineeringCac
     entity.setUnitsSold(item.unitsSold());
     entity.setRevenue(item.revenue().amount());
     entity.setRecipeCost(item.recipeCost().amount());
+    entity.setAvgOptionCost(item.avgOptionCost().amount());
+    entity.setEffectiveCost(item.effectiveCost().amount());
     entity.setGrossProfitPerUnit(item.grossProfitPerUnit().amount());
     entity.setTotalContribution(item.totalContribution().amount());
     entity.setQuadrant(item.quadrant().name());

@@ -108,4 +108,44 @@ public class MenuEngineeringAggregationJpaAdapter implements MenuEngineeringAggr
     }
     return result;
   }
+
+  @Override
+  public Map<Long, Money> loadAvgOptionCostByProduct(LocalDate start, LocalDate end) {
+    String sql =
+        """
+        WITH per_order AS (
+          SELECT
+              od.order_id,
+              od.product_id,
+              COALESCE(SUM(oreq.required_quantity * sv.unit_cost), 0) AS order_option_cost
+          FROM order_details od
+          JOIN orders o ON o.id = od.order_id
+          LEFT JOIN order_detail_options odo ON odo.order_detail_id = od.id
+          LEFT JOIN option_recipes oreq ON oreq.option_id = odo.option_id
+          LEFT JOIN supply_variants sv ON sv.id = oreq.supply_variant_id
+          WHERE o.date >= :start AND o.date < :end
+          GROUP BY od.order_id, od.product_id
+        )
+        SELECT product_id, AVG(order_option_cost) AS avg_option_cost
+        FROM per_order
+        GROUP BY product_id
+        """;
+
+    Query query =
+        entityManager
+            .createNativeQuery(sql)
+            .setParameter("start", start.atStartOfDay())
+            .setParameter("end", end.atStartOfDay());
+
+    @SuppressWarnings("unchecked")
+    List<Object[]> rows = query.getResultList();
+
+    Map<Long, Money> result = new HashMap<>();
+    for (Object[] row : rows) {
+      Long productId = ((Number) row[0]).longValue();
+      BigDecimal avg = (BigDecimal) row[1];
+      result.put(productId, new Money(avg, COP));
+    }
+    return result;
+  }
 }

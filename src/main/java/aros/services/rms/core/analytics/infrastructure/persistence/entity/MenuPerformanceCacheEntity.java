@@ -59,6 +59,14 @@ public class MenuPerformanceCacheEntity {
   @Builder.Default
   private BigDecimal recipeCost = BigDecimal.ZERO;
 
+  @Column(name = "avg_option_cost", nullable = false, precision = 14, scale = 2)
+  @Builder.Default
+  private BigDecimal avgOptionCost = BigDecimal.ZERO;
+
+  @Column(name = "effective_cost", nullable = false, precision = 14, scale = 2)
+  @Builder.Default
+  private BigDecimal effectiveCost = BigDecimal.ZERO;
+
   @Column(name = "gross_profit_per_unit", nullable = false, precision = 14, scale = 2)
   @Builder.Default
   private BigDecimal grossProfitPerUnit = BigDecimal.ZERO;

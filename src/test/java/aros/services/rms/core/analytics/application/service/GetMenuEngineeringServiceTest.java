@@ -49,6 +49,8 @@ class GetMenuEngineeringServiceTest {
             10,
             Money.of("50000.00", COP),
             Money.of("15000.00", COP),
+            Money.of("0.00", COP),
+            Money.of("15000.00", COP),
             Money.of("35000.00", COP),
             Money.of("350000.00", COP),
             BcgQuadrant.STAR);
@@ -60,6 +62,8 @@ class GetMenuEngineeringServiceTest {
             "Cats",
             5,
             Money.of("25000.00", COP),
+            Money.of("10000.00", COP),
+            Money.of("0.00", COP),
             Money.of("10000.00", COP),
             Money.of("15000.00", COP),
             Money.of("75000.00", COP),

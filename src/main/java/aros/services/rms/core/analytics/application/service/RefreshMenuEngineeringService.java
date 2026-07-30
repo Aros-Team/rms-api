@@ -64,6 +64,8 @@ public class RefreshMenuEngineeringService implements RefreshMenuEngineeringUseC
     }
 
     Map<Long, Money> recipeCostByProduct = aggregationPort.loadRecipeCostByProduct();
+    Map<Long, Money> avgOptionCostByProduct =
+        aggregationPort.loadAvgOptionCostByProduct(periodStart, periodEnd);
 
     List<MenuItemSummary> items = new ArrayList<>();
     List<Integer> allVolumes = new ArrayList<>();
@@ -76,9 +78,11 @@ public class RefreshMenuEngineeringService implements RefreshMenuEngineeringUseC
       int unitsSold = sales.unitsSold();
       Money revenue = sales.revenue();
       Money recipeCost = recipeCostByProduct.getOrDefault(product.id(), Money.zero(COP));
+      Money avgOptionCost = avgOptionCostByProduct.getOrDefault(product.id(), Money.zero(COP));
+      Money effectiveCost = recipeCost.plus(avgOptionCost);
       Money sellPrice = product.basePrice();
 
-      Money gpPerUnit = sellPrice.minus(recipeCost);
+      Money gpPerUnit = sellPrice.minus(effectiveCost);
       if (gpPerUnit.isNegative()) {
         gpPerUnit = Money.zero(COP);
       }
@@ -93,6 +97,8 @@ public class RefreshMenuEngineeringService implements RefreshMenuEngineeringUseC
               unitsSold,
               revenue,
               recipeCost,
+              avgOptionCost,
+              effectiveCost,
               gpPerUnit,
               contribution,
               BcgQuadrant.DOG);
@@ -116,6 +122,8 @@ public class RefreshMenuEngineeringService implements RefreshMenuEngineeringUseC
               item.unitsSold(),
               item.revenue(),
               item.recipeCost(),
+              item.avgOptionCost(),
+              item.effectiveCost(),
               item.grossProfitPerUnit(),
               item.totalContribution(),
               quadrant);

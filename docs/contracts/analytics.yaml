@@ -358,7 +358,7 @@ components:
 
     MenuEngineeringItem:
       type: object
-      required: [productId, productName, unitsSold, revenue, recipeCost, grossProfitPerUnit, totalContribution, quadrant]
+      required: [productId, productName, unitsSold, revenue, recipeCost, avgOptionCost, effectiveCost, grossProfitPerUnit, totalContribution, quadrant]
       properties:
         productId:           { type: integer, format: int64 }
         productName:         { type: string }
@@ -367,6 +367,17 @@ components:
         unitsSold:           { type: integer }
         revenue:             { $ref: '#/components/schemas/Money' }
         recipeCost:          { $ref: '#/components/schemas/Money' }
+        avgOptionCost:
+          $ref: '#/components/schemas/Money'
+          description: >
+            Average cost of chosen options per order in the period. Historical monthly
+            average across orders for this product, used to enrich recipe cost with
+            real customer option choices.
+        effectiveCost:
+          $ref: '#/components/schemas/Money'
+          description: >
+            Effective cost per unit: recipeCost + avgOptionCost. Used by the BCG math
+            to compute grossProfitPerUnit and assign the quadrant.
         grossProfitPerUnit:  { $ref: '#/components/schemas/Money' }
         totalContribution:   { $ref: '#/components/schemas/Money' }
         quadrant:

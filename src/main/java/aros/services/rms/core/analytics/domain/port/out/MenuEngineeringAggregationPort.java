@@ -39,4 +39,23 @@ public interface MenuEngineeringAggregationPort {
    * @return map of productId → total recipe cost
    */
   Map<Long, Money> loadRecipeCostByProduct();
+
+  /**
+   * Loads the historical average cost of options chosen per order, grouped by product, over the
+   * given period (inclusive start, exclusive end). The returned map is keyed by product_id.
+   *
+   * <p>For each order in the period, this sums the {@code option_recipes ×
+   * supply_variants.unit_cost} of every option chosen in that order's order_details, then averages
+   * those per-order option costs across all orders for each product. Products without any options
+   * chosen (or without sales in the period) are absent from the map — callers should treat missing
+   * entries as zero.
+   *
+   * <p>Used by {@code RefreshMenuEngineeringService} to compute {@code avgOptionCost} (and then
+   * {@code effectiveCost = recipeCost + avgOptionCost}) for the menu engineering BCG report.
+   *
+   * @param start inclusive period start
+   * @param end exclusive period end
+   * @return map productId → average option cost, possibly empty
+   */
+  Map<Long, Money> loadAvgOptionCostByProduct(LocalDate start, LocalDate end);
 }

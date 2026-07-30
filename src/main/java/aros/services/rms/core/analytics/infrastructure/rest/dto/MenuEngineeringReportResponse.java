@@ -105,7 +105,24 @@ public class MenuEngineeringReportResponse {
     @Schema(description = "Recipe cost for units sold")
     private MoneyDto recipeCost;
 
-    @Schema(description = "Gross profit per unit (sell price - recipe cost)")
+    @Schema(
+        description =
+            "Average cost of chosen options per order in the period."
+                + " Historical monthly average across orders for this product,"
+                + " used to enrich recipe cost with real customer option choices.")
+    private MoneyDto avgOptionCost;
+
+    @Schema(
+        description =
+            "Effective cost per unit: recipeCost + avgOptionCost."
+                + " Used by the BCG math to compute grossProfitPerUnit"
+                + " and assign the quadrant.")
+    private MoneyDto effectiveCost;
+
+    @Schema(
+        description =
+            "Gross profit per unit (sell price - effective cost)."
+                + " Effective cost = recipeCost + avgOptionCost; see those fields for definition.")
     private MoneyDto grossProfitPerUnit;
 
     @Schema(description = "Total contribution (units sold × GP per unit)")

@@ -79,6 +79,8 @@ public class MenuEngineeringReportMapper {
         .unitsSold(item.unitsSold())
         .revenue(toMoneyDto(item.revenue()))
         .recipeCost(toMoneyDto(item.recipeCost()))
+        .avgOptionCost(toMoneyDto(item.avgOptionCost()))
+        .effectiveCost(toMoneyDto(item.effectiveCost()))
         .grossProfitPerUnit(toMoneyDto(item.grossProfitPerUnit()))
         .totalContribution(toMoneyDto(item.totalContribution()))
         .quadrant(item.quadrant().name())

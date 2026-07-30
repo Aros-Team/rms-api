@@ -102,7 +102,18 @@ class MenuEngineeringBcgTest {
       BcgQuadrant expected, int unitsSold, Money gpPerUnit, int medianVolume, Money medianMargin) {
     MenuItemSummary item =
         new MenuItemSummary(
-            1L, "T", null, "", unitsSold, ZERO, ZERO, gpPerUnit, ZERO, BcgQuadrant.DOG);
+            1L,
+            "T",
+            null,
+            "",
+            unitsSold,
+            ZERO, // revenue
+            ZERO, // recipeCost
+            ZERO, // avgOptionCost
+            ZERO, // effectiveCost
+            gpPerUnit, // grossProfitPerUnit
+            ZERO, // totalContribution
+            BcgQuadrant.DOG);
     assertEquals(
         expected, RefreshMenuEngineeringService.assignQuadrant(item, medianVolume, medianMargin));
   }

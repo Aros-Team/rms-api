@@ -30,6 +30,8 @@ public class MenuPerformanceCacheMapper {
         entity.getUnitsSold(),
         new Money(entity.getRevenue(), COP),
         new Money(entity.getRecipeCost(), COP),
+        new Money(entity.getAvgOptionCost(), COP),
+        new Money(entity.getEffectiveCost(), COP),
         new Money(entity.getGrossProfitPerUnit(), COP),
         new Money(entity.getTotalContribution(), COP),
         BcgQuadrant.valueOf(entity.getQuadrant()));
@@ -56,6 +58,8 @@ public class MenuPerformanceCacheMapper {
         .unitsSold(item.unitsSold())
         .revenue(item.revenue().amount())
         .recipeCost(item.recipeCost().amount())
+        .avgOptionCost(item.avgOptionCost().amount())
+        .effectiveCost(item.effectiveCost().amount())
         .grossProfitPerUnit(item.grossProfitPerUnit().amount())
         .totalContribution(item.totalContribution().amount())
         .quadrant(item.quadrant().name())

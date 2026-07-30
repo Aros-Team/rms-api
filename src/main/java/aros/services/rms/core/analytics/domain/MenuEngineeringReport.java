@@ -35,6 +35,8 @@ public record MenuEngineeringReport(
       int unitsSold,
       Money revenue,
       Money recipeCost,
+      Money avgOptionCost,
+      Money effectiveCost,
       Money grossProfitPerUnit,
       Money totalContribution,
       BcgQuadrant quadrant) {}

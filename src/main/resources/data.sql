@@ -345,7 +345,7 @@ SELECT 'Hamburguesas', 'Hamburguesas artesanales con pan brioche', TRUE
 FROM dual WHERE @cat_count = 0;
 
 INSERT INTO categories (name, description, enabled)
-SELECT 'Almuerzo Ejecutivo', 'Menú del día con proteína, principio y acompañamiento', TRUE
+SELECT 'Platos Típicos', 'Platos típicos colombianos', TRUE
 FROM dual WHERE @cat_count = 0;
 
 INSERT INTO categories (name, description, enabled)
@@ -387,18 +387,6 @@ FROM dual WHERE @ocat_count = 0;
 
 INSERT INTO option_categories (name, description)
 SELECT 'Adición Extra Hamburguesa', 'Ingredientes extra para hamburguesa'
-FROM dual WHERE @ocat_count = 0;
-
-INSERT INTO option_categories (name, description)
-SELECT 'Proteína Almuerzo', 'Elección de proteína para menú del día'
-FROM dual WHERE @ocat_count = 0;
-
-INSERT INTO option_categories (name, description)
-SELECT 'Principio Almuerzo', 'Elección de principio para menú del día'
-FROM dual WHERE @ocat_count = 0;
-
-INSERT INTO option_categories (name, description)
-SELECT 'Acompañamiento Almuerzo', 'Acompañamiento para menú del día'
 FROM dual WHERE @ocat_count = 0;
 
 INSERT INTO option_categories (name, description)
@@ -451,7 +439,7 @@ FROM dual WHERE @ocat_count = 0;
 
 -- =============================================================================
 -- PRODUCTS (only insert if table is empty)
--- categories: Hamburguesas=1, Almuerzo Ejecutivo=2, Pizzas=3,
+-- categories: Hamburguesas=1, Platos Típicos=2, Pizzas=3,
 --             Pasta/Italiana=4, Parrilla/Carnes=5, Bebidas Naturales=6
 -- areas: Cocina=1, Bar=3
 -- =============================================================================
@@ -459,10 +447,6 @@ SET @prod_count = (SELECT COUNT(*) FROM products);
 
 INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
 SELECT 'Hamburguesa Double Bacon Cheese', 28000.00, TRUE, 1, 1, 10
-FROM dual WHERE @prod_count = 0;
-
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Menú del Día', 18000.00, TRUE, 2, 1, 25
 FROM dual WHERE @prod_count = 0;
 
 INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
@@ -591,139 +575,112 @@ INSERT INTO product_options (name, option_category_id)
 SELECT 'Pepinillos x3', 5 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Pechuga de Pollo 200g', 6 FROM dual WHERE @opt_count = 0;
+SELECT 'Pepperoni 100g', 6 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Carne de Cerdo 200g', 6 FROM dual WHERE @opt_count = 0;
+SELECT 'Jamón Cocido 100g', 6 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Huevo Perico x2', 6 FROM dual WHERE @opt_count = 0;
+SELECT 'Champiñón Laminado 80g', 6 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Frijol Cargamanto 80g', 7 FROM dual WHERE @opt_count = 0;
+SELECT 'Pimentón Verde 30g', 7 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Lenteja Seca 80g', 7 FROM dual WHERE @opt_count = 0;
+SELECT 'Maíz Tierno 40g', 7 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Pasta Corta 100g', 7 FROM dual WHERE @opt_count = 0;
+SELECT 'Piña en Almíbar 60g', 7 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Plátano Maduro 1/2', 8 FROM dual WHERE @opt_count = 0;
+SELECT 'Borde Queso Crema 80g', 8 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Patacón Prefrito 1u', 8 FROM dual WHERE @opt_count = 0;
+SELECT 'Borde Bocadillo 80g', 8 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Papa Salada 1u', 8 FROM dual WHERE @opt_count = 0;
+SELECT 'Salsa Alfredo', 9 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Pepperoni 100g', 9 FROM dual WHERE @opt_count = 0;
+SELECT 'Salsa Boloñesa', 9 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Jamón Cocido 100g', 9 FROM dual WHERE @opt_count = 0;
+SELECT 'Salsa Carbonara', 9 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Champiñón Laminado 80g', 9 FROM dual WHERE @opt_count = 0;
+SELECT 'Camarón Tigre x6', 10 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Pimentón Verde 30g', 10 FROM dual WHERE @opt_count = 0;
+SELECT 'Pechuga en Cubos 100g', 10 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Maíz Tierno 40g', 10 FROM dual WHERE @opt_count = 0;
+SELECT 'Sin Proteína Extra', 10 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Piña en Almíbar 60g', 10 FROM dual WHERE @opt_count = 0;
+SELECT 'Orégano Seco', 11 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Borde Queso Crema 80g', 11 FROM dual WHERE @opt_count = 0;
+SELECT 'Albahaca Fresca', 11 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Borde Bocadillo 80g', 11 FROM dual WHERE @opt_count = 0;
+SELECT 'Pimienta Negra', 11 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Salsa Alfredo', 12 FROM dual WHERE @opt_count = 0;
+SELECT 'Baby Beef 300g', 12 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Salsa Boloñesa', 12 FROM dual WHERE @opt_count = 0;
+SELECT 'Churrasco 300g', 12 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Salsa Carbonara', 12 FROM dual WHERE @opt_count = 0;
+SELECT 'Entrecot 300g', 12 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Camarón Tigre x6', 13 FROM dual WHERE @opt_count = 0;
+SELECT 'Azul', 13 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Pechuga en Cubos 100g', 13 FROM dual WHERE @opt_count = 0;
+SELECT 'Medio', 13 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Sin Proteína Extra', 13 FROM dual WHERE @opt_count = 0;
+SELECT '3/4', 13 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Orégano Seco', 14 FROM dual WHERE @opt_count = 0;
+SELECT 'Bien Asado', 13 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Albahaca Fresca', 14 FROM dual WHERE @opt_count = 0;
+SELECT 'Papa Criolla 150g', 14 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Pimienta Negra', 14 FROM dual WHERE @opt_count = 0;
+SELECT 'Yuca Frita 150g', 14 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Baby Beef 300g', 15 FROM dual WHERE @opt_count = 0;
+SELECT 'Ensalada de Papa 150g', 14 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Churrasco 300g', 15 FROM dual WHERE @opt_count = 0;
+SELECT 'Limón Tahití x2', 15 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Entrecot 300g', 15 FROM dual WHERE @opt_count = 0;
+SELECT 'Pulpa de Mango 100g', 15 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Azul', 16 FROM dual WHERE @opt_count = 0;
+SELECT 'Pulpa de Mora 100g', 15 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Medio', 16 FROM dual WHERE @opt_count = 0;
+SELECT 'Pulpa de Lulo 100g', 15 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT '3/4', 16 FROM dual WHERE @opt_count = 0;
+SELECT 'Azúcar Blanca 20g', 16 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Bien Asado', 16 FROM dual WHERE @opt_count = 0;
+SELECT 'Stevia 1 sobre', 16 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Papa Criolla 150g', 17 FROM dual WHERE @opt_count = 0;
+SELECT 'Miel de Abejas 15ml', 16 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Yuca Frita 150g', 17 FROM dual WHERE @opt_count = 0;
+SELECT 'Crema de Coco 30ml', 17 FROM dual WHERE @opt_count = 0;
 
 INSERT INTO product_options (name, option_category_id)
-SELECT 'Ensalada de Papa 150g', 17 FROM dual WHERE @opt_count = 0;
-
-INSERT INTO product_options (name, option_category_id)
-SELECT 'Limón Tahití x2', 18 FROM dual WHERE @opt_count = 0;
-
-INSERT INTO product_options (name, option_category_id)
-SELECT 'Pulpa de Mango 100g', 18 FROM dual WHERE @opt_count = 0;
-
-INSERT INTO product_options (name, option_category_id)
-SELECT 'Pulpa de Mora 100g', 18 FROM dual WHERE @opt_count = 0;
-
-INSERT INTO product_options (name, option_category_id)
-SELECT 'Pulpa de Lulo 100g', 18 FROM dual WHERE @opt_count = 0;
-
-INSERT INTO product_options (name, option_category_id)
-SELECT 'Azúcar Blanca 20g', 19 FROM dual WHERE @opt_count = 0;
-
-INSERT INTO product_options (name, option_category_id)
-SELECT 'Stevia 1 sobre', 19 FROM dual WHERE @opt_count = 0;
-
-INSERT INTO product_options (name, option_category_id)
-SELECT 'Miel de Abejas 15ml', 19 FROM dual WHERE @opt_count = 0;
-
-INSERT INTO product_options (name, option_category_id)
-SELECT 'Crema de Coco 30ml', 20 FROM dual WHERE @opt_count = 0;
-
-INSERT INTO product_options (name, option_category_id)
-SELECT 'Hierbabuena Fresca x2', 20 FROM dual WHERE @opt_count = 0;
+SELECT 'Hierbabuena Fresca x2', 17 FROM dual WHERE @opt_count = 0;
 
 -- =============================================================================
 -- PRODUCT ↔ OPTIONS (PRIMARY KEY (product_id, option_id) -> INSERT IGNORE)
@@ -736,30 +693,25 @@ INSERT IGNORE INTO product_product_options (product_id, option_id) VALUES
     (1,  8), (1,  9), (1, 10),
     (1, 11), (1, 12), (1, 13),
 
-    -- Menú del Día (id=2)
-    (2, 14), (2, 15), (2, 16),
-    (2, 17), (2, 18), (2, 19),
-    (2, 20), (2, 21), (2, 22),
+    -- Pizza Especial Familiar (id=2)
+    (2, 23), (2, 24), (2, 25),
+    (2, 26), (2, 27), (2, 28),
+    (2, 29), (2, 30),
 
-    -- Pizza Especial Familiar (id=3)
-    (3, 23), (3, 24), (3, 25),
-    (3, 26), (3, 27), (3, 28),
-    (3, 29), (3, 30),
+    -- Pasta de la Casa (id=3)
+    (3, 31), (3, 32), (3, 33),
+    (3, 34), (3, 35), (3, 36),
+    (3, 37), (3, 38), (3, 39),
 
-    -- Pasta de la Casa (id=4)
-    (4, 31), (4, 32), (4, 33),
-    (4, 34), (4, 35), (4, 36),
-    (4, 37), (4, 38), (4, 39),
+    -- Corte de Res Premium (id=4)
+    (4, 40), (4, 41), (4, 42),
+    (4, 43), (4, 44), (4, 45), (4, 46),
+    (4, 47), (4, 48), (4, 49),
 
-    -- Corte de Res Premium (id=5)
-    (5, 40), (5, 41), (5, 42),
-    (5, 43), (5, 44), (5, 45), (5, 46),
-    (5, 47), (5, 48), (5, 49),
-
-    -- Limonada / Jugo Natural (id=6)
-    (6, 50), (6, 51), (6, 52), (6, 53),
-    (6, 54), (6, 55), (6, 56),
-    (6, 57), (6, 58);
+    -- Limonada / Jugo Natural (id=5)
+    (5, 50), (5, 51), (5, 52), (5, 53),
+    (5, 54), (5, 55), (5, 56),
+    (5, 57), (5, 58);
 
 -- =============================================================================
 -- PRODUCT RECIPES (product_id, supply_variant_id is UNIQUE -> INSERT IGNORE)
@@ -767,16 +719,14 @@ INSERT IGNORE INTO product_product_options (product_id, option_id) VALUES
 INSERT IGNORE INTO product_recipes (product_id, supply_variant_id, required_quantity) VALUES
     -- Hamburguesa Double Bacon Cheese (id=1)
     (1, 35, 1.000), (1, 34, 1.000), (1, 14, 1.000), (1, 59, 1.000),
-    -- Menú del Día (id=2)
-    (2, 66, 1.000), (2, 72, 1.000), (2, 42, 1.000), (2, 22, 1.000), (2, 23, 1.000),
-    -- Pizza Especial Familiar (id=3)
-    (3, 37, 1.000), (3, 38, 1.000), (3, 39, 1.000), (3, 30, 1.000),
-    -- Pasta de la Casa (id=4)
-    (4, 70, 1.000), (4, 36, 1.000), (4, 31, 1.000),
-    -- Corte de Res Premium (id=5)
-    (5, 43, 1.000), (5, 40, 1.000), (5, 22, 1.000),
-    -- Limonada / Jugo Natural (id=6)
-    (6, 60, 1.000), (6, 62, 1.000), (6, 73, 1.000);
+    -- Pizza Especial Familiar (id=2)
+    (2, 37, 1.000), (2, 38, 1.000), (2, 39, 1.000), (2, 30, 1.000),
+    -- Pasta de la Casa (id=3)
+    (3, 70, 1.000), (3, 36, 1.000), (3, 31, 1.000),
+    -- Corte de Res Premium (id=4)
+    (4, 43, 1.000), (4, 40, 1.000), (4, 22, 1.000),
+    -- Limonada / Jugo Natural (id=5)
+    (5, 60, 1.000), (5, 62, 1.000), (5, 73, 1.000);
 
 -- =============================================================================
 -- OPTION RECIPES (option_id, supply_variant_id is UNIQUE -> INSERT IGNORE)
@@ -792,12 +742,6 @@ INSERT IGNORE INTO option_recipes (option_id, supply_variant_id, required_quanti
     (8, 63, 1.000), (9, 64, 1.000),
     -- Extras Hamburguesa
     (11, 46, 1.000), (12, 12, 1.000), (13, 17, 1.000),
-    -- Proteína Almuerzo
-    (14,  5, 1.000), (15,  7, 1.000), (16, 13, 1.000),
-    -- Principio Almuerzo
-    (17, 67, 1.000), (18, 68, 1.000), (19, 74, 1.000),
-    -- Acompañamiento Almuerzo
-    (20, 24, 1.000), (21, 65, 1.000), (22, 27, 1.000),
     -- Sabor Pizza
     (23, 48, 1.000), (24, 49, 1.000), (25, 21, 1.000),
     -- Vegetal Extra Pizza
@@ -848,7 +792,8 @@ DELETE FROM order_preparation_areas
 DELETE FROM inventory_movements
   WHERE created_at >= '2026-04-01' AND created_at < '2026-07-01';
 DELETE FROM time_logs
-  WHERE timestamp >= '2026-04-01' AND timestamp < '2026-07-01';
+  WHERE timestamp >= '2026-04-01' AND timestamp < '2026-07-01'
+     OR related_shift_id IN (SELECT id FROM schedule_shifts WHERE schedule_id IN (SELECT id FROM schedules WHERE name LIKE 'Turno%'));
 DELETE FROM orders WHERE date >= '2026-04-01' AND date < '2026-07-01';
 DELETE FROM worker_schedule_assignments
   WHERE schedule_id IN (SELECT id FROM schedules WHERE name LIKE 'Turno%');
@@ -970,21 +915,20 @@ INSERT INTO order_details (id, order_id, product_id, unit_price, instructions)
 WITH RECURSIVE
   detail_idx AS (SELECT 0 AS k UNION ALL SELECT k + 1 FROM detail_idx WHERE k < 3),
   product_list AS (
-    SELECT  0 AS lo, 14 AS hi,  7 AS pid, 18000.00 AS price
-    UNION ALL SELECT 15, 28, 13, 22000.00
-    UNION ALL SELECT 29, 40,  6,  8000.00
-    UNION ALL SELECT 41, 50,  2, 18000.00
+    SELECT  0 AS lo, 14 AS hi,  6 AS pid, 18000.00 AS price
+    UNION ALL SELECT 15, 28, 12, 22000.00
+    UNION ALL SELECT 29, 40,  5,  8000.00
     UNION ALL SELECT 51, 58,  1, 28000.00
-    UNION ALL SELECT 59, 64, 12, 20000.00
-    UNION ALL SELECT 65, 70, 10, 25000.00
-    UNION ALL SELECT 71, 75,  5, 55000.00
-    UNION ALL SELECT 76, 80, 17, 24000.00
-    UNION ALL SELECT 81, 85, 16, 25000.00
-    UNION ALL SELECT 86, 89, 20, 12000.00
-    UNION ALL SELECT 90, 92, 18, 42000.00
-    UNION ALL SELECT 93, 95, 19, 38000.00
-    UNION ALL SELECT 96, 97, 22,  7000.00
-    UNION ALL SELECT 98, 99, 21,  6000.00
+    UNION ALL SELECT 59, 64, 11, 20000.00
+    UNION ALL SELECT 65, 70,  9, 25000.00
+    UNION ALL SELECT 71, 75,  4, 55000.00
+    UNION ALL SELECT 76, 80, 16, 24000.00
+    UNION ALL SELECT 81, 85, 15, 25000.00
+    UNION ALL SELECT 86, 89, 19, 12000.00
+    UNION ALL SELECT 90, 92, 17, 42000.00
+    UNION ALL SELECT 93, 95, 18, 38000.00
+    UNION ALL SELECT 96, 97, 21,  7000.00
+    UNION ALL SELECT 98, 99, 20,  6000.00
   )
 SELECT
   ROW_NUMBER() OVER (ORDER BY o.id, d.k) + 200000,
@@ -1011,19 +955,13 @@ SELECT od.id, ((od.id * 11) % 10) + 1
 FROM order_details od
 JOIN orders o ON o.id = od.order_id
 WHERE o.date >= '2026-04-01' AND o.date < '2026-07-01'
-  AND od.product_id IN (1, 7) AND ((od.id * 13) % 4) = 0
-UNION ALL
-SELECT od.id, (((od.id * 17) % 6) + 14)
-FROM order_details od
-JOIN orders o ON o.id = od.order_id
-WHERE o.date >= '2026-04-01' AND o.date < '2026-07-01'
-  AND od.product_id = 2 AND ((od.id * 19) % 3) = 0
+  AND od.product_id IN (1, 6) AND ((od.id * 13) % 4) = 0
 UNION ALL
 SELECT od.id, (((od.id * 23) % 3) + 23)
 FROM order_details od
 JOIN orders o ON o.id = od.order_id
 WHERE o.date >= '2026-04-01' AND o.date < '2026-07-01'
-  AND od.product_id IN (3, 13, 14, 15) AND ((od.id * 29) % 5) = 0;
+  AND od.product_id IN (2, 12, 13, 14) AND ((od.id * 29) % 5) = 0;
 
 -- =============================================================================
 -- ORDER PREPARATION AREAS (PK -> INSERT IGNORE)
@@ -1036,7 +974,7 @@ INSERT IGNORE INTO order_preparation_areas (order_id, area_id)
 SELECT DISTINCT o.id, 3 FROM orders o
 JOIN order_details od ON od.order_id = o.id
 WHERE o.date >= '2026-04-01' AND o.date < '2026-07-01'
-  AND od.product_id IN (6, 20, 21, 22);
+  AND od.product_id IN (5, 19, 20, 21);
 
 -- =============================================================================
 -- INVENTORY MOVEMENTS — DEDUCTION (COGS source for prime cost)
@@ -1215,21 +1153,20 @@ INSERT INTO order_details (id, order_id, product_id, unit_price, instructions)
 WITH RECURSIVE
   detail_idx AS (SELECT 0 AS k UNION ALL SELECT k + 1 FROM detail_idx WHERE k < 3),
   product_list AS (
-    SELECT  0 AS lo, 14 AS hi,  7 AS pid, 18000.00 AS price
-    UNION ALL SELECT 15, 28, 13, 22000.00
-    UNION ALL SELECT 29, 40,  6,  8000.00
-    UNION ALL SELECT 41, 50,  2, 18000.00
+    SELECT  0 AS lo, 14 AS hi,  6 AS pid, 18000.00 AS price
+    UNION ALL SELECT 15, 28, 12, 22000.00
+    UNION ALL SELECT 29, 40,  5,  8000.00
     UNION ALL SELECT 51, 58,  1, 28000.00
-    UNION ALL SELECT 59, 64, 12, 20000.00
-    UNION ALL SELECT 65, 70, 10, 25000.00
-    UNION ALL SELECT 71, 75,  5, 55000.00
-    UNION ALL SELECT 76, 80, 17, 24000.00
-    UNION ALL SELECT 81, 85, 16, 25000.00
-    UNION ALL SELECT 86, 89, 20, 12000.00
-    UNION ALL SELECT 90, 92, 18, 42000.00
-    UNION ALL SELECT 93, 95, 19, 38000.00
-    UNION ALL SELECT 96, 97, 22,  7000.00
-    UNION ALL SELECT 98, 99, 21,  6000.00
+    UNION ALL SELECT 59, 64, 11, 20000.00
+    UNION ALL SELECT 65, 70,  9, 25000.00
+    UNION ALL SELECT 71, 75,  4, 55000.00
+    UNION ALL SELECT 76, 80, 16, 24000.00
+    UNION ALL SELECT 81, 85, 15, 25000.00
+    UNION ALL SELECT 86, 89, 19, 12000.00
+    UNION ALL SELECT 90, 92, 17, 42000.00
+    UNION ALL SELECT 93, 95, 18, 38000.00
+    UNION ALL SELECT 96, 97, 21,  7000.00
+    UNION ALL SELECT 98, 99, 20,  6000.00
   )
 SELECT
   ROW_NUMBER() OVER (ORDER BY o.id, d.k) + 400000,
@@ -1252,19 +1189,13 @@ SELECT od.id, ((od.id * 11) % 10) + 1
 FROM order_details od
 JOIN orders o ON o.id = od.order_id
 WHERE o.date >= '2026-07-01' AND o.date < '2026-07-28'
-  AND od.product_id IN (1, 7) AND ((od.id * 13) % 4) = 0
-UNION ALL
-SELECT od.id, (((od.id * 17) % 6) + 14)
-FROM order_details od
-JOIN orders o ON o.id = od.order_id
-WHERE o.date >= '2026-07-01' AND o.date < '2026-07-28'
-  AND od.product_id = 2 AND ((od.id * 19) % 3) = 0
+  AND od.product_id IN (1, 6) AND ((od.id * 13) % 4) = 0
 UNION ALL
 SELECT od.id, (((od.id * 23) % 3) + 23)
 FROM order_details od
 JOIN orders o ON o.id = od.order_id
 WHERE o.date >= '2026-07-01' AND o.date < '2026-07-28'
-  AND od.product_id IN (3, 13, 14, 15) AND ((od.id * 29) % 5) = 0;
+  AND od.product_id IN (2, 12, 13, 14) AND ((od.id * 29) % 5) = 0;
 
 -- =============================================================================
 -- ORDER PREPARATION AREAS
@@ -1277,7 +1208,7 @@ INSERT IGNORE INTO order_preparation_areas (order_id, area_id)
 SELECT DISTINCT o.id, 3 FROM orders o
 JOIN order_details od ON od.order_id = o.id
 WHERE o.date >= '2026-07-01' AND o.date < '2026-07-28'
-  AND od.product_id IN (6, 20, 21, 22);
+  AND od.product_id IN (5, 19, 20, 21);
 
 -- =============================================================================
 -- INVENTORY MOVEMENTS — DEDUCTION

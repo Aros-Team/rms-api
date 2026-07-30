@@ -143,7 +143,9 @@ For each active SKU:
   units_sold      = Σ quantity over period
   revenue         = Σ (quantity × sell_price)
   recipe_cost     = product.recipe.total_cost (Money value object)
-  gp_per_unit     = sell_price − recipe_cost
+  avg_option_cost = average cost of chosen options per order
+  effective_cost  = recipe_cost + avg_option_cost
+  gp_per_unit     = sell_price − effective_cost
   contribution    = units_sold × gp_per_unit
   median_volume   = median(units_sold across SKUs)
   median_margin   = median(gp_per_unit across SKUs)
@@ -170,6 +172,8 @@ Quadrant:
       "unitsSold": 320,
       "revenue":   { "amount": "9600000.00", "currency": "COP" },
       "recipeCost":{ "amount": "3200000.00", "currency": "COP" },
+      "avgOptionCost":    { "amount": "640000.00",  "currency": "COP" },
+      "effectiveCost":    { "amount": "3840000.00", "currency": "COP" },
       "grossProfitPerUnit": { "amount": "20000.00", "currency": "COP" },
       "totalContribution":  { "amount": "6400000.00", "currency": "COP" },
       "quadrant": "STAR"
