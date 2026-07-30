@@ -6,6 +6,7 @@ deploy.sh
 build/
 data/
 uploads/
+output.log
 progress/*
 !progress/history.md
 
