@@ -303,3 +303,37 @@ src/test/java/aros/services/rms/core/analytics/application/config/RollupDailyJob
 **Harness:** all 8 sections `[OK]` (407 tests pass)
 
 **Commit:** `4622a6c`
+
+---
+
+## 2026-07-30 — Activity 1: Menu engineering avg option cost + effective cost
+
+**Goal:** Add `avg_option_cost` (historical average of options chosen per order) and `effective_cost` (= `recipeCost + avgOptionCost`) to menu engineering BCG analysis.
+
+**Deliverables (all 11 acceptance items met):**
+1. V36 migration: `avg_option_cost DECIMAL(14,2)` + `effective_cost DECIMAL(14,2)` on `menu_performance_cache` with backfill
+2. `MenuEngineeringAggregationPort.loadAvgOptionCostByProduct(start, end)` port method
+3. `MenuEngineeringAggregationJpaAdapter` CTE-based impl with LEFT JOINs
+4. `MenuItemSummary` record with `avgOptionCost`/`effectiveCost` fields
+5. `RefreshMenuEngineeringService` computes `effectiveCost = recipeCost + avgOptionCost`, uses for GP/BCG
+6. Entity + mapper + adapter persist both fields (INSERT & UPDATE)
+7. `MenuEngineeringReportResponse.MenuItemResponse` DTO exposes both as `MoneyDto`
+8. `analytics.yaml` + `analytics.md` document new fields
+9. 3 test scenarios: with options, without options, BCG quadrant shift via effective cost
+10. Post-review fixes: analytics.md math formula updated, V36 trailing newline fixed
+11. `./harness/harness.sh` exit 0 (all 8 sections `[OK]`)
+
+**Commits:** `f996c31`, `c104429`, `2568647`
+
+## 2026-07-30 — Activity 2: Remove Almuerzo Ejecutivo + recategorize Colombian dishes
+
+**Goal:** Remove 'Almuerzo Ejecutivo' category and 'Menú del Día' product, create 'Platos Típicos' category (id=2), keep Bandeja Paisa/Sancocho/Ajiaco pointing to id=2.
+
+**Deliverables (all 12 acceptance items met):**
+- Almuerzo Ejecutivo category + Menú del Día product removed from data.sql
+- 3 Almuerzo option_categories + 9 product_options + product_product_options + option_recipes removed
+- order_detail_options filters referencing old product_id=2 removed
+- Platos Típicos category created (reusing id=2)
+- Bandeja Paisa, Sancocho de Gallina, Ajiaco Santafereño → category_id=2
+- FK-safe cascade renumbering applied
+- `./harness/harness.sh` exit 0
