@@ -17,6 +17,8 @@ public record SupplyVariantResponse(
     @Schema(description = "Unit of measure ID", example = "2") Long unitId,
     @Schema(description = "Unit abbreviation", example = "kg") String unitAbbreviation,
     @Schema(description = "Quantity per unit", example = "1.000") BigDecimal quantity,
+    @Schema(description = "Unit cost of this presentation (COP)", example = "12500.00")
+        BigDecimal unitCost,
     @Schema(description = "Current stock in Bodega", example = "18.500") BigDecimal stockBodega,
     @Schema(description = "Current stock in Cocina", example = "5.000") BigDecimal stockCocina) {
 
@@ -54,6 +56,7 @@ public record SupplyVariantResponse(
         unit != null ? unit.getId() : null,
         unit != null ? unit.getAbbreviation() : null,
         entity.getQuantity(),
+        entity.getUnitCost(),
         stockBodega,
         stockCocina);
   }
