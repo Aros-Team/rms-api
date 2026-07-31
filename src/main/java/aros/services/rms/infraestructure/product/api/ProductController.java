@@ -11,8 +11,9 @@ import aros.services.rms.core.image.port.output.StoragePort;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductCost;
+import aros.services.rms.core.product.domain.ProductCostBreakdown;
 import aros.services.rms.core.product.port.input.CalculateProductCostUseCase;
-import aros.services.rms.core.product.port.input.ProductOptionUseCase;
+import aros.services.rms.core.product.port.input.GetProductCostBreakdownUseCase;
 import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.infraestructure.product.api.dto.ProductCostResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductOptionResponse;
@@ -60,8 +61,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProductController {
 
   private final ProductUseCase productUseCase;
-  private final ProductOptionUseCase productOptionUseCase;
   private final CalculateProductCostUseCase calculateProductCostUseCase;
+  private final GetProductCostBreakdownUseCase getProductCostBreakdownUseCase;
   private final ImageRepositoryPort imageRepositoryPort;
   private final StoragePort storagePort;
 
@@ -351,6 +352,31 @@ public class ProductController {
   }
 
   /**
+   * Enables a product.
+   *
+   * @param id the product ID
+   * @return the enabled product
+   */
+  @Operation(
+      tags = {"Products"},
+      summary = "Enable product",
+      description = "Reactivates a previously disabled product by setting the product as active.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Product enabled successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Product not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @PutMapping("/{id}/enable")
+  public ResponseEntity<ProductResponse> enable(
+      @Parameter(description = "Product ID", example = "1", required = true) @PathVariable
+          Long id) {
+    Product product = productUseCase.enable(id);
+    return ResponseEntity.ok(ProductResponse.fromDomain(product));
+  }
+
+  /**
    * Gets options for a product.
    *
    * @param id the product ID
@@ -371,13 +397,9 @@ public class ProductController {
   public ResponseEntity<List<ProductOptionResponse>> findOptionsByProductId(
       @Parameter(description = "Product ID", example = "1", required = true) @PathVariable
           Long id) {
-    // First verify the product exists
-    productUseCase.findById(id);
-
+    ProductCostBreakdown breakdown = getProductCostBreakdownUseCase.execute(id);
     List<ProductOptionResponse> responses =
-        productOptionUseCase.findByProductId(id).stream()
-            .map(ProductOptionResponse::fromDomain)
-            .collect(Collectors.toList());
+        breakdown.options().stream().map(ProductOptionResponse::fromCostBreakdown).toList();
     return ResponseEntity.ok(responses);
   }
 

@@ -54,6 +54,14 @@ public interface ProductUseCase {
   Product disable(Long id);
 
   /**
+   * Reactivates a previously disabled product by setting the active flag to true.
+   *
+   * @param id the product id to enable
+   * @return the enabled product
+   */
+  Product enable(Long id);
+
+  /**
    * Retrieves all available products (active with sufficient stock in Cocina). Products without a
    * recipe are considered available.
    *

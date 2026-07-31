@@ -224,6 +224,23 @@ public class ProductService implements ProductUseCase {
     return saved;
   }
 
+  /** {@inheritDoc} Sets the product active flag to true (reactivation). */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public Product enable(Long id) {
+    Product existing =
+        productRepositoryPort.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
+
+    existing.setActive(true);
+
+    Product saved = productRepositoryPort.save(existing);
+    logger.info("Product enabled: id={}, name={}", saved.getId(), saved.getName());
+    return saved;
+  }
+
   /**
    * Recovery handler for create operation when database is unavailable.
    *
@@ -294,6 +311,20 @@ public class ProductService implements ProductUseCase {
   @Recover
   public Product recoverDisable(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para disable(id={}): {}", id, e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  /**
+   * Recovery handler for enable operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the product identifier being enabled
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
+  @Recover
+  public Product recoverEnable(DataAccessException e, Long id) {
+    log.warn("BD no disponible - fallback para enable(id={}): {}", id, e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 

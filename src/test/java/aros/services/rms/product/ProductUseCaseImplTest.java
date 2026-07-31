@@ -163,6 +163,40 @@ class ProductUseCaseImplTest {
   }
 
   @Test
+  void shouldEnableProductSuccessfully() {
+    Product existing =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .active(false)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .build();
+    Product saved =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .active(true)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .build();
+
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(existing));
+    when(productRepositoryPort.save(any(Product.class))).thenReturn(saved);
+
+    Product result = productUseCase.enable(1L);
+
+    assertNotNull(result);
+    assertEquals(true, result.isActive());
+    verify(productRepositoryPort).save(any(Product.class));
+  }
+
+  @Test
+  void shouldThrowWhenEnablingNonExistentProduct() {
+    when(productRepositoryPort.findById(99L)).thenReturn(Optional.empty());
+
+    assertThrows(ProductNotFoundException.class, () -> productUseCase.enable(99L));
+  }
+
+  @Test
   void shouldFindAllProducts() {
     when(productRepositoryPort.findAll())
         .thenReturn(
