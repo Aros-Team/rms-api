@@ -23,6 +23,14 @@ INSERT IGNORE INTO storage_locations (name) VALUES
     ('Bar');
 
 -- =============================================================================
+-- SUPPLY CATEGORY FOOD_TYPE (V33 only matched by exact name; backfill here)
+-- Idempotent: WHERE guards ensure re-runs of data.sql are safe.
+-- =============================================================================
+UPDATE supply_categories SET food_type = 'FOOD'     WHERE name IN ('Proteínas','Vegetales y Frescos','Lácteos','Harinas y Masas','Salsas y Bases','Condimentos','Embutidos y Curados','Frutas y Pulpas','Endulzantes','Congelados','Granos y Legumbres','Pastas','Aceites y Grasas') AND food_type <> 'FOOD';
+UPDATE supply_categories SET food_type = 'BEVERAGE' WHERE name = 'Bebidas e Hielo' AND food_type <> 'BEVERAGE';
+UPDATE supply_categories SET food_type = 'OTHER'    WHERE name = 'Desechables' AND food_type <> 'OTHER';
+
+-- =============================================================================
 -- SUPPLIES (name is UNIQUE -> INSERT IGNORE)
 -- supplies reference supply_categories seeded by V23
 -- =============================================================================
@@ -684,86 +692,238 @@ SELECT 'Hierbabuena Fresca x2', 17 FROM dual WHERE @opt_count = 0;
 
 -- =============================================================================
 -- PRODUCT ↔ OPTIONS (PRIMARY KEY (product_id, option_id) -> INSERT IGNORE)
+-- All 21 products
 -- =============================================================================
 INSERT IGNORE INTO product_product_options (product_id, option_id) VALUES
-    -- Hamburguesa Double Bacon Cheese (id=1)
+    -- 1. Hamburguesa Double Bacon Cheese
     (1,  1), (1,  2), (1,  3),
     (1,  4), (1,  5),
     (1,  6), (1,  7),
     (1,  8), (1,  9), (1, 10),
     (1, 11), (1, 12), (1, 13),
 
-    -- Pizza Especial Familiar (id=2)
-    (2, 23), (2, 24), (2, 25),
-    (2, 26), (2, 27), (2, 28),
-    (2, 29), (2, 30),
+    -- 2. Pizza Especial Familiar
+    (2, 14), (2, 15), (2, 16),
+    (2, 17), (2, 18), (2, 19),
+    (2, 20), (2, 21),
 
-    -- Pasta de la Casa (id=3)
-    (3, 31), (3, 32), (3, 33),
-    (3, 34), (3, 35), (3, 36),
-    (3, 37), (3, 38), (3, 39),
+    -- 3. Pasta de la Casa
+    (3, 22), (3, 23), (3, 24),
+    (3, 25), (3, 26), (3, 27),
+    (3, 28), (3, 29), (3, 30),
 
-    -- Corte de Res Premium (id=4)
-    (4, 40), (4, 41), (4, 42),
-    (4, 43), (4, 44), (4, 45), (4, 46),
-    (4, 47), (4, 48), (4, 49),
+    -- 4. Corte de Res Premium
+    (4, 31), (4, 32), (4, 33),
+    (4, 34), (4, 35), (4, 36), (4, 37),
+    (4, 38), (4, 39), (4, 40),
 
-    -- Limonada / Jugo Natural (id=5)
-    (5, 50), (5, 51), (5, 52), (5, 53),
-    (5, 54), (5, 55), (5, 56),
-    (5, 57), (5, 58);
+    -- 5. Limonada / Jugo Natural
+    (5, 41), (5, 42), (5, 43), (5, 44),
+    (5, 45), (5, 46), (5, 47),
+    (5, 48), (5, 49),
+
+    -- 6. Hamburguesa Clásica
+    (6,  1), (6,  2), (6,  3),
+    (6,  4), (6,  5),
+    (6,  6), (6,  7),
+    (6,  8), (6,  9), (6, 10),
+    (6, 11), (6, 12), (6, 13),
+
+    -- 7. Hamburguesa BBQ
+    (7,  1), (7,  2), (7,  3),
+    (7,  4), (7,  5),
+    (7,  6), (7,  7),
+    (7,  8), (7,  9), (7, 10),
+    (7, 11), (7, 12), (7, 13),
+
+    -- 8. Hamburguesa Veggie
+    (8,  1), (8,  2), (8,  3),
+    (8,  4), (8,  5),
+    (8,  6), (8,  7),
+    (8,  8), (8,  9), (8, 10),
+    (8, 11), (8, 12), (8, 13),
+
+    -- 9. Bandeja Paisa (Platos Típicos — no options)
+    -- 10. Sancocho de Gallina (no options)
+    -- 11. Ajiaco Santafereño (no options)
+
+    -- 12. Pizza Personal
+    (12, 14), (12, 15), (12, 16),
+    (12, 17), (12, 18), (12, 19),
+    (12, 20), (12, 21),
+
+    -- 13. Pizza Vegetariana
+    (13, 14), (13, 15), (13, 16),
+    (13, 17), (13, 18), (13, 19),
+    (13, 20), (13, 21),
+
+    -- 14. Pizza Hawaiana
+    (14, 14), (14, 15), (14, 16),
+    (14, 17), (14, 18), (14, 19),
+    (14, 20), (14, 21),
+
+    -- 15. Lasagna Clásica
+    (15, 22), (15, 23), (15, 24),
+    (15, 25), (15, 26), (15, 27),
+    (15, 28), (15, 29), (15, 30),
+
+    -- 16. Spaghetti Carbonara
+    (16, 22), (16, 23), (16, 24),
+    (16, 25), (16, 26), (16, 27),
+    (16, 28), (16, 29), (16, 30),
+
+    -- 17. Costillas BBQ
+    (17, 31), (17, 32), (17, 33),
+    (17, 34), (17, 35), (17, 36), (17, 37),
+    (17, 38), (17, 39), (17, 40),
+
+    -- 18. Lomo de Cerdo
+    (18, 31), (18, 32), (18, 33),
+    (18, 34), (18, 35), (18, 36), (18, 37),
+    (18, 38), (18, 39), (18, 40),
+
+    -- 19. Malteada
+    (19, 41), (19, 42), (19, 43), (19, 44),
+    (19, 45), (19, 46), (19, 47),
+    (19, 48), (19, 49),
+
+    -- 20. Agua de Coco
+    (20, 41), (20, 42), (20, 43), (20, 44),
+    (20, 45), (20, 46), (20, 47),
+    (20, 48), (20, 49),
+
+    -- 21. Té Helado
+    (21, 41), (21, 42), (21, 43), (21, 44),
+    (21, 45), (21, 46), (21, 47),
+    (21, 48), (21, 49);
 
 -- =============================================================================
 -- PRODUCT RECIPES (product_id, supply_variant_id is UNIQUE -> INSERT IGNORE)
+-- All 21 products
 -- =============================================================================
 INSERT IGNORE INTO product_recipes (product_id, supply_variant_id, required_quantity) VALUES
-    -- Hamburguesa Double Bacon Cheese (id=1)
-    (1, 35, 1.000), (1, 34, 1.000), (1, 14, 1.000), (1, 59, 1.000),
-    -- Pizza Especial Familiar (id=2)
-    (2, 37, 1.000), (2, 38, 1.000), (2, 39, 1.000), (2, 30, 1.000),
-    -- Pasta de la Casa (id=3)
-    (3, 70, 1.000), (3, 36, 1.000), (3, 31, 1.000),
-    -- Corte de Res Premium (id=4)
-    (4, 43, 1.000), (4, 40, 1.000), (4, 22, 1.000),
-    -- Limonada / Jugo Natural (id=5)
-    (5, 60, 1.000), (5, 62, 1.000), (5, 73, 1.000);
+    -- 1. Hamburguesa Double Bacon Cheese (28000)
+    (1,  35, 1.000), (1,   1, 1.000), (1,  28, 1.000), (1,  46, 1.000),
+    (1,  15, 1.000), (1,  16, 1.000), (1,  14, 1.000), (1,  63, 1.000),
+
+    -- 2. Pizza Especial Familiar (38000) — large
+    (2,  37, 0.625), (2,  39, 1.500), (2,  30, 1.000), (2,  48, 0.500),
+    (2,  21, 0.500), (2,  44, 1.000), (2,  73, 1.000),
+
+    -- 3. Pasta de la Casa (22000)
+    (3,  70, 0.500), (3,   2, 1.000), (3,  39, 0.500), (3,  31, 1.000),
+    (3,  36, 0.500),
+
+    -- 4. Corte de Res Premium (55000)
+    (4,  11, 1.000), (4,  43, 1.000), (4,  34, 1.000), (4,  73, 1.000),
+    (4,  25, 1.000),
+
+    -- 5. Limonada / Jugo Natural (8000)
+    (5,  52, 0.500), (5,  56, 1.000), (5,  74, 0.500), (5,  60, 1.000),
+    (5,  62, 1.000),
+
+    -- 6. Hamburguesa Clásica (18000)
+    (6,  35, 1.000), (6,   2, 1.000), (6,  15, 1.000), (6,  63, 1.000),
+
+    -- 7. Hamburguesa BBQ (32000)
+    (7,  35, 1.000), (7,   1, 1.000), (7,  28, 1.000), (7,  46, 1.000),
+    (7,  16, 1.000), (7,  64, 1.000), (7,  40, 1.000), (7,  43, 1.000),
+
+    -- 8. Hamburguesa Veggie (22000)
+    (8,  35, 1.000), (8,   4, 1.000), (8,  21, 1.000), (8,  18, 1.000),
+    (8,  29, 1.000), (8,  14, 1.000), (8,  64, 1.000),
+
+    -- 9. Bandeja Paisa (25000)
+    (9,  66, 1.000), (9,  67, 1.000), (9,   6, 1.000), (9,  12, 1.000),
+    (9,  24, 1.000), (9,  46, 1.000), (9,  73, 1.000), (9,  42, 1.000),
+
+    -- 10. Sancocho de Gallina (22000)
+    (10,  5, 1.000), (10, 25, 1.000), (10, 26, 1.000), (10, 23, 1.000),
+    (10, 16, 1.000), (10, 19, 1.000), (10, 66, 1.000), (10, 42, 1.000),
+
+    -- 11. Ajiaco Santafereño (20000)
+    (11,  5, 1.000), (11, 25, 1.000), (11, 27, 1.000), (11, 23, 1.000),
+    (11, 19, 1.000), (11, 33, 1.000), (11, 66, 1.000), (11, 42, 1.000),
+
+    -- 12. Pizza Personal (22000)
+    (12, 37, 0.250), (12, 39, 0.300), (12, 30, 0.250), (12, 48, 0.300),
+    (12, 44, 1.000), (12, 73, 0.500),
+
+    -- 13. Pizza Vegetariana (32000)
+    (13, 37, 0.375), (13, 39, 0.400), (13, 30, 0.400), (13, 21, 1.000),
+    (13, 18, 1.000), (13, 69, 0.500), (13, 17, 0.500), (13, 44, 1.000),
+    (13, 73, 0.500),
+
+    -- 14. Pizza Hawaiana (30000)
+    (14, 37, 0.375), (14, 39, 0.400), (14, 30, 0.400), (14, 49, 0.500),
+    (14, 55, 1.000), (14, 44, 1.000), (14, 73, 0.500),
+
+    -- 15. Lasagna Clásica (25000)
+    (15, 70, 0.500), (15,  2, 1.000), (15, 30, 0.500), (15, 31, 1.000),
+    (15, 39, 1.000),
+
+    -- 16. Spaghetti Carbonara (24000)
+    (16, 70, 0.500), (16, 47, 1.000), (16, 31, 1.000), (16, 12, 1.000),
+    (16, 45, 1.000),
+
+    -- 17. Costillas BBQ (42000) — pork ribs
+    (17,  7, 1.500), (17, 39, 0.500), (17, 47, 0.500), (17, 34, 1.000),
+    (17, 43, 1.000), (17, 25, 1.000),
+
+    -- 18. Lomo de Cerdo (38000)
+    (18,  7, 1.000), (18, 64, 1.000), (18, 23, 1.000), (18, 34, 1.000),
+    (18, 43, 1.000),
+
+    -- 19. Malteada (12000)
+    (19, 33, 0.500), (19, 56, 1.000), (19, 74, 0.333), (19, 60, 1.000),
+    (19, 62, 1.000),
+
+    -- 20. Agua de Coco (6000)
+    (20, 41, 1.000), (20, 74, 0.200), (20, 60, 1.000), (20, 62, 1.000),
+
+    -- 21. Té Helado (7000)
+    (21, 74, 0.500), (21, 56, 1.000), (21, 51, 1.000), (21, 61, 1.000),
+    (21, 62, 1.000);
 
 -- =============================================================================
 -- OPTION RECIPES (option_id, supply_variant_id is UNIQUE -> INSERT IGNORE)
+-- All 49 options
 -- =============================================================================
 INSERT IGNORE INTO option_recipes (option_id, supply_variant_id, required_quantity) VALUES
-    -- Proteína Hamburguesa
+    -- 1. Proteína Hamburguesa
     (1,  1, 1.000), (2,  3, 1.000), (3,  4, 1.000),
-    -- Queso Hamburguesa
+    -- 2. Queso Hamburguesa
     (4, 28, 1.000), (5, 29, 1.000),
-    -- Vegetales Hamburguesa
+    -- 3. Vegetales Hamburguesa
     (6, 15, 1.000), (7, 16, 1.000),
-    -- Acompañamiento Hamburguesa
+    -- 4. Acompañamiento Hamburguesa
     (8, 63, 1.000), (9, 64, 1.000),
-    -- Extras Hamburguesa
+    -- 5. Adición Extra Hamburguesa
     (11, 46, 1.000), (12, 12, 1.000), (13, 17, 1.000),
-    -- Sabor Pizza
-    (23, 48, 1.000), (24, 49, 1.000), (25, 21, 1.000),
-    -- Vegetal Extra Pizza
-    (26, 18, 1.000), (27, 69, 1.000), (28, 55, 1.000),
-    -- Borde Pizza
-    (29, 32, 1.000), (30, 50, 1.000),
-    -- Salsa Pasta
-    (31, 33, 1.000), (32,  2, 1.000), (33, 47, 1.000),
-    -- Proteína Extra Pasta
-    (34,  8, 1.000), (35,  6, 1.000),
-    -- Especia Pasta
-    (37, 44, 1.000), (38, 20, 1.000), (39, 45, 1.000),
-    -- Corte Parrilla
-    (40,  9, 1.000), (41, 10, 1.000), (42, 11, 1.000),
-    -- Guarnición Parrilla
-    (47, 25, 1.000), (48, 26, 1.000), (49, 25, 1.000),
-    -- Base Fruta Bebida
-    (50, 51, 1.000), (51, 52, 1.000), (52, 53, 1.000), (53, 54, 1.000),
-    -- Endulzante Bebida
-    (54, 56, 1.000), (55, 57, 1.000), (56, 58, 1.000),
-    -- Sabor Especial Bebida
-    (57, 41, 1.000), (58, 19, 1.000);
+    -- 6. Sabor Pizza
+    (14, 48, 1.000), (15, 49, 1.000), (16, 21, 1.000),
+    -- 7. Vegetal Extra Pizza
+    (17, 18, 1.000), (18, 69, 1.000), (19, 55, 1.000),
+    -- 8. Borde Pizza
+    (20, 32, 1.000), (21, 50, 1.000),
+    -- 9. Salsa Pasta (Boloñesa = carne + tomate; Carbonara = tocineta + huevo)
+    (22, 33, 1.000), (23,  2, 1.000), (23, 39, 0.500),
+    (24, 47, 1.000), (24, 12, 1.000),
+    -- 10. Proteína Extra Pasta
+    (25,  8, 1.000), (26,  6, 1.000),
+    -- 11. Especia Pasta
+    (28, 44, 1.000), (29, 20, 1.000), (30, 45, 1.000),
+    -- 12. Corte Parrilla
+    (31,  9, 1.000), (32, 10, 1.000), (33, 11, 1.000),
+    -- 13. Término Parrilla (no recipe — cooking terms)
+    -- 14. Guarnición Parrilla
+    (38, 25, 1.000), (39, 26, 1.000), (40, 25, 1.000),
+    -- 15. Base Fruta Bebida
+    (41, 51, 1.000), (42, 52, 1.000), (43, 53, 1.000), (44, 54, 1.000),
+    -- 16. Endulzante Bebida
+    (45, 56, 1.000), (46, 57, 1.000), (47, 58, 1.000),
+    -- 17. Sabor Especial Bebida
+    (48, 41, 1.000), (49, 19, 1.000);
 
 -- =============================================================================
 -- Q2 2026 STATISTICS SEED (Apr + May + Jun, idempotent, append-only)
@@ -1033,38 +1193,14 @@ SELECT
   r.sales, r.sales, 0, 0,
   c.food, c.bev, c.alc, c.oth,
   ROUND(c.food / NULLIF(c.food + c.bev + c.alc + c.oth, 0) * 100, 2),
-  CASE r.m
-    WHEN '2026-04' THEN  4218750 WHEN '2026-05' THEN  4359375 WHEN '2026-06' THEN  4218750
-    ELSE 0 END,
-  CASE r.m
-    WHEN '2026-04' THEN  9450000 WHEN '2026-05' THEN  9765000 WHEN '2026-06' THEN  9450000
-    ELSE 0 END,
-  CASE r.m
-    WHEN '2026-04' THEN 13668750 WHEN '2026-05' THEN 14124375 WHEN '2026-06' THEN 13668750
-    ELSE 0 END,
-  ROUND(CASE r.m
-    WHEN '2026-04' THEN 13668750 WHEN '2026-05' THEN 14124375 WHEN '2026-06' THEN 13668750
-    ELSE 0 END / NULLIF(r.sales, 0) * 100, 2),
-  CASE r.m
-    WHEN '2026-04' THEN ROUND(c.food + c.bev + c.alc + c.oth + 13668750, 2)
-    WHEN '2026-05' THEN ROUND(c.food + c.bev + c.alc + c.oth + 14124375, 2)
-    WHEN '2026-06' THEN ROUND(c.food + c.bev + c.alc + c.oth + 13668750, 2)
-    ELSE 0 END,
-  ROUND(CASE r.m
-    WHEN '2026-04' THEN (c.food + c.bev + c.alc + c.oth + 13668750)
-    WHEN '2026-05' THEN (c.food + c.bev + c.alc + c.oth + 14124375)
-    WHEN '2026-06' THEN (c.food + c.bev + c.alc + c.oth + 13668750)
-    ELSE 0 END / NULLIF(r.sales, 0) * 100, 2),
-  ROUND((1 - CASE r.m
-    WHEN '2026-04' THEN (c.food + c.bev + c.alc + c.oth + 13668750)
-    WHEN '2026-05' THEN (c.food + c.bev + c.alc + c.oth + 14124375)
-    WHEN '2026-06' THEN (c.food + c.bev + c.alc + c.oth + 13668750)
-    ELSE 0 END / NULLIF(r.sales, 0)) * 100, 2),
-  ROUND((1 - CASE r.m
-    WHEN '2026-04' THEN (c.food + c.bev + c.alc + c.oth + 13668750)
-    WHEN '2026-05' THEN (c.food + c.bev + c.alc + c.oth + 14124375)
-    WHEN '2026-06' THEN (c.food + c.bev + c.alc + c.oth + 13668750)
-    ELSE 0 END / NULLIF(r.sales, 0)) * 100, 2),
+  5000000,
+  11200000,
+  16200000,
+  ROUND(16200000 / NULLIF(r.sales, 0) * 100, 2),
+  ROUND(c.food + c.bev + c.alc + c.oth + 16200000, 2),
+  ROUND((c.food + c.bev + c.alc + c.oth + 16200000) / NULLIF(r.sales, 0) * 100, 2),
+  ROUND((1 - (c.food + c.bev + c.alc + c.oth + 16200000) / NULLIF(r.sales, 0)) * 100, 2),
+  ROUND((1 - (c.food + c.bev + c.alc + c.oth + 16200000) / NULLIF(r.sales, 0)) * 100, 2),
   'FULL'
 FROM monthly_revenue r
 LEFT JOIN monthly_cogs c ON c.m = r.m
@@ -1265,14 +1401,14 @@ SELECT
   r.sales, r.sales, 0, 0,
   c.food, c.bev, c.alc, c.oth,
   ROUND(c.food / NULLIF(c.food + c.bev + c.alc + c.oth, 0) * 100, 2),
-  3796875,
-  8505000,
-  12301875,
-  ROUND(12301875 / NULLIF(r.sales, 0) * 100, 2),
-  ROUND(c.food + c.bev + c.alc + c.oth + 12301875, 2),
-  ROUND((c.food + c.bev + c.alc + c.oth + 12301875) / NULLIF(r.sales, 0) * 100, 2),
-  ROUND((1 - (c.food + c.bev + c.alc + c.oth + 12301875) / NULLIF(r.sales, 0)) * 100, 2),
-  ROUND((1 - (c.food + c.bev + c.alc + c.oth + 12301875) / NULLIF(r.sales, 0)) * 100, 2),
+  4354839,
+  9754839,
+  14109677,
+  ROUND(14109677 / NULLIF(r.sales, 0) * 100, 2),
+  ROUND(c.food + c.bev + c.alc + c.oth + 14109677, 2),
+  ROUND((c.food + c.bev + c.alc + c.oth + 14109677) / NULLIF(r.sales, 0) * 100, 2),
+  ROUND((1 - (c.food + c.bev + c.alc + c.oth + 14109677) / NULLIF(r.sales, 0)) * 100, 2),
+  ROUND((1 - (c.food + c.bev + c.alc + c.oth + 14109677) / NULLIF(r.sales, 0)) * 100, 2),
   'PARTIAL'
 FROM monthly_revenue r
 LEFT JOIN monthly_cogs c ON c.m = r.m

@@ -33,7 +33,9 @@ public record ProductResponse(
             description = "Selection type (SPECIAL_SELECTION or STANDARD)",
             example = "SPECIAL_SELECTION")
         String selectionType,
-    @Schema(description = "Primary image URL", example = "/api/v1/products/123/images")
+    @Schema(
+            description = "Signed URL of the primary image (mobile variant)",
+            example = "/api/v1/images/local/products/1/mobile.webp")
         String imageUrl) {
 
   /** Nested DTO representing a single recipe item (supply variant + quantity). */

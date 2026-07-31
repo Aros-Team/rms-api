@@ -5,6 +5,7 @@ package aros.services.rms.infraestructure.image.persistence.jpa;
 import aros.services.rms.core.image.domain.EntityImage;
 import aros.services.rms.core.image.domain.ImageEntityType;
 import aros.services.rms.core.image.port.output.ImageRepositoryPort;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,6 +35,17 @@ public class EntityImagePersistenceAdapter implements ImageRepositoryPort {
   @Override
   public List<EntityImage> findByEntityTypeAndEntityId(ImageEntityType entityType, Long entityId) {
     return repository.findByEntityTypeAndEntityId(entityType, entityId).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<EntityImage> findByEntityTypeAndEntityIds(
+      ImageEntityType entityType, Collection<Long> entityIds) {
+    if (entityIds == null || entityIds.isEmpty()) {
+      return List.of();
+    }
+    return repository.findByEntityTypeAndEntityIdIn(entityType, entityIds).stream()
         .map(mapper::toDomain)
         .collect(Collectors.toList());
   }

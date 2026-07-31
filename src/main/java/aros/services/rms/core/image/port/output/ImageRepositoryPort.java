@@ -2,6 +2,7 @@ package aros.services.rms.core.image.port.output;
 
 import aros.services.rms.core.image.domain.EntityImage;
 import aros.services.rms.core.image.domain.ImageEntityType;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +16,10 @@ public interface ImageRepositoryPort {
 
   /** Finds all images for a given entity type and entity ID. */
   List<EntityImage> findByEntityTypeAndEntityId(ImageEntityType entityType, Long entityId);
+
+  /** Finds all images for a given entity type and any of the given entity IDs. */
+  List<EntityImage> findByEntityTypeAndEntityIds(
+      ImageEntityType entityType, Collection<Long> entityIds);
 
   /** Deletes image by ID. */
   void deleteById(Long id);

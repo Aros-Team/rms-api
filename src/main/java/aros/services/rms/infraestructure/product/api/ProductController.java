@@ -4,6 +4,10 @@ package aros.services.rms.infraestructure.product.api;
 
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.common.money.domain.Money;
+import aros.services.rms.core.image.domain.EntityImage;
+import aros.services.rms.core.image.domain.ImageEntityType;
+import aros.services.rms.core.image.port.output.ImageRepositoryPort;
+import aros.services.rms.core.image.port.output.StoragePort;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductCost;
@@ -21,9 +25,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Currency;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -53,6 +62,10 @@ public class ProductController {
   private final ProductUseCase productUseCase;
   private final ProductOptionUseCase productOptionUseCase;
   private final CalculateProductCostUseCase calculateProductCostUseCase;
+  private final ImageRepositoryPort imageRepositoryPort;
+  private final StoragePort storagePort;
+
+  private static final Duration SIGNED_URL_EXPIRATION = Duration.ofMinutes(60);
 
   /**
    * Creates a new product.
@@ -191,30 +204,75 @@ public class ProductController {
     if (categories == null || categories.isEmpty()) {
       if (includeInactive) {
         List<Product> allProducts = productUseCase.findAll();
-        List<ProductResponse> productResponses =
-            allProducts.stream().map(ProductResponse::fromDomain).toList();
         int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), productResponses.size());
-        List<ProductResponse> pagedContent =
-            start < productResponses.size() ? productResponses.subList(start, end) : List.of();
-        responses = new PageImpl<>(pagedContent, pageable, productResponses.size());
+        int end = Math.min((start + pageable.getPageSize()), allProducts.size());
+        List<Product> pagedContent =
+            start < allProducts.size() ? allProducts.subList(start, end) : List.of();
+        responses = new PageImpl<>(toResponses(pagedContent), pageable, allProducts.size());
       } else {
+        Page<Product> products = productUseCase.findAllActive(pageable, includeSelections);
         responses =
-            productUseCase
-                .findAllActive(pageable, includeSelections)
-                .map(ProductResponse::fromDomain);
+            new PageImpl<>(
+                toResponses(products.getContent()), pageable, products.getTotalElements());
       }
     } else {
       List<Product> filteredProducts = productUseCase.findByCategoryIds(categories);
-      List<ProductResponse> productResponses =
-          filteredProducts.stream().map(ProductResponse::fromDomain).toList();
       int start = (int) pageable.getOffset();
-      int end = Math.min((start + pageable.getPageSize()), productResponses.size());
-      List<ProductResponse> pagedContent =
-          start < productResponses.size() ? productResponses.subList(start, end) : List.of();
-      responses = new PageImpl<>(pagedContent, pageable, productResponses.size());
+      int end = Math.min((start + pageable.getPageSize()), filteredProducts.size());
+      List<Product> pagedContent =
+          start < filteredProducts.size() ? filteredProducts.subList(start, end) : List.of();
+      responses = new PageImpl<>(toResponses(pagedContent), pageable, filteredProducts.size());
     }
     return ResponseEntity.ok(responses);
+  }
+
+  /**
+   * Maps products to responses, resolving each product's primary image URL with a single batch
+   * query.
+   *
+   * @param products the products to map
+   * @return the product responses
+   */
+  private List<ProductResponse> toResponses(List<Product> products) {
+    Map<Long, String> primaryImageUrls = resolvePrimaryImageUrls(products);
+    return products.stream()
+        .map(product -> ProductResponse.fromDomain(product, primaryImageUrls.get(product.getId())))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Resolves the primary image URL for each product in a single batch query. The primary image is
+   * the image with the lowest id for the entity.
+   *
+   * @param products the products to resolve images for
+   * @return map of product ID to primary image signed URL
+   */
+  private Map<Long, String> resolvePrimaryImageUrls(Collection<Product> products) {
+    if (products.isEmpty()) {
+      return Map.of();
+    }
+    List<Long> productIds = products.stream().map(Product::getId).collect(Collectors.toList());
+    return imageRepositoryPort
+        .findByEntityTypeAndEntityIds(ImageEntityType.PRODUCT, productIds)
+        .stream()
+        .sorted(Comparator.comparing(EntityImage::getId))
+        .collect(
+            Collectors.toMap(
+                EntityImage::getEntityId,
+                this::primaryImageUrl,
+                (first, ignored) -> first,
+                LinkedHashMap::new));
+  }
+
+  /**
+   * Generates a signed URL for the mobile variant of an image.
+   *
+   * @param image the image
+   * @return the signed URL
+   */
+  private String primaryImageUrl(EntityImage image) {
+    return storagePort.generateSignedUrl(
+        image.getStorageKey() + "/mobile.webp", SIGNED_URL_EXPIRATION);
   }
 
   /**

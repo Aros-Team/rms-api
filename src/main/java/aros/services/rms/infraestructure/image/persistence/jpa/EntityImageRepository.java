@@ -3,6 +3,7 @@
 package aros.services.rms.infraestructure.image.persistence.jpa;
 
 import aros.services.rms.core.image.domain.ImageEntityType;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,6 +13,10 @@ import org.springframework.stereotype.Repository;
 public interface EntityImageRepository extends JpaRepository<EntityImageEntity, Long> {
   /** Finds all images for a given entity type and entity ID. */
   List<EntityImageEntity> findByEntityTypeAndEntityId(ImageEntityType entityType, Long entityId);
+
+  /** Finds all images for a given entity type and any of the given entity IDs. */
+  List<EntityImageEntity> findByEntityTypeAndEntityIdIn(
+      ImageEntityType entityType, Collection<Long> entityIds);
 
   /** Deletes all images for a given entity type and entity ID. */
   void deleteByEntityTypeAndEntityId(ImageEntityType entityType, Long entityId);
