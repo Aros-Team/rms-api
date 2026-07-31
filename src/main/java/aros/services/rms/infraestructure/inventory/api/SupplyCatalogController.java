@@ -29,6 +29,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -272,49 +273,65 @@ public class SupplyCatalogController {
    * Lists supply variants with stock.
    *
    * @param supplyId optional supply filter
-   * @return the list of supply variants
+   * @param page page number (default 0)
+   * @param size page size (default 20, max 100)
+   * @return the page of supply variants
    */
   @Operation(
       tags = {"Supplies"},
       summary = "List supply variants with stock",
       description =
-          "Returns all supply variants with current stock in Bodega and Cocina. "
+          "Returns a paginated list of supply variants with current stock in Bodega and Cocina. "
               + "Optionally filters by supplyId. "
-              + "The variant 'id' is the supplyVariantId used in purchase order items.",
+              + "The variant 'id' is the supplyVariantId used in purchase order items. "
+              + "page >= 0, size between 1 and 100.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Supply variants retrieved"),
+        @ApiResponse(responseCode = "400", description = "Invalid pagination parameters"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/variants")
   @Transactional(readOnly = true)
-  public ResponseEntity<List<SupplyVariantResponse>> findAllVariants(
+  public ResponseEntity<Page<SupplyVariantResponse>> findAllVariants(
       @Parameter(description = "Optional supply filter", example = "3")
           @RequestParam(required = false)
-          Long supplyId) {
+          Long supplyId,
+      @Parameter(description = "Page number (default 0)", example = "0")
+          @RequestParam(defaultValue = "0")
+          int page,
+      @Parameter(description = "Page size (default 20, max 100)", example = "20")
+          @RequestParam(defaultValue = "20")
+          int size) {
+    if (page < 0) {
+      throw new IllegalArgumentException("Page parameter must be greater than or equal to 0");
+    }
+    if (size <= 0 || size > 100) {
+      throw new IllegalArgumentException("Size parameter must be between 1 and 100");
+    }
+    var pageable = PageRequest.of(page, size);
 
-    var variants =
+    Page<SupplyVariantEntity> variants =
         supplyId != null
-            ? supplyVariantRepository.findBySupplyId(supplyId)
-            : supplyVariantRepository.findAll();
+            ? supplyVariantRepository.findBySupplyId(supplyId, pageable)
+            : supplyVariantRepository.findAll(pageable);
+
+    List<Long> variantIds =
+        variants.getContent().stream().map(SupplyVariantEntity::getId).collect(Collectors.toList());
 
     Long bodegaId = resolveLocationId("Bodega");
     Long cocinaId = resolveLocationId("Cocina");
-    Map<Long, BigDecimal> bodegaStock = buildStockMap(bodegaId);
-    Map<Long, BigDecimal> cocinaStock = buildStockMap(cocinaId);
+    Map<Long, BigDecimal> bodegaStock = buildStockMap(bodegaId, variantIds);
+    Map<Long, BigDecimal> cocinaStock = buildStockMap(cocinaId, variantIds);
 
-    var responses =
-        variants.stream()
-            .map(
-                v ->
-                    SupplyVariantResponse.fromEntity(
-                        v,
-                        bodegaStock.getOrDefault(v.getId(), BigDecimal.ZERO),
-                        cocinaStock.getOrDefault(v.getId(), BigDecimal.ZERO)))
-            .collect(Collectors.toList());
-
-    return ResponseEntity.ok(responses);
+    return ResponseEntity.ok(
+        variants.map(
+            v ->
+                SupplyVariantResponse.fromEntity(
+                    v,
+                    bodegaStock.getOrDefault(v.getId(), BigDecimal.ZERO),
+                    cocinaStock.getOrDefault(v.getId(), BigDecimal.ZERO))));
   }
 
   /**
@@ -408,11 +425,13 @@ public class SupplyCatalogController {
     return storageLocationRepository.findByName(name).map(loc -> loc.getId()).orElse(null);
   }
 
-  private Map<Long, BigDecimal> buildStockMap(Long locationId) {
-    if (locationId == null) {
+  private Map<Long, BigDecimal> buildStockMap(Long locationId, Collection<Long> variantIds) {
+    if (locationId == null || variantIds.isEmpty()) {
       return Map.of();
     }
-    return inventoryStockRepository.findByStorageLocationId(locationId).stream()
+    return inventoryStockRepository
+        .findByStorageLocationIdAndSupplyVariantIdIn(locationId, variantIds)
+        .stream()
         .collect(
             Collectors.toMap(
                 stock -> stock.getSupplyVariant().getId(),

@@ -28,6 +28,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -234,13 +236,52 @@ class SupplyCatalogControllerTest extends AbstractJwtIntegrationTest {
 
   @Test
   void shouldReturn200_withVariantsAndStock() throws Exception {
-    when(supplyVariantRepository.findAll()).thenReturn(List.of());
+    SupplyCategoryEntity category = SupplyCategoryEntity.builder().id(1L).name("Proteínas").build();
+
+    SupplyEntity supply =
+        SupplyEntity.builder().id(3L).name("Carne de Res").category(category).build();
+
+    UnitOfMeasureEntity unit =
+        UnitOfMeasureEntity.builder().id(2L).name("Kilogramo").abbreviation("kg").build();
+
+    SupplyVariantEntity variant =
+        SupplyVariantEntity.builder()
+            .id(7L)
+            .supply(supply)
+            .unit(unit)
+            .quantity(new BigDecimal("0.500"))
+            .build();
+
+    when(supplyVariantRepository.findAll(any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(variant)));
     when(storageLocationRepository.findByName(any())).thenReturn(Optional.empty());
-    when(inventoryStockRepository.findByStorageLocationId(any())).thenReturn(List.of());
 
     mockMvc
         .perform(get("/api/v1/supplies/variants"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray());
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content[0].id").value(7))
+        .andExpect(jsonPath("$.content[0].supplyId").value(3))
+        .andExpect(jsonPath("$.page.totalElements").value(1))
+        .andExpect(jsonPath("$.page.number").value(0));
+  }
+
+  // ---------------------------------------------------------------------------
+  // E-I-07: shouldReturn400_whenPaginationParametersAreInvalid
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn400_whenPaginationParametersAreInvalid() throws Exception {
+    mockMvc
+        .perform(get("/api/v1/supplies/variants").param("page", "-1"))
+        .andExpect(status().isBadRequest());
+
+    mockMvc
+        .perform(get("/api/v1/supplies/variants").param("size", "0"))
+        .andExpect(status().isBadRequest());
+
+    mockMvc
+        .perform(get("/api/v1/supplies/variants").param("size", "101"))
+        .andExpect(status().isBadRequest());
   }
 }

@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.inventory.persistence.jpa;
 
 import aros.services.rms.infraestructure.inventory.persistence.InventoryStockEntity;
 import jakarta.persistence.LockModeType;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,6 +24,16 @@ public interface InventoryStockRepository extends JpaRepository<InventoryStockEn
    * @return the list of inventory stock entities
    */
   List<InventoryStockEntity> findByStorageLocationId(Long storageLocationId);
+
+  /**
+   * Finds inventory stock by storage location ID and a set of supply variant IDs.
+   *
+   * @param storageLocationId the storage location ID
+   * @param supplyVariantIds the supply variant IDs
+   * @return the list of inventory stock entities
+   */
+  List<InventoryStockEntity> findByStorageLocationIdAndSupplyVariantIdIn(
+      Long storageLocationId, Collection<Long> supplyVariantIds);
 
   /**
    * Finds inventory stock by supply variant ID and storage location ID.
