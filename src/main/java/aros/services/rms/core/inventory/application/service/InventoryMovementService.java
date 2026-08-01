@@ -2,6 +2,8 @@
 
 package aros.services.rms.core.inventory.application.service;
 
+import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.category.domain.OptionSelectionType;
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.common.notification.port.output.NotificationPort;
 import aros.services.rms.core.inventory.application.dto.InventoryStockUpdatedEvent;
@@ -21,12 +23,15 @@ import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.StorageLocationRepositoryPort;
 import aros.services.rms.core.order.domain.OrderDetail;
 import aros.services.rms.core.product.domain.ProductOption;
+import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Pure business logic for inventory movement operations.
@@ -47,6 +52,7 @@ public class InventoryMovementService implements InventoryMovementUseCase {
   private final StorageLocationRepositoryPort storageLocationRepositoryPort;
   private final BusinessMetricsPort metricsPort;
   private final NotificationPort notificationPort;
+  private final ProductOptionRepositoryPort productOptionRepositoryPort;
 
   /**
    * Creates a new inventory movement service instance.
@@ -58,6 +64,8 @@ public class InventoryMovementService implements InventoryMovementUseCase {
    * @param storageLocationRepositoryPort the storage location repository port
    * @param metricsPort the business metrics port
    * @param notificationPort the notification port for real-time WebSocket events
+   * @param productOptionRepositoryPort the product option repository port (Phase D: supplies slot
+   *     info for substitution semantics)
    */
   public InventoryMovementService(
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
@@ -66,7 +74,8 @@ public class InventoryMovementService implements InventoryMovementUseCase {
       InventoryMovementRepositoryPort inventoryMovementRepositoryPort,
       StorageLocationRepositoryPort storageLocationRepositoryPort,
       BusinessMetricsPort metricsPort,
-      NotificationPort notificationPort) {
+      NotificationPort notificationPort,
+      ProductOptionRepositoryPort productOptionRepositoryPort) {
     this.productRecipeRepositoryPort = productRecipeRepositoryPort;
     this.optionRecipeRepositoryPort = optionRecipeRepositoryPort;
     this.inventoryStockRepositoryPort = inventoryStockRepositoryPort;
@@ -74,6 +83,7 @@ public class InventoryMovementService implements InventoryMovementUseCase {
     this.storageLocationRepositoryPort = storageLocationRepositoryPort;
     this.metricsPort = metricsPort;
     this.notificationPort = notificationPort;
+    this.productOptionRepositoryPort = productOptionRepositoryPort;
   }
 
   /**
@@ -101,6 +111,11 @@ public class InventoryMovementService implements InventoryMovementUseCase {
     for (Map.Entry<Long, BigDecimal> entry : requiredVariants.entrySet()) {
       Long variantId = entry.getKey();
       BigDecimal required = entry.getValue();
+      // Phase D — semantics: substitution and REMOVE options can drive the net required to zero
+      // (base recipe line cancelled by the option). Skip the deduction loop entirely in that case.
+      if (required == null || required.signum() <= 0) {
+        continue;
+      }
 
       // Try Cocina first
       BigDecimal cocinaDeducted = deductFromLocation(variantId, cocinaId, required);
@@ -174,6 +189,10 @@ public class InventoryMovementService implements InventoryMovementUseCase {
     for (Map.Entry<Long, BigDecimal> entry : requiredVariants.entrySet()) {
       Long variantId = entry.getKey();
       BigDecimal quantity = entry.getValue();
+      // Phase D — semantics: skip non-positive required values (substitution / REMOVE cancel).
+      if (quantity == null || quantity.signum() <= 0) {
+        continue;
+      }
 
       // Return to Bodega first (reverse of deduction order)
       BigDecimal bodegaReturned = returnToLocation(variantId, bodegaId, quantity);
@@ -256,23 +275,29 @@ public class InventoryMovementService implements InventoryMovementUseCase {
   // Private helpers
   // ---------------------------------------------------------------------------
 
-  /** Builds a consolidated map of supplyVariantId → total required quantity from order details. */
+  /**
+   * Builds a consolidated map of supplyVariantId → total required quantity from order details.
+   *
+   * <p>Phase D — semantics: per order detail, selection-mode semantics are applied to the
+   * customer's selected options. SINGLE_CHOICE options that declare a {@code
+   * replace_supply_category_id} cause the base-recipe lines of that slot to be subtracted and the
+   * selected option's recipe to be added. REMOVE selections subtract the option's recipe. Other
+   * categories add the option's recipe (current behavior). Categories with no selection leave the
+   * base recipe intact.
+   */
   private Map<Long, BigDecimal> buildRequiredVariantsMap(List<OrderDetail> details) {
     Map<Long, BigDecimal> required = new HashMap<>();
     for (OrderDetail detail : details) {
+      Long productId = detail.getProduct() == null ? null : detail.getProduct().getId();
       List<ProductRecipe> productRecipes =
-          productRecipeRepositoryPort.findByProductId(detail.getProduct().getId());
+          productId == null ? List.of() : productRecipeRepositoryPort.findByProductId(productId);
       for (ProductRecipe recipe : productRecipes) {
         required.merge(recipe.getSupplyVariantId(), recipe.getRequiredQuantity(), BigDecimal::add);
       }
+      // Apply selection-mode semantics to the selected options (may subtract base-recipe lines for
+      // substitution slots and add/subtract option recipes).
       if (detail.getSelectedOptions() != null && !detail.getSelectedOptions().isEmpty()) {
-        List<Long> optionIds =
-            detail.getSelectedOptions().stream().map(ProductOption::getId).toList();
-        List<OptionRecipe> optionRecipes = optionRecipeRepositoryPort.findByOptionIdIn(optionIds);
-        for (OptionRecipe recipe : optionRecipes) {
-          required.merge(
-              recipe.getSupplyVariantId(), recipe.getRequiredQuantity(), BigDecimal::add);
-        }
+        applySelectionModeSemantics(productId, detail.getSelectedOptions(), required);
       }
       if (detail.getSelectedProductIds() != null && !detail.getSelectedProductIds().isEmpty()) {
         for (Long selectedProductId : detail.getSelectedProductIds()) {
@@ -286,6 +311,112 @@ public class InventoryMovementService implements InventoryMovementUseCase {
       }
     }
     return required;
+  }
+
+  /**
+   * Applies the selection-mode semantics to the required-variants map. See {@link
+   * InventoryStockService} for the full rule set. The map is mutated in place.
+   */
+  private void applySelectionModeSemantics(
+      Long productId, List<ProductOption> selectedOptions, Map<Long, BigDecimal> required) {
+    if (selectedOptions == null || selectedOptions.isEmpty()) {
+      return;
+    }
+    Map<Long, List<ProductOption>> byCategory =
+        selectedOptions.stream()
+            .filter(
+                opt ->
+                    opt != null && opt.getCategory() != null && opt.getCategory().getId() != null)
+            .collect(
+                Collectors.groupingBy(
+                    opt -> opt.getCategory().getId(), LinkedHashMap::new, Collectors.toList()));
+
+    for (Map.Entry<Long, List<ProductOption>> entry : byCategory.entrySet()) {
+      List<ProductOption> opts = entry.getValue();
+      OptionCategory category = opts.get(0).getCategory();
+      OptionSelectionType type =
+          category.getSelectionType() == null
+              ? OptionSelectionType.SINGLE_CHOICE
+              : category.getSelectionType();
+
+      if (type == OptionSelectionType.SINGLE_CHOICE
+          && category.getReplaceSupplyCategoryId() != null
+          && opts.size() == 1) {
+        // Substitution: subtract the slot's base-recipe lines and add the option's recipe.
+        List<ProductRecipe> slotRecipes =
+            productId == null
+                ? List.of()
+                : productOptionRepositoryPort.loadBaseRecipeBySupplyCategory(
+                    productId, category.getReplaceSupplyCategoryId());
+        if (slotRecipes != null) {
+          for (ProductRecipe slot : slotRecipes) {
+            required.merge(
+                slot.getSupplyVariantId(),
+                slot.getRequiredQuantity() == null
+                    ? BigDecimal.ZERO
+                    : slot.getRequiredQuantity().negate(),
+                BigDecimal::add);
+          }
+        }
+        addOptionRecipes(List.of(opts.get(0)), required);
+      } else if (type == OptionSelectionType.REMOVE) {
+        subtractOptionRecipes(opts, required);
+      } else {
+        addOptionRecipes(opts, required);
+      }
+    }
+  }
+
+  private void addOptionRecipes(List<ProductOption> options, Map<Long, BigDecimal> required) {
+    if (options == null || options.isEmpty()) {
+      return;
+    }
+    List<Long> optionIds = new ArrayList<>(options.size());
+    for (ProductOption opt : options) {
+      if (opt != null && opt.getId() != null) {
+        optionIds.add(opt.getId());
+      }
+    }
+    if (optionIds.isEmpty()) {
+      return;
+    }
+    List<OptionRecipe> optionRecipes = optionRecipeRepositoryPort.findByOptionIdIn(optionIds);
+    if (optionRecipes == null) {
+      return;
+    }
+    for (OptionRecipe recipe : optionRecipes) {
+      required.merge(
+          recipe.getSupplyVariantId(),
+          recipe.getRequiredQuantity() == null ? BigDecimal.ZERO : recipe.getRequiredQuantity(),
+          BigDecimal::add);
+    }
+  }
+
+  private void subtractOptionRecipes(List<ProductOption> options, Map<Long, BigDecimal> required) {
+    if (options == null || options.isEmpty()) {
+      return;
+    }
+    List<Long> optionIds = new ArrayList<>(options.size());
+    for (ProductOption opt : options) {
+      if (opt != null && opt.getId() != null) {
+        optionIds.add(opt.getId());
+      }
+    }
+    if (optionIds.isEmpty()) {
+      return;
+    }
+    List<OptionRecipe> optionRecipes = optionRecipeRepositoryPort.findByOptionIdIn(optionIds);
+    if (optionRecipes == null) {
+      return;
+    }
+    for (OptionRecipe recipe : optionRecipes) {
+      required.merge(
+          recipe.getSupplyVariantId(),
+          recipe.getRequiredQuantity() == null
+              ? BigDecimal.ZERO
+              : recipe.getRequiredQuantity().negate(),
+          BigDecimal::add);
+    }
   }
 
   private StorageLocation getStorageLocation(String name) {

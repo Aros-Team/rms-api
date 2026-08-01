@@ -2,8 +2,11 @@
 
 package aros.services.rms.core.inventory.port.output;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.domain.OptionRecipe;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /** Output port for option recipe persistence operations. */
 public interface OptionRecipeRepositoryPort {
@@ -31,6 +34,14 @@ public interface OptionRecipeRepositoryPort {
    * @return list of recipes
    */
   List<OptionRecipe> findByOptionIdIn(List<Long> optionIds);
+
+  /**
+   * Loads pure material cost for multiple options with one batch aggregation.
+   *
+   * @param optionIds option identifiers to aggregate
+   * @return material cost keyed by option identifier; options without recipes are omitted
+   */
+  Map<Long, Money> loadMaterialCostByOptionIds(Collection<Long> optionIds);
 
   /**
    * Deletes recipes by option ID.

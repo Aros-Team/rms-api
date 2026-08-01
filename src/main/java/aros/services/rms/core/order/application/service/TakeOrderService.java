@@ -2,12 +2,14 @@
 
 package aros.services.rms.core.order.application.service;
 
+import aros.services.rms.core.category.domain.OptionSelectionType;
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.order.application.dto.TakeOrderCommand;
+import aros.services.rms.core.order.application.exception.SingleChoiceCategoryLimitException;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
 import aros.services.rms.core.order.port.input.TakeOrderUseCase;
@@ -15,6 +17,7 @@ import aros.services.rms.core.order.port.output.OrderRepositoryPort;
 import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
+import aros.services.rms.core.product.domain.ProductOptionCostProfile;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import aros.services.rms.core.specialselection.application.exception.SpecialSelectionNotAvailableException;
@@ -31,13 +34,21 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Currency;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of the use case to take a new order, occupy the table, validate product options
  * and special selections, and deduct inventory.
+ *
+ * <p>Phase C — orders: enforces SINGLE_CHOICE max-1 selection semantics and computes the final
+ * {@code unitPrice} as {@code basePrice + Σ extra_price} for the selected {@code
+ * OptionSelectionType#EXTRA} options. The resulting surcharge is recorded on {@link
+ * OrderDetail#getExtraCharge()} and exposed downstream.
  */
 public class TakeOrderService implements TakeOrderUseCase {
 
@@ -134,9 +145,14 @@ public class TakeOrderService implements TakeOrderUseCase {
               throw new InvalidProductOptionException(product.getId(), option.getId());
             }
           }
+
+          // Phase C: enforce SINGLE_CHOICE max-1 per category.
+          enforceSingleChoiceLimit(selectedOptions);
         }
 
         Money unitPrice = product.getBasePrice();
+        Money extraCharge = Money.zero(unitPrice.currency());
+        Map<Long, Money> optionExtraPrices = new HashMap<>();
 
         if (product.getSelectionType() == SelectionType.SPECIAL_SELECTION) {
           Optional<SpecialSelectionConfiguration> configOpt =
@@ -157,12 +173,29 @@ public class TakeOrderService implements TakeOrderUseCase {
                     config, detailCommand.getAdditionIds());
             unitPrice = new Money(BigDecimal.valueOf(computedPrice), Currency.getInstance("COP"));
           }
+        } else if (hasSelectedOptions) {
+          // Phase C: STANDARD products charge extra_price of EXTRA selections on top of the
+          // base price. SINGLE_CHOICE / MULTI_SELECT / REMOVE selections do not contribute to
+          // unitPrice through this path.
+          Map<Long, Money> extraPriceByOptionId =
+              loadExtraPricesByOptionId(product.getId(), selectedOptions);
+          for (ProductOption option : selectedOptions) {
+            Money surcharge =
+                extraPriceByOptionId.getOrDefault(option.getId(), Money.zero(unitPrice.currency()));
+            optionExtraPrices.put(option.getId(), surcharge);
+            if (isExtraCategory(option)) {
+              extraCharge = extraCharge.plus(surcharge);
+            }
+          }
+          unitPrice = unitPrice.plus(extraCharge);
         }
 
         OrderDetail detail =
             OrderDetail.builder()
                 .product(product)
                 .unitPrice(unitPrice)
+                .extraCharge(extraCharge)
+                .optionExtraPrices(optionExtraPrices)
                 .instructions(detailCommand.getInstructions())
                 .selectedOptions(selectedOptions)
                 .selectedProductIds(detailCommand.getSelectedProductIds())
@@ -211,5 +244,62 @@ public class TakeOrderService implements TakeOrderUseCase {
           e.getMessage());
       throw e;
     }
+  }
+
+  /**
+   * Enforces the SINGLE_CHOICE max-1 selection rule for an order detail. Group the options by their
+   * OptionCategory and, for any category whose selectionType is {@code SINGLE_CHOICE}, throw {@link
+   * SingleChoiceCategoryLimitException} when more than one option was selected.
+   */
+  private void enforceSingleChoiceLimit(List<ProductOption> selectedOptions) {
+    Map<Long, List<ProductOption>> byCategoryId =
+        selectedOptions.stream()
+            .filter(opt -> opt.getCategory() != null && opt.getCategory().getId() != null)
+            .collect(Collectors.groupingBy(opt -> opt.getCategory().getId()));
+    for (Map.Entry<Long, List<ProductOption>> entry : byCategoryId.entrySet()) {
+      List<ProductOption> opts = entry.getValue();
+      if (opts.size() <= 1) {
+        continue;
+      }
+      ProductOption sample = opts.get(0);
+      if (sample.getCategory().getSelectionType() == OptionSelectionType.SINGLE_CHOICE) {
+        throw new SingleChoiceCategoryLimitException(
+            sample.getCategory().getId(), sample.getCategory().getName(), opts.size());
+      }
+    }
+  }
+
+  private static boolean isExtraCategory(ProductOption option) {
+    return option != null
+        && option.getCategory() != null
+        && option.getCategory().getSelectionType() == OptionSelectionType.EXTRA;
+  }
+
+  /**
+   * Loads the per-option surcharge ({@code extra_price}) map for the selected options on the given
+   * product. Falls back to zero for any selection not found in the cost projection.
+   */
+  private Map<Long, Money> loadExtraPricesByOptionId(Long productId, List<ProductOption> options) {
+    if (options == null || options.isEmpty()) {
+      return Map.of();
+    }
+    Currency cop = Currency.getInstance("COP");
+    Map<Long, Money> result = new HashMap<>();
+    try {
+      List<ProductOptionCostProfile> profiles =
+          productOptionRepositoryPort.loadCostProfilesByProductId(productId);
+      for (ProductOptionCostProfile profile : profiles) {
+        result.put(profile.optionId(), profile.extraPrice());
+      }
+    } catch (RuntimeException lookupFailure) {
+      log.warn(
+          "Could not load cost profiles for product {} (using 0 per-option extra_price): {}",
+          productId,
+          lookupFailure.getMessage());
+    }
+    for (ProductOption option : options) {
+      result.putIfAbsent(option.getId(), Money.zero(cop));
+    }
+    return result;
   }
 }

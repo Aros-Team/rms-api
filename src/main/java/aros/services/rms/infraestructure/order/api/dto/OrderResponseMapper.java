@@ -77,6 +77,7 @@ public class OrderResponseMapper {
         detail.getProduct() != null ? detail.getProduct().getId() : null,
         detail.getProduct() != null ? detail.getProduct().getName() : null,
         detail.getUnitPrice() != null ? detail.getUnitPrice().amount().doubleValue() : null,
+        detail.getExtraCharge() != null ? detail.getExtraCharge().amount().doubleValue() : null,
         detail.getInstructions(),
         detail.getSelectedOptions() != null
             ? detail.getSelectedOptions().stream()

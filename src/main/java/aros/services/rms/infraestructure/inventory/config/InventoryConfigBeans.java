@@ -13,6 +13,7 @@ import aros.services.rms.core.inventory.port.output.OptionRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.StorageLocationRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
+import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -35,12 +36,14 @@ public class InventoryConfigBeans {
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
       OptionRecipeRepositoryPort optionRecipeRepositoryPort,
       InventoryStockRepositoryPort inventoryStockRepositoryPort,
-      StorageLocationRepositoryPort storageLocationRepositoryPort) {
+      StorageLocationRepositoryPort storageLocationRepositoryPort,
+      ProductOptionRepositoryPort productOptionRepositoryPort) {
     return new InventoryStockService(
         productRecipeRepositoryPort,
         optionRecipeRepositoryPort,
         inventoryStockRepositoryPort,
-        storageLocationRepositoryPort);
+        storageLocationRepositoryPort,
+        productOptionRepositoryPort);
   }
 
   /**
@@ -55,7 +58,8 @@ public class InventoryConfigBeans {
       InventoryMovementRepositoryPort inventoryMovementRepositoryPort,
       StorageLocationRepositoryPort storageLocationRepositoryPort,
       BusinessMetricsPort metricsPort,
-      NotificationPort notificationPort) {
+      NotificationPort notificationPort,
+      ProductOptionRepositoryPort productOptionRepositoryPort) {
     return new InventoryMovementService(
         productRecipeRepositoryPort,
         optionRecipeRepositoryPort,
@@ -63,7 +67,8 @@ public class InventoryConfigBeans {
         inventoryMovementRepositoryPort,
         storageLocationRepositoryPort,
         metricsPort,
-        notificationPort);
+        notificationPort,
+        productOptionRepositoryPort);
   }
 
   /**

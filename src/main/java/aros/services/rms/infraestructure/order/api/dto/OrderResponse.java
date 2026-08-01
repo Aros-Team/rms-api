@@ -40,6 +40,12 @@ public record OrderResponse(
       @Schema(description = "Product ID", example = "1") Long productId,
       @Schema(description = "Product name", example = "Classic Burger") String productName,
       @Schema(description = "Unit price", example = "12.50") Double unitPrice,
+      @JsonInclude(JsonInclude.Include.NON_NULL)
+          @Schema(
+              description =
+                  "Surcharge from EXTRA-category option selections (unitPrice - basePrice)",
+              example = "2.50")
+          Double extraCharge,
       @Schema(description = "Special instructions", example = "No onions") String instructions,
       @Schema(description = "Selected product options") List<ProductOptionResponse> selectedOptions,
       @Schema(description = "Selected combo product IDs", example = "[101, 103]")
@@ -115,6 +121,7 @@ public record OrderResponse(
         detail.getProduct() != null ? detail.getProduct().getId() : null,
         detail.getProduct() != null ? detail.getProduct().getName() : null,
         detail.getUnitPrice() != null ? detail.getUnitPrice().amount().doubleValue() : null,
+        detail.getExtraCharge() != null ? detail.getExtraCharge().amount().doubleValue() : null,
         detail.getInstructions(),
         detail.getSelectedOptions() != null
             ? detail.getSelectedOptions().stream()

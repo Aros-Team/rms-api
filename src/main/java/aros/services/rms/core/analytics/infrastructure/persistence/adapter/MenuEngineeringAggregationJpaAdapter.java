@@ -5,10 +5,13 @@ package aros.services.rms.core.analytics.infrastructure.persistence.adapter;
 import aros.services.rms.core.analytics.domain.port.out.MenuEngineeringAggregationPort;
 import aros.services.rms.core.analytics.domain.port.out.MenuEngineeringAggregationPort.ActiveProduct;
 import aros.services.rms.core.analytics.domain.port.out.MenuEngineeringAggregationPort.SalesData;
+import aros.services.rms.core.category.domain.OptionSelectionType;
 import aros.services.rms.core.common.money.domain.Money;
+import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Currency;
@@ -26,6 +29,7 @@ public class MenuEngineeringAggregationJpaAdapter implements MenuEngineeringAggr
   private static final Currency COP = Currency.getInstance("COP");
 
   private final EntityManager entityManager;
+  private final ProductOptionRepositoryPort productOptionRepositoryPort;
 
   @Override
   public List<ActiveProduct> loadActiveProducts() {
@@ -109,43 +113,169 @@ public class MenuEngineeringAggregationJpaAdapter implements MenuEngineeringAggr
     return result;
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p>Selection-mode semantics (Phase D):
+   *
+   * <ul>
+   *   <li>{@code SINGLE_CHOICE} options whose category declares a {@code
+   *       replace_supply_category_id} (substitution slot) contribute {@code optionCost −
+   *       defaultSlotCost}, where {@code defaultSlotCost} is the base-recipe material cost of the
+   *       product for that supply category (fetched from {@link
+   *       ProductOptionRepositoryPort#loadDefaultSlotCostByProductAndCategory()}).
+   *   <li>{@code REMOVE} options contribute {@code −optionCost}.
+   *   <li>{@code EXTRA}, {@code MULTI_SELECT} and non-replacement {@code SINGLE_CHOICE} options
+   *       contribute {@code +optionCost} (current behavior).
+   * </ul>
+   *
+   * <p>The average is taken over the number of distinct {@code (order, product)} pairs in the
+   * period (order-detail lines that carried no option contribute zero), preserving the prior
+   * per-order averaging semantics.
+   */
   @Override
   public Map<Long, Money> loadAvgOptionCostByProduct(LocalDate start, LocalDate end) {
-    String sql =
+    String optionSql =
         """
-        WITH per_order AS (
-          SELECT
-              od.order_id,
-              od.product_id,
-              COALESCE(SUM(oreq.required_quantity * sv.unit_cost), 0) AS order_option_cost
-          FROM order_details od
-          JOIN orders o ON o.id = od.order_id
-          LEFT JOIN order_detail_options odo ON odo.order_detail_id = od.id
-          LEFT JOIN option_recipes oreq ON oreq.option_id = odo.option_id
-          LEFT JOIN supply_variants sv ON sv.id = oreq.supply_variant_id
-          WHERE o.date >= :start AND o.date < :end
-          GROUP BY od.order_id, od.product_id
-        )
-        SELECT product_id, AVG(order_option_cost) AS avg_option_cost
-        FROM per_order
-        GROUP BY product_id
+        SELECT od.order_id, od.product_id, odo.option_id,
+               COALESCE(oc.selection_type, 'SINGLE_CHOICE') AS selection_type,
+               oc.replace_supply_category_id,
+               COALESCE(SUM(oreq.required_quantity * sv.unit_cost), 0) AS option_cost
+        FROM order_details od
+        JOIN orders o ON o.id = od.order_id
+        JOIN order_detail_options odo ON odo.order_detail_id = od.id
+        JOIN product_options po ON po.id = odo.option_id
+        LEFT JOIN option_categories oc ON oc.id = po.option_category_id
+        LEFT JOIN option_recipes oreq ON oreq.option_id = odo.option_id
+        LEFT JOIN supply_variants sv ON sv.id = oreq.supply_variant_id
+        WHERE o.date >= :start AND o.date < :end
+        GROUP BY od.order_id, od.product_id, odo.option_id,
+                 oc.selection_type, oc.replace_supply_category_id
         """;
 
+    Query optionQuery =
+        entityManager
+            .createNativeQuery(optionSql)
+            .setParameter("start", start.atStartOfDay())
+            .setParameter("end", end.atStartOfDay());
+    @SuppressWarnings("unchecked")
+    List<Object[]> optionRows = optionQuery.getResultList();
+
+    // Reuse the Phase A default-slot aggregation for substitution contributions.
+    Map<Long, Map<Long, Money>> slotCostsByProduct =
+        productOptionRepositoryPort.loadDefaultSlotCostByProductAndCategory();
+
+    // Per distinct (order, product) pair, sum the contribution of each selected option.
+    Map<Long, Map<Long, BigDecimal>> contributionByOrderProduct = new HashMap<>();
+    for (Object[] row : optionRows) {
+      Long orderId = toLong(row[0]);
+      Long productId = toLong(row[1]);
+      if (orderId == null || productId == null) {
+        continue;
+      }
+      BigDecimal optionCost = toBigDecimal(row[5]);
+      OptionSelectionType selectionType = normalizeSelectionType(row[3]);
+      Long replaceSupplyCategoryId = toLong(row[4]);
+      BigDecimal contribution =
+          contribution(
+              productId, optionCost, selectionType, replaceSupplyCategoryId, slotCostsByProduct);
+      contributionByOrderProduct
+          .computeIfAbsent(orderId, k -> new HashMap<>())
+          .merge(productId, contribution, BigDecimal::add);
+    }
+
+    Map<Long, BigDecimal> totalsByProduct = new HashMap<>();
+    for (Map<Long, BigDecimal> perOrder : contributionByOrderProduct.values()) {
+      for (Map.Entry<Long, BigDecimal> entry : perOrder.entrySet()) {
+        totalsByProduct.merge(entry.getKey(), entry.getValue(), BigDecimal::add);
+      }
+    }
+
+    // Denominator: number of distinct (order, product) pairs in the period (pairs without options
+    // contribute zero and still count, matching the previous per-order average).
+    Map<Long, Long> orderLineCounts = loadOrderLineCountsByProduct(start, end);
+
+    Map<Long, Money> result = new HashMap<>();
+    for (Map.Entry<Long, Long> entry : orderLineCounts.entrySet()) {
+      Long productId = entry.getKey();
+      long orderLines = entry.getValue();
+      if (orderLines <= 0) {
+        continue;
+      }
+      BigDecimal total = totalsByProduct.getOrDefault(productId, BigDecimal.ZERO);
+      BigDecimal avg = total.divide(BigDecimal.valueOf(orderLines), 10, RoundingMode.HALF_UP);
+      result.put(productId, new Money(avg, COP));
+    }
+    return result;
+  }
+
+  private Map<Long, Long> loadOrderLineCountsByProduct(LocalDate start, LocalDate end) {
+    String sql =
+        """
+        SELECT od.product_id, COUNT(DISTINCT od.order_id) AS order_lines
+        FROM order_details od
+        JOIN orders o ON o.id = od.order_id
+        WHERE o.date >= :start AND o.date < :end
+        GROUP BY od.product_id
+        """;
     Query query =
         entityManager
             .createNativeQuery(sql)
             .setParameter("start", start.atStartOfDay())
             .setParameter("end", end.atStartOfDay());
-
     @SuppressWarnings("unchecked")
     List<Object[]> rows = query.getResultList();
-
-    Map<Long, Money> result = new HashMap<>();
+    Map<Long, Long> result = new HashMap<>();
     for (Object[] row : rows) {
-      Long productId = ((Number) row[0]).longValue();
-      BigDecimal avg = (BigDecimal) row[1];
-      result.put(productId, new Money(avg, COP));
+      Long productId = toLong(row[0]);
+      if (productId == null) {
+        continue;
+      }
+      long count = row[1] == null ? 0L : ((Number) row[1]).longValue();
+      result.put(productId, count);
     }
     return result;
+  }
+
+  private BigDecimal contribution(
+      Long productId,
+      BigDecimal optionCost,
+      OptionSelectionType selectionType,
+      Long replaceSupplyCategoryId,
+      Map<Long, Map<Long, Money>> slotCostsByProduct) {
+    if (selectionType == OptionSelectionType.SINGLE_CHOICE && replaceSupplyCategoryId != null) {
+      BigDecimal slotCost = BigDecimal.ZERO;
+      Map<Long, Money> productSlots = slotCostsByProduct.get(productId);
+      if (productSlots != null) {
+        Money slot = productSlots.get(replaceSupplyCategoryId);
+        if (slot != null) {
+          slotCost = slot.amount();
+        }
+      }
+      return optionCost.subtract(slotCost);
+    }
+    if (selectionType == OptionSelectionType.REMOVE) {
+      return optionCost.negate();
+    }
+    return optionCost;
+  }
+
+  private static OptionSelectionType normalizeSelectionType(Object value) {
+    if (value == null) {
+      return OptionSelectionType.SINGLE_CHOICE;
+    }
+    try {
+      return OptionSelectionType.valueOf(value.toString());
+    } catch (IllegalArgumentException unknown) {
+      return OptionSelectionType.SINGLE_CHOICE;
+    }
+  }
+
+  private static Long toLong(Object value) {
+    return value == null ? null : ((Number) value).longValue();
+  }
+
+  private static BigDecimal toBigDecimal(Object value) {
+    return value == null ? BigDecimal.ZERO : new BigDecimal(value.toString());
   }
 }

@@ -6,10 +6,15 @@ import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
+import aros.services.rms.infraestructure.order.persistence.OrderDetailOption;
 import aros.services.rms.infraestructure.product.persistence.jpa.ProductMapper;
 import aros.services.rms.infraestructure.table.persistence.jpa.TableMapper;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Currency;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -79,19 +84,48 @@ public class OrderMapper {
       return null;
     }
 
-    return aros.services.rms.infraestructure.order.persistence.OrderDetail.builder()
-        .id(domain.getId())
-        .order(orderEntity)
-        .product(productMapper.toProductEntity(domain.getProduct()))
-        .unitPrice(domain.getUnitPrice().amount().doubleValue())
-        .instructions(domain.getInstructions())
-        .selectedOptions(
-            domain.getSelectedOptions() != null
-                ? domain.getSelectedOptions().stream()
-                    .map(productMapper::toProductOptionEntity)
-                    .collect(Collectors.toList())
-                : null)
-        .build();
+    aros.services.rms.infraestructure.order.persistence.OrderDetail entity =
+        aros.services.rms.infraestructure.order.persistence.OrderDetail.builder()
+            .id(domain.getId())
+            .order(orderEntity)
+            .product(productMapper.toProductEntity(domain.getProduct()))
+            .unitPrice(domain.getUnitPrice().amount().doubleValue())
+            .instructions(domain.getInstructions())
+            .build();
+
+    entity.setSelectedOptions(toOrderDetailOptionEntities(domain, entity));
+
+    return entity;
+  }
+
+  /**
+   * Builds the {@code order_detail_options} join rows from the domain selection list. The per-row
+   * {@code extra_price} is read from {@link OrderDetail#getOptionExtraPrices()}; missing keys
+   * default to 0.
+   */
+  private List<OrderDetailOption> toOrderDetailOptionEntities(
+      OrderDetail domain,
+      aros.services.rms.infraestructure.order.persistence.OrderDetail orderDetailEntity) {
+    if (domain.getSelectedOptions() == null || domain.getSelectedOptions().isEmpty()) {
+      return new ArrayList<>();
+    }
+    Map<Long, Money> extraPrices =
+        domain.getOptionExtraPrices() == null ? Map.of() : domain.getOptionExtraPrices();
+    List<OrderDetailOption> rows = new ArrayList<>(domain.getSelectedOptions().size());
+    for (aros.services.rms.core.product.domain.ProductOption option : domain.getSelectedOptions()) {
+      if (option == null || option.getId() == null) {
+        continue;
+      }
+      Money surcharge = extraPrices.get(option.getId());
+      double extra = surcharge == null ? 0.0 : surcharge.amount().doubleValue();
+      rows.add(
+          OrderDetailOption.builder()
+              .orderDetail(orderDetailEntity)
+              .option(productMapper.toProductOptionEntity(option))
+              .extraPrice(extra)
+              .build());
+    }
+    return rows;
   }
 
   /**
@@ -143,20 +177,41 @@ public class OrderMapper {
       return null;
     }
 
+    List<OrderDetailOption> rows =
+        entity.getSelectedOptions() != null ? entity.getSelectedOptions() : List.of();
+
+    List<aros.services.rms.core.product.domain.ProductOption> selectedOptions =
+        rows.stream()
+            .map(OrderDetailOption::getOption)
+            .map(productMapper::toProductOptionDomain)
+            .collect(Collectors.toList());
+
+    Money unitPrice =
+        entity.getUnitPrice() != null
+            ? new Money(BigDecimal.valueOf(entity.getUnitPrice()), Currency.getInstance("COP"))
+            : Money.zero(Currency.getInstance("COP"));
+
+    Currency currency = unitPrice.currency();
+    Money extraCharge = Money.zero(currency);
+    Map<Long, Money> optionExtraPrices = new HashMap<>();
+    for (OrderDetailOption row : rows) {
+      Double rowExtra = row.getExtraPrice();
+      double value = rowExtra == null ? 0.0 : rowExtra;
+      extraCharge = extraCharge.plus(new Money(BigDecimal.valueOf(value), currency));
+      if (row.getOption() != null && row.getOption().getId() != null) {
+        optionExtraPrices.put(
+            row.getOption().getId(), new Money(BigDecimal.valueOf(value), currency));
+      }
+    }
+
     return OrderDetail.builder()
         .id(entity.getId())
         .product(productMapper.toProductDomain(entity.getProduct()))
-        .unitPrice(
-            entity.getUnitPrice() != null
-                ? new Money(BigDecimal.valueOf(entity.getUnitPrice()), Currency.getInstance("COP"))
-                : Money.zero(Currency.getInstance("COP")))
+        .unitPrice(unitPrice)
+        .extraCharge(extraCharge)
+        .optionExtraPrices(optionExtraPrices)
         .instructions(entity.getInstructions())
-        .selectedOptions(
-            entity.getSelectedOptions() != null
-                ? entity.getSelectedOptions().stream()
-                    .map(productMapper::toProductOptionDomain)
-                    .collect(Collectors.toList())
-                : null)
+        .selectedOptions(selectedOptions)
         .build();
   }
 }

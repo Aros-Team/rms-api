@@ -44,11 +44,22 @@ public interface MenuEngineeringAggregationPort {
    * Loads the historical average cost of options chosen per order, grouped by product, over the
    * given period (inclusive start, exclusive end). The returned map is keyed by product_id.
    *
-   * <p>For each order in the period, this sums the {@code option_recipes ×
-   * supply_variants.unit_cost} of every option chosen in that order's order_details, then averages
-   * those per-order option costs across all orders for each product. Products without any options
-   * chosen (or without sales in the period) are absent from the map — callers should treat missing
-   * entries as zero.
+   * <p>For each order-detail line in the period, this sums the selection-mode contribution of every
+   * option chosen in that line, then averages those per-line contributions across all order lines
+   * for each product. The contribution per selected option follows the category's selection mode
+   * (Phase D):
+   *
+   * <ul>
+   *   <li>{@code SINGLE_CHOICE} with a {@code replace_supply_category_id} (substitution slot)
+   *       contributes {@code optionCost − defaultSlotCost}, where {@code defaultSlotCost} is the
+   *       base-recipe material cost of the product for the replaced supply category.
+   *   <li>{@code REMOVE} contributes {@code −optionCost}.
+   *   <li>{@code EXTRA}, {@code MULTI_SELECT} and non-replacement {@code SINGLE_CHOICE} contribute
+   *       {@code +optionCost}.
+   * </ul>
+   *
+   * <p>Order lines without any selected option contribute zero to the average. Products without any
+   * sales in the period are absent from the map — callers should treat missing entries as zero.
    *
    * <p>Used by {@code RefreshMenuEngineeringService} to compute {@code avgOptionCost} (and then
    * {@code effectiveCost = recipeCost + avgOptionCost}) for the menu engineering BCG report.

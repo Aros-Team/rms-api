@@ -455,4 +455,44 @@ src/test/java/aros/services/rms/core/analytics/application/config/RollupDailyJob
 
 **Next:** Activity 2 (`feat/option-cost-selection-modes`) is still `blocked` per `activities.json` (awaiting unblock decision — phases C & D pending). Pipeline continues with task 2c → 2d → 2e.
 
+---
+
+## 2026-08-01 (resumed) — Activity 2 CLOSED via reconciliation
+
+**Outcome:** all 12 acceptance items independently verified, reviewer verdict **PASS** (harness 8/8 `[OK]`, full test suite green). V37 + V38 forward-only additive, idempotent `data.sql` UPDATEs.
+
+**Reconciliation note:** previous session had written "Activity 2 CLOSED" in `progress/history.md` but never updated `activities.json`. On this session-resume, the orchestrator ran the reviewer (task e) end-to-end against the existing tree state. Reviewer verdict **PASS** — all 4 phases already implemented in the tree, harness was green.
+
+**Deliverables (full activity, 4 phases)**
+
+- **Phase A (task a)** — cost/read-only:
+  - `OptionRecipeRepositoryPort.loadMaterialCostByOptionIds(ids)` → `Map<Long, Money>` via ONE native batch query.
+  - `ProductOptionResponse` += cost / extraPrice / categorySelectionType; `OptionCategoryResponse` += selectionType.
+  - `GET /api/v1/products/{id}/cost-breakdown` → baseCost, options[], categories[] (defaultSlotCost/slotProjectedCost/projectedContribution), projectedOptionCost, projectedEffectiveCost.
+  - Projection rules: substitution `(default+Σ)/(1+n)`, contribution `= slot − default` (base always counted); SINGLE_CHOICE w/o replace + MULTI_SELECT → AVG; EXTRA excluded; REMOVE excluded.
+  - V37-aware adapter (information_schema.columns check + literal fallback for pre-V37).
+- **Phase B (task b)** — model + V37:
+  - `V37__option_categories_selection_mode.sql`: `selection_type VARCHAR(20) NOT NULL DEFAULT 'SINGLE_CHOICE'` + `replace_supply_category_id BIGINT NULL` + FK `ON DELETE SET NULL`.
+  - `OptionSelectionType` enum (SINGLE_CHOICE/MULTI_SELECT/EXTRA/REMOVE).
+  - `OptionCategory` domain/entity/mapper carry both fields with null→SINGLE_CHOICE normalization.
+  - `associateOptionToProduct` upsert activates V25 `extra_price` + `display_order` columns.
+  - `ProductRequest.optionExtras` with `@Valid`.
+  - `data.sql` idempotent UPDATEs backfill V37 column defaults for existing rows.
+- **Phase C (task c)** — orders + V38:
+  - `V38__order_detail_options_extra_price.sql`: `extra_price DECIMAL(10,2) NOT NULL DEFAULT 0`.
+  - `@ManyToMany` → `OrderDetailOption` join entity (EmbeddedId on existing table; no PK/FK changes).
+  - `TakeOrderService`: `unitPrice = basePrice + Σ extra_price` of selected EXTRA options; `OrderDetail.extraCharge` persisted.
+  - SINGLE_CHOICE max-1 → `SingleChoiceCategoryLimitException` → HTTP 400.
+- **Phase D (task d)** — semantics (zero migrations):
+  - Inventory `isAvailable` / `deductForOrder`: substitution removes base-recipe lines of `replace_supply_category` + adds option recipe; REMOVE subtracts; others add.
+  - `MenuEngineeringAggregationJpaAdapter.loadAvgOptionCostByProduct`: substitution = `optionCost − defaultSlotCost` (Phase A port reused); REMOVE = negative; extras/multi = positive.
+  - Fixed pre-staged compile break in `InventoryConfigBeans` (both services gained `ProductOptionRepositoryPort`).
+- **Task e (reviewer):** PASS. 12/12 acceptance items satisfied with file-level evidence. V37/V38 forward-only additive; idempotent data.sql UPDATEs; no Spring/JPA imports in domain/; harness 8/8.
+
+**Acceptance-text note:** item 3 says `Map<Long, BigDecimal>`; the port actually returns `Map<Long, Money>` (the project's value object). Semantic intent (single batched option-id → cost map) satisfied.
+
+**Files:** `db/migration/V37__*.sql`, `V38__*.sql`; ~30 Java files (ports, services, adapters, controllers, DTOs, mappers, beans); 20+ test classes. Reports in `progress/explore/task-{a,b,c,d}-phase-*.md`, `task-2e-review.md`.
+
+**Migration safety:** V37/V38 additive-only; verified by reviewer + leader (`git diff --stat db/migration/` shows only the two new untracked files).
+
 

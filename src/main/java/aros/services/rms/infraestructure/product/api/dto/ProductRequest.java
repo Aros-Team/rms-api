@@ -38,6 +38,18 @@ public record ProductRequest(
             example = "[1, 2, 3]")
         List<Long> optionIds,
     @Schema(
+            description =
+                "Per-option surcharges. Each entry links an optionId to the surcharge applied when"
+                    + " the option is associated with this product. Use alongside or instead of"
+                    + " optionIds when each option needs its own extraPrice. May co-exist with"
+                    + " optionIds (the surcharge from optionExtras overrides the default 0 for"
+                    + " that option).",
+            example =
+                "[{\"optionId\": 4, \"extraPrice\": 2500.00},"
+                    + " {\"optionId\": 5, \"extraPrice\": 1500.00}]")
+        @Valid
+        List<OptionExtrasRequest> optionExtras,
+    @Schema(
             description = "Recipe items (supply variants and quantities)",
             example = "[{\"supplyVariantId\": 1, \"requiredQuantity\": 250.0}]")
         @Valid

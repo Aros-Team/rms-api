@@ -179,6 +179,60 @@ class RefreshMenuEngineeringServiceTest {
   }
 
   @Test
+  void shouldPlumbSubstitutionAdjustedAvgOptionCost() {
+    MenuEngineeringAggregationPort aggregationPort = mock(MenuEngineeringAggregationPort.class);
+    MenuEngineeringCacheRepositoryPort cacheRepo = mock(MenuEngineeringCacheRepositoryPort.class);
+
+    ActiveProduct p1 =
+        new ActiveProduct(1L, "P1", new Money(BigDecimal.valueOf(20000), COP), 1L, "A");
+    when(aggregationPort.loadActiveProducts()).thenReturn(List.of(p1));
+    when(aggregationPort.loadSalesByProduct(any(), any())).thenReturn(List.of());
+    when(aggregationPort.loadRecipeCostByProduct())
+        .thenReturn(Map.of(1L, new Money(BigDecimal.valueOf(5000), COP)));
+    // Fase D: sustitución aporta optionCost − defaultSlotCost (ej. 3000 − 2500 = 500).
+    when(aggregationPort.loadAvgOptionCostByProduct(any(), any()))
+        .thenReturn(Map.of(1L, new Money(BigDecimal.valueOf(500), COP)));
+
+    RefreshMenuEngineeringService service =
+        new RefreshMenuEngineeringService(aggregationPort, cacheRepo);
+    service.refresh("monthly", "2026-07");
+
+    ArgumentCaptor<MenuItemSummary> captor = ArgumentCaptor.forClass(MenuItemSummary.class);
+    verify(cacheRepo).upsert(captor.capture(), anyString(), anyString(), anyString());
+    MenuItemSummary item = captor.getValue();
+    assertEquals(new Money(BigDecimal.valueOf(500), COP), item.avgOptionCost());
+    assertEquals(new Money(BigDecimal.valueOf(5500), COP), item.effectiveCost());
+    assertEquals(new Money(BigDecimal.valueOf(14500), COP), item.grossProfitPerUnit());
+  }
+
+  @Test
+  void shouldPlumbNegativeAvgOptionCostFromRemoveSemantics() {
+    MenuEngineeringAggregationPort aggregationPort = mock(MenuEngineeringAggregationPort.class);
+    MenuEngineeringCacheRepositoryPort cacheRepo = mock(MenuEngineeringCacheRepositoryPort.class);
+
+    ActiveProduct p1 =
+        new ActiveProduct(1L, "P1", new Money(BigDecimal.valueOf(20000), COP), 1L, "A");
+    when(aggregationPort.loadActiveProducts()).thenReturn(List.of(p1));
+    when(aggregationPort.loadSalesByProduct(any(), any())).thenReturn(List.of());
+    when(aggregationPort.loadRecipeCostByProduct())
+        .thenReturn(Map.of(1L, new Money(BigDecimal.valueOf(5000), COP)));
+    // Fase D: REMOVE aporta −optionCost.
+    when(aggregationPort.loadAvgOptionCostByProduct(any(), any()))
+        .thenReturn(Map.of(1L, new Money(new BigDecimal("-2000"), COP)));
+
+    RefreshMenuEngineeringService service =
+        new RefreshMenuEngineeringService(aggregationPort, cacheRepo);
+    service.refresh("monthly", "2026-07");
+
+    ArgumentCaptor<MenuItemSummary> captor = ArgumentCaptor.forClass(MenuItemSummary.class);
+    verify(cacheRepo).upsert(captor.capture(), anyString(), anyString(), anyString());
+    MenuItemSummary item = captor.getValue();
+    assertEquals(new Money(new BigDecimal("-2000"), COP), item.avgOptionCost());
+    assertEquals(new Money(BigDecimal.valueOf(3000), COP), item.effectiveCost());
+    assertEquals(new Money(BigDecimal.valueOf(17000), COP), item.grossProfitPerUnit());
+  }
+
+  @Test
   void shouldAssignQuadrantBasedOnEffectiveCostMargin_notRecipeCost() {
     MenuEngineeringAggregationPort aggregationPort = mock(MenuEngineeringAggregationPort.class);
     MenuEngineeringCacheRepositoryPort cacheRepo = mock(MenuEngineeringCacheRepositoryPort.class);

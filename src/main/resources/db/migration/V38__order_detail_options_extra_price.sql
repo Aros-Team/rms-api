@@ -1,0 +1,34 @@
+-- =============================================================================
+-- V38: order_detail_options.extra_price
+-- =============================================================================
+--
+-- PURPOSE:
+--   Persist the per-option surcharge that was applied at order-taking time
+--   when the customer selected an option from an EXTRA option category
+--   (e.g. "Extra queso"). The surcharge is stored on each
+--   (order_detail_id, option_id) row so it can be attributed back to the
+--   specific option that produced it (audit trail + menu engineering).
+--
+--   unitPrice for the order detail becomes:
+--       unitPrice = basePrice + Σ(extra_price for EXTRA selections)
+--
+--   The new column mirrors the financial pattern used in V25
+--   (product_product_options.extra_price, special_selection_additions.extra_price,
+--   order_detail_additions.extra_price).
+--
+-- MIGRATION SAFETY (forward-only additive):
+--   * extra_price is NOT NULL with DEFAULT 0 — existing rows get the
+--     default on ALTER, so the NOT NULL constraint is safe on populated
+--     tables.
+--   * No DROP / RENAME / MODIFY of existing columns. No backfill that
+--     overwrites user data.
+--   * The composite primary key (order_detail_id, option_id) and the
+--     existing foreign keys are unchanged.
+--   * data.sql CTEs that explicitly list (order_detail_id, option_id)
+--     automatically omit extra_price, which falls back to the DEFAULT 0.
+--
+-- Reference: progress/current.md (activity 2), task c (Phase C — orders).
+-- =============================================================================
+
+ALTER TABLE order_detail_options
+    ADD COLUMN extra_price DECIMAL(10,2) NOT NULL DEFAULT 0 AFTER option_id;

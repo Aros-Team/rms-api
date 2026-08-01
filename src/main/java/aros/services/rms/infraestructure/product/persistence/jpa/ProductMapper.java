@@ -40,6 +40,7 @@ public class ProductMapper {
     return Product.builder()
         .id(entity.getId())
         .name(entity.getName())
+        .description(entity.getDescription())
         .basePrice(
             entity.getBasePrice() != null
                 ? new Money(BigDecimal.valueOf(entity.getBasePrice()), Currency.getInstance("COP"))
@@ -80,6 +81,7 @@ public class ProductMapper {
         aros.services.rms.infraestructure.product.persistence.Product.builder()
             .id(domain.getId())
             .name(domain.getName())
+            .description(domain.getDescription())
             .basePrice(domain.getBasePrice().amount().doubleValue())
             .active(domain.isActive())
             .category(categoryMapper.toEntity(domain.getCategory()))

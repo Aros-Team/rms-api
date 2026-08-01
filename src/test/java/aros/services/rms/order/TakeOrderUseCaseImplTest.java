@@ -13,18 +13,23 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.category.domain.Category;
+import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.category.domain.OptionSelectionType;
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.order.application.dto.TakeOrderCommand;
+import aros.services.rms.core.order.application.exception.SingleChoiceCategoryLimitException;
 import aros.services.rms.core.order.application.service.TakeOrderService;
 import aros.services.rms.core.order.domain.Order;
+import aros.services.rms.core.order.domain.OrderDetail;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
 import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
+import aros.services.rms.core.product.domain.ProductOptionCostProfile;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import aros.services.rms.core.specialselection.application.exception.SpecialSelectionNotAvailableException;
@@ -506,5 +511,389 @@ class TakeOrderUseCaseImplTest {
     assertEquals(10L, exception.getProductId());
     assertEquals(TableStatus.AVAILABLE, table.getStatus());
     verify(orderRepositoryPort, never()).save(any(Order.class));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phase C — extra pricing + SINGLE_CHOICE max-1.
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void should_keepUnitPriceAtBasePrice_when_noExtraOptionIsSelected() {
+    Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
+    Product product =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .category(Category.builder().id(1L).name("Food").build())
+            .build();
+    OptionCategory cheeseCat =
+        OptionCategory.builder()
+            .id(50L)
+            .name("Queso")
+            .selectionType(OptionSelectionType.SINGLE_CHOICE)
+            .build();
+    ProductOption cheese =
+        ProductOption.builder().id(5L).name("Cheddar").category(cheeseCat).build();
+
+    when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
+    when(productOptionRepositoryPort.findAllById(List.of(5L))).thenReturn(List.of(cheese));
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 5L)).thenReturn(true);
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(1L)
+            .details(
+                List.of(
+                    TakeOrderCommand.OrderDetailCommand.builder()
+                        .productId(1L)
+                        .instructions(null)
+                        .selectedOptionIds(List.of(5L))
+                        .build()))
+            .build();
+
+    Order result = takeOrderUseCase.execute(command);
+
+    assertNotNull(result);
+    OrderDetail detail = result.getDetails().get(0);
+    // A SINGLE_CHOICE selection does not add to unitPrice: unitPrice stays at the basePrice.
+    assertEquals(10.0, detail.getUnitPrice().amount().doubleValue(), 0.001);
+    // singleton Cheese is non-EXTRA; extraCharge must remain zero.
+    assertEquals(0.0, detail.getExtraCharge().amount().doubleValue(), 0.001);
+  }
+
+  @Test
+  void should_computeUnitPriceAsBasePlusExtraSurcharge_when_singleExtraOptionSelected() {
+    Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
+    Product product =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .category(Category.builder().id(1L).name("Food").build())
+            .build();
+    OptionCategory extrasCat =
+        OptionCategory.builder()
+            .id(60L)
+            .name("Adición")
+            .selectionType(OptionSelectionType.EXTRA)
+            .build();
+    ProductOption extraCheese =
+        ProductOption.builder().id(7L).name("Extra Cheese").category(extrasCat).build();
+    Money extraPrice = new Money(BigDecimal.valueOf(2.5), Currency.getInstance("COP"));
+
+    when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
+    when(productOptionRepositoryPort.findAllById(List.of(7L))).thenReturn(List.of(extraCheese));
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 7L)).thenReturn(true);
+    when(productOptionRepositoryPort.loadCostProfilesByProductId(1L))
+        .thenReturn(
+            List.of(
+                new ProductOptionCostProfile(
+                    7L,
+                    "Extra Cheese",
+                    60L,
+                    "Adición",
+                    extraPrice,
+                    OptionSelectionType.EXTRA.name(),
+                    null,
+                    Money.zero(Currency.getInstance("COP")))));
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(1L)
+            .details(
+                List.of(
+                    TakeOrderCommand.OrderDetailCommand.builder()
+                        .productId(1L)
+                        .instructions(null)
+                        .selectedOptionIds(List.of(7L))
+                        .build()))
+            .build();
+
+    Order result = takeOrderUseCase.execute(command);
+
+    OrderDetail detail = result.getDetails().get(0);
+    assertEquals(12.5, detail.getUnitPrice().amount().doubleValue(), 0.001);
+    assertEquals(2.5, detail.getExtraCharge().amount().doubleValue(), 0.001);
+    assertEquals(extraPrice, detail.getOptionExtraPrices().get(7L));
+  }
+
+  @Test
+  void should_sumOnlyExtraOptionSurcharges_intoUnitPrice_when_mixedCategoryOptions() {
+    Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
+    Product product =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .category(Category.builder().id(1L).name("Food").build())
+            .build();
+    OptionCategory proteinCat =
+        OptionCategory.builder()
+            .id(70L)
+            .name("Proteína")
+            .selectionType(OptionSelectionType.SINGLE_CHOICE)
+            .build();
+    OptionCategory extrasCat =
+        OptionCategory.builder()
+            .id(60L)
+            .name("Adición")
+            .selectionType(OptionSelectionType.EXTRA)
+            .build();
+    ProductOption protein =
+        ProductOption.builder().id(8L).name("Pollo").category(proteinCat).build();
+    ProductOption extraCheese =
+        ProductOption.builder().id(9L).name("Extra Cheese").category(extrasCat).build();
+    ProductOption extraBacon =
+        ProductOption.builder().id(10L).name("Extra Bacon").category(extrasCat).build();
+
+    Money proteinPrice = new Money(BigDecimal.valueOf(13.0), Currency.getInstance("COP"));
+    Money cheesePrice = new Money(BigDecimal.valueOf(2.5), Currency.getInstance("COP"));
+    Money baconPrice = new Money(BigDecimal.valueOf(3.0), Currency.getInstance("COP"));
+
+    when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
+    when(productOptionRepositoryPort.findAllById(List.of(8L, 9L, 10L)))
+        .thenReturn(List.of(protein, extraCheese, extraBacon));
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 8L)).thenReturn(true);
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 9L)).thenReturn(true);
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 10L)).thenReturn(true);
+    when(productOptionRepositoryPort.loadCostProfilesByProductId(1L))
+        .thenReturn(
+            List.of(
+                new ProductOptionCostProfile(
+                    8L,
+                    "Pollo",
+                    70L,
+                    "Proteína",
+                    proteinPrice,
+                    OptionSelectionType.SINGLE_CHOICE.name(),
+                    null,
+                    Money.zero(Currency.getInstance("COP"))),
+                new ProductOptionCostProfile(
+                    9L,
+                    "Extra Cheese",
+                    60L,
+                    "Adición",
+                    cheesePrice,
+                    OptionSelectionType.EXTRA.name(),
+                    null,
+                    Money.zero(Currency.getInstance("COP"))),
+                new ProductOptionCostProfile(
+                    10L,
+                    "Extra Bacon",
+                    60L,
+                    "Adición",
+                    baconPrice,
+                    OptionSelectionType.EXTRA.name(),
+                    null,
+                    Money.zero(Currency.getInstance("COP")))));
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(1L)
+            .details(
+                List.of(
+                    TakeOrderCommand.OrderDetailCommand.builder()
+                        .productId(1L)
+                        .instructions(null)
+                        .selectedOptionIds(List.of(8L, 9L, 10L))
+                        .build()))
+            .build();
+
+    Order result = takeOrderUseCase.execute(command);
+
+    OrderDetail detail = result.getDetails().get(0);
+    // basePrice = 10, EXTRA extras = 2.5 + 3.0 = 5.5; SINGLE_CHOICE protein does NOT contribute.
+    assertEquals(15.5, detail.getUnitPrice().amount().doubleValue(), 0.001);
+    assertEquals(5.5, detail.getExtraCharge().amount().doubleValue(), 0.001);
+    assertEquals(3, detail.getOptionExtraPrices().size());
+    assertEquals(proteinPrice, detail.getOptionExtraPrices().get(8L));
+    assertEquals(cheesePrice, detail.getOptionExtraPrices().get(9L));
+    assertEquals(baconPrice, detail.getOptionExtraPrices().get(10L));
+  }
+
+  @Test
+  void should_throwSingleChoiceCategoryLimitException_when_moreThanOneFromSingleChoiceCategory() {
+    Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
+    Product product =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .category(Category.builder().id(1L).name("Food").build())
+            .build();
+    OptionCategory proteinCat =
+        OptionCategory.builder()
+            .id(70L)
+            .name("Proteína")
+            .selectionType(OptionSelectionType.SINGLE_CHOICE)
+            .build();
+    ProductOption chicken =
+        ProductOption.builder().id(1L).name("Pollo").category(proteinCat).build();
+    ProductOption beef = ProductOption.builder().id(2L).name("Carne").category(proteinCat).build();
+
+    when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
+    when(productOptionRepositoryPort.findAllById(List.of(1L, 2L)))
+        .thenReturn(List.of(chicken, beef));
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 1L)).thenReturn(true);
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 2L)).thenReturn(true);
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(1L)
+            .details(
+                List.of(
+                    TakeOrderCommand.OrderDetailCommand.builder()
+                        .productId(1L)
+                        .instructions(null)
+                        .selectedOptionIds(List.of(1L, 2L))
+                        .build()))
+            .build();
+
+    SingleChoiceCategoryLimitException exception =
+        assertThrows(
+            SingleChoiceCategoryLimitException.class, () -> takeOrderUseCase.execute(command));
+
+    assertEquals(70L, exception.getCategoryId());
+    assertEquals(2, exception.getSelectedCount());
+    assertEquals(TableStatus.AVAILABLE, table.getStatus());
+    verify(orderRepositoryPort, never()).save(any(Order.class));
+  }
+
+  @Test
+  void should_allowMultipleSelections_fromMultiSelectCategory() {
+    Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
+    Product product =
+        Product.builder()
+            .id(1L)
+            .name("Pizza")
+            .basePrice(new Money(BigDecimal.valueOf(15.0), Currency.getInstance("COP")))
+            .category(Category.builder().id(1L).name("Pizzas").build())
+            .build();
+    OptionCategory toppingsCat =
+        OptionCategory.builder()
+            .id(80L)
+            .name("Toppings")
+            .selectionType(OptionSelectionType.MULTI_SELECT)
+            .build();
+    ProductOption mushrooms =
+        ProductOption.builder().id(11L).name("Hongos").category(toppingsCat).build();
+    ProductOption olives =
+        ProductOption.builder().id(12L).name("Aceitunas").category(toppingsCat).build();
+    Money zero = Money.zero(Currency.getInstance("COP"));
+
+    when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
+    when(productOptionRepositoryPort.findAllById(List.of(11L, 12L)))
+        .thenReturn(List.of(mushrooms, olives));
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 11L)).thenReturn(true);
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 12L)).thenReturn(true);
+    when(productOptionRepositoryPort.loadCostProfilesByProductId(1L))
+        .thenReturn(
+            List.of(
+                new ProductOptionCostProfile(
+                    11L,
+                    "Hongos",
+                    80L,
+                    "Toppings",
+                    zero,
+                    OptionSelectionType.MULTI_SELECT.name(),
+                    null,
+                    zero),
+                new ProductOptionCostProfile(
+                    12L,
+                    "Aceitunas",
+                    80L,
+                    "Toppings",
+                    zero,
+                    OptionSelectionType.MULTI_SELECT.name(),
+                    null,
+                    zero)));
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(1L)
+            .details(
+                List.of(
+                    TakeOrderCommand.OrderDetailCommand.builder()
+                        .productId(1L)
+                        .instructions(null)
+                        .selectedOptionIds(List.of(11L, 12L))
+                        .build()))
+            .build();
+
+    Order result = takeOrderUseCase.execute(command);
+
+    assertNotNull(result);
+    OrderDetail detail = result.getDetails().get(0);
+    assertEquals(15.0, detail.getUnitPrice().amount().doubleValue(), 0.001);
+    assertEquals(0.0, detail.getExtraCharge().amount().doubleValue(), 0.001);
+  }
+
+  @Test
+  void should_keepExtraChargeAtZero_when_onlyNonExtraCategoriesSelectOptions() {
+    Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
+    Product product =
+        Product.builder()
+            .id(1L)
+            .name("Salad")
+            .basePrice(new Money(BigDecimal.valueOf(8.0), Currency.getInstance("COP")))
+            .category(Category.builder().id(1L).name("Food").build())
+            .build();
+    OptionCategory dressingCat =
+        OptionCategory.builder()
+            .id(90L)
+            .name("Salsa")
+            .selectionType(OptionSelectionType.SINGLE_CHOICE)
+            .build();
+    OptionCategory withoutOnionCat =
+        OptionCategory.builder()
+            .id(91L)
+            .name("Sin cebolla")
+            .selectionType(OptionSelectionType.REMOVE)
+            .build();
+    ProductOption ranch =
+        ProductOption.builder().id(20L).name("Ranch").category(dressingCat).build();
+    ProductOption noOnion =
+        ProductOption.builder().id(21L).name("Sin Cebolla").category(withoutOnionCat).build();
+
+    when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
+    when(productOptionRepositoryPort.findAllById(List.of(20L, 21L)))
+        .thenReturn(List.of(ranch, noOnion));
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 20L)).thenReturn(true);
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 21L)).thenReturn(true);
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(1L)
+            .details(
+                List.of(
+                    TakeOrderCommand.OrderDetailCommand.builder()
+                        .productId(1L)
+                        .instructions(null)
+                        .selectedOptionIds(List.of(20L, 21L))
+                        .build()))
+            .build();
+
+    Order result = takeOrderUseCase.execute(command);
+
+    OrderDetail detail = result.getDetails().get(0);
+    assertEquals(8.0, detail.getUnitPrice().amount().doubleValue(), 0.001);
+    assertEquals(0.0, detail.getExtraCharge().amount().doubleValue(), 0.001);
   }
 }

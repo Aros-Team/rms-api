@@ -17,8 +17,10 @@ import aros.services.rms.core.inventory.application.exception.SupplyCategoryAlre
 import aros.services.rms.core.inventory.application.exception.SupplyVariantAlreadyExistsException;
 import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFoundException;
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
+import aros.services.rms.core.order.application.exception.SingleChoiceCategoryLimitException;
 import aros.services.rms.core.order.application.exception.TableNotAvailableException;
 import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
+import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.schedule.application.exception.ScheduleAlreadyExistsException;
 import aros.services.rms.core.schedule.application.exception.ScheduleHasAssignmentsException;
 import aros.services.rms.core.schedule.application.exception.ScheduleNotFoundException;
@@ -91,6 +93,12 @@ public class GlobalExceptionHandler {
       aros.services.rms.core.order.application.exception.ProductNotFoundException.class)
   public ResponseEntity<ErrorResponse> handleOrderProductNotFound(
       aros.services.rms.core.order.application.exception.ProductNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  /** Handles ProductNotFoundException in the product context. */
+  @ExceptionHandler(ProductNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleProductNotFound(ProductNotFoundException e) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
   }
 
@@ -294,6 +302,14 @@ public class GlobalExceptionHandler {
   /** Handles InvalidProductOptionException. */
   @ExceptionHandler(InvalidProductOptionException.class)
   public ResponseEntity<ErrorResponse> handleInvalidProductOption(InvalidProductOptionException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
+  }
+
+  /** Handles SingleChoiceCategoryLimitException. */
+  @ExceptionHandler(SingleChoiceCategoryLimitException.class)
+  public ResponseEntity<ErrorResponse> handleSingleChoiceCategoryLimit(
+      SingleChoiceCategoryLimitException e) {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(new ErrorResponse(400, e.getMessage()));
   }

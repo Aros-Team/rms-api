@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.category.persistence.jpa;
 
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.category.domain.OptionSelectionType;
 import org.springframework.stereotype.Component;
 
 /** Mapper between Category/OptionCategory domain models and their JPA entities. */
@@ -46,6 +47,8 @@ public class CategoryMapper {
         .id(entity.getId())
         .name(entity.getName())
         .description(entity.getDescription())
+        .selectionType(toSelectionType(entity.getSelectionType()))
+        .replaceSupplyCategoryId(entity.getReplaceSupplyCategoryId())
         .build();
   }
 
@@ -59,6 +62,25 @@ public class CategoryMapper {
         .id(domain.getId())
         .name(domain.getName())
         .description(domain.getDescription())
+        .selectionType(toSelectionType(domain.getSelectionType()))
+        .replaceSupplyCategoryId(domain.getReplaceSupplyCategoryId())
         .build();
+  }
+
+  private static OptionSelectionType toSelectionType(
+      aros.services.rms.infraestructure.category.persistence.OptionCategory entity) {
+    OptionSelectionType stored = entity == null ? null : entity.getSelectionType();
+    return toSelectionType(stored);
+  }
+
+  private static OptionSelectionType toSelectionType(OptionSelectionType stored) {
+    if (stored == null) {
+      return OptionSelectionType.SINGLE_CHOICE;
+    }
+    try {
+      return OptionSelectionType.valueOf(stored.name());
+    } catch (IllegalArgumentException unknown) {
+      return OptionSelectionType.SINGLE_CHOICE;
+    }
   }
 }

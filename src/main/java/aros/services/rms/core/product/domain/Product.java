@@ -8,6 +8,7 @@ import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.specialselection.domain.SelectionType;
 import java.util.Currency;
 import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,6 +33,14 @@ public class Product {
   private String preparationAreaName;
   private List<ProductRecipe> recipe;
   private List<Long> optionIds;
+
+  /**
+   * Per-option surcharge keyed by option id. Populated from {@code ProductRequest.optionExtras}; an
+   * entry indicates that the matching option (if associated) should carry that surcharge on the
+   * {@code product_product_options.extra_price} column.
+   */
+  private Map<Long, Money> optionExtras;
+
   @Builder.Default private SelectionType selectionType = SelectionType.STANDARD;
   @Builder.Default private boolean baseRecipeEnabled = false;
   @Builder.Default private boolean schedulingRequired = false;

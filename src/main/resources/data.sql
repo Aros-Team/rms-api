@@ -446,6 +446,17 @@ SELECT 'Sabor Especial Bebida', 'Toque especial para la bebida'
 FROM dual WHERE @ocat_count = 0;
 
 -- =============================================================================
+-- OPTION CATEGORIES selection_mode (V37 added selection_type + replace_supply_category_id)
+-- Idempotent: ensures every seeded category is SINGLE_CHOICE with no substitution.
+-- Re-runs of data.sql are safe: the WHERE guard skips rows already in that mode.
+-- =============================================================================
+UPDATE option_categories SET selection_type = 'SINGLE_CHOICE'
+WHERE selection_type IS NULL OR selection_type <> 'SINGLE_CHOICE';
+
+UPDATE option_categories SET replace_supply_category_id = NULL
+WHERE replace_supply_category_id IS NOT NULL;
+
+-- =============================================================================
 -- PRODUCTS (only insert if table is empty)
 -- categories: Hamburguesas=1, Platos Típicos=2, Pizzas=3,
 --             Pasta/Italiana=4, Parrilla/Carnes=5, Bebidas Naturales=6
@@ -743,9 +754,14 @@ INSERT IGNORE INTO product_product_options (product_id, option_id) VALUES
     (8,  8), (8,  9), (8, 10),
     (8, 11), (8, 12), (8, 13),
 
-    -- 9. Bandeja Paisa (Platos Típicos — no options)
-    -- 10. Sancocho de Gallina (no options)
-    -- 11. Ajiaco Santafereño (no options)
+    -- 9. Bandeja Paisa (Platos Típicos — guarnición)
+    (9, 38), (9, 39), (9, 40),
+
+    -- 10. Sancocho de Gallina (Platos Típicos — guarnición)
+    (10, 38), (10, 39), (10, 40),
+
+    -- 11. Ajiaco Santafereño (Platos Típicos — guarnición)
+    (11, 38), (11, 39), (11, 40),
 
     -- 12. Pizza Personal
     (12, 14), (12, 15), (12, 16),
