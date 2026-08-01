@@ -38,4 +38,12 @@ public interface TableRepositoryPort {
    * @return true if a table with the given number exists
    */
   boolean existsByTableNumber(Integer tableNumber);
+
+  /**
+   * Finds tables whose table number contains the given string (case-insensitive).
+   *
+   * @param tableNumber the table number substring
+   * @return list of matching tables
+   */
+  List<Table> findByTableNumberContainingIgnoreCase(String tableNumber);
 }

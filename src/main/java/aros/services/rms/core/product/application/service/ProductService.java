@@ -7,6 +7,7 @@ import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.category.application.exception.CategoryNotFoundException;
 import aros.services.rms.core.category.port.output.CategoryRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFoundException;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.inventory.domain.event.RecipeUpdatedEvent;
@@ -23,7 +24,9 @@ import aros.services.rms.infraestructure.common.exception.ServiceUnavailableExce
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Currency;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
@@ -40,6 +43,7 @@ import org.springframework.retry.annotation.Retryable;
 public class ProductService implements ProductUseCase {
 
   private static final org.slf4j.Logger log = LoggerFactory.getLogger(ProductService.class);
+  private static final Currency COP = Currency.getInstance("COP");
   private final ProductRepositoryPort productRepositoryPort;
   private final AreaRepositoryPort areaRepositoryPort;
   private final CategoryRepositoryPort categoryRepositoryPort;
@@ -116,9 +120,7 @@ public class ProductService implements ProductUseCase {
 
     logger.info("Product created: id={}, name={}", saved.getId(), saved.getName());
 
-    if (product.getOptionIds() != null && !product.getOptionIds().isEmpty()) {
-      productOptionRepositoryPort.associateOptionsToProduct(saved.getId(), product.getOptionIds());
-    }
+    upsertOptionAssociations(saved.getId(), product);
 
     // Publish events for cache invalidation (menu engineering)
     if (product.getRecipe() != null && !product.getRecipe().isEmpty()) {
@@ -172,9 +174,7 @@ public class ProductService implements ProductUseCase {
     logger.info("Product updated: id={}, name={}", saved.getId(), saved.getName());
 
     productOptionRepositoryPort.removeAllOptionsFromProduct(id);
-    if (product.getOptionIds() != null && !product.getOptionIds().isEmpty()) {
-      productOptionRepositoryPort.associateOptionsToProduct(saved.getId(), product.getOptionIds());
-    }
+    upsertOptionAssociations(saved.getId(), product);
 
     // Publish events for cache invalidation (menu engineering)
     eventPublisher.publishEvent(new ProductUpdatedEvent(saved.getId(), Instant.now()));
@@ -402,6 +402,18 @@ public class ProductService implements ProductUseCase {
     return productRepositoryPort.findAllStandard(pageable);
   }
 
+  /** {@inheritDoc} Delegates to the repository so filtering happens in the database. */
+  @Override
+  public Page<Product> search(
+      String search,
+      List<Long> categoryIds,
+      boolean includeInactive,
+      boolean includeSelections,
+      Pageable pageable) {
+    return productRepositoryPort.searchByNameOrDescriptionOrCategoryName(
+        search, categoryIds, includeInactive, includeSelections, pageable);
+  }
+
   /**
    * Recovery handler for findByCategoryIds operation when database is unavailable.
    *
@@ -450,6 +462,46 @@ public class ProductService implements ProductUseCase {
       if (!supplyVariantRepositoryPort.existsById(recipe.getSupplyVariantId())) {
         throw new SupplyVariantNotFoundException(recipe.getSupplyVariantId());
       }
+    }
+  }
+
+  /**
+   * Upserts the {@code product_product_options} associations for a product. Iterates {@code
+   * optionIds} in order (assigning display order by index) and applies the surcharge from {@code
+   * optionExtras} when present. Any entries in {@code optionExtras} that are not in {@code
+   * optionIds} are appended at the end with their surcharge and the next display index. A {@code
+   * null} or empty {@code optionIds} and {@code optionExtras} leaves the product with no
+   * associations.
+   *
+   * @param productId the persisted product id
+   * @param product the source product carrying optionIds and optionExtras
+   */
+  private void upsertOptionAssociations(Long productId, Product product) {
+    List<Long> optionIds = product.getOptionIds() == null ? List.of() : product.getOptionIds();
+    Map<Long, Money> surcharges =
+        product.getOptionExtras() == null ? Map.of() : product.getOptionExtras();
+
+    if (optionIds.isEmpty() && surcharges.isEmpty()) {
+      return;
+    }
+
+    int order = 0;
+    java.util.Set<Long> seen = new java.util.LinkedHashSet<>();
+    for (Long optionId : optionIds) {
+      if (optionId == null || !seen.add(optionId)) {
+        continue;
+      }
+      Money surcharge = surcharges.getOrDefault(optionId, Money.zero(COP));
+      productOptionRepositoryPort.upsertOptionAssociation(
+          productId, optionId, surcharge.amount(), order++);
+    }
+    for (Map.Entry<Long, Money> entry : surcharges.entrySet()) {
+      if (entry.getKey() == null || !seen.add(entry.getKey())) {
+        continue;
+      }
+      Money surcharge = entry.getValue() == null ? Money.zero(COP) : entry.getValue();
+      productOptionRepositoryPort.upsertOptionAssociation(
+          productId, entry.getKey(), surcharge.amount(), order++);
     }
   }
 }

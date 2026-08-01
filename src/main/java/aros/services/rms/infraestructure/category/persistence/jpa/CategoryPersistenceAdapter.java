@@ -38,6 +38,13 @@ public class CategoryPersistenceAdapter implements CategoryRepositoryPort {
   }
 
   @Override
+  public List<Category> findByNameContainingIgnoreCase(String name) {
+    return categoryRepository.findByNameContainingIgnoreCase(name).stream()
+        .map(categoryMapper::toDomain)
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public List<Category> findAll() {
     return categoryRepository.findAll().stream()
         .map(categoryMapper::toDomain)

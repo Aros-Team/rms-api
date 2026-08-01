@@ -16,6 +16,14 @@ public interface GetSuppliersUseCase {
   List<Supplier> findAll();
 
   /**
+   * Finds suppliers whose names contain the supplied text, ignoring case.
+   *
+   * @param name partial supplier name
+   * @return matching suppliers
+   */
+  List<Supplier> findByNameContainingIgnoreCase(String name);
+
+  /**
    * Finds a supplier by ID.
    *
    * @param id supplier ID

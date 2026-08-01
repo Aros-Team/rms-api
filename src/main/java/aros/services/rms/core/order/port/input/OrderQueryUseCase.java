@@ -39,4 +39,25 @@ public interface OrderQueryUseCase {
       int page,
       int size,
       String sort);
+
+  /**
+   * Busca órdenes con paginación y filtros opcionales, incluyendo nombres de productos y opciones.
+   *
+   * @param statuses lista de estados de orden (opcional, vacío = sin filtro)
+   * @param search fragmento del nombre de producto u opción (opcional)
+   * @param startDate fecha inicio (opcional)
+   * @param endDate fecha fin (opcional)
+   * @param page número de página (0-based)
+   * @param size tamaño de página
+   * @param sort campo y dirección de ordenamiento (ej. "date,desc")
+   * @return resultado paginado
+   */
+  OrderQueryResult findOrdersPage(
+      List<OrderStatus> statuses,
+      String search,
+      LocalDateTime startDate,
+      LocalDateTime endDate,
+      int page,
+      int size,
+      String sort);
 }

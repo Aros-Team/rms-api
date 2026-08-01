@@ -45,6 +45,18 @@ public class GetPurchaseHistoryService implements GetPurchaseHistoryUseCase {
   }
 
   /**
+   * Returns purchase orders whose notes or supplier name contain the supplied text.
+   *
+   * @param search partial notes or supplier name
+   * @return matching purchase orders
+   */
+  @Override
+  public List<PurchaseOrder> findBySearch(String search) {
+    return purchaseOrderRepositoryPort
+        .findByNotesContainingIgnoreCaseOrSupplierNameContainingIgnoreCase(search);
+  }
+
+  /**
    * Returns a single purchase order by its identifier.
    *
    * @param id purchase order identifier

@@ -43,4 +43,12 @@ public class SupplierPersistenceAdapter implements SupplierRepositoryPort {
   public List<Supplier> findAll() {
     return repository.findAll().stream().map(mapper::toDomain).collect(Collectors.toList());
   }
+
+  /** Finds suppliers by partial, case-insensitive name and maps them to domain objects. */
+  @Override
+  public List<Supplier> findByNameContainingIgnoreCase(String name) {
+    return repository.findByNameContainingIgnoreCase(name).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toList());
+  }
 }

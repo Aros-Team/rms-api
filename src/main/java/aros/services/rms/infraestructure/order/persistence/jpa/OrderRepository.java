@@ -69,6 +69,48 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
       OrderStatus status, LocalDateTime startDate, LocalDateTime endDate);
 
   /**
+   * Finds paginated orders by optional status, date, product name, or selected option name.
+   *
+   * @param statuses order statuses, or null for no status filter
+   * @param search product or option name fragment, or null for no search filter
+   * @param startDate inclusive start date, or null for no lower bound
+   * @param endDate inclusive end date, or null for no upper bound
+   * @param pageable pagination and sorting information
+   * @return matching orders
+   */
+  @Query(
+      value =
+          "SELECT DISTINCT o FROM Order o "
+              + "JOIN o.details d "
+              + "JOIN d.product p "
+              + "LEFT JOIN d.selectedOptions selected "
+              + "LEFT JOIN selected.option selectedOption "
+              + "WHERE (:statuses IS NULL OR o.status IN :statuses) "
+              + "AND (:startDate IS NULL OR o.date >= :startDate) "
+              + "AND (:endDate IS NULL OR o.date <= :endDate) "
+              + "AND (:search IS NULL "
+              + "OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) "
+              + "OR LOWER(selectedOption.name) LIKE LOWER(CONCAT('%', :search, '%'))) ",
+      countQuery =
+          "SELECT COUNT(DISTINCT o) FROM Order o "
+              + "JOIN o.details d "
+              + "JOIN d.product p "
+              + "LEFT JOIN d.selectedOptions selected "
+              + "LEFT JOIN selected.option selectedOption "
+              + "WHERE (:statuses IS NULL OR o.status IN :statuses) "
+              + "AND (:startDate IS NULL OR o.date >= :startDate) "
+              + "AND (:endDate IS NULL OR o.date <= :endDate) "
+              + "AND (:search IS NULL "
+              + "OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) "
+              + "OR LOWER(selectedOption.name) LIKE LOWER(CONCAT('%', :search, '%'))) ")
+  Page<Order> findByFilters(
+      @Param("statuses") List<OrderStatus> statuses,
+      @Param("search") String search,
+      @Param("startDate") LocalDateTime startDate,
+      @Param("endDate") LocalDateTime endDate,
+      Pageable pageable);
+
+  /**
    * Finds paginated orders by status list.
    *
    * @param statuses the order statuses

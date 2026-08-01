@@ -17,6 +17,14 @@ public interface GetPurchaseHistoryUseCase {
   List<PurchaseOrder> findAll();
 
   /**
+   * Finds purchase orders whose notes or supplier name contain the supplied text.
+   *
+   * @param search partial notes or supplier name
+   * @return matching purchase orders
+   */
+  List<PurchaseOrder> findBySearch(String search);
+
+  /**
    * Finds a purchase order by ID.
    *
    * @param id purchase order ID

@@ -71,4 +71,12 @@ public interface AreaRepositoryPort {
    * @return true if all the areas exists
    */
   boolean existsAllByIds(Set<AreaId> ids);
+
+  /**
+   * Finds areas whose name contains the given string (case-insensitive).
+   *
+   * @param name the name substring
+   * @return list of matching areas
+   */
+  List<Area> findByNameContainingIgnoreCase(String name);
 }

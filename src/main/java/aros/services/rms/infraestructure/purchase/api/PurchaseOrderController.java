@@ -100,6 +100,7 @@ public class PurchaseOrderController {
    * Lists purchase history.
    *
    * @param supplierId optional supplier filter
+   * @param search optional notes or supplier name filter
    * @param from optional start date
    * @param to optional end date
    * @return the list of purchase orders
@@ -108,8 +109,8 @@ public class PurchaseOrderController {
       tags = {"Purchases"},
       summary = "List purchase history",
       description =
-          "Returns all purchase orders. Optionally filters by supplierId or date range (from/to). "
-              + "If supplierId is provided, the date range is ignored.",
+          "Returns all purchase orders. Optionally filters by supplierId, search, or date range "
+              + "(from/to). Precedence is supplierId, search, date range, then all orders.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Purchase orders retrieved successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid date format"),
@@ -125,6 +126,11 @@ public class PurchaseOrderController {
       @Parameter(description = "Filter by supplier ID", example = "1")
           @RequestParam(required = false)
           Long supplierId,
+      @Parameter(
+              description = "Optional name filter (partial, case-insensitive)",
+              example = "fresh produce")
+          @RequestParam(required = false)
+          String search,
       @Parameter(description = "Filter by start date (from)", example = "2026-01-01")
           @RequestParam(required = false)
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -137,13 +143,12 @@ public class PurchaseOrderController {
     List<PurchaseOrder> orders;
 
     if (supplierId != null) {
-      // Filter by supplier
       orders = getPurchaseHistoryUseCase.findBySupplierId(supplierId);
+    } else if (search != null && !search.isBlank()) {
+      orders = getPurchaseHistoryUseCase.findBySearch(search);
     } else if (from != null && to != null) {
-      // Filter by date range
       orders = getPurchaseHistoryUseCase.findByDateRange(from, to);
     } else {
-      // No filter — return all
       orders = getPurchaseHistoryUseCase.findAll();
     }
 

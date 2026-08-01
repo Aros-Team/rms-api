@@ -87,4 +87,23 @@ public interface ProductRepositoryPort {
    * @return list of standard selection products in the specified categories
    */
   List<Product> findByCategoryIdsStandard(List<Long> categoryIds);
+
+  /**
+   * Searches products by a partial, case-insensitive term matched against the product's name, its
+   * description, and its category's name. Combines pagination with optional filters pushed to the
+   * database — filtering happens against the full DB before pagination, never on the current page.
+   *
+   * @param search the search term (required, non-blank)
+   * @param categoryIds optional category filter; {@code null} or empty means no category filter
+   * @param includeInactive when {@code false}, inactive products are excluded
+   * @param includeSelections when {@code false}, only standard selection products are returned
+   * @param pageable pagination parameters
+   * @return a page of products matching the criteria
+   */
+  Page<Product> searchByNameOrDescriptionOrCategoryName(
+      String search,
+      List<Long> categoryIds,
+      boolean includeInactive,
+      boolean includeSelections,
+      Pageable pageable);
 }

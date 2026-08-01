@@ -135,4 +135,44 @@ class AreaUseCaseImplTest {
 
     assertFalse(result.isEnabled());
   }
+
+  // ---------------------------------------------------------------------------
+  // Search tests
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldFindAreasByNameContainingIgnoreCase() {
+    Area kitchen = Area.builder().id(1L).name("Kitchen").build();
+    Area bar = Area.builder().id(2L).name("Bar").build();
+
+    when(areaRepositoryPort.findByNameContainingIgnoreCase("kit")).thenReturn(List.of(kitchen));
+
+    List<Area> result = areaUseCase.findByNameContainingIgnoreCase("kit");
+
+    assertEquals(1, result.size());
+    assertEquals("Kitchen", result.get(0).getName());
+  }
+
+  @Test
+  void shouldReturnEmptyListWhenNoAreasMatchSearch() {
+    when(areaRepositoryPort.findByNameContainingIgnoreCase("nonexistent")).thenReturn(List.of());
+
+    List<Area> result = areaUseCase.findByNameContainingIgnoreCase("nonexistent");
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  void shouldReturnAllAreasWhenSearchIsBlank() {
+    List<Area> allAreas =
+        List.of(
+            Area.builder().id(1L).name("Kitchen").build(),
+            Area.builder().id(2L).name("Bar").build());
+
+    when(areaRepositoryPort.findAll()).thenReturn(allAreas);
+
+    List<Area> result = areaUseCase.findAll();
+
+    assertEquals(2, result.size());
+  }
 }

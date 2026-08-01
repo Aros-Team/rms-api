@@ -17,6 +17,14 @@ public interface AreaRepository extends JpaRepository<Area, Long> {
   Optional<Area> findByName(String name);
 
   /**
+   * Finds areas whose name contains the given string (case-insensitive).
+   *
+   * @param name the name substring
+   * @return the list of matching areas
+   */
+  List<Area> findByNameContainingIgnoreCase(String name);
+
+  /**
    * Finds areas by IDs.
    *
    * @param ids the list of IDs

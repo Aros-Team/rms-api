@@ -273,6 +273,7 @@ public class SupplyCatalogController {
    * Lists supply variants with stock.
    *
    * @param supplyId optional supply filter
+   * @param search optional name filter (partial, case-insensitive)
    * @param page page number (default 0)
    * @param size page size (default 20, max 100)
    * @return the page of supply variants
@@ -282,7 +283,8 @@ public class SupplyCatalogController {
       summary = "List supply variants with stock",
       description =
           "Returns a paginated list of supply variants with current stock in Bodega and Cocina. "
-              + "Optionally filters by supplyId. "
+              + "Optionally filters by supplyId and/or search "
+              + "(partial, case-insensitive name filter). "
               + "The variant 'id' is the supplyVariantId used in purchase order items. "
               + "page >= 0, size between 1 and 100.",
       responses = {
@@ -298,6 +300,11 @@ public class SupplyCatalogController {
       @Parameter(description = "Optional supply filter", example = "3")
           @RequestParam(required = false)
           Long supplyId,
+      @Parameter(
+              description = "Optional name filter (partial, case-insensitive)",
+              example = "carne")
+          @RequestParam(required = false)
+          String search,
       @Parameter(description = "Page number (default 0)", example = "0")
           @RequestParam(defaultValue = "0")
           int page,
@@ -312,10 +319,18 @@ public class SupplyCatalogController {
     }
     var pageable = PageRequest.of(page, size);
 
-    Page<SupplyVariantEntity> variants =
-        supplyId != null
-            ? supplyVariantRepository.findBySupplyId(supplyId, pageable)
-            : supplyVariantRepository.findAll(pageable);
+    Page<SupplyVariantEntity> variants;
+    if (search != null && !search.isBlank() && supplyId != null) {
+      variants =
+          supplyVariantRepository.findBySupplyIdAndNameContainingIgnoreCase(
+              supplyId, search, pageable);
+    } else if (search != null && !search.isBlank()) {
+      variants = supplyVariantRepository.findByNameContainingIgnoreCase(search, pageable);
+    } else if (supplyId != null) {
+      variants = supplyVariantRepository.findBySupplyId(supplyId, pageable);
+    } else {
+      variants = supplyVariantRepository.findAll(pageable);
+    }
 
     List<Long> variantIds =
         variants.getContent().stream().map(SupplyVariantEntity::getId).collect(Collectors.toList());

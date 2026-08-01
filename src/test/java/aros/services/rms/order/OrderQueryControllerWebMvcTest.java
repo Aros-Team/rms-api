@@ -177,8 +177,67 @@ class OrderQueryControllerWebMvcTest {
         .andExpect(jsonPath("$.total_pages").value(5));
   }
 
-  // ---------------------------------------------------------------------------
-  // 401: missing auth
+  @Test
+  void shouldReturn200_whenFilteringByProductOrOptionName() throws Exception {
+    Order order =
+        Order.builder().id(4L).status(OrderStatus.QUEUE).date(LocalDateTime.now()).build();
+    OrderQueryResult result = new OrderQueryResult(List.of(order), 1L, 0, 20);
+
+    when(orderQueryUseCase.findOrdersPage(
+            anyList(), anyString(), any(), any(), anyInt(), anyInt(), anyString()))
+        .thenReturn(result);
+
+    mockMvc
+        .perform(get(URL).param("search", "burger").with(adminJwt()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.total").value(1))
+        .andExpect(jsonPath("$.items[0].status").value("QUEUE"));
+  }
+
+  @Test
+  void shouldReturn200_whenSearchHasNoResults() throws Exception {
+    when(orderQueryUseCase.findOrdersPage(
+            anyList(), anyString(), any(), any(), anyInt(), anyInt(), anyString()))
+        .thenReturn(new OrderQueryResult(List.of(), 0L, 0, 20));
+
+    mockMvc
+        .perform(get(URL).param("search", "does-not-exist").with(adminJwt()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items").isEmpty())
+        .andExpect(jsonPath("$.total").value(0));
+  }
+
+  @Test
+  void shouldReturn200_whenCombiningSearchWithStatusAndDateRange() throws Exception {
+    when(orderQueryUseCase.findOrdersPage(
+            anyList(), anyString(), any(), any(), anyInt(), anyInt(), anyString()))
+        .thenReturn(new OrderQueryResult(List.of(), 0L, 0, 20));
+
+    mockMvc
+        .perform(
+            get(URL)
+                .param("search", "burger")
+                .param("status", "READY")
+                .param("startDate", "2026-01-01T00:00:00")
+                .param("endDate", "2026-01-31T23:59:59")
+                .with(adminJwt()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.total").value(0));
+  }
+
+  @Test
+  void shouldPreserveCurrentBehavior_whenSearchIsBlank() throws Exception {
+    OrderQueryResult result = new OrderQueryResult(List.of(), 0L, 0, 20);
+    when(orderQueryUseCase.findOrdersPage(anyList(), any(), any(), anyInt(), anyInt(), anyString()))
+        .thenReturn(result);
+
+    mockMvc
+        .perform(get(URL).param("search", "   ").with(adminJwt()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items").isEmpty())
+        .andExpect(jsonPath("$.total").value(0));
+  }
+
   // ---------------------------------------------------------------------------
 
   @Test

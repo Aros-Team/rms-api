@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** REST controller for product category management. */
@@ -93,14 +94,17 @@ public class CategoryController {
   }
 
   /**
-   * Gets all categories.
+   * Gets all categories, optionally filtered by name.
    *
+   * @param search optional name filter (partial, case-insensitive)
    * @return the list of categories
    */
   @Operation(
       tags = {"Categories"},
       summary = "Get all categories",
-      description = "Returns all product categories from the menu.",
+      description =
+          "Returns all product categories from the menu. "
+              + "Optionally filters by name (partial, case-insensitive).",
       responses = {
         @ApiResponse(responseCode = "200", description = "Categories retrieved successfully"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -108,11 +112,20 @@ public class CategoryController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
-  public ResponseEntity<List<CategoryResponse>> findAll() {
+  public ResponseEntity<List<CategoryResponse>> findAll(
+      @Parameter(
+              description = "Optional name filter (partial, case-insensitive)",
+              example = "tamaño")
+          @RequestParam(required = false)
+          String search) {
+    List<Category> categories;
+    if (search != null && !search.isBlank()) {
+      categories = categoryUseCase.findByNameContainingIgnoreCase(search);
+    } else {
+      categories = categoryUseCase.findAll();
+    }
     List<CategoryResponse> responses =
-        categoryUseCase.findAll().stream()
-            .map(CategoryResponse::fromDomain)
-            .collect(Collectors.toList());
+        categories.stream().map(CategoryResponse::fromDomain).collect(Collectors.toList());
     return ResponseEntity.ok(responses);
   }
 

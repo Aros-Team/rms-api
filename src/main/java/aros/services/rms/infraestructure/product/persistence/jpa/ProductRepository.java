@@ -34,4 +34,30 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
       "SELECT p FROM Product p WHERE p.selectionType = 'STANDARD' AND p.category.id IN"
           + " :categoryIds")
   List<Product> findByCategoryIdInStandard(@Param("categoryIds") List<Long> categoryIds);
+
+  /**
+   * Searches products by partial case-insensitive match against name, description, or
+   * category.name, combining optional category / active / selection filters in the DB.
+   *
+   * @param search the partial, case-insensitive term (wrapped in {@code %...%})
+   * @param categoryIds optional category filter; pass {@code null} to skip
+   * @param includeInactive when {@code true}, inactive products are also returned
+   * @param includeSelections when {@code true}, special selection products are also returned
+   * @param pageable pagination parameters
+   * @return page of matching products
+   */
+  @Query(
+      "SELECT p FROM Product p LEFT JOIN p.category c "
+          + "WHERE (LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) "
+          + "OR LOWER(p.description) LIKE LOWER(CONCAT('%', :search, '%')) "
+          + "OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%'))) "
+          + "AND (:includeInactive = true OR p.active = true) "
+          + "AND (:includeSelections = true OR p.selectionType = 'STANDARD') "
+          + "AND (:categoryIds IS NULL OR c.id IN :categoryIds)")
+  Page<Product> searchByNameOrDescriptionOrCategoryName(
+      @Param("search") String search,
+      @Param("categoryIds") List<Long> categoryIds,
+      @Param("includeInactive") boolean includeInactive,
+      @Param("includeSelections") boolean includeSelections,
+      Pageable pageable);
 }

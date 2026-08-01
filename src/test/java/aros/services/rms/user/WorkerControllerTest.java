@@ -191,6 +191,79 @@ class WorkerControllerTest {
   }
 
   // ---------------------------------------------------------------------------
+  // CT-G03: shouldReturn200_whenSearchingWorkersByName
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn200_whenSearchingWorkersByName() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createJwt("access", "ADMIN", null));
+
+    User worker1 = createWorker(1L, "John Doe", "john@example.com");
+    User worker2 = createWorker(2L, "Jane Doe", "jane@example.com");
+    when(getAllWorkersUseCase.getAllBySearch("Doe")).thenReturn(List.of(worker1, worker2));
+
+    mockMvc
+        .perform(get(WORKERS_URL).param("search", "Doe").header("Authorization", "Bearer token"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$[0].name").value("John Doe"))
+        .andExpect(jsonPath("$[1].name").value("Jane Doe"));
+  }
+
+  // ---------------------------------------------------------------------------
+  // CT-G04: shouldReturn200_whenSearchingWorkersByDocument
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn200_whenSearchingWorkersByDocument() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createJwt("access", "ADMIN", null));
+
+    User worker = createWorker(1L, "John Doe", "john@example.com");
+    when(getAllWorkersUseCase.getAllBySearch("1234")).thenReturn(List.of(worker));
+
+    mockMvc
+        .perform(get(WORKERS_URL).param("search", "1234").header("Authorization", "Bearer token"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0].name").value("John Doe"));
+  }
+
+  // ---------------------------------------------------------------------------
+  // CT-G05: shouldReturn200_whenSearchHasNoMatches
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn200_whenSearchHasNoMatches() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createJwt("access", "ADMIN", null));
+
+    when(getAllWorkersUseCase.getAllBySearch("nonexistent")).thenReturn(List.of());
+
+    mockMvc
+        .perform(
+            get(WORKERS_URL).param("search", "nonexistent").header("Authorization", "Bearer token"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isEmpty());
+  }
+
+  // ---------------------------------------------------------------------------
+  // CT-G06: shouldReturn200_whenSearchIsBlank
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn200_whenSearchIsBlank() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createJwt("access", "ADMIN", null));
+
+    User worker1 = createWorker(1L, "Worker One", "worker1@example.com");
+    User worker2 = createWorker(2L, "Worker Two", "worker2@example.com");
+    when(getAllWorkersUseCase.getAll()).thenReturn(List.of(worker1, worker2));
+
+    mockMvc
+        .perform(get(WORKERS_URL).param("search", "").header("Authorization", "Bearer token"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(2));
+  }
+
+  // ---------------------------------------------------------------------------
   // CT-C01: shouldReturn201_whenCreatingWorker
   // ---------------------------------------------------------------------------
 

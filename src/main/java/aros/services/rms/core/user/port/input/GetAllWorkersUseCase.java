@@ -13,4 +13,20 @@ public interface GetAllWorkersUseCase {
    * @return list of all workers
    */
   List<User> getAll();
+
+  /**
+   * Retrieves workers whose name or document contains the given string (case-insensitive).
+   *
+   * @param search the search term
+   * @return list of matching workers
+   */
+  List<User> getAllBySearch(String search);
+
+  /**
+   * Retrieves workers whose document contains the given string (case-insensitive).
+   *
+   * @param document the document substring
+   * @return list of matching workers
+   */
+  List<User> getAllByDocumentContainingIgnoreCase(String document);
 }

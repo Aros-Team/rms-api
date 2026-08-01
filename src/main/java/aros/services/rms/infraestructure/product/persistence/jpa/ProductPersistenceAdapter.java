@@ -86,4 +86,19 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
         .map(productMapper::toProductDomain)
         .collect(Collectors.toList());
   }
+
+  @Override
+  public Page<Product> searchByNameOrDescriptionOrCategoryName(
+      String search,
+      List<Long> categoryIds,
+      boolean includeInactive,
+      boolean includeSelections,
+      Pageable pageable) {
+    List<Long> effectiveCategoryIds =
+        (categoryIds == null || categoryIds.isEmpty()) ? null : categoryIds;
+    return productRepository
+        .searchByNameOrDescriptionOrCategoryName(
+            search, effectiveCategoryIds, includeInactive, includeSelections, pageable)
+        .map(productMapper::toProductDomain);
+  }
 }

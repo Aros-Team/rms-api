@@ -147,6 +147,34 @@ public class CreateSupplierService
   }
 
   /**
+   * Finds suppliers whose names contain the supplied text, ignoring case.
+   *
+   * @param name partial supplier name
+   * @return matching suppliers
+   */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public List<Supplier> findByNameContainingIgnoreCase(String name) {
+    return supplierRepositoryPort.findByNameContainingIgnoreCase(name);
+  }
+
+  /**
+   * Recovers from DataAccessException during supplier name search.
+   *
+   * @param e the exception
+   * @param name the partial supplier name
+   * @return never returns, throws ServiceUnavailableException
+   */
+  @Recover
+  public List<Supplier> recoverFindByNameContainingIgnoreCase(DataAccessException e, String name) {
+    log.warn("DB unavailable - fallback supplier search(name={}): {}", name, e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  /**
    * Finds a supplier by its identifier.
    *
    * @param id supplier identifier

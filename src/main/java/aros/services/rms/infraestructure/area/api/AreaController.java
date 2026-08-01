@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** REST controller for preparation area management. */
@@ -100,14 +101,17 @@ public class AreaController {
   }
 
   /**
-   * Gets all areas.
+   * Gets all areas, optionally filtered by name.
    *
+   * @param search optional name filter (partial, case-insensitive)
    * @return the list of areas
    */
   @Operation(
       tags = {"Areas"},
       summary = "Get all areas",
-      description = "Returns all preparation areas in the restaurant.",
+      description =
+          "Returns all preparation areas in the restaurant. "
+              + "Optionally filters by name (partial, case-insensitive).",
       responses = {
         @ApiResponse(responseCode = "200", description = "Areas retrieved successfully"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -115,9 +119,20 @@ public class AreaController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
-  public ResponseEntity<List<AreaResponse>> findAll() {
+  public ResponseEntity<List<AreaResponse>> findAll(
+      @Parameter(
+              description = "Optional name filter (partial, case-insensitive)",
+              example = "kitchen")
+          @RequestParam(required = false)
+          String search) {
+    List<Area> areas;
+    if (search != null && !search.isBlank()) {
+      areas = areaUseCase.findByNameContainingIgnoreCase(search);
+    } else {
+      areas = areaUseCase.findAll();
+    }
     List<AreaResponse> responses =
-        areaUseCase.findAll().stream().map(AreaResponse::fromDomain).collect(Collectors.toList());
+        areas.stream().map(AreaResponse::fromDomain).collect(Collectors.toList());
     return ResponseEntity.ok(responses);
   }
 

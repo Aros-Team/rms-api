@@ -151,6 +151,33 @@ public class AreaService implements AreaUseCase {
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /** {@inheritDoc} */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public List<Area> findByNameContainingIgnoreCase(String name) {
+    return areaRepositoryPort.findByNameContainingIgnoreCase(name);
+  }
+
+  /**
+   * Recovery handler for findByNameContainingIgnoreCase operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param name the name substring
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
+  @Recover
+  public List<Area> recoverFindByNameContainingIgnoreCase(DataAccessException e, String name) {
+    log.warn(
+        "BD no disponible - fallback para findByNameContainingIgnoreCase(name={}): {}",
+        name,
+        e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
   /** {@inheritDoc} Toggles the enabled flag to control whether the area receives new products. */
   @Override
   @Retryable(

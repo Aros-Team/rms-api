@@ -8,7 +8,9 @@ import aros.services.rms.core.category.port.input.OptionCategoryUseCase;
 import aros.services.rms.core.category.port.output.OptionCategoryRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.retry.annotation.Backoff;
@@ -74,6 +76,8 @@ public class OptionCategoryService implements OptionCategoryUseCase {
 
     existing.setName(optionCategory.getName());
     existing.setDescription(optionCategory.getDescription());
+    existing.setSelectionType(optionCategory.getSelectionType());
+    existing.setReplaceSupplyCategoryId(optionCategory.getReplaceSupplyCategoryId());
 
     OptionCategory saved = optionCategoryRepositoryPort.save(existing);
     logger.info("OptionCategory updated: id={}, name={}", saved.getId(), saved.getName());
@@ -92,6 +96,25 @@ public class OptionCategoryService implements OptionCategoryUseCase {
       backoff = @Backoff(delay = 1000))
   public List<OptionCategory> findAll() {
     return optionCategoryRepositoryPort.findAll();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public List<OptionCategory> findByNameContainingIgnoreCase(String name) {
+    return optionCategoryRepositoryPort.findByNameContainingIgnoreCase(name);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Map<Long, String> loadSelectionTypesByIds(Collection<Long> ids) {
+    if (ids == null || ids.isEmpty()) {
+      return Map.of();
+    }
+    return optionCategoryRepositoryPort.loadSelectionTypesByIds(ids);
   }
 
   /**

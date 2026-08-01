@@ -36,6 +36,14 @@ public interface CategoryUseCase {
   List<Category> findAll();
 
   /**
+   * Finds product categories whose name contains the given string (case-insensitive).
+   *
+   * @param name the partial name to search for
+   * @return list of matching categories
+   */
+  List<Category> findByNameContainingIgnoreCase(String name);
+
+  /**
    * Retrieves a product category by its id.
    *
    * @param id the category id

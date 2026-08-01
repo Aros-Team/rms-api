@@ -140,6 +140,36 @@ public class TableService implements TableUseCase {
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 
+  /** {@inheritDoc} */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public List<Table> findByTableNumberContainingIgnoreCase(String tableNumber) {
+    return tableRepositoryPort.findByTableNumberContainingIgnoreCase(tableNumber);
+  }
+
+  /**
+   * Recovery handler for findByTableNumberContainingIgnoreCase operation when database is
+   * unavailable.
+   *
+   * @param e the data access exception
+   * @param tableNumber the table number substring
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
+  @Recover
+  public List<Table> recoverFindByTableNumberContainingIgnoreCase(
+      DataAccessException e, String tableNumber) {
+    log.warn(
+        "BD no disponible - fallback para findByTableNumberContainingIgnoreCase("
+            + "tableNumber={}): {}",
+        tableNumber,
+        e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
   /**
    * Finds a table by its identifier.
    *

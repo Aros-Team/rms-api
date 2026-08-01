@@ -34,6 +34,15 @@ public interface PurchaseOrderRepositoryPort {
   List<PurchaseOrder> findAll();
 
   /**
+   * Finds orders whose notes or supplier name contain the supplied text, ignoring case.
+   *
+   * @param search partial notes or supplier name
+   * @return matching purchase orders
+   */
+  List<PurchaseOrder> findByNotesContainingIgnoreCaseOrSupplierNameContainingIgnoreCase(
+      String search);
+
+  /**
    * Finds orders by supplier ID.
    *
    * @param supplierId the supplier ID

@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** REST controller for supplier / distributor management. */
@@ -108,14 +109,16 @@ public class SupplierController {
   }
 
   /**
-   * Lists all suppliers.
+   * Lists suppliers, optionally filtering by name.
    *
+   * @param search optional partial supplier name
    * @return the list of suppliers
    */
   @Operation(
       tags = {"Suppliers"},
       summary = "List all suppliers",
-      description = "Returns all suppliers regardless of their active status.",
+      description =
+          "Returns all suppliers regardless of their active status. Optionally filters by name.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Suppliers retrieved successfully"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -123,11 +126,18 @@ public class SupplierController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
-  public ResponseEntity<List<SupplierResponse>> findAll() {
+  public ResponseEntity<List<SupplierResponse>> findAll(
+      @Parameter(
+              description = "Optional name filter (partial, case-insensitive)",
+              example = "Mayorista")
+          @RequestParam(required = false)
+          String search) {
+    List<Supplier> suppliers =
+        search != null && !search.isBlank()
+            ? getSuppliersUseCase.findByNameContainingIgnoreCase(search)
+            : getSuppliersUseCase.findAll();
     List<SupplierResponse> responses =
-        getSuppliersUseCase.findAll().stream()
-            .map(SupplierResponse::fromDomain)
-            .collect(Collectors.toList());
+        suppliers.stream().map(SupplierResponse::fromDomain).collect(Collectors.toList());
     return ResponseEntity.ok(responses);
   }
 }

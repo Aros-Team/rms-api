@@ -15,6 +15,7 @@ import aros.services.rms.core.product.domain.ProductCostBreakdown;
 import aros.services.rms.core.product.port.input.CalculateProductCostUseCase;
 import aros.services.rms.core.product.port.input.GetProductCostBreakdownUseCase;
 import aros.services.rms.core.product.port.input.ProductUseCase;
+import aros.services.rms.infraestructure.product.api.dto.OptionExtrasRequest;
 import aros.services.rms.infraestructure.product.api.dto.ProductCostResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductOptionResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductRequest;
@@ -101,6 +102,7 @@ public class ProductController {
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())
             .optionIds(request.optionIds())
+            .optionExtras(mapOptionExtras(request.optionExtras()))
             .recipe(recipe)
             .estimatedPrepMinutes(request.estimatedPrepMinutes())
             .build();
@@ -142,6 +144,7 @@ public class ProductController {
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())
             .optionIds(request.optionIds())
+            .optionExtras(mapOptionExtras(request.optionExtras()))
             .recipe(recipe)
             .estimatedPrepMinutes(request.estimatedPrepMinutes())
             .build();
@@ -158,6 +161,7 @@ public class ProductController {
    * @param size page size (default 20, max 100)
    * @param includeInactive if true, include inactive products (default false)
    * @param includeSelections if true, include special selection products (default false)
+   * @param search optional name/description/category filter (partial, case-insensitive)
    * @return the list of products
    */
   @Operation(
@@ -167,7 +171,10 @@ public class ProductController {
           "Returns a paginated list of products. "
               + "By default only returns active standard products. "
               + "Can be filtered by category using the 'categories' parameter. "
-              + "Use includeSelections=true to also return special selection products.",
+              + "Use includeSelections=true to also return special selection products. "
+              + "When 'search' is provided, filters by product name, description, "
+              + "and category name (partial, case-insensitive) — the filter is applied "
+              + "against the full DB before pagination.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Products retrieved successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid pagination parameters"),
@@ -193,7 +200,12 @@ public class ProductController {
               description = "Include special selection products (default false)",
               example = "false")
           @RequestParam(defaultValue = "false")
-          boolean includeSelections) {
+          boolean includeSelections,
+      @Parameter(
+              description = "Optional name/description/category filter (partial, case-insensitive)",
+              example = "burger")
+          @RequestParam(required = false)
+          String search) {
     if (page < 0) {
       throw new IllegalArgumentException("Page parameter must be greater than or equal to 0");
     }
@@ -202,7 +214,12 @@ public class ProductController {
     }
     var pageable = PageRequest.of(page, size);
     Page<ProductResponse> responses;
-    if (categories == null || categories.isEmpty()) {
+    if (search != null && !search.isBlank()) {
+      Page<Product> products =
+          productUseCase.search(search, categories, includeInactive, includeSelections, pageable);
+      responses =
+          new PageImpl<>(toResponses(products.getContent()), pageable, products.getTotalElements());
+    } else if (categories == null || categories.isEmpty()) {
       if (includeInactive) {
         List<Product> allProducts = productUseCase.findAll();
         int start = (int) pageable.getOffset();
@@ -443,5 +460,24 @@ public class ProductController {
                     .requiredQuantity(item.requiredQuantity())
                     .build())
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Maps a list of {@link OptionExtrasRequest} to a domain map keyed by option id. Null or empty
+   * input yields a null map (so the service treats the request as having no surcharge overrides).
+   *
+   * @param optionExtras the per-option surcharge requests
+   * @return option-id → surcharge Money map, or null when no surcharges were supplied
+   */
+  private Map<Long, Money> mapOptionExtras(List<OptionExtrasRequest> optionExtras) {
+    if (optionExtras == null || optionExtras.isEmpty()) {
+      return null;
+    }
+    return optionExtras.stream()
+        .collect(
+            Collectors.toMap(
+                OptionExtrasRequest::optionId,
+                OptionExtrasRequest::toMoney,
+                (first, ignored) -> first));
   }
 }

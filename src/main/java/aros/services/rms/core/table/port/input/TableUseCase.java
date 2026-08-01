@@ -37,6 +37,14 @@ public interface TableUseCase {
   List<Table> findAll();
 
   /**
+   * Retrieves tables whose table number contains the given string (case-insensitive).
+   *
+   * @param tableNumber the table number substring
+   * @return list of matching tables
+   */
+  List<Table> findByTableNumberContainingIgnoreCase(String tableNumber);
+
+  /**
    * Finds a table by its identifier.
    *
    * @param id the table identifier

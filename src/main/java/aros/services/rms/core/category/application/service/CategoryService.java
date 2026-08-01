@@ -109,6 +109,16 @@ public class CategoryService implements CategoryUseCase {
     return categoryRepositoryPort.findAll();
   }
 
+  /** {@inheritDoc} */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public List<Category> findByNameContainingIgnoreCase(String name) {
+    return categoryRepositoryPort.findByNameContainingIgnoreCase(name);
+  }
+
   /**
    * Recovery handler for findAll operation when database is unavailable.
    *

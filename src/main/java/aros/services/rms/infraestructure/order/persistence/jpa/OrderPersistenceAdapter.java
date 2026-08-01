@@ -152,6 +152,41 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
     return new OrderQueryResult(domains, result.getTotalElements(), page, size);
   }
 
+  @Override
+  public OrderQueryResult findOrdersPage(
+      List<OrderStatus> statuses,
+      String search,
+      LocalDateTime startDate,
+      LocalDateTime endDate,
+      int page,
+      int size,
+      String sort) {
+    Sort springSort = parseSort(sort);
+    PageRequest pageable = PageRequest.of(page, size, springSort);
+
+    List<aros.services.rms.infraestructure.order.persistence.OrderStatus> infraStatuses =
+        statuses == null || statuses.isEmpty()
+            ? null
+            : statuses.stream()
+                .map(
+                    s ->
+                        aros.services.rms.infraestructure.order.persistence.OrderStatus.valueOf(
+                            s.name()))
+                .collect(Collectors.toList());
+    String normalizedSearch = search == null || search.isBlank() ? null : search.trim();
+    LocalDateTime normalizedStartDate = startDate != null && endDate != null ? startDate : null;
+    LocalDateTime normalizedEndDate = startDate != null && endDate != null ? endDate : null;
+
+    Page<aros.services.rms.infraestructure.order.persistence.Order> result =
+        orderRepository.findByFilters(
+            infraStatuses, normalizedSearch, normalizedStartDate, normalizedEndDate, pageable);
+
+    List<Order> domains =
+        result.getContent().stream().map(orderMapper::toDomain).collect(Collectors.toList());
+
+    return new OrderQueryResult(domains, result.getTotalElements(), page, size);
+  }
+
   private static Sort parseSort(String sort) {
     if (sort == null || sort.isBlank()) {
       return Sort.by(Sort.Direction.DESC, "date");

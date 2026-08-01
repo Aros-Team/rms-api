@@ -66,4 +66,16 @@ public interface JpaUserRepository extends JpaRepository<UserEntity, Long> {
       "SELECT DISTINCT u FROM UserEntity u JOIN u.assignedAreas a "
           + "WHERE a.id = :areaId AND u.deletedAt IS NULL")
   List<UserEntity> findActiveByAreaId(@Param("areaId") Long areaId);
+
+  /** Finds users whose name contains the given string (case-insensitive), not deleted. */
+  @Query(
+      "SELECT u FROM UserEntity u WHERE LOWER(u.name) LIKE LOWER(CONCAT('%"
+          + "', :name, '%')) AND u.deletedAt IS NULL")
+  List<UserEntity> findByNameContainingIgnoreCase(@Param("name") String name);
+
+  /** Finds users whose document contains the given string (case-insensitive), not deleted. */
+  @Query(
+      "SELECT u FROM UserEntity u WHERE LOWER(u.document) LIKE LOWER(CONCAT('%"
+          + "', :document, '%')) AND u.deletedAt IS NULL")
+  List<UserEntity> findByDocumentContainingIgnoreCase(@Param("document") String document);
 }

@@ -3,6 +3,7 @@
 package aros.services.rms.inventory;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -283,5 +284,94 @@ class SupplyCatalogControllerTest extends AbstractJwtIntegrationTest {
     mockMvc
         .perform(get("/api/v1/supplies/variants").param("size", "101"))
         .andExpect(status().isBadRequest());
+  }
+
+  // ---------------------------------------------------------------------------
+  // E-I-08: shouldReturn200_withVariantsFilteredBySearch
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn200_withVariantsFilteredBySearch() throws Exception {
+    SupplyCategoryEntity category = SupplyCategoryEntity.builder().id(1L).name("Proteínas").build();
+
+    SupplyEntity supply =
+        SupplyEntity.builder().id(3L).name("Carne de Res").category(category).build();
+
+    UnitOfMeasureEntity unit =
+        UnitOfMeasureEntity.builder().id(2L).name("Kilogramo").abbreviation("kg").build();
+
+    SupplyVariantEntity variant =
+        SupplyVariantEntity.builder()
+            .id(7L)
+            .supply(supply)
+            .unit(unit)
+            .quantity(new BigDecimal("0.500"))
+            .build();
+
+    when(supplyVariantRepository.findByNameContainingIgnoreCase(eq("carne"), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(variant)));
+    when(storageLocationRepository.findByName(any())).thenReturn(Optional.empty());
+
+    mockMvc
+        .perform(get("/api/v1/supplies/variants").param("search", "carne"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content[0].id").value(7))
+        .andExpect(jsonPath("$.content[0].supplyName").value("Carne de Res"))
+        .andExpect(jsonPath("$.page.totalElements").value(1));
+  }
+
+  // ---------------------------------------------------------------------------
+  // E-I-09: shouldReturn200_withVariantsFilteredBySearchAndSupplyId
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn200_withVariantsFilteredBySearchAndSupplyId() throws Exception {
+    SupplyCategoryEntity category = SupplyCategoryEntity.builder().id(1L).name("Proteínas").build();
+
+    SupplyEntity supply =
+        SupplyEntity.builder().id(3L).name("Carne de Res").category(category).build();
+
+    UnitOfMeasureEntity unit =
+        UnitOfMeasureEntity.builder().id(2L).name("Kilogramo").abbreviation("kg").build();
+
+    SupplyVariantEntity variant =
+        SupplyVariantEntity.builder()
+            .id(7L)
+            .supply(supply)
+            .unit(unit)
+            .quantity(new BigDecimal("0.500"))
+            .build();
+
+    when(supplyVariantRepository.findBySupplyIdAndNameContainingIgnoreCase(
+            eq(3L), eq("carne"), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(variant)));
+    when(storageLocationRepository.findByName(any())).thenReturn(Optional.empty());
+
+    mockMvc
+        .perform(get("/api/v1/supplies/variants").param("supplyId", "3").param("search", "carne"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content[0].id").value(7))
+        .andExpect(jsonPath("$.content[0].supplyId").value(3))
+        .andExpect(jsonPath("$.page.totalElements").value(1));
+  }
+
+  // ---------------------------------------------------------------------------
+  // E-I-10: shouldReturn200_withEmptyPage_whenSearchHasNoMatches
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn200_withEmptyPage_whenSearchHasNoMatches() throws Exception {
+    when(supplyVariantRepository.findByNameContainingIgnoreCase(
+            eq("nonexistent"), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of()));
+
+    mockMvc
+        .perform(get("/api/v1/supplies/variants").param("search", "nonexistent"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content").isEmpty())
+        .andExpect(jsonPath("$.page.totalElements").value(0));
   }
 }

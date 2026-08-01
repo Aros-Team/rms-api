@@ -13,4 +13,20 @@ public interface WorkerRepositoryPort {
    * @return list of all workers
    */
   List<User> findAllWorkers();
+
+  /**
+   * Finds workers whose name contains the given string (case-insensitive).
+   *
+   * @param name the name substring
+   * @return list of matching workers
+   */
+  List<User> findByNameContainingIgnoreCase(String name);
+
+  /**
+   * Finds workers whose document contains the given string (case-insensitive).
+   *
+   * @param document the document substring
+   * @return list of matching workers
+   */
+  List<User> findByDocumentContainingIgnoreCase(String document);
 }

@@ -28,6 +28,7 @@ import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,6 +98,99 @@ class ProductUseCaseImplTest {
     assertNotNull(result);
     assertEquals(1L, result.getId());
     assertEquals("Burger", result.getName());
+  }
+
+  @Test
+  void shouldUpsertOptionAssociationsWithExtraPriceAndDisplayOrderOnCreate() {
+    when(areaRepositoryPort.existsById(1L)).thenReturn(true);
+    when(categoryRepositoryPort.existsById(1L)).thenReturn(true);
+    Product saved =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .active(true)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .build();
+    when(productRepositoryPort.save(any(Product.class))).thenReturn(saved);
+
+    Product product =
+        Product.builder()
+            .name("Burger")
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .category(Category.builder().id(1L).build())
+            .preparationAreaId(1L)
+            .optionIds(List.of(10L, 11L))
+            .optionExtras(
+                Map.of(11L, new Money(new BigDecimal("2500.00"), Currency.getInstance("COP"))))
+            .build();
+
+    productUseCase.create(product);
+
+    org.mockito.Mockito.verify(productOptionRepositoryPort)
+        .upsertOptionAssociation(1L, 10L, new BigDecimal("0.00"), 0);
+    org.mockito.Mockito.verify(productOptionRepositoryPort)
+        .upsertOptionAssociation(1L, 11L, new BigDecimal("2500.00"), 1);
+  }
+
+  @Test
+  void shouldAppendOptionExtrasEntriesNotInOptionIdsOnCreate() {
+    when(areaRepositoryPort.existsById(1L)).thenReturn(true);
+    when(categoryRepositoryPort.existsById(1L)).thenReturn(true);
+    Product saved =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .active(true)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .build();
+    when(productRepositoryPort.save(any(Product.class))).thenReturn(saved);
+
+    Product product =
+        Product.builder()
+            .name("Burger")
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .category(Category.builder().id(1L).build())
+            .preparationAreaId(1L)
+            .optionExtras(
+                Map.of(20L, new Money(new BigDecimal("1000.00"), Currency.getInstance("COP"))))
+            .build();
+
+    productUseCase.create(product);
+
+    org.mockito.Mockito.verify(productOptionRepositoryPort)
+        .upsertOptionAssociation(1L, 20L, new BigDecimal("1000.00"), 0);
+  }
+
+  @Test
+  void shouldReplaceAllOptionsAndApplyExtraPricesOnUpdate() {
+    Product existing =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .active(true)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .build();
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(existing));
+    when(areaRepositoryPort.existsById(1L)).thenReturn(true);
+    when(categoryRepositoryPort.existsById(1L)).thenReturn(true);
+    when(productRepositoryPort.save(any(Product.class))).thenReturn(existing);
+
+    Product update =
+        Product.builder()
+            .name("Burger XL")
+            .basePrice(new Money(BigDecimal.valueOf(15.0), Currency.getInstance("COP")))
+            .category(Category.builder().id(1L).build())
+            .preparationAreaId(1L)
+            .optionIds(List.of(5L))
+            .optionExtras(
+                Map.of(5L, new Money(new BigDecimal("500.00"), Currency.getInstance("COP"))))
+            .build();
+
+    productUseCase.update(1L, update);
+
+    org.mockito.Mockito.verify(productOptionRepositoryPort).removeAllOptionsFromProduct(1L);
+    org.mockito.Mockito.verify(productOptionRepositoryPort)
+        .upsertOptionAssociation(1L, 5L, new BigDecimal("500.00"), 0);
   }
 
   @Test

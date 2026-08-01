@@ -94,4 +94,23 @@ public interface ProductUseCase {
    * @return page of active products
    */
   Page<Product> findAllActive(Pageable pageable, boolean includeSelections);
+
+  /**
+   * Searches products by a partial, case-insensitive term matched against name, description, and
+   * category.name. Filters and pagination are applied in the database so the count is correct
+   * across the full result set.
+   *
+   * @param search the search term (required, non-blank)
+   * @param categoryIds optional category filter; {@code null} or empty means no category filter
+   * @param includeInactive when {@code false}, inactive products are excluded
+   * @param includeSelections when {@code false}, only standard selection products are returned
+   * @param pageable pagination parameters
+   * @return a page of products matching the criteria
+   */
+  Page<Product> search(
+      String search,
+      List<Long> categoryIds,
+      boolean includeInactive,
+      boolean includeSelections,
+      Pageable pageable);
 }

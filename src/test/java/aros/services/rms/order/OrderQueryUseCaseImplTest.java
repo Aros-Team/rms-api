@@ -225,6 +225,57 @@ class OrderQueryUseCaseImplTest {
   }
 
   @Test
+  void shouldFindOrdersPageByProductNameSearch() {
+    OrderQueryResult expected =
+        new OrderQueryResult(List.of(Order.builder().id(1L).build()), 1L, 0, 20);
+
+    when(orderRepositoryPort.findOrdersPage(List.of(), "burger", null, null, 0, 20, "date,desc"))
+        .thenReturn(expected);
+
+    OrderQueryResult result =
+        orderQueryUseCase.findOrdersPage(List.of(), "burger", null, null, 0, 20, "date,desc");
+
+    assertEquals(1, result.items().size());
+    assertEquals(1L, result.total());
+    verify(orderRepositoryPort).findOrdersPage(List.of(), "burger", null, null, 0, 20, "date,desc");
+  }
+
+  @Test
+  void shouldReturnEmptyPage_whenSearchHasNoMatches() {
+    OrderQueryResult expected = new OrderQueryResult(List.of(), 0L, 0, 20);
+
+    when(orderRepositoryPort.findOrdersPage(List.of(), "unknown", null, null, 0, 20, "date,desc"))
+        .thenReturn(expected);
+
+    OrderQueryResult result =
+        orderQueryUseCase.findOrdersPage(List.of(), "unknown", null, null, 0, 20, "date,desc");
+
+    assertEquals(0, result.items().size());
+    assertEquals(0L, result.total());
+  }
+
+  @Test
+  void shouldCombineSearchWithStatusesAndDateRange() {
+    LocalDateTime startDate = LocalDateTime.now().minusDays(7);
+    LocalDateTime endDate = LocalDateTime.now();
+    List<OrderStatus> statuses = List.of(OrderStatus.READY);
+    OrderQueryResult expected =
+        new OrderQueryResult(
+            List.of(Order.builder().id(1L).status(OrderStatus.READY).build()), 1L, 0, 20);
+
+    when(orderRepositoryPort.findOrdersPage(
+            statuses, "cheese", startDate, endDate, 0, 20, "date,desc"))
+        .thenReturn(expected);
+
+    OrderQueryResult result =
+        orderQueryUseCase.findOrdersPage(
+            statuses, "cheese", startDate, endDate, 0, 20, "date,desc");
+
+    assertEquals(1, result.items().size());
+    assertEquals(OrderStatus.READY, result.items().get(0).getStatus());
+  }
+
+  @Test
   void shouldThrowException_whenEndDateIsInFuture_forFindOrdersPage() {
     LocalDateTime startDate = LocalDateTime.now().minusDays(7);
     LocalDateTime endDate = LocalDateTime.now().plusDays(1);

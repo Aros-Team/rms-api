@@ -42,4 +42,11 @@ public class TablePersistenceAdapter implements TableRepositoryPort {
   public boolean existsByTableNumber(Integer tableNumber) {
     return tableRepository.existsByTableNumber(tableNumber);
   }
+
+  @Override
+  public List<Table> findByTableNumberContainingIgnoreCase(String tableNumber) {
+    return tableRepository.findByTableNumberContainingIgnoreCase(tableNumber).stream()
+        .map(tableMapper::toDomain)
+        .collect(Collectors.toList());
+  }
 }

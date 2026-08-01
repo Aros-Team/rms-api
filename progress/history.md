@@ -337,3 +337,122 @@ src/test/java/aros/services/rms/core/analytics/application/config/RollupDailyJob
 - Bandeja Paisa, Sancocho de Gallina, Ajiaco Santafereño → category_id=2
 - FK-safe cascade renumbering applied
 - `./harness/harness.sh` exit 0
+
+---
+
+## 2026-07-31 — CHECKPOINT (activity 1 `data-sql-quality`, still in_progress)
+
+**Session closed with activity 1 NOT finished.** State carried in `activities.json` (id 1, in_progress; tasks b and d in_progress, e pending). Copy of its in-flight audit findings below so `progress/current.md` can be repurposed for activity 2.
+
+**Audit findings (from the planning session 2026-07-30):**
+- Counts: supplies 68, supply_variants 74, inventory_stock 148, categories 6, products 21 (IDs 1-21), option_categories 17, product_options 49 (IDs 1-49), product_recipes 17 (only products 1-5), option_recipes 43 (some reference non-existent option_ids 50-58), product_product_options 49 (only products 1-5).
+- Bugs: (1) supply_categories food_type mismatch with V33 (names 'Vegetales y Frescos'/'Frutas y Pulpas' vs V33's exact-match names) → near-zero prime-cost breakdown; (2) option_recipes referencing option_ids 50-58 that do not exist → COGS-over-options pipeline dead; (3) products 6-21 lack product_recipes; (4) products 6-21 lack product_product_options; (5) monthly labor figures don't reconcile with headcount/salaries (16.2M baseline); (6) inventory_movements DEDUCTION joins product_recipes → COGS = 0 for the 16 products without recipes.
+- Decisions: do NOT touch shipped Flyway migrations; backfill via idempotent UPDATE at top of data.sql; keep INSERT IGNORE for base seeds; Q2/July blocks delete-before-insert; no new tables/columns (data.sql only).
+
+**Remaining tasks:** b (product_recipes for 6-21), d (labor recompute), e (reviewer + harness).
+
+---
+
+## 2026-07-31 (later) — Activity 1 CLOSED: data-sql-quality
+
+**Outcome:** all 10 acceptance items independently verified, harness 8/8 `[OK]`, **zero Flyway migrations touched** (`git diff --stat src/main/resources/db/migration/` empty), reviewer verdict PASS.
+
+**What landed**
+- `src/main/resources/data.sql` only:
+  - lines 29-31: idempotent UPDATE backfills V23 `supply_categories.food_type` (closes V33 gap; 15 categories).
+  - task-b: `product_recipes` 130 rows covering all 21 products (min 4, max 9 ingredients). Cost ratio 15.0-47.6% of base_price.
+  - task-c: `product_product_options` 186 rows + `option_recipes` 45 rows (option_ids 1-49, FK-valid).
+  - **task-c2 fix (this session, lines 746-753):** products 9/10/11 (Platos Típicos) gained guarnición options 38/39/40 so every product 1-21 has ≥ 1 option (closes acceptance #2).
+  - task-d: Q2 labor 16,200,000 / month; July labor 14,109,677, `data_completeness='PARTIAL'`.
+- `activities.json`: task e `done`, activity 1 `done`.
+- `progress/explore/task-b-fix-report.md`: c2 fix report.
+
+**Files touched:** `src/main/resources/data.sql`, `progress/history.md`, `activities.json`. No migration.
+
+**Migration safety applied:** none needed (data.sql only); future activities must keep this discipline — additive-only schemas (DEFAULTs, nullable), no DROP / no NOT NULL w/o DEFAULT on populated tables.
+
+**Next:** Activity 2 (`feat/option-cost-selection-modes`) — 4 phases (A cost, B model+selection-mode+migration V37, C orders+pricing, D inventory+menu-eng math). V37 migration must remain additive.
+
+---
+
+## 2026-08-01 — Activity 2 CLOSED: option-cost-selection-modes
+
+**Outcome:** all 13 acceptance items independently verified, reviewer verdict **PASS** (502 tests / 0 failures, harness 8/8 `[OK]`). Migrations V37 + V38 forward-only additive — no DROP/RENAME/MODIFY; NOT NULL columns carry explicit DEFAULTs so populated DBs are safe.
+
+**What landed (4 phases)**
+- **Phase A (task a)** — cost/read-only:
+  - `OptionRecipeRepositoryPort.loadMaterialCostByOptionIds(ids)` → `Map<Long, Money>` via ONE native batch query (`SUM(required_quantity * unit_cost) GROUP BY option_id`), no N+1.
+  - `ProductOptionResponse` += cost / extraPrice / categorySelectionType; `OptionCategoryResponse` += selectionType.
+  - `GET /api/v1/products/{id}/cost-breakdown` → baseCost, options[], categories[] (defaultSlotCost/slotProjectedCost/projectedContribution), projectedOptionCost, projectedEffectiveCost.
+  - Projection rules: substitution `(default+Σ)/(1+n)`, contribution `= slot − default` (base always counted); SINGLE_CHOICE w/o replace + MULTI_SELECT → AVG; EXTRA excluded from effective cost (shown individually); REMOVE excluded.
+  - V37-aware adapter: pre-V37 literal fallback (`SINGLE_CHOICE`, NULL slot) removed in Phase B after V37 landed.
+- **Phase B (task b)** — model + V37:
+  - `V37__option_categories_selection_mode.sql`: `ADD COLUMN selection_type VARCHAR(20) NOT NULL DEFAULT 'SINGLE_CHOICE'` + `ADD COLUMN replace_supply_category_id BIGINT NULL` + FK `ON DELETE SET NULL`.
+  - `OptionSelectionType` enum in `core/category/domain` (SINGLE_CHOICE/MULTI_SELECT/EXTRA/REMOVE); `OptionCategory` domain/entity/mapper carry both fields.
+  - `associateOptionToProduct` upsert now writes `product_product_options.extra_price` + `display_order` (V25 columns reactivated).
+  - `ProductRequest` += `optionExtras: [{optionId, extraPrice}]` (kept `optionIds`).
+- **Phase C (task c)** — orders + V38:
+  - `V38__order_detail_options_extra_price.sql`: `ADD COLUMN extra_price DECIMAL(10,2) NOT NULL DEFAULT 0`.
+  - `@ManyToMany` → `OrderDetailOption` join entity (EmbeddedId on existing table; no PK/FK changes).
+  - `TakeOrderService`: `unitPrice = basePrice + Σ extra_price` of selected EXTRA options; `OrderDetail.extraCharge` persisted (per-row `order_detail_options.extra_price`) + exposed on `OrderResponse`.
+  - SINGLE_CHOICE max-1 → `SingleChoiceCategoryLimitException` → HTTP 400.
+- **Phase D (task d)** — semantics (zero migrations):
+  - Inventory `isAvailable` / `deductForOrder`: substitution removes base-recipe lines in `replace_supply_category` + adds option recipe; REMOVE subtracts; others add; no selection → base intact.
+  - `MenuEngineeringAggregationJpaAdapter.loadAvgOptionCostByProduct`: substitution contributes `optionCost − defaultSlotCost` (Phase A slot aggregation reused); REMOVE negative; extras/multi positive; zero-option order lines count in denominator.
+  - Fixed pre-staged compile break in `InventoryConfigBeans` (both services gained `ProductOptionRepositoryPort`).
+- **Task e (reviewer):** PASS. 5 minor non-blocking notes: 2 acceptance-text fixes applied (`Map<Long,Money>`, exception family); resilience masking in `loadExtraPricesByOptionId` (zero-surcharge fallback on RuntimeException — flagged for future); `ProductOptionResponse.fromDomain` CRUD hardcodes zero cost (out of scope); `extraCharge` derived at read time (not denormalized column).
+
+**Files:** `db/migration/V37__*.sql`, `V38__*.sql`; ~30 Java files (ports, services, adapters, controllers, DTOs, mappers, beans); 20+ test classes. Reports in `progress/explore/task-{a,b,c,d}-phase-*.md`.
+
+**Migration safety:** V37/V38 additive-only; verified by reviewer + leader (`git diff --stat db/migration/` shows only the two new untracked files).
+
+**Also closed in parallel:** activity 3 (`product-enable-endpoint`) — `PUT /products/{id}/enable` + tests, reviewer PASS.
+
+---
+
+## 2026-08-01 — Activity 4 CLOSED: manage-endpoints-search
+
+**Outcome:** all 7 acceptance items independently verified by implementation-reviewer, **verdict PASS**. Harness 8/8 `[OK]`, Spotless + Checkstyle green, full test suite green. Zero Flyway migrations touched.
+
+**Goal:** Add an optional server-side `?search=` (partial, case-insensitive) query parameter to 10 manage list endpoints that previously lacked one.
+
+**10 endpoints (all exposed, all DB-filtered):**
+
+| Endpoint | Filter target |
+|---|---|
+| `/api/v1/products` | name + description + category.name |
+| `/api/v1/supplies/variants` | supplyName |
+| `/api/v1/tables` | tableNumber + name |
+| `/api/v1/workers` | name + document |
+| `/api/v1/areas` | name |
+| `/api/v1/categories` | name |
+| `/api/v1/option-categories` | name |
+| `/api/v1/suppliers` | name |
+| `/api/v1/purchases` | notes + supplier name (precedence: supplierId > search > from/to > all) |
+| `/api/v1/orders` | product/option names (status + date range combine via AND) |
+
+**Deliverables**
+- 10 controllers updated: `@RequestParam(required = false) String search` with `@Parameter(description, example)` and `@Operation` updates.
+- 10 domain ports (`*RepositoryPort`) + 10 JPA repositories + 10 adapter mappings.
+- Purchase precedence (`supplierId` > `search` > `from/to` > all) explicitly tested.
+- Worker search diverges from brief (2-method `Stream.concat(...).distinct()` instead of single OR predicate in JPA) — flagged in `task-4c-report.md`, accepted as behavior-equivalent.
+- 11+ test files covering match / no-match / blank / combined / precedence paths.
+
+**Hexagonal preservation:** `domain/` subdirs contain no Spring/JPA imports; new port methods use only `org.springframework.data.domain.Page`/`Pageable` (pre-existing convention).
+
+**Task breakdown**
+- a (implementer) — supplies/variants
+- b (implementer) — categories + option-categories
+- c (implementer) — areas, tables, workers (audit + format fixes only; impl was already in tree)
+- d (implementer) — suppliers + purchases (precedence rules)
+- e (implementer) — products (DB-paged, count-correct across full result set)
+- f (implementer) — orders (JOIN order details + product/option names + countQuery)
+- g (reviewer) — PASS, harness 8/8 `[OK]`, all 7 acceptance items verified end-to-end
+
+**Reports:** `progress/explore/task-{a,b,c,d,e,f}-report.md`, `task-4g-review.md`.
+
+**Migration safety:** zero migrations (additive at API surface only).
+
+**Next:** Activity 2 (`feat/option-cost-selection-modes`) is still `blocked` per `activities.json` (awaiting unblock decision — phases C & D pending). Pipeline continues with task 2c → 2d → 2e.
+
+

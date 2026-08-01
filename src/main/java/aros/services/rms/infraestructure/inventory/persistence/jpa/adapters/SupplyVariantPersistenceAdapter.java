@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 /** Adapter that connects SupplyVariantRepositoryPort with JPA repository. */
@@ -35,5 +37,12 @@ public class SupplyVariantPersistenceAdapter implements SupplyVariantRepositoryP
     return supplyVariantRepository.findAllById(ids).stream()
         .map(supplyVariantMapper::toDomain)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public Page<SupplyVariant> findByNameContainingIgnoreCase(String name, Pageable pageable) {
+    return supplyVariantRepository
+        .findByNameContainingIgnoreCase(name, pageable)
+        .map(supplyVariantMapper::toDomain);
   }
 }

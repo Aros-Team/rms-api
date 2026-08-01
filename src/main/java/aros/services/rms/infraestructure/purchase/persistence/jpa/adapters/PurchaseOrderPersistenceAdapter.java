@@ -59,6 +59,16 @@ public class PurchaseOrderPersistenceAdapter implements PurchaseOrderRepositoryP
     return repository.findAll().stream().map(mapper::toDomain).collect(Collectors.toList());
   }
 
+  /** Returns purchase orders matching notes or supplier name within the same read-only session. */
+  @Override
+  @Transactional(readOnly = true)
+  public List<PurchaseOrder> findByNotesContainingIgnoreCaseOrSupplierNameContainingIgnoreCase(
+      String search) {
+    return repository.findByNotesOrSupplierNameContainingIgnoreCase(search).stream()
+        .map(mapper::toDomain)
+        .collect(Collectors.toList());
+  }
+
   /** Returns purchase orders for a supplier with items loaded within the same session. */
   @Override
   @Transactional(readOnly = true)

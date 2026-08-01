@@ -12,7 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -65,7 +66,7 @@ public class OptionCategoryController {
         OptionCategory.builder().name(request.name()).description(request.description()).build();
 
     OptionCategory created = optionCategoryUseCase.create(optionCategory);
-    return new ResponseEntity<>(OptionCategoryResponse.fromDomain(created), HttpStatus.CREATED);
+    return new ResponseEntity<>(toResponse(created), HttpStatus.CREATED);
   }
 
   /**
@@ -96,18 +97,21 @@ public class OptionCategoryController {
         OptionCategory.builder().name(request.name()).description(request.description()).build();
 
     OptionCategory updated = optionCategoryUseCase.update(id, optionCategory);
-    return ResponseEntity.ok(OptionCategoryResponse.fromDomain(updated));
+    return ResponseEntity.ok(toResponse(updated));
   }
 
   /**
-   * Gets all option categories.
+   * Gets all option categories, optionally filtered by name.
    *
+   * @param search optional name filter (partial, case-insensitive)
    * @return the list of option categories
    */
   @Operation(
       tags = {"Option Categories"},
       summary = "Get all option categories",
-      description = "Returns all option categories for customization.",
+      description =
+          "Returns all option categories for customization. "
+              + "Optionally filters by name (partial, case-insensitive).",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -117,11 +121,28 @@ public class OptionCategoryController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
-  public ResponseEntity<List<OptionCategoryResponse>> findAll() {
+  public ResponseEntity<List<OptionCategoryResponse>> findAll(
+      @Parameter(
+              description = "Optional name filter (partial, case-insensitive)",
+              example = "tamaño")
+          @RequestParam(required = false)
+          String search) {
+    List<OptionCategory> categories;
+    if (search != null && !search.isBlank()) {
+      categories = optionCategoryUseCase.findByNameContainingIgnoreCase(search);
+    } else {
+      categories = optionCategoryUseCase.findAll();
+    }
+    Map<Long, String> selectionTypes =
+        optionCategoryUseCase.loadSelectionTypesByIds(
+            categories.stream().map(OptionCategory::getId).toList());
     List<OptionCategoryResponse> responses =
-        optionCategoryUseCase.findAll().stream()
-            .map(OptionCategoryResponse::fromDomain)
-            .collect(Collectors.toList());
+        categories.stream()
+            .map(
+                category ->
+                    OptionCategoryResponse.fromDomain(
+                        category, selectionTypes.get(category.getId())))
+            .toList();
     return ResponseEntity.ok(responses);
   }
 
@@ -147,6 +168,14 @@ public class OptionCategoryController {
       @Parameter(description = "Option category ID", example = "1", required = true) @PathVariable
           Long id) {
     OptionCategory optionCategory = optionCategoryUseCase.findById(id);
-    return ResponseEntity.ok(OptionCategoryResponse.fromDomain(optionCategory));
+    return ResponseEntity.ok(toResponse(optionCategory));
+  }
+
+  private OptionCategoryResponse toResponse(OptionCategory category) {
+    String selectionType =
+        optionCategoryUseCase
+            .loadSelectionTypesByIds(List.of(category.getId()))
+            .get(category.getId());
+    return OptionCategoryResponse.fromDomain(category, selectionType);
   }
 }

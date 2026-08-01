@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** REST controller for table management. */
@@ -84,11 +85,18 @@ public class TableController {
     return ResponseEntity.ok(TableResponse.fromDomain(updated));
   }
 
-  /** Retrieves all tables. */
+  /**
+   * Retrieves all tables, optionally filtered by table number.
+   *
+   * @param search optional table number filter (partial, case-insensitive)
+   * @return the list of tables
+   */
   @Operation(
       tags = {"Tables"},
       summary = "Get all tables",
-      description = "Returns all tables in the restaurant.",
+      description =
+          "Returns all tables in the restaurant. "
+              + "Optionally filters by table number (partial, case-insensitive).",
       responses = {
         @ApiResponse(responseCode = "200", description = "Tables retrieved successfully"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -96,9 +104,20 @@ public class TableController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
-  public ResponseEntity<List<TableResponse>> findAll() {
+  public ResponseEntity<List<TableResponse>> findAll(
+      @Parameter(
+              description = "Optional table number filter (partial, case-insensitive)",
+              example = "1")
+          @RequestParam(required = false)
+          String search) {
+    List<Table> tables;
+    if (search != null && !search.isBlank()) {
+      tables = tableUseCase.findByTableNumberContainingIgnoreCase(search);
+    } else {
+      tables = tableUseCase.findAll();
+    }
     List<TableResponse> responses =
-        tableUseCase.findAll().stream().map(TableResponse::fromDomain).collect(Collectors.toList());
+        tables.stream().map(TableResponse::fromDomain).collect(Collectors.toList());
     return ResponseEntity.ok(responses);
   }
 

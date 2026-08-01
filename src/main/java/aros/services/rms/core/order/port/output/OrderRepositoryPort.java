@@ -71,7 +71,28 @@ public interface OrderRepositoryPort {
       OrderStatus status, LocalDateTime startDate, LocalDateTime endDate);
 
   /**
-   * Finds orders with pagination and optional filters.
+   * Finds orders with pagination and optional filters, including product and option name search.
+   *
+   * @param statuses list of statuses (empty/null = no filter)
+   * @param search product or option name fragment (blank/null = no filter)
+   * @param startDate start date (null = no filter)
+   * @param endDate end date (null = no filter)
+   * @param page page number (0-based)
+   * @param size page size
+   * @param sort sort field and direction (e.g. "date,desc")
+   * @return paginated result
+   */
+  OrderQueryResult findOrdersPage(
+      List<OrderStatus> statuses,
+      String search,
+      LocalDateTime startDate,
+      LocalDateTime endDate,
+      int page,
+      int size,
+      String sort);
+
+  /**
+   * Finds orders with pagination and status/date filters.
    *
    * @param statuses list of statuses (empty/null = no filter)
    * @param startDate start date (null = no filter)

@@ -111,8 +111,36 @@ public class OrderQueryService implements OrderQueryUseCase {
     return orderRepositoryPort.findOrdersPage(statuses, startDate, endDate, page, size, sort);
   }
 
+  /** {@inheritDoc} */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public OrderQueryResult findOrdersPage(
+      List<OrderStatus> statuses,
+      String search,
+      LocalDateTime startDate,
+      LocalDateTime endDate,
+      int page,
+      int size,
+      String sort) {
+    boolean hasDates = startDate != null && endDate != null;
+
+    if (hasDates && endDate.isAfter(LocalDateTime.now())) {
+      throw new IllegalArgumentException("End date cannot be in the future");
+    }
+
+    if (hasDates && startDate.isAfter(endDate)) {
+      throw new IllegalArgumentException("Start date cannot be after end date");
+    }
+
+    return orderRepositoryPort.findOrdersPage(
+        statuses, search, startDate, endDate, page, size, sort);
+  }
+
   /**
-   * Recovery handler for findOrdersPage operation when database is unavailable.
+   * Recovery handler for findOrdersPage operation when the database is unavailable.
    *
    * @param e the data access exception
    * @param statuses the order statuses filter
@@ -134,6 +162,34 @@ public class OrderQueryService implements OrderQueryUseCase {
       int size,
       String sort) {
     log.warn("BD no disponible - fallback para findOrdersPage: {}", e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  /**
+   * Recovery handler for the search-enabled order page query when the database is unavailable.
+   *
+   * @param e the data access exception
+   * @param statuses the order statuses filter
+   * @param search the product or option name filter
+   * @param startDate the start date filter
+   * @param endDate the end date filter
+   * @param page the page number
+   * @param size the page size
+   * @param sort the sort specification
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
+  @Recover
+  public OrderQueryResult recoverFindOrdersPage(
+      DataAccessException e,
+      List<OrderStatus> statuses,
+      String search,
+      LocalDateTime startDate,
+      LocalDateTime endDate,
+      int page,
+      int size,
+      String sort) {
+    log.warn("BD no disponible - fallback para findOrdersPage con búsqueda: {}", e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 }

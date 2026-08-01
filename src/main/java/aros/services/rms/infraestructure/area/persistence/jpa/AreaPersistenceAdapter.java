@@ -44,6 +44,13 @@ public class AreaPersistenceAdapter implements AreaRepositoryPort {
   }
 
   @Override
+  public List<Area> findByNameContainingIgnoreCase(String name) {
+    return areaRepository.findByNameContainingIgnoreCase(name).stream()
+        .map(areaMapper::toDomain)
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public void deleteById(Long id) {
     areaRepository.deleteById(id);
   }

@@ -33,6 +33,14 @@ public interface CategoryRepositoryPort {
   Optional<Category> findByName(String name);
 
   /**
+   * Finds categories whose name contains the given string (case-insensitive).
+   *
+   * @param name the partial name to search for
+   * @return list of matching categories
+   */
+  List<Category> findByNameContainingIgnoreCase(String name);
+
+  /**
    * Retrieves all categories.
    *
    * @return list of all categories

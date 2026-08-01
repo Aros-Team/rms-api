@@ -24,4 +24,18 @@ public class WorkerRepositoryAdapter implements WorkerRepositoryPort {
         .map(userMapper::toDomain)
         .toList();
   }
+
+  @Override
+  public List<User> findByNameContainingIgnoreCase(String name) {
+    return internal.findByNameContainingIgnoreCase(name).stream()
+        .map(userMapper::toDomain)
+        .toList();
+  }
+
+  @Override
+  public List<User> findByDocumentContainingIgnoreCase(String document) {
+    return internal.findByDocumentContainingIgnoreCase(document).stream()
+        .map(userMapper::toDomain)
+        .toList();
+  }
 }

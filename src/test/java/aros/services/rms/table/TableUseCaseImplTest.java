@@ -5,6 +5,7 @@ package aros.services.rms.table;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -147,5 +148,44 @@ class TableUseCaseImplTest {
     Table result = tableUseCase.findById(1L);
 
     assertEquals(1L, result.getId());
+  }
+
+  // ---------------------------------------------------------------------------
+  // Search tests
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldFindTablesByTableNumberContainingIgnoreCase() {
+    Table table1 = Table.builder().id(1L).tableNumber(1).build();
+    Table table2 = Table.builder().id(2L).tableNumber(10).build();
+
+    when(tableRepositoryPort.findByTableNumberContainingIgnoreCase("1"))
+        .thenReturn(List.of(table1, table2));
+
+    List<Table> result = tableUseCase.findByTableNumberContainingIgnoreCase("1");
+
+    assertEquals(2, result.size());
+  }
+
+  @Test
+  void shouldReturnEmptyListWhenNoTablesMatchSearch() {
+    when(tableRepositoryPort.findByTableNumberContainingIgnoreCase("999")).thenReturn(List.of());
+
+    List<Table> result = tableUseCase.findByTableNumberContainingIgnoreCase("999");
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  void shouldReturnAllTablesWhenSearchIsBlank() {
+    when(tableRepositoryPort.findAll())
+        .thenReturn(
+            List.of(
+                Table.builder().id(1L).tableNumber(1).build(),
+                Table.builder().id(2L).tableNumber(2).build()));
+
+    List<Table> result = tableUseCase.findAll();
+
+    assertEquals(2, result.size());
   }
 }

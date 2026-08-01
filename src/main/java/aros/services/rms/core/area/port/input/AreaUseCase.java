@@ -50,6 +50,14 @@ public interface AreaUseCase {
   Area findById(Long id);
 
   /**
+   * Retrieves preparation areas whose name contains the given string (case-insensitive).
+   *
+   * @param name the name substring
+   * @return list of matching areas
+   */
+  List<Area> findByNameContainingIgnoreCase(String name);
+
+  /**
    * Toggles the enabled status of a preparation area.
    *
    * @param id the area id to toggle

@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** REST controller exposing endpoints for worker management. */
@@ -57,8 +58,9 @@ public class WorkerController {
   private final GetSalaryHistoryUseCase getSalaryHistoryUseCase;
 
   /**
-   * Returns all workers in the system. Admin access only.
+   * Returns all workers in the system, optionally filtered by search term. Admin access only.
    *
+   * @param search optional search term matching name or document (partial, case-insensitive)
    * @return list of workers
    */
   @GetMapping
@@ -66,17 +68,32 @@ public class WorkerController {
   @Operation(
       tags = {"Workers"},
       summary = "Get all workers",
-      description = "Returns a list of all workers in the system. Admin access only.",
+      description =
+          "Returns a list of all workers in the system. "
+              + "Optionally filters by search term matching name or document"
+              + " (partial, case-insensitive). "
+              + "Admin access only.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Workers retrieved successfully"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Admin access required"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
-  public ResponseEntity<List<UserResponse>> getAll() {
-    List<UserResponse> workers =
-        getAllWorkersUseCase.getAll().stream().map(UserResponse::fromDomain).toList();
-    return ResponseEntity.ok(workers);
+  public ResponseEntity<List<UserResponse>> getAll(
+      @Parameter(
+              description =
+                  "Optional search term (partial, case-insensitive match on name or document)",
+              example = "john")
+          @RequestParam(required = false)
+          String search) {
+    List<User> workers;
+    if (search != null && !search.isBlank()) {
+      workers = getAllWorkersUseCase.getAllBySearch(search);
+    } else {
+      workers = getAllWorkersUseCase.getAll();
+    }
+    List<UserResponse> responses = workers.stream().map(UserResponse::fromDomain).toList();
+    return ResponseEntity.ok(responses);
   }
 
   /**

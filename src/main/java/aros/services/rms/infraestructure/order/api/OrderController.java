@@ -299,6 +299,7 @@ public class OrderController {
    *
    * @param status the single order status filter (backward compat)
    * @param statuses comma-separated order statuses filter
+   * @param search optional product/option name filter (partial, case-insensitive)
    * @param startDate the start date filter
    * @param endDate the end date filter
    * @param page the page number (0-based)
@@ -310,7 +311,8 @@ public class OrderController {
       tags = {"Orders"},
       summary = "Query orders",
       description =
-          "Retrieves orders with optional filters by status and date range, with pagination.",
+          "Retrieves orders with optional filters by status, product/option name, and date range, "
+              + "with pagination.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -338,6 +340,11 @@ public class OrderController {
               example = "QUEUE,READY")
           @RequestParam(required = false)
           String statuses,
+      @Parameter(
+              description = "Optional product/option name filter (partial, case-insensitive)",
+              example = "burger")
+          @RequestParam(required = false)
+          String search,
       @Parameter(
               description = "Start date for filtering (ISO DateTime)",
               example = "2026-01-01T00:00:00")
@@ -367,8 +374,16 @@ public class OrderController {
       orderStatuses.add(OrderStatus.valueOf(status.toUpperCase()));
     }
 
-    OrderQueryResult result =
-        orderQueryUseCase.findOrdersPage(orderStatuses, startDate, endDate, page, size, sort);
+    OrderQueryResult result;
+    if (search != null && !search.isBlank()) {
+      result =
+          orderQueryUseCase.findOrdersPage(
+              orderStatuses, search, startDate, endDate, page, size, sort);
+    } else {
+      result =
+          orderQueryUseCase.findOrdersPage(orderStatuses, startDate, endDate, page, size, sort);
+    }
+
     List<OrderResponse> responses =
         result.items().stream().map(orderResponseMapper::toResponse).collect(Collectors.toList());
     return ResponseEntity.ok(
