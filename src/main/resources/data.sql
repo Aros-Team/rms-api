@@ -464,90 +464,121 @@ WHERE replace_supply_category_id IS NOT NULL;
 -- =============================================================================
 SET @prod_count = (SELECT COUNT(*) FROM products);
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Hamburguesa Double Bacon Cheese', 28000.00, TRUE, 1, 1, 10
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Hamburguesa Double Bacon Cheese', 'Doble carne de res a la parrilla, queso cheddar fundido, tocineta ahumada crujiente y cebolla caramelizada en pan brioche dorado.', 28000.00, TRUE, 1, 1, 10
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Pizza Especial Familiar', 38000.00, TRUE, 3, 1, 25
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Pizza Especial Familiar', 'Pizza familiar con pepperoni, jamón cocido, champiñones y pimentón sobre mozzarella y base de tomate de la casa.', 38000.00, TRUE, 3, 1, 25
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Pasta de la Casa', 22000.00, TRUE, 4, 1, 18
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Pasta de la Casa', 'Pasta larga fetuccine con salsa a elección (boloñesa, carbonara o alfredo), terminada con parmesano rallado y hierbas frescas.', 22000.00, TRUE, 4, 1, 18
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Corte de Res Premium', 55000.00, TRUE, 5, 1, 22
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Corte de Res Premium', 'Corte de res premium a la parrilla (Baby Beef, Churrasco o Entrecot) al término que prefieras, con guarnición de papa criolla, yuca o ensalada.', 55000.00, TRUE, 5, 1, 22
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Limonada / Jugo Natural', 8000.00, TRUE, 6, 3, 5
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Limonada / Jugo Natural', 'Limonada o jugo natural con fruta fresca a elección (mango, mora o lulo) y endulzante a tu gusto (azúcar, stevia o miel).', 8000.00, TRUE, 6, 3, 5
 FROM dual WHERE @prod_count = 0;
 
 -- V20 extra products
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Hamburguesa Clásica', 18000.00, TRUE, 1, 1, 8
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Hamburguesa Clásica', 'Hamburguesa clásica con carne de res a la parrilla, queso cheddar, vegetales frescos y pan brioche tostado.', 18000.00, TRUE, 1, 1, 8
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Hamburguesa BBQ', 32000.00, TRUE, 1, 1, 10
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Hamburguesa BBQ', 'Hamburguesa con doble carne, salsa BBQ ahumada de la casa, tocineta, queso cheddar y cebolla crocante en pan brioche.', 32000.00, TRUE, 1, 1, 10
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Hamburguesa Veggie', 22000.00, TRUE, 1, 1, 12
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Hamburguesa Veggie', 'Hamburguesa vegetariana con lenteja preparada, champiñones salteados, vegetales frescos y queso crema sobre pan brioche.', 22000.00, TRUE, 1, 1, 12
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Bandeja Paisa', 25000.00, TRUE, 2, 1, 30
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Bandeja Paisa', 'Bandeja paisa tradicional con frijol, arroz, carne molida, chicharrón, huevo frito, plátano maduro y aguacate.', 25000.00, TRUE, 2, 1, 30
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Sancocho de Gallina', 22000.00, TRUE, 2, 1, 35
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Sancocho de Gallina', 'Sancocho de gallina criolla con papa, yuca, plátano, mazorca y guacamole, servido con arroz blanco y ají.', 22000.00, TRUE, 2, 1, 35
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Ajiaco Santafereño', 20000.00, TRUE, 2, 1, 35
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Ajiaco Santafereño', 'Ajiaco santafereño con pollo, tres tipos de papa (criolla, sabanera y pastusa), mazorca, guascas y alcaparras, con crema y alcaparras aparte.', 20000.00, TRUE, 2, 1, 35
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Pizza Personal', 22000.00, TRUE, 3, 1, 20
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Pizza Personal', 'Pizza personal con un topping a elección, borde tradicional y base de mozzarella con salsa de tomate de la casa.', 22000.00, TRUE, 3, 1, 20
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Pizza Vegetariana', 32000.00, TRUE, 3, 1, 22
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Pizza Vegetariana', 'Pizza vegetariana con pimentón, champiñones, maíz tierno y aceitunas sobre mozzarella y base de tomate.', 32000.00, TRUE, 3, 1, 22
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Pizza Hawaiana', 30000.00, TRUE, 3, 1, 20
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Pizza Hawaiana', 'Pizza hawaiana con jamón cocido, piña en almíbar y mozzarella sobre base de tomate ligeramente dulce.', 30000.00, TRUE, 3, 1, 20
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Lasagna Clásica', 25000.00, TRUE, 4, 1, 25
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Lasagna Clásica', 'Lasagna clásica con capas de pasta, salsa boloñesa, queso mozzarella y parmesano gratinado al horno.', 25000.00, TRUE, 4, 1, 25
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Spaghetti Carbonara', 24000.00, TRUE, 4, 1, 18
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Spaghetti Carbonara', 'Spaghetti con salsa carbonara cremosa a base de tocineta ahumada, huevo, queso parmesano y pimienta negra.', 24000.00, TRUE, 4, 1, 18
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Costillas BBQ', 42000.00, TRUE, 5, 1, 25
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Costillas BBQ', 'Costillas de cerdo glaseadas con salsa BBQ ahumada, servidas con papa a la francesa y ensalada de la casa.', 42000.00, TRUE, 5, 1, 25
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Lomo de Cerdo', 38000.00, TRUE, 5, 1, 20
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Lomo de Cerdo', 'Lomo de cerdo a la parrilla con chimichurri, papa criolla y ensalada fresca.', 38000.00, TRUE, 5, 1, 20
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Malteada', 12000.00, TRUE, 6, 3, 5
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Malteada', 'Malteada cremosa con helado, leche y un sabor a elección, servida bien fría.', 12000.00, TRUE, 6, 3, 5
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Agua de Coco', 6000.00, TRUE, 6, 3, 3
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Agua de Coco', 'Agua de coco natural servida bien fría, ideal para hidratarse.', 6000.00, TRUE, 6, 3, 3
 FROM dual WHERE @prod_count = 0;
 
-INSERT INTO products (name, base_price, active, category_id, area_id, estimated_prep_minutes)
-SELECT 'Té Helado', 7000.00, TRUE, 6, 3, 3
+INSERT INTO products (name, description, base_price, active, category_id, area_id, estimated_prep_minutes)
+SELECT 'Té Helado', 'Té negro helado con limón, endulzado al gusto y servido con hielo.', 7000.00, TRUE, 6, 3, 3
 FROM dual WHERE @prod_count = 0;
+
+-- =============================================================================
+-- PRODUCTS description backfill (V17 added description TEXT nullable)
+-- Idempotent: only fills rows where description IS NULL, preserves any
+-- description set by the INSERTs above or by future manual edits.
+-- Safe to re-run: case expression targets known product ids 1..21 only.
+-- =============================================================================
+UPDATE products SET description = CASE id
+    WHEN  1 THEN 'Doble carne de res a la parrilla, queso cheddar fundido, tocineta ahumada crujiente y cebolla caramelizada en pan brioche dorado.'
+    WHEN  2 THEN 'Pizza familiar con pepperoni, jamón cocido, champiñones y pimentón sobre mozzarella y base de tomate de la casa.'
+    WHEN  3 THEN 'Pasta larga fetuccine con salsa a elección (boloñesa, carbonara o alfredo), terminada con parmesano rallado y hierbas frescas.'
+    WHEN  4 THEN 'Corte de res premium a la parrilla (Baby Beef, Churrasco o Entrecot) al término que prefieras, con guarnición de papa criolla, yuca o ensalada.'
+    WHEN  5 THEN 'Limonada o jugo natural con fruta fresca a elección (mango, mora o lulo) y endulzante a tu gusto (azúcar, stevia o miel).'
+    WHEN  6 THEN 'Hamburguesa clásica con carne de res a la parrilla, queso cheddar, vegetales frescos y pan brioche tostado.'
+    WHEN  7 THEN 'Hamburguesa con doble carne, salsa BBQ ahumada de la casa, tocineta, queso cheddar y cebolla crocante en pan brioche.'
+    WHEN  8 THEN 'Hamburguesa vegetariana con lenteja preparada, champiñones salteados, vegetales frescos y queso crema sobre pan brioche.'
+    WHEN  9 THEN 'Bandeja paisa tradicional con frijol, arroz, carne molida, chicharrón, huevo frito, plátano maduro y aguacate.'
+    WHEN 10 THEN 'Sancocho de gallina criolla con papa, yuca, plátano, mazorca y guacamole, servido con arroz blanco y ají.'
+    WHEN 11 THEN 'Ajiaco santafereño con pollo, tres tipos de papa (criolla, sabanera y pastusa), mazorca, guascas y alcaparras, con crema y alcaparras aparte.'
+    WHEN 12 THEN 'Pizza personal con un topping a elección, borde tradicional y base de mozzarella con salsa de tomate de la casa.'
+    WHEN 13 THEN 'Pizza vegetariana con pimentón, champiñones, maíz tierno y aceitunas sobre mozzarella y base de tomate.'
+    WHEN 14 THEN 'Pizza hawaiana con jamón cocido, piña en almíbar y mozzarella sobre base de tomate ligeramente dulce.'
+    WHEN 15 THEN 'Lasagna clásica con capas de pasta, salsa boloñesa, queso mozzarella y parmesano gratinado al horno.'
+    WHEN 16 THEN 'Spaghetti con salsa carbonara cremosa a base de tocineta ahumada, huevo, queso parmesano y pimienta negra.'
+    WHEN 17 THEN 'Costillas de cerdo glaseadas con salsa BBQ ahumada, servidas con papa a la francesa y ensalada de la casa.'
+    WHEN 18 THEN 'Lomo de cerdo a la parrilla con chimichurri, papa criolla y ensalada fresca.'
+    WHEN 19 THEN 'Malteada cremosa con helado, leche y un sabor a elección, servida bien fría.'
+    WHEN 20 THEN 'Agua de coco natural servida bien fría, ideal para hidratarse.'
+    WHEN 21 THEN 'Té negro helado con limón, endulzado al gusto y servido con hielo.'
+END
+WHERE description IS NULL;
 
 -- =============================================================================
 -- PRODUCT OPTIONS (only insert if table is empty)
