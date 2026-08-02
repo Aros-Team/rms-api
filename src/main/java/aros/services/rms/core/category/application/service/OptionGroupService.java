@@ -2,10 +2,10 @@
 
 package aros.services.rms.core.category.application.service;
 
-import aros.services.rms.core.category.application.exception.OptionCategoryNotFoundException;
-import aros.services.rms.core.category.domain.OptionCategory;
-import aros.services.rms.core.category.port.input.OptionCategoryUseCase;
-import aros.services.rms.core.category.port.output.OptionCategoryRepositoryPort;
+import aros.services.rms.core.category.application.exception.OptionGroupNotFoundException;
+import aros.services.rms.core.category.domain.OptionGroup;
+import aros.services.rms.core.category.port.input.OptionGroupUseCase;
+import aros.services.rms.core.category.port.output.OptionGroupRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
 import java.util.Collection;
@@ -21,28 +21,27 @@ import org.springframework.retry.annotation.Retryable;
  * Implementation of option category management use cases. Handles CRUD for customization categories
  * (e.g., "Cooking term", "Milk type").
  */
-public class OptionCategoryService implements OptionCategoryUseCase {
+public class OptionGroupService implements OptionGroupUseCase {
 
-  private static final org.slf4j.Logger log = LoggerFactory.getLogger(OptionCategoryService.class);
-  private final OptionCategoryRepositoryPort optionCategoryRepositoryPort;
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(OptionGroupService.class);
+  private final OptionGroupRepositoryPort optionGroupRepositoryPort;
   private final Logger logger;
 
   /**
-   * Creates a new OptionCategoryService instance.
+   * Creates a new OptionGroupService instance.
    *
-   * @param optionCategoryRepositoryPort the option category repository port
+   * @param optionGroupRepositoryPort the option category repository port
    * @param logger the logger instance
    */
-  public OptionCategoryService(
-      OptionCategoryRepositoryPort optionCategoryRepositoryPort, Logger logger) {
-    this.optionCategoryRepositoryPort = optionCategoryRepositoryPort;
+  public OptionGroupService(OptionGroupRepositoryPort optionGroupRepositoryPort, Logger logger) {
+    this.optionGroupRepositoryPort = optionGroupRepositoryPort;
     this.logger = logger;
   }
 
   /**
    * Creates a new option category.
    *
-   * @param optionCategory the option category data to create
+   * @param optionGroup the option category data to create
    * @return the created option category with generated ID
    */
   @Override
@@ -50,9 +49,9 @@ public class OptionCategoryService implements OptionCategoryUseCase {
       retryFor = {DataAccessException.class},
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000))
-  public OptionCategory create(OptionCategory optionCategory) {
-    OptionCategory saved = optionCategoryRepositoryPort.save(optionCategory);
-    logger.info("OptionCategory created: id={}, name={}", saved.getId(), saved.getName());
+  public OptionGroup create(OptionGroup optionGroup) {
+    OptionGroup saved = optionGroupRepositoryPort.save(optionGroup);
+    logger.info("OptionGroup created: id={}, name={}", saved.getId(), saved.getName());
     return saved;
   }
 
@@ -60,7 +59,7 @@ public class OptionCategoryService implements OptionCategoryUseCase {
    * Updates an existing option category.
    *
    * @param id the option category identifier
-   * @param optionCategory the option category data with updates
+   * @param optionGroup the option category data with updates
    * @return the updated option category
    */
   @Override
@@ -68,19 +67,19 @@ public class OptionCategoryService implements OptionCategoryUseCase {
       retryFor = {DataAccessException.class},
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000))
-  public OptionCategory update(Long id, OptionCategory optionCategory) {
-    OptionCategory existing =
-        optionCategoryRepositoryPort
+  public OptionGroup update(Long id, OptionGroup optionGroup) {
+    OptionGroup existing =
+        optionGroupRepositoryPort
             .findById(id)
-            .orElseThrow(() -> new OptionCategoryNotFoundException(id));
+            .orElseThrow(() -> new OptionGroupNotFoundException(id));
 
-    existing.setName(optionCategory.getName());
-    existing.setDescription(optionCategory.getDescription());
-    existing.setSelectionType(optionCategory.getSelectionType());
-    existing.setReplaceSupplyCategoryId(optionCategory.getReplaceSupplyCategoryId());
+    existing.setName(optionGroup.getName());
+    existing.setDescription(optionGroup.getDescription());
+    existing.setSelectionType(optionGroup.getSelectionType());
+    existing.setReplaceSupplyCategoryId(optionGroup.getReplaceSupplyCategoryId());
 
-    OptionCategory saved = optionCategoryRepositoryPort.save(existing);
-    logger.info("OptionCategory updated: id={}, name={}", saved.getId(), saved.getName());
+    OptionGroup saved = optionGroupRepositoryPort.save(existing);
+    logger.info("OptionGroup updated: id={}, name={}", saved.getId(), saved.getName());
     return saved;
   }
 
@@ -94,8 +93,8 @@ public class OptionCategoryService implements OptionCategoryUseCase {
       retryFor = {DataAccessException.class},
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000))
-  public List<OptionCategory> findAll() {
-    return optionCategoryRepositoryPort.findAll();
+  public List<OptionGroup> findAll() {
+    return optionGroupRepositoryPort.findAll();
   }
 
   /** {@inheritDoc} */
@@ -104,8 +103,8 @@ public class OptionCategoryService implements OptionCategoryUseCase {
       retryFor = {DataAccessException.class},
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000))
-  public List<OptionCategory> findByNameContainingIgnoreCase(String name) {
-    return optionCategoryRepositoryPort.findByNameContainingIgnoreCase(name);
+  public List<OptionGroup> findByNameContainingIgnoreCase(String name) {
+    return optionGroupRepositoryPort.findByNameContainingIgnoreCase(name);
   }
 
   /** {@inheritDoc} */
@@ -114,7 +113,7 @@ public class OptionCategoryService implements OptionCategoryUseCase {
     if (ids == null || ids.isEmpty()) {
       return Map.of();
     }
-    return optionCategoryRepositoryPort.loadSelectionTypesByIds(ids);
+    return optionGroupRepositoryPort.loadSelectionTypesByIds(ids);
   }
 
   /**
@@ -122,32 +121,32 @@ public class OptionCategoryService implements OptionCategoryUseCase {
    *
    * @param id the option category identifier
    * @return the found option category
-   * @throws OptionCategoryNotFoundException if not found
+   * @throws OptionGroupNotFoundException if not found
    */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000))
-  public OptionCategory findById(Long id) {
-    return optionCategoryRepositoryPort
+  public OptionGroup findById(Long id) {
+    return optionGroupRepositoryPort
         .findById(id)
-        .orElseThrow(() -> new OptionCategoryNotFoundException(id));
+        .orElseThrow(() -> new OptionGroupNotFoundException(id));
   }
 
   /**
    * Recovery handler for create operation when database is unavailable.
    *
    * @param e the data access exception
-   * @param optionCategory the option category that was being created
+   * @param optionGroup the option category that was being created
    * @return never returns, always throws ServiceUnavailableException
    * @throws ServiceUnavailableException when database is unavailable
    */
   @Recover
-  public OptionCategory recoverCreate(DataAccessException e, OptionCategory optionCategory) {
+  public OptionGroup recoverCreate(DataAccessException e, OptionGroup optionGroup) {
     log.warn(
-        "BD no disponible - fallback para create(optionCategory={}): {}",
-        optionCategory.getName(),
+        "BD no disponible - fallback para create(optionGroup={}): {}",
+        optionGroup.getName(),
         e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
@@ -157,13 +156,12 @@ public class OptionCategoryService implements OptionCategoryUseCase {
    *
    * @param e the data access exception
    * @param id the option category identifier being updated
-   * @param optionCategory the option category data with updates
+   * @param optionGroup the option category data with updates
    * @return never returns, always throws ServiceUnavailableException
    * @throws ServiceUnavailableException when database is unavailable
    */
   @Recover
-  public OptionCategory recoverUpdate(
-      DataAccessException e, Long id, OptionCategory optionCategory) {
+  public OptionGroup recoverUpdate(DataAccessException e, Long id, OptionGroup optionGroup) {
     log.warn("BD no disponible - fallback para update(id={}): {}", id, e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
@@ -176,7 +174,7 @@ public class OptionCategoryService implements OptionCategoryUseCase {
    * @throws ServiceUnavailableException when database is unavailable
    */
   @Recover
-  public List<OptionCategory> recoverFindAll(DataAccessException e) {
+  public List<OptionGroup> recoverFindAll(DataAccessException e) {
     log.warn("BD no disponible - fallback para findAll: {}", e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
@@ -190,7 +188,7 @@ public class OptionCategoryService implements OptionCategoryUseCase {
    * @throws ServiceUnavailableException when database is unavailable
    */
   @Recover
-  public OptionCategory recoverFindById(DataAccessException e, Long id) {
+  public OptionGroup recoverFindById(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para findById(id={}): {}", id, e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }

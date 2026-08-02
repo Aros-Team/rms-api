@@ -2,7 +2,7 @@
 
 package aros.services.rms.core.inventory.application.service;
 
-import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.category.domain.OptionGroup;
 import aros.services.rms.core.category.domain.OptionSelectionType;
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.common.notification.port.output.NotificationPort;
@@ -333,7 +333,7 @@ public class InventoryMovementService implements InventoryMovementUseCase {
 
     for (Map.Entry<Long, List<ProductOption>> entry : byCategory.entrySet()) {
       List<ProductOption> opts = entry.getValue();
-      OptionCategory category = opts.get(0).getCategory();
+      OptionGroup category = opts.get(0).getCategory();
       OptionSelectionType type =
           category.getSelectionType() == null
               ? OptionSelectionType.SINGLE_CHOICE
@@ -359,7 +359,7 @@ public class InventoryMovementService implements InventoryMovementUseCase {
           }
         }
         addOptionRecipes(List.of(opts.get(0)), required);
-      } else if (type == OptionSelectionType.REMOVE) {
+      } else if (type == OptionSelectionType.REMOVAL) {
         subtractOptionRecipes(opts, required);
       } else {
         addOptionRecipes(opts, required);

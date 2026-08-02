@@ -9,8 +9,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import aros.services.rms.core.category.domain.OptionCategory;
-import aros.services.rms.core.category.port.input.OptionCategoryUseCase;
+import aros.services.rms.core.category.domain.OptionGroup;
+import aros.services.rms.core.category.port.input.OptionGroupUseCase;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,19 +21,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-/** Endpoint tests for OptionCategoryController. */
+/** Endpoint tests for OptionGroupController. */
 @ExtendWith(MockitoExtension.class)
-class OptionCategoryControllerTest {
+class OptionGroupControllerTest {
 
-  @Mock private OptionCategoryUseCase optionCategoryUseCase;
+  @Mock private OptionGroupUseCase optionGroupUseCase;
 
   private MockMvc mockMvc;
 
   @BeforeEach
   void setUp() {
     mockMvc =
-        MockMvcBuilders.standaloneSetup(new OptionCategoryController(optionCategoryUseCase))
-            .build();
+        MockMvcBuilders.standaloneSetup(new OptionGroupController(optionGroupUseCase)).build();
   }
 
   // ---------------------------------------------------------------------------
@@ -42,12 +41,10 @@ class OptionCategoryControllerTest {
 
   @Test
   void shouldReturn200_withOptionCategoriesFilteredBySearch() throws Exception {
-    OptionCategory cat =
-        OptionCategory.builder().id(1L).name("Tamaño").description("Size options").build();
-    when(optionCategoryUseCase.findByNameContainingIgnoreCase(eq("tamaño")))
-        .thenReturn(List.of(cat));
-    when(optionCategoryUseCase.loadSelectionTypesByIds(any()))
-        .thenReturn(Map.of(1L, "SINGLE_CHOICE"));
+    OptionGroup cat =
+        OptionGroup.builder().id(1L).name("Tamaño").description("Size options").build();
+    when(optionGroupUseCase.findByNameContainingIgnoreCase(eq("tamaño"))).thenReturn(List.of(cat));
+    when(optionGroupUseCase.loadSelectionTypesByIds(any())).thenReturn(Map.of(1L, "SINGLE_CHOICE"));
 
     mockMvc
         .perform(get("/api/v1/option-categories").param("search", "tamaño"))
@@ -64,11 +61,10 @@ class OptionCategoryControllerTest {
 
   @Test
   void shouldReturn200_withAllOptionCategories_whenSearchIsBlank() throws Exception {
-    OptionCategory cat =
-        OptionCategory.builder().id(1L).name("Sizes").description("Size options").build();
-    when(optionCategoryUseCase.findAll()).thenReturn(List.of(cat));
-    when(optionCategoryUseCase.loadSelectionTypesByIds(any()))
-        .thenReturn(Map.of(1L, "SINGLE_CHOICE"));
+    OptionGroup cat =
+        OptionGroup.builder().id(1L).name("Sizes").description("Size options").build();
+    when(optionGroupUseCase.findAll()).thenReturn(List.of(cat));
+    when(optionGroupUseCase.loadSelectionTypesByIds(any())).thenReturn(Map.of(1L, "SINGLE_CHOICE"));
 
     mockMvc
         .perform(get("/api/v1/option-categories").param("search", ""))
@@ -84,7 +80,7 @@ class OptionCategoryControllerTest {
 
   @Test
   void shouldReturn200_withEmptyList_whenSearchHasNoMatches() throws Exception {
-    when(optionCategoryUseCase.findByNameContainingIgnoreCase(eq("nonexistent")))
+    when(optionGroupUseCase.findByNameContainingIgnoreCase(eq("nonexistent")))
         .thenReturn(List.of());
 
     mockMvc
@@ -100,11 +96,10 @@ class OptionCategoryControllerTest {
 
   @Test
   void shouldReturn200_withAllOptionCategories_whenNoSearchParam() throws Exception {
-    OptionCategory cat =
-        OptionCategory.builder().id(1L).name("Sizes").description("Size options").build();
-    when(optionCategoryUseCase.findAll()).thenReturn(List.of(cat));
-    when(optionCategoryUseCase.loadSelectionTypesByIds(any()))
-        .thenReturn(Map.of(1L, "SINGLE_CHOICE"));
+    OptionGroup cat =
+        OptionGroup.builder().id(1L).name("Sizes").description("Size options").build();
+    when(optionGroupUseCase.findAll()).thenReturn(List.of(cat));
+    when(optionGroupUseCase.loadSelectionTypesByIds(any())).thenReturn(Map.of(1L, "SINGLE_CHOICE"));
 
     mockMvc
         .perform(get("/api/v1/option-categories"))

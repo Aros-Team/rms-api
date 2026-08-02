@@ -11,7 +11,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.category.domain.OptionGroup;
 import aros.services.rms.core.category.domain.OptionSelectionType;
 import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.core.common.money.domain.Money;
@@ -302,8 +302,8 @@ class InventoryMovementServiceTest {
   }
 
   private ProductOption substitutionOption() {
-    OptionCategory category =
-        OptionCategory.builder()
+    OptionGroup category =
+        OptionGroup.builder()
             .id(7L)
             .name("Salsa")
             .selectionType(OptionSelectionType.SINGLE_CHOICE)
@@ -313,38 +313,38 @@ class InventoryMovementServiceTest {
   }
 
   private ProductOption removeOption() {
-    OptionCategory category =
-        OptionCategory.builder()
+    OptionGroup category =
+        OptionGroup.builder()
             .id(8L)
             .name("Quitar")
-            .selectionType(OptionSelectionType.REMOVE)
+            .selectionType(OptionSelectionType.REMOVAL)
             .build();
     return ProductOption.builder().id(101L).name("Sin cebolla").category(category).build();
   }
 
   private ProductOption multiSelectOption() {
-    OptionCategory category =
-        OptionCategory.builder()
+    OptionGroup category =
+        OptionGroup.builder()
             .id(9L)
             .name("Adiciones")
-            .selectionType(OptionSelectionType.MULTI_SELECT)
+            .selectionType(OptionSelectionType.MULTI_CHOICE)
             .build();
     return ProductOption.builder().id(102L).name("Tocino").category(category).build();
   }
 
   private ProductOption extraOption() {
-    OptionCategory category =
-        OptionCategory.builder()
+    OptionGroup category =
+        OptionGroup.builder()
             .id(10L)
             .name("Extra")
-            .selectionType(OptionSelectionType.EXTRA)
+            .selectionType(OptionSelectionType.ADD_ON)
             .build();
     return ProductOption.builder().id(104L).name("Extra queso").category(category).build();
   }
 
   private ProductOption singleChoiceOption() {
-    OptionCategory category =
-        OptionCategory.builder()
+    OptionGroup category =
+        OptionGroup.builder()
             .id(11L)
             .name("Cocción")
             .selectionType(OptionSelectionType.SINGLE_CHOICE)

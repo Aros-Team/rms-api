@@ -8,7 +8,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.category.domain.OptionGroup;
 import aros.services.rms.core.category.domain.OptionSelectionType;
 import aros.services.rms.core.inventory.domain.InventoryStock;
 import aros.services.rms.core.inventory.domain.OptionRecipe;
@@ -38,7 +38,7 @@ import org.mockito.quality.Strictness;
  *   <li>SINGLE_CHOICE with {@code replace_supply_category_id} selected → base-recipe lines of the
  *       replaced slot are removed and the option's recipe is required instead.
  *   <li>REMOVE selected → the option's recipe is subtracted from the base.
- *   <li>SINGLE_CHOICE (no replacement), MULTI_SELECT and EXTRA → the option's recipe is added.
+ *   <li>SINGLE_CHOICE (no replacement), MULTI_CHOICE and EXTRA → the option's recipe is added.
  *   <li>No selection → base recipe stays intact.
  * </ul>
  */
@@ -91,8 +91,8 @@ class InventoryStockServiceTest {
   }
 
   private ProductOption substitutionOption() {
-    OptionCategory category =
-        OptionCategory.builder()
+    OptionGroup category =
+        OptionGroup.builder()
             .id(7L)
             .name("Salsa")
             .selectionType(OptionSelectionType.SINGLE_CHOICE)
@@ -102,38 +102,38 @@ class InventoryStockServiceTest {
   }
 
   private ProductOption removeOption() {
-    OptionCategory category =
-        OptionCategory.builder()
+    OptionGroup category =
+        OptionGroup.builder()
             .id(8L)
             .name("Quitar")
-            .selectionType(OptionSelectionType.REMOVE)
+            .selectionType(OptionSelectionType.REMOVAL)
             .build();
     return ProductOption.builder().id(101L).name("Sin cebolla").category(category).build();
   }
 
   private ProductOption multiSelectOption() {
-    OptionCategory category =
-        OptionCategory.builder()
+    OptionGroup category =
+        OptionGroup.builder()
             .id(9L)
             .name("Adiciones")
-            .selectionType(OptionSelectionType.MULTI_SELECT)
+            .selectionType(OptionSelectionType.MULTI_CHOICE)
             .build();
     return ProductOption.builder().id(102L).name("Tocino").category(category).build();
   }
 
   private ProductOption extraOption() {
-    OptionCategory category =
-        OptionCategory.builder()
+    OptionGroup category =
+        OptionGroup.builder()
             .id(10L)
             .name("Extra")
-            .selectionType(OptionSelectionType.EXTRA)
+            .selectionType(OptionSelectionType.ADD_ON)
             .build();
     return ProductOption.builder().id(104L).name("Extra queso").category(category).build();
   }
 
   private ProductOption singleChoiceOption() {
-    OptionCategory category =
-        OptionCategory.builder()
+    OptionGroup category =
+        OptionGroup.builder()
             .id(11L)
             .name("Cocción")
             .selectionType(OptionSelectionType.SINGLE_CHOICE)
@@ -285,7 +285,7 @@ class InventoryStockServiceTest {
   }
 
   // ---------------------------------------------------------------------------
-  // MULTI_SELECT / EXTRA / SINGLE_CHOICE sin reemplazo → suman recetas
+  // MULTI_CHOICE / EXTRA / SINGLE_CHOICE sin reemplazo → suman recetas
   // ---------------------------------------------------------------------------
 
   @Test

@@ -2,8 +2,8 @@
 
 package aros.services.rms.core.product.application.service;
 
-import aros.services.rms.core.category.application.exception.OptionCategoryNotFoundException;
-import aros.services.rms.core.category.port.output.OptionCategoryRepositoryPort;
+import aros.services.rms.core.category.application.exception.OptionGroupNotFoundException;
+import aros.services.rms.core.category.port.output.OptionGroupRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFoundException;
 import aros.services.rms.core.inventory.domain.OptionRecipe;
@@ -29,7 +29,7 @@ public class ProductOptionService implements ProductOptionUseCase {
 
   private static final org.slf4j.Logger log = LoggerFactory.getLogger(ProductOptionService.class);
   private final ProductOptionRepositoryPort productOptionRepositoryPort;
-  private final OptionCategoryRepositoryPort optionCategoryRepositoryPort;
+  private final OptionGroupRepositoryPort optionGroupRepositoryPort;
   private final OptionRecipeRepositoryPort optionRecipeRepositoryPort;
   private final SupplyVariantRepositoryPort supplyVariantRepositoryPort;
   private final Logger logger;
@@ -38,19 +38,19 @@ public class ProductOptionService implements ProductOptionUseCase {
    * Creates a new product option service instance.
    *
    * @param productOptionRepositoryPort the product option repository port
-   * @param optionCategoryRepositoryPort the option category repository port
+   * @param optionGroupRepositoryPort the option category repository port
    * @param optionRecipeRepositoryPort the option recipe repository port
    * @param supplyVariantRepositoryPort the supply variant repository port
    * @param logger the logger instance
    */
   public ProductOptionService(
       ProductOptionRepositoryPort productOptionRepositoryPort,
-      OptionCategoryRepositoryPort optionCategoryRepositoryPort,
+      OptionGroupRepositoryPort optionGroupRepositoryPort,
       OptionRecipeRepositoryPort optionRecipeRepositoryPort,
       SupplyVariantRepositoryPort supplyVariantRepositoryPort,
       Logger logger) {
     this.productOptionRepositoryPort = productOptionRepositoryPort;
-    this.optionCategoryRepositoryPort = optionCategoryRepositoryPort;
+    this.optionGroupRepositoryPort = optionGroupRepositoryPort;
     this.optionRecipeRepositoryPort = optionRecipeRepositoryPort;
     this.supplyVariantRepositoryPort = supplyVariantRepositoryPort;
     this.logger = logger;
@@ -61,7 +61,7 @@ public class ProductOptionService implements ProductOptionUseCase {
    *
    * @param productOption the product option data to create
    * @return the created product option with generated ID
-   * @throws OptionCategoryNotFoundException if category does not exist
+   * @throws OptionGroupNotFoundException if category does not exist
    * @throws SupplyVariantNotFoundException if any supply variant in recipe does not exist
    */
   @Override
@@ -70,7 +70,7 @@ public class ProductOptionService implements ProductOptionUseCase {
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000))
   public ProductOption create(ProductOption productOption) {
-    validateOptionCategoryExists(productOption.getCategory().getId());
+    validateOptionGroupExists(productOption.getCategory().getId());
 
     ProductOption saved = productOptionRepositoryPort.save(productOption);
 
@@ -100,7 +100,7 @@ public class ProductOptionService implements ProductOptionUseCase {
    * @param productOption the product option data with updates
    * @return the updated product option
    * @throws ProductOptionNotFoundException if option does not exist
-   * @throws OptionCategoryNotFoundException if category does not exist
+   * @throws OptionGroupNotFoundException if category does not exist
    * @throws SupplyVariantNotFoundException if any supply variant in recipe does not exist
    */
   @Override
@@ -114,7 +114,7 @@ public class ProductOptionService implements ProductOptionUseCase {
             .findById(id)
             .orElseThrow(() -> new ProductOptionNotFoundException(id));
 
-    validateOptionCategoryExists(productOption.getCategory().getId());
+    validateOptionGroupExists(productOption.getCategory().getId());
 
     existing.setName(productOption.getName());
     existing.setCategory(productOption.getCategory());
@@ -267,9 +267,9 @@ public class ProductOptionService implements ProductOptionUseCase {
   }
 
   /** Validates that the option category exists. */
-  private void validateOptionCategoryExists(Long optionCategoryId) {
-    if (optionCategoryId == null || !optionCategoryRepositoryPort.existsById(optionCategoryId)) {
-      throw new OptionCategoryNotFoundException(optionCategoryId);
+  private void validateOptionGroupExists(Long optionGroupId) {
+    if (optionGroupId == null || !optionGroupRepositoryPort.existsById(optionGroupId)) {
+      throw new OptionGroupNotFoundException(optionGroupId);
     }
   }
 

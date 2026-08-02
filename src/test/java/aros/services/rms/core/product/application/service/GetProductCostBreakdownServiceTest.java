@@ -109,15 +109,15 @@ class GetProductCostBreakdownServiceTest {
   void should_project_multi_select_category_as_average_option_cost() {
     List<ProductOptionCostProfile> profiles =
         List.of(
-            profile(1L, "Queso", 10L, "Ingredientes", "0", "MULTI_SELECT", null, "0"),
-            profile(2L, "Tocineta", 10L, "Ingredientes", "0", "MULTI_SELECT", null, "0"));
+            profile(1L, "Queso", 10L, "Ingredientes", "0", "MULTI_CHOICE", null, "0"),
+            profile(2L, "Tocineta", 10L, "Ingredientes", "0", "MULTI_CHOICE", null, "0"));
     stubProduct(profiles);
     when(optionRecipeRepositoryPort.loadMaterialCostByOptionIds(List.of(1L, 2L)))
         .thenReturn(Map.of(1L, money("4"), 2L, money("8")));
 
     ProductCostBreakdown result = service.execute(PRODUCT_ID);
 
-    assertEquals("MULTI_SELECT", result.categories().getFirst().selectionType());
+    assertEquals("MULTI_CHOICE", result.categories().getFirst().selectionType());
     assertMoney("6.00", result.categories().getFirst().slotProjectedCost());
     assertMoney("6.00", result.categories().getFirst().projectedContribution());
   }
@@ -125,7 +125,7 @@ class GetProductCostBreakdownServiceTest {
   @Test
   void should_list_extra_cost_and_price_without_projecting_its_contribution() {
     ProductOptionCostProfile extra =
-        profile(3L, "Queso extra", 20L, "Extras", "7", "EXTRA", null, "0");
+        profile(3L, "Queso extra", 20L, "Extras", "7", "ADD_ON", null, "0");
     stubProduct(List.of(extra));
     when(optionRecipeRepositoryPort.loadMaterialCostByOptionIds(List.of(3L)))
         .thenReturn(Map.of(3L, money("5")));
@@ -135,7 +135,7 @@ class GetProductCostBreakdownServiceTest {
     assertEquals(1, result.options().size());
     assertMoney("5.00", result.options().getFirst().cost());
     assertMoney("7.00", result.options().getFirst().extraPrice());
-    assertEquals("EXTRA", result.options().getFirst().categorySelectionType());
+    assertEquals("ADD_ON", result.options().getFirst().categorySelectionType());
     assertMoney("0.00", result.categories().getFirst().projectedContribution());
     assertMoney("0.00", result.projectedOptionCost());
   }
@@ -143,7 +143,7 @@ class GetProductCostBreakdownServiceTest {
   @Test
   void should_exclude_remove_category_from_projection() {
     ProductOptionCostProfile remove =
-        profile(4L, "Sin cebolla", 30L, "Remover", "0", "REMOVE", null, "0");
+        profile(4L, "Sin cebolla", 30L, "Remover", "0", "REMOVAL", null, "0");
     stubProduct(List.of(remove));
     when(optionRecipeRepositoryPort.loadMaterialCostByOptionIds(List.of(4L)))
         .thenReturn(Map.of(4L, money("2")));
@@ -168,11 +168,11 @@ class GetProductCostBreakdownServiceTest {
     SupplyVariant variant = SupplyVariant.builder().id(100L).unitCost(money("4")).build();
     List<ProductOptionCostProfile> profiles =
         List.of(
-            profile(1L, "A", 10L, "Tamaño", "0", "MULTI_SELECT", null, "0"),
-            profile(2L, "B", 10L, "Tamaño", "0", "MULTI_SELECT", null, "0"),
+            profile(1L, "A", 10L, "Tamaño", "0", "MULTI_CHOICE", null, "0"),
+            profile(2L, "B", 10L, "Tamaño", "0", "MULTI_CHOICE", null, "0"),
             profile(3L, "C", 20L, "Proteína", "0", "SINGLE_CHOICE", 99L, "4"),
-            profile(4L, "D", 30L, "Extra", "5", "EXTRA", null, "0"),
-            profile(5L, "E", 40L, "Remover", "0", "REMOVE", null, "0"));
+            profile(4L, "D", 30L, "Extra", "5", "ADD_ON", null, "0"),
+            profile(5L, "E", 40L, "Remover", "0", "REMOVAL", null, "0"));
 
     when(productRepositoryPort.findById(PRODUCT_ID)).thenReturn(Optional.of(product));
     when(productRecipeRepositoryPort.findByProductId(PRODUCT_ID)).thenReturn(List.of(recipe));

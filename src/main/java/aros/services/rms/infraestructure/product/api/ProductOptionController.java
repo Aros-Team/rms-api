@@ -2,7 +2,7 @@
 
 package aros.services.rms.infraestructure.product.api;
 
-import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.category.domain.OptionGroup;
 import aros.services.rms.core.inventory.domain.OptionRecipe;
 import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.port.input.ProductOptionUseCase;
@@ -65,7 +65,7 @@ public class ProductOptionController {
     ProductOption option =
         ProductOption.builder()
             .name(request.name())
-            .category(OptionCategory.builder().id(request.optionCategoryId()).build())
+            .category(OptionGroup.builder().id(request.optionGroupId()).build())
             .recipe(recipe)
             .build();
 
@@ -104,7 +104,7 @@ public class ProductOptionController {
     ProductOption option =
         ProductOption.builder()
             .name(request.name())
-            .category(OptionCategory.builder().id(request.optionCategoryId()).build())
+            .category(OptionGroup.builder().id(request.optionGroupId()).build())
             .recipe(recipe)
             .build();
 

@@ -9,7 +9,7 @@ import aros.services.rms.core.inventory.application.exception.InsufficientStockE
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.order.application.dto.TakeOrderCommand;
-import aros.services.rms.core.order.application.exception.SingleChoiceCategoryLimitException;
+import aros.services.rms.core.order.application.exception.SingleChoiceOptionGroupLimitException;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
 import aros.services.rms.core.order.port.input.TakeOrderUseCase;
@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>Phase C — orders: enforces SINGLE_CHOICE max-1 selection semantics and computes the final
  * {@code unitPrice} as {@code basePrice + Σ extra_price} for the selected {@code
- * OptionSelectionType#EXTRA} options. The resulting surcharge is recorded on {@link
+ * OptionSelectionType#ADD_ON} options. The resulting surcharge is recorded on {@link
  * OrderDetail#getExtraCharge()} and exposed downstream.
  */
 public class TakeOrderService implements TakeOrderUseCase {
@@ -175,7 +175,7 @@ public class TakeOrderService implements TakeOrderUseCase {
           }
         } else if (hasSelectedOptions) {
           // Phase C: STANDARD products charge extra_price of EXTRA selections on top of the
-          // base price. SINGLE_CHOICE / MULTI_SELECT / REMOVE selections do not contribute to
+          // base price. SINGLE_CHOICE / MULTI_CHOICE / REMOVE selections do not contribute to
           // unitPrice through this path.
           Map<Long, Money> extraPriceByOptionId =
               loadExtraPricesByOptionId(product.getId(), selectedOptions);
@@ -248,8 +248,8 @@ public class TakeOrderService implements TakeOrderUseCase {
 
   /**
    * Enforces the SINGLE_CHOICE max-1 selection rule for an order detail. Group the options by their
-   * OptionCategory and, for any category whose selectionType is {@code SINGLE_CHOICE}, throw {@link
-   * SingleChoiceCategoryLimitException} when more than one option was selected.
+   * OptionGroup and, for any category whose selectionType is {@code SINGLE_CHOICE}, throw {@link
+   * SingleChoiceOptionGroupLimitException} when more than one option was selected.
    */
   private void enforceSingleChoiceLimit(List<ProductOption> selectedOptions) {
     Map<Long, List<ProductOption>> byCategoryId =
@@ -263,7 +263,7 @@ public class TakeOrderService implements TakeOrderUseCase {
       }
       ProductOption sample = opts.get(0);
       if (sample.getCategory().getSelectionType() == OptionSelectionType.SINGLE_CHOICE) {
-        throw new SingleChoiceCategoryLimitException(
+        throw new SingleChoiceOptionGroupLimitException(
             sample.getCategory().getId(), sample.getCategory().getName(), opts.size());
       }
     }
@@ -272,7 +272,7 @@ public class TakeOrderService implements TakeOrderUseCase {
   private static boolean isExtraCategory(ProductOption option) {
     return option != null
         && option.getCategory() != null
-        && option.getCategory().getSelectionType() == OptionSelectionType.EXTRA;
+        && option.getCategory().getSelectionType() == OptionSelectionType.ADD_ON;
   }
 
   /**

@@ -2,9 +2,9 @@
 
 package aros.services.rms.infraestructure.category.persistence.jpa;
 
-import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.category.domain.OptionGroup;
 import aros.services.rms.core.category.domain.OptionSelectionType;
-import aros.services.rms.core.category.port.output.OptionCategoryRepositoryPort;
+import aros.services.rms.core.category.port.output.OptionGroupRepositoryPort;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import java.util.Collection;
@@ -16,48 +16,48 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/** Persistence adapter that implements OptionCategoryRepositoryPort using JPA. */
+/** Persistence adapter that implements OptionGroupRepositoryPort using JPA. */
 @Component
 @RequiredArgsConstructor
-public class OptionCategoryPersistenceAdapter implements OptionCategoryRepositoryPort {
+public class OptionGroupPersistenceAdapter implements OptionGroupRepositoryPort {
 
-  private final OptionCategoryRepository optionCategoryRepository;
+  private final OptionGroupRepository optionGroupRepository;
   private final CategoryMapper categoryMapper;
   private final EntityManager entityManager;
 
   @Override
-  public OptionCategory save(OptionCategory optionCategory) {
-    aros.services.rms.infraestructure.category.persistence.OptionCategory entity =
-        categoryMapper.toOptionCategoryEntity(optionCategory);
-    aros.services.rms.infraestructure.category.persistence.OptionCategory savedEntity =
-        optionCategoryRepository.save(entity);
-    return categoryMapper.toOptionCategoryDomain(savedEntity);
+  public OptionGroup save(OptionGroup optionGroup) {
+    aros.services.rms.infraestructure.category.persistence.OptionGroup entity =
+        categoryMapper.toOptionGroupEntity(optionGroup);
+    aros.services.rms.infraestructure.category.persistence.OptionGroup savedEntity =
+        optionGroupRepository.save(entity);
+    return categoryMapper.toOptionGroupDomain(savedEntity);
   }
 
   @Override
-  public Optional<OptionCategory> findById(Long id) {
-    return optionCategoryRepository.findById(id).map(categoryMapper::toOptionCategoryDomain);
+  public Optional<OptionGroup> findById(Long id) {
+    return optionGroupRepository.findById(id).map(categoryMapper::toOptionGroupDomain);
   }
 
   @Override
-  public List<OptionCategory> findByNameContainingIgnoreCase(String name) {
-    return optionCategoryRepository.findByNameContainingIgnoreCase(name).stream()
-        .map(categoryMapper::toOptionCategoryDomain)
+  public List<OptionGroup> findByNameContainingIgnoreCase(String name) {
+    return optionGroupRepository.findByNameContainingIgnoreCase(name).stream()
+        .map(categoryMapper::toOptionGroupDomain)
         .collect(Collectors.toList());
   }
 
   @Override
-  public List<OptionCategory> findAll() {
-    return optionCategoryRepository.findAll().stream()
-        .map(categoryMapper::toOptionCategoryDomain)
+  public List<OptionGroup> findAll() {
+    return optionGroupRepository.findAll().stream()
+        .map(categoryMapper::toOptionGroupDomain)
         .collect(Collectors.toList());
   }
 
   /**
    * {@inheritDoc}
    *
-   * <p>Reads {@code option_categories.selection_type} directly. The column has been part of the
-   * schema since V37 (additive migration); unknown / null values default to {@code SINGLE_CHOICE}.
+   * <p>Reads {@code option_group.selection_type} directly. The column has been part of the schema
+   * since V37 (additive migration); unknown / null values default to {@code SINGLE_CHOICE}.
    */
   @Override
   public Map<Long, String> loadSelectionTypesByIds(Collection<Long> ids) {
@@ -67,7 +67,7 @@ public class OptionCategoryPersistenceAdapter implements OptionCategoryRepositor
 
     String sql =
         "SELECT id, COALESCE(selection_type, 'SINGLE_CHOICE') AS selection_type "
-            + "FROM option_categories WHERE id IN (:ids)";
+            + "FROM option_group WHERE id IN (:ids)";
     Query query = entityManager.createNativeQuery(sql).setParameter("ids", ids);
 
     Map<Long, String> selectionTypes = new LinkedHashMap<>();
@@ -93,6 +93,6 @@ public class OptionCategoryPersistenceAdapter implements OptionCategoryRepositor
 
   @Override
   public boolean existsById(Long id) {
-    return optionCategoryRepository.existsById(id);
+    return optionGroupRepository.existsById(id);
   }
 }

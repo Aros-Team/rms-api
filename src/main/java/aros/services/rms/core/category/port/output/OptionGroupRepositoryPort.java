@@ -2,21 +2,21 @@
 
 package aros.services.rms.core.category.port.output;
 
-import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.category.domain.OptionGroup;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 /** Output port for option category persistence operations. */
-public interface OptionCategoryRepositoryPort {
+public interface OptionGroupRepositoryPort {
   /**
    * Saves an option category to the repository.
    *
-   * @param optionCategory the option category to save
+   * @param optionGroup the option category to save
    * @return the saved option category with generated ID
    */
-  OptionCategory save(OptionCategory optionCategory);
+  OptionGroup save(OptionGroup optionGroup);
 
   /**
    * Finds an option category by its identifier.
@@ -24,7 +24,7 @@ public interface OptionCategoryRepositoryPort {
    * @param id the option category identifier
    * @return Optional containing the option category if found
    */
-  Optional<OptionCategory> findById(Long id);
+  Optional<OptionGroup> findById(Long id);
 
   /**
    * Finds option categories whose name contains the given string (case-insensitive).
@@ -32,14 +32,14 @@ public interface OptionCategoryRepositoryPort {
    * @param name the partial name to search for
    * @return list of matching option categories
    */
-  List<OptionCategory> findByNameContainingIgnoreCase(String name);
+  List<OptionGroup> findByNameContainingIgnoreCase(String name);
 
   /**
    * Retrieves all option categories.
    *
    * @return list of all option categories
    */
-  List<OptionCategory> findAll();
+  List<OptionGroup> findAll();
 
   /**
    * Loads selection type projections for option categories.

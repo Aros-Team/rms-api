@@ -23,20 +23,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 /** Tests the option-category selection-type native projection. */
 @ExtendWith(MockitoExtension.class)
-class OptionCategoryPersistenceAdapterSelectionProjectionTest {
+class OptionGroupPersistenceAdapterSelectionProjectionTest {
 
-  @Mock private OptionCategoryRepository optionCategoryRepository;
+  @Mock private OptionGroupRepository optionGroupRepository;
   @Mock private CategoryMapper categoryMapper;
   @Mock private EntityManager entityManager;
   @Mock private Query dataQuery;
 
-  private OptionCategoryPersistenceAdapter adapter;
+  private OptionGroupPersistenceAdapter adapter;
 
   @BeforeEach
   void setUp() {
     adapter =
-        new OptionCategoryPersistenceAdapter(
-            optionCategoryRepository, categoryMapper, entityManager);
+        new OptionGroupPersistenceAdapter(optionGroupRepository, categoryMapper, entityManager);
   }
 
   @Test
@@ -44,16 +43,16 @@ class OptionCategoryPersistenceAdapterSelectionProjectionTest {
     when(entityManager.createNativeQuery(anyString())).thenReturn(dataQuery);
     when(dataQuery.setParameter("ids", List.of(1L))).thenReturn(dataQuery);
     when(dataQuery.getResultList())
-        .thenReturn(Collections.singletonList(new Object[] {1L, "EXTRA"}));
+        .thenReturn(Collections.singletonList(new Object[] {1L, "ADD_ON"}));
 
     Map<Long, String> result = adapter.loadSelectionTypesByIds(List.of(1L));
 
-    assertEquals(Map.of(1L, "EXTRA"), result);
+    assertEquals(Map.of(1L, "ADD_ON"), result);
     ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
     org.mockito.Mockito.verify(entityManager).createNativeQuery(sqlCaptor.capture());
     String projectionSql = sqlCaptor.getValue();
     assertTrue(projectionSql.contains("COALESCE(selection_type, 'SINGLE_CHOICE')"));
-    assertTrue(projectionSql.contains("FROM option_categories"));
+    assertTrue(projectionSql.contains("FROM option_group"));
     assertFalse(projectionSql.contains("information_schema"));
   }
 
@@ -85,7 +84,7 @@ class OptionCategoryPersistenceAdapterSelectionProjectionTest {
     assertEquals(Map.of(), adapter.loadSelectionTypesByIds(List.of()));
 
     verifyNoInteractions(entityManager);
-    verifyNoInteractions(optionCategoryRepository);
+    verifyNoInteractions(optionGroupRepository);
     verifyNoInteractions(categoryMapper);
   }
 }

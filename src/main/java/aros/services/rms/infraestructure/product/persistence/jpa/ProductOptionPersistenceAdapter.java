@@ -68,10 +68,9 @@ public class ProductOptionPersistenceAdapter implements ProductOptionRepositoryP
   /**
    * {@inheritDoc}
    *
-   * <p>Reads {@code option_categories.selection_type}, {@code
-   * option_categories.replace_supply_category_id} directly. The columns have been part of the
-   * schema since V37 (additive migration); unknown / null selection type defaults to {@code
-   * SINGLE_CHOICE}.
+   * <p>Reads {@code option_group.selection_type}, {@code option_group.replace_supply_category_id}
+   * directly. The columns have been part of the schema since V37 (additive migration); unknown /
+   * null selection type defaults to {@code SINGLE_CHOICE}.
    */
   @Override
   public List<ProductOptionCostProfile> loadCostProfilesByProductId(Long productId) {
@@ -83,7 +82,7 @@ public class ProductOptionPersistenceAdapter implements ProductOptionRepositoryP
           COALESCE(default_cost.material_cost, 0) AS default_slot_cost
         FROM product_product_options ppo
         JOIN product_options po ON po.id = ppo.option_id
-        LEFT JOIN option_categories oc ON oc.id = po.option_category_id
+        LEFT JOIN option_group oc ON oc.id = po.option_category_id
         LEFT JOIN ( \
             SELECT pr.product_id, s.supply_category_id, \
                    SUM(pr.required_quantity * sv.unit_cost) AS material_cost \

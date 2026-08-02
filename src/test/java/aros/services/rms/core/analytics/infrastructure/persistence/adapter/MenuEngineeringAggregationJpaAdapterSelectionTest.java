@@ -39,7 +39,7 @@ import org.mockito.quality.Strictness;
  *       defaultSlotCost} (slot cost reused from {@link
  *       ProductOptionRepositoryPort#loadDefaultSlotCostByProductAndCategory()}).
  *   <li>REMOVE → {@code −optionCost}.
- *   <li>EXTRA / MULTI_SELECT / non-replacement SINGLE_CHOICE → {@code +optionCost}.
+ *   <li>EXTRA / MULTI_CHOICE / non-replacement SINGLE_CHOICE → {@code +optionCost}.
  *   <li>Order lines without options contribute zero to the average.
  * </ul>
  */
@@ -81,9 +81,9 @@ class MenuEngineeringAggregationJpaAdapterSelectionTest {
         .thenReturn(
             List.of(
                 new Object[] {1L, 1L, 1001L, "SINGLE_CHOICE", 500L, new BigDecimal("15.00")},
-                new Object[] {2L, 1L, 1002L, "REMOVE", null, new BigDecimal("7.00")},
-                new Object[] {3L, 1L, 1003L, "EXTRA", null, new BigDecimal("5.00")},
-                new Object[] {3L, 1L, 1004L, "MULTI_SELECT", null, new BigDecimal("6.00")},
+                new Object[] {2L, 1L, 1002L, "REMOVAL", null, new BigDecimal("7.00")},
+                new Object[] {3L, 1L, 1003L, "ADD_ON", null, new BigDecimal("5.00")},
+                new Object[] {3L, 1L, 1004L, "MULTI_CHOICE", null, new BigDecimal("6.00")},
                 new Object[] {5L, 2L, 2001L, "SINGLE_CHOICE", 600L, new BigDecimal("20.00")},
                 new Object[] {6L, 3L, 3001L, "SINGLE_CHOICE", 700L, new BigDecimal("9.00")}));
     when(countQuery.getResultList())
@@ -136,7 +136,7 @@ class MenuEngineeringAggregationJpaAdapterSelectionTest {
 
     assertTrue(optionSql.contains("order_detail_options"));
     assertTrue(optionSql.contains("product_options"));
-    assertTrue(optionSql.contains("option_categories"));
+    assertTrue(optionSql.contains("option_group"));
     assertTrue(optionSql.contains("oc.selection_type"));
     assertTrue(optionSql.contains("oc.replace_supply_category_id"));
     assertTrue(optionSql.contains("option_recipes"));

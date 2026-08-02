@@ -125,7 +125,7 @@ public class MenuEngineeringAggregationJpaAdapter implements MenuEngineeringAggr
    *       product for that supply category (fetched from {@link
    *       ProductOptionRepositoryPort#loadDefaultSlotCostByProductAndCategory()}).
    *   <li>{@code REMOVE} options contribute {@code −optionCost}.
-   *   <li>{@code EXTRA}, {@code MULTI_SELECT} and non-replacement {@code SINGLE_CHOICE} options
+   *   <li>{@code EXTRA}, {@code MULTI_CHOICE} and non-replacement {@code SINGLE_CHOICE} options
    *       contribute {@code +optionCost} (current behavior).
    * </ul>
    *
@@ -145,7 +145,7 @@ public class MenuEngineeringAggregationJpaAdapter implements MenuEngineeringAggr
         JOIN orders o ON o.id = od.order_id
         JOIN order_detail_options odo ON odo.order_detail_id = od.id
         JOIN product_options po ON po.id = odo.option_id
-        LEFT JOIN option_categories oc ON oc.id = po.option_category_id
+        LEFT JOIN option_group oc ON oc.id = po.option_category_id
         LEFT JOIN option_recipes oreq ON oreq.option_id = odo.option_id
         LEFT JOIN supply_variants sv ON sv.id = oreq.supply_variant_id
         WHERE o.date >= :start AND o.date < :end
@@ -254,7 +254,7 @@ public class MenuEngineeringAggregationJpaAdapter implements MenuEngineeringAggr
       }
       return optionCost.subtract(slotCost);
     }
-    if (selectionType == OptionSelectionType.REMOVE) {
+    if (selectionType == OptionSelectionType.REMOVAL) {
       return optionCost.negate();
     }
     return optionCost;

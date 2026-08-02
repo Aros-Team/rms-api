@@ -67,7 +67,7 @@ public class ProductMapper {
     return ProductOption.builder()
         .id(entity.getId())
         .name(entity.getName())
-        .category(categoryMapper.toOptionCategoryDomain(entity.getCategory()))
+        .category(categoryMapper.toOptionGroupDomain(entity.getCategory()))
         .build();
   }
 
@@ -108,7 +108,7 @@ public class ProductMapper {
     return aros.services.rms.infraestructure.product.persistence.ProductOption.builder()
         .id(domain.getId())
         .name(domain.getName())
-        .category(categoryMapper.toOptionCategoryEntity(domain.getCategory()))
+        .category(categoryMapper.toOptionGroupEntity(domain.getCategory()))
         .build();
   }
 }

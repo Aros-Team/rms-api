@@ -2,10 +2,10 @@
 
 package aros.services.rms.infraestructure.category.api;
 
-import aros.services.rms.core.category.domain.OptionCategory;
-import aros.services.rms.core.category.port.input.OptionCategoryUseCase;
+import aros.services.rms.core.category.domain.OptionGroup;
+import aros.services.rms.core.category.port.input.OptionGroupUseCase;
 import aros.services.rms.infraestructure.category.api.dto.CategoryRequest;
-import aros.services.rms.infraestructure.category.api.dto.OptionCategoryResponse;
+import aros.services.rms.infraestructure.category.api.dto.OptionGroupResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -26,77 +26,76 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST controller for option category management. Option categories define customization types
- * (e.g., "Cooking term", "Milk type"), different from product categories.
+ * REST controller for option group management. Option categories define customization types (e.g.,
+ * "Cooking term", "Milk type"), different from product categories.
  */
 @RestController
 @RequestMapping("/api/v1/option-categories")
 @RequiredArgsConstructor
 @Tag(
-    name = "Option Categories",
+    name = "Option Groups",
     description =
         "Operations for managing option categories used in product customization"
             + " (e.g. cooking term, milk type)")
-public class OptionCategoryController {
+public class OptionGroupController {
 
-  private final OptionCategoryUseCase optionCategoryUseCase;
+  private final OptionGroupUseCase optionGroupUseCase;
 
   /**
-   * Creates a new option category.
+   * Creates a new option group.
    *
    * @param request the category request
-   * @return the created option category
+   * @return the created option group
    */
   @Operation(
-      tags = {"Option Categories"},
-      summary = "Create new option category",
-      description = "Creates a new option category for product customization.",
+      tags = {"Option Groups"},
+      summary = "Create new option group",
+      description = "Creates a new option group for product customization.",
       responses = {
-        @ApiResponse(responseCode = "201", description = "Option category created successfully"),
+        @ApiResponse(responseCode = "201", description = "Option group created successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden"),
-        @ApiResponse(responseCode = "409", description = "Option category name already exists"),
+        @ApiResponse(responseCode = "409", description = "Option group name already exists"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
-  public ResponseEntity<OptionCategoryResponse> create(
-      @Valid @RequestBody CategoryRequest request) {
-    OptionCategory optionCategory =
-        OptionCategory.builder().name(request.name()).description(request.description()).build();
+  public ResponseEntity<OptionGroupResponse> create(@Valid @RequestBody CategoryRequest request) {
+    OptionGroup optionGroup =
+        OptionGroup.builder().name(request.name()).description(request.description()).build();
 
-    OptionCategory created = optionCategoryUseCase.create(optionCategory);
+    OptionGroup created = optionGroupUseCase.create(optionGroup);
     return new ResponseEntity<>(toResponse(created), HttpStatus.CREATED);
   }
 
   /**
-   * Updates an option category.
+   * Updates an option group.
    *
-   * @param id the option category ID
+   * @param id the option group ID
    * @param request the category request
-   * @return the updated option category
+   * @return the updated option group
    */
   @Operation(
-      tags = {"Option Categories"},
-      summary = "Update option category",
-      description = "Updates an existing option category.",
+      tags = {"Option Groups"},
+      summary = "Update option group",
+      description = "Updates an existing option group.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Option category updated successfully"),
+        @ApiResponse(responseCode = "200", description = "Option group updated successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden"),
-        @ApiResponse(responseCode = "404", description = "Option category not found"),
+        @ApiResponse(responseCode = "404", description = "Option group not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
-  public ResponseEntity<OptionCategoryResponse> update(
-      @Parameter(description = "Option category ID", example = "1", required = true) @PathVariable
+  public ResponseEntity<OptionGroupResponse> update(
+      @Parameter(description = "Option group ID", example = "1", required = true) @PathVariable
           Long id,
       @Valid @RequestBody CategoryRequest request) {
-    OptionCategory optionCategory =
-        OptionCategory.builder().name(request.name()).description(request.description()).build();
+    OptionGroup optionGroup =
+        OptionGroup.builder().name(request.name()).description(request.description()).build();
 
-    OptionCategory updated = optionCategoryUseCase.update(id, optionCategory);
+    OptionGroup updated = optionGroupUseCase.update(id, optionGroup);
     return ResponseEntity.ok(toResponse(updated));
   }
 
@@ -107,7 +106,7 @@ public class OptionCategoryController {
    * @return the list of option categories
    */
   @Operation(
-      tags = {"Option Categories"},
+      tags = {"Option Groups"},
       summary = "Get all option categories",
       description =
           "Returns all option categories for customization. "
@@ -121,61 +120,58 @@ public class OptionCategoryController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
-  public ResponseEntity<List<OptionCategoryResponse>> findAll(
+  public ResponseEntity<List<OptionGroupResponse>> findAll(
       @Parameter(
               description = "Optional name filter (partial, case-insensitive)",
               example = "tamaño")
           @RequestParam(required = false)
           String search) {
-    List<OptionCategory> categories;
+    List<OptionGroup> categories;
     if (search != null && !search.isBlank()) {
-      categories = optionCategoryUseCase.findByNameContainingIgnoreCase(search);
+      categories = optionGroupUseCase.findByNameContainingIgnoreCase(search);
     } else {
-      categories = optionCategoryUseCase.findAll();
+      categories = optionGroupUseCase.findAll();
     }
     Map<Long, String> selectionTypes =
-        optionCategoryUseCase.loadSelectionTypesByIds(
-            categories.stream().map(OptionCategory::getId).toList());
-    List<OptionCategoryResponse> responses =
+        optionGroupUseCase.loadSelectionTypesByIds(
+            categories.stream().map(OptionGroup::getId).toList());
+    List<OptionGroupResponse> responses =
         categories.stream()
             .map(
                 category ->
-                    OptionCategoryResponse.fromDomain(
-                        category, selectionTypes.get(category.getId())))
+                    OptionGroupResponse.fromDomain(category, selectionTypes.get(category.getId())))
             .toList();
     return ResponseEntity.ok(responses);
   }
 
   /**
-   * Gets an option category by ID.
+   * Gets an option group by ID.
    *
-   * @param id the option category ID
-   * @return the option category
+   * @param id the option group ID
+   * @return the option group
    */
   @Operation(
-      tags = {"Option Categories"},
-      summary = "Get option category by ID",
-      description = "Returns a specific option category given its identifier.",
+      tags = {"Option Groups"},
+      summary = "Get option group by ID",
+      description = "Returns a specific option group given its identifier.",
       responses = {
-        @ApiResponse(responseCode = "200", description = "Option category retrieved successfully"),
+        @ApiResponse(responseCode = "200", description = "Option group retrieved successfully"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden"),
-        @ApiResponse(responseCode = "404", description = "Option category not found"),
+        @ApiResponse(responseCode = "404", description = "Option group not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/{id}")
-  public ResponseEntity<OptionCategoryResponse> findById(
-      @Parameter(description = "Option category ID", example = "1", required = true) @PathVariable
+  public ResponseEntity<OptionGroupResponse> findById(
+      @Parameter(description = "Option group ID", example = "1", required = true) @PathVariable
           Long id) {
-    OptionCategory optionCategory = optionCategoryUseCase.findById(id);
-    return ResponseEntity.ok(toResponse(optionCategory));
+    OptionGroup optionGroup = optionGroupUseCase.findById(id);
+    return ResponseEntity.ok(toResponse(optionGroup));
   }
 
-  private OptionCategoryResponse toResponse(OptionCategory category) {
+  private OptionGroupResponse toResponse(OptionGroup category) {
     String selectionType =
-        optionCategoryUseCase
-            .loadSelectionTypesByIds(List.of(category.getId()))
-            .get(category.getId());
-    return OptionCategoryResponse.fromDomain(category, selectionType);
+        optionGroupUseCase.loadSelectionTypesByIds(List.of(category.getId())).get(category.getId());
+    return OptionGroupResponse.fromDomain(category, selectionType);
   }
 }

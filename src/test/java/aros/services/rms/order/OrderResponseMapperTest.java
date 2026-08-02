@@ -11,7 +11,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.category.domain.OptionGroup;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.order.domain.ClarificationAnswer;
 import aros.services.rms.core.order.domain.Order;
@@ -94,7 +94,7 @@ class OrderResponseMapperTest {
             .questions(List.of(question))
             .build();
 
-    OptionCategory cat = OptionCategory.builder().id(1L).name("Main").build();
+    OptionGroup cat = OptionGroup.builder().id(1L).name("Main").build();
     ProductOption option = ProductOption.builder().id(1L).name("Large").category(cat).build();
 
     OrderDetail detail =

@@ -7,7 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import aros.services.rms.core.category.port.output.OptionCategoryRepositoryPort;
+import aros.services.rms.core.category.port.output.OptionGroupRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
 import java.util.List;
 import java.util.Map;
@@ -17,30 +17,30 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/** Tests selection-type projection behavior in {@link OptionCategoryService}. */
+/** Tests selection-type projection behavior in {@link OptionGroupService}. */
 @ExtendWith(MockitoExtension.class)
-class OptionCategoryServiceSelectionProjectionTest {
+class OptionGroupServiceSelectionProjectionTest {
 
-  @Mock private OptionCategoryRepositoryPort optionCategoryRepositoryPort;
+  @Mock private OptionGroupRepositoryPort optionGroupRepositoryPort;
   @Mock private Logger logger;
 
-  private OptionCategoryService service;
+  private OptionGroupService service;
 
   @BeforeEach
   void setUp() {
-    service = new OptionCategoryService(optionCategoryRepositoryPort, logger);
+    service = new OptionGroupService(optionGroupRepositoryPort, logger);
   }
 
   @Test
   void should_load_selection_types_for_all_requested_categories() {
     List<Long> ids = List.of(1L, 2L);
-    Map<Long, String> expected = Map.of(1L, "SINGLE_CHOICE", 2L, "EXTRA");
-    when(optionCategoryRepositoryPort.loadSelectionTypesByIds(ids)).thenReturn(expected);
+    Map<Long, String> expected = Map.of(1L, "SINGLE_CHOICE", 2L, "ADD_ON");
+    when(optionGroupRepositoryPort.loadSelectionTypesByIds(ids)).thenReturn(expected);
 
     Map<Long, String> result = service.loadSelectionTypesByIds(ids);
 
     assertEquals(expected, result);
-    verify(optionCategoryRepositoryPort).loadSelectionTypesByIds(ids);
+    verify(optionGroupRepositoryPort).loadSelectionTypesByIds(ids);
   }
 
   @Test
@@ -48,6 +48,6 @@ class OptionCategoryServiceSelectionProjectionTest {
     Map<Long, String> result = service.loadSelectionTypesByIds(List.of());
 
     assertEquals(Map.of(), result);
-    verifyNoInteractions(optionCategoryRepositoryPort);
+    verifyNoInteractions(optionGroupRepositoryPort);
   }
 }

@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
-import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.category.domain.OptionGroup;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
@@ -96,11 +96,7 @@ class OrderMapperOptionPersistenceTest {
             .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
             .build();
     ProductOption optionDomain =
-        ProductOption.builder()
-            .id(OPTION_ID)
-            .name("Extra Cheese")
-            .category(optionCategory())
-            .build();
+        ProductOption.builder().id(OPTION_ID).name("Extra Cheese").category(optionGroup()).build();
 
     when(productMapper.toProductDomain(productEntity)).thenReturn(productDomain);
     when(productMapper.toProductOptionDomain(optionEntity)).thenReturn(optionDomain);
@@ -167,11 +163,7 @@ class OrderMapperOptionPersistenceTest {
             .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
             .build();
     ProductOption optionDomain =
-        ProductOption.builder()
-            .id(OPTION_ID)
-            .name("Extra Cheese")
-            .category(optionCategory())
-            .build();
+        ProductOption.builder().id(OPTION_ID).name("Extra Cheese").category(optionGroup()).build();
 
     when(productMapper.toProductDomain(productEntity)).thenReturn(productDomain);
     when(productMapper.toProductOptionEntity(optionDomain)).thenReturn(optionEntity);
@@ -192,7 +184,7 @@ class OrderMapperOptionPersistenceTest {
     assertEquals(OPTION_ID, roundTrippedRow.getOption().getId());
   }
 
-  private static OptionCategory optionCategory() {
-    return OptionCategory.builder().id(50L).name("Adición").build();
+  private static OptionGroup optionGroup() {
+    return OptionGroup.builder().id(50L).name("Adición").build();
   }
 }

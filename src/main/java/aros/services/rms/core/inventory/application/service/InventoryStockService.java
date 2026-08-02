@@ -2,7 +2,7 @@
 
 package aros.services.rms.core.inventory.application.service;
 
-import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.category.domain.OptionGroup;
 import aros.services.rms.core.category.domain.OptionSelectionType;
 import aros.services.rms.core.inventory.application.exception.StorageLocationNotFoundException;
 import aros.services.rms.core.inventory.domain.InventoryStock;
@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
  *       base-recipe lines of the slot are subtracted and the selected option's recipe is added
  *       instead.
  *   <li>{@code REMOVE}: the selected option's recipe is subtracted from the base.
- *   <li>{@code SINGLE_CHOICE} (no replacement), {@code MULTI_SELECT}, {@code EXTRA}: selected
+ *   <li>{@code SINGLE_CHOICE} (no replacement), {@code MULTI_CHOICE}, {@code EXTRA}: selected
  *       options' recipes are added (current behavior).
  *   <li>Categories with no selection: the base recipe stays intact.
  * </ul>
@@ -146,7 +146,7 @@ public class InventoryStockService implements InventoryStockUseCase {
 
     for (Map.Entry<Long, List<ProductOption>> entry : byCategory.entrySet()) {
       List<ProductOption> opts = entry.getValue();
-      OptionCategory category = opts.get(0).getCategory();
+      OptionGroup category = opts.get(0).getCategory();
       OptionSelectionType type =
           category.getSelectionType() == null
               ? OptionSelectionType.SINGLE_CHOICE
@@ -170,7 +170,7 @@ public class InventoryStockService implements InventoryStockUseCase {
           }
         }
         addOptionRecipes(List.of(opts.get(0)), required);
-      } else if (type == OptionSelectionType.REMOVE) {
+      } else if (type == OptionSelectionType.REMOVAL) {
         // Subtract the option's recipe(s) from the base.
         subtractOptionRecipes(opts, required);
       } else {

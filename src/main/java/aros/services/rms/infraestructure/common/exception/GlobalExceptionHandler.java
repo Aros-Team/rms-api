@@ -17,7 +17,7 @@ import aros.services.rms.core.inventory.application.exception.SupplyCategoryAlre
 import aros.services.rms.core.inventory.application.exception.SupplyVariantAlreadyExistsException;
 import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFoundException;
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
-import aros.services.rms.core.order.application.exception.SingleChoiceCategoryLimitException;
+import aros.services.rms.core.order.application.exception.SingleChoiceOptionGroupLimitException;
 import aros.services.rms.core.order.application.exception.TableNotAvailableException;
 import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
@@ -306,10 +306,10 @@ public class GlobalExceptionHandler {
         .body(new ErrorResponse(400, e.getMessage()));
   }
 
-  /** Handles SingleChoiceCategoryLimitException. */
-  @ExceptionHandler(SingleChoiceCategoryLimitException.class)
-  public ResponseEntity<ErrorResponse> handleSingleChoiceCategoryLimit(
-      SingleChoiceCategoryLimitException e) {
+  /** Handles SingleChoiceOptionGroupLimitException. */
+  @ExceptionHandler(SingleChoiceOptionGroupLimitException.class)
+  public ResponseEntity<ErrorResponse> handleSingleChoiceOptionGroupLimit(
+      SingleChoiceOptionGroupLimitException e) {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .body(new ErrorResponse(400, e.getMessage()));
   }

@@ -4,7 +4,7 @@ package aros.services.rms.infraestructure.product.config;
 
 import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.category.port.output.CategoryRepositoryPort;
-import aros.services.rms.core.category.port.output.OptionCategoryRepositoryPort;
+import aros.services.rms.core.category.port.output.OptionGroupRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.inventory.port.output.OptionRecipeRepositoryPort;
@@ -59,13 +59,13 @@ public class ProductConfigBeans {
   @Bean
   public ProductOptionUseCase productOptionUseCase(
       ProductOptionRepositoryPort productOptionRepositoryPort,
-      OptionCategoryRepositoryPort optionCategoryRepositoryPort,
+      OptionGroupRepositoryPort optionGroupRepositoryPort,
       OptionRecipeRepositoryPort optionRecipeRepositoryPort,
       SupplyVariantRepositoryPort supplyVariantRepositoryPort,
       Logger logger) {
     return new ProductOptionService(
         productOptionRepositoryPort,
-        optionCategoryRepositoryPort,
+        optionGroupRepositoryPort,
         optionRecipeRepositoryPort,
         supplyVariantRepositoryPort,
         logger);

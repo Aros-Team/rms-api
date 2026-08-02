@@ -1,0 +1,25 @@
+-- =============================================================================
+-- V39: rename option_categories -> option_group
+-- =============================================================================
+--
+-- PURPOSE:
+--   The "option_categories" table groups related customization options
+--   (e.g., "Proteína Hamburguesa", "Tipo de borde", "Adiciones extras").
+--   Semantically these are OPTION GROUPS, not generic categories — the
+--   OptionCategory aggregate is renamed to OptionGroup to reflect that.
+--
+-- MIGRATION SAFETY (forward-only rename, no data loss):
+--   * RENAME TABLE preserves all rows, indexes, and foreign keys.
+--   * MySQL auto-updates referencing foreign keys: any FK pointing to
+--     `option_categories(id)` is now `option_group(id)` after the rename.
+--   * No column add/drop/modify. The V37 columns (selection_type,
+--     replace_supply_category_id, FK to supply_categories) are intact.
+--   * The FK column on `product_options` is `option_category_id` —
+--     intentionally NOT renamed in this migration to minimize risk and
+--     avoid touching shipped V1 column names. The column name is
+--     internal and never appears on the API surface.
+--
+-- Reference: progress/current.md (activity 5), refactor option_category -> option_group.
+-- =============================================================================
+
+ALTER TABLE option_categories RENAME TO option_group;

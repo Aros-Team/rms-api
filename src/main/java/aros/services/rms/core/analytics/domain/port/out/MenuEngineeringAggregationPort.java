@@ -54,7 +54,7 @@ public interface MenuEngineeringAggregationPort {
    *       contributes {@code optionCost − defaultSlotCost}, where {@code defaultSlotCost} is the
    *       base-recipe material cost of the product for the replaced supply category.
    *   <li>{@code REMOVE} contributes {@code −optionCost}.
-   *   <li>{@code EXTRA}, {@code MULTI_SELECT} and non-replacement {@code SINGLE_CHOICE} contribute
+   *   <li>{@code EXTRA}, {@code MULTI_CHOICE} and non-replacement {@code SINGLE_CHOICE} contribute
    *       {@code +optionCost}.
    * </ul>
    *

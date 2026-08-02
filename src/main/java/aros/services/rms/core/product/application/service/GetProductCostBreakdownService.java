@@ -31,9 +31,9 @@ public class GetProductCostBreakdownService implements GetProductCostBreakdownUs
 
   private static final Currency COP = Currency.getInstance("COP");
   private static final String SINGLE_CHOICE = "SINGLE_CHOICE";
-  private static final String MULTI_SELECT = "MULTI_SELECT";
-  private static final String EXTRA = "EXTRA";
-  private static final String REMOVE = "REMOVE";
+  private static final String MULTI_CHOICE = "MULTI_CHOICE";
+  private static final String ADD_ON = "ADD_ON";
+  private static final String REMOVAL = "REMOVAL";
   private static final int CALCULATION_SCALE = 10;
 
   private final ProductRepositoryPort productRepositoryPort;
@@ -184,7 +184,7 @@ public class GetProductCostBreakdownService implements GetProductCostBreakdownUs
       Long replaceSupplyCategoryId,
       Money defaultSlotCost,
       List<Money> optionCosts) {
-    if (EXTRA.equals(selectionType) || REMOVE.equals(selectionType)) {
+    if (ADD_ON.equals(selectionType) || REMOVAL.equals(selectionType)) {
       return new Projection(Money.zero(COP), Money.zero(COP));
     }
     if (optionCosts.isEmpty()) {
@@ -203,7 +203,7 @@ public class GetProductCostBreakdownService implements GetProductCostBreakdownUs
       return new Projection(slotProjectedCost, slotProjectedCost.minus(defaultSlotCost));
     }
 
-    if (SINGLE_CHOICE.equals(selectionType) || MULTI_SELECT.equals(selectionType)) {
+    if (SINGLE_CHOICE.equals(selectionType) || MULTI_CHOICE.equals(selectionType)) {
       Money average =
           optionTotal.divide(
               BigDecimal.valueOf(optionCosts.size()), CALCULATION_SCALE, RoundingMode.HALF_UP);
@@ -218,7 +218,7 @@ public class GetProductCostBreakdownService implements GetProductCostBreakdownUs
     }
     String normalized = selectionType.toUpperCase(Locale.ROOT);
     return switch (normalized) {
-      case SINGLE_CHOICE, MULTI_SELECT, EXTRA, REMOVE -> normalized;
+      case SINGLE_CHOICE, MULTI_CHOICE, ADD_ON, REMOVAL -> normalized;
       default -> SINGLE_CHOICE;
     };
   }

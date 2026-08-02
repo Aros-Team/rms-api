@@ -3,11 +3,11 @@
 package aros.services.rms.infraestructure.category.persistence.jpa;
 
 import aros.services.rms.core.category.domain.Category;
-import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.category.domain.OptionGroup;
 import aros.services.rms.core.category.domain.OptionSelectionType;
 import org.springframework.stereotype.Component;
 
-/** Mapper between Category/OptionCategory domain models and their JPA entities. */
+/** Mapper between Category/OptionGroup domain models and their JPA entities. */
 @Component
 public class CategoryMapper {
 
@@ -37,13 +37,13 @@ public class CategoryMapper {
         .build();
   }
 
-  /** Converts an OptionCategory JPA entity to a domain model. */
-  public OptionCategory toOptionCategoryDomain(
-      aros.services.rms.infraestructure.category.persistence.OptionCategory entity) {
+  /** Converts an OptionGroup JPA entity to a domain model. */
+  public OptionGroup toOptionGroupDomain(
+      aros.services.rms.infraestructure.category.persistence.OptionGroup entity) {
     if (entity == null) {
       return null;
     }
-    return OptionCategory.builder()
+    return OptionGroup.builder()
         .id(entity.getId())
         .name(entity.getName())
         .description(entity.getDescription())
@@ -52,13 +52,13 @@ public class CategoryMapper {
         .build();
   }
 
-  /** Converts an OptionCategory domain model to a JPA entity. */
-  public aros.services.rms.infraestructure.category.persistence.OptionCategory
-      toOptionCategoryEntity(OptionCategory domain) {
+  /** Converts an OptionGroup domain model to a JPA entity. */
+  public aros.services.rms.infraestructure.category.persistence.OptionGroup toOptionGroupEntity(
+      OptionGroup domain) {
     if (domain == null) {
       return null;
     }
-    return aros.services.rms.infraestructure.category.persistence.OptionCategory.builder()
+    return aros.services.rms.infraestructure.category.persistence.OptionGroup.builder()
         .id(domain.getId())
         .name(domain.getName())
         .description(domain.getDescription())
@@ -68,7 +68,7 @@ public class CategoryMapper {
   }
 
   private static OptionSelectionType toSelectionType(
-      aros.services.rms.infraestructure.category.persistence.OptionCategory entity) {
+      aros.services.rms.infraestructure.category.persistence.OptionGroup entity) {
     OptionSelectionType stored = entity == null ? null : entity.getSelectionType();
     return toSelectionType(stored);
   }

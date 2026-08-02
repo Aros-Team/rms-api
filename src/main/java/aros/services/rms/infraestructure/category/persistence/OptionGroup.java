@@ -17,19 +17,19 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Entity representing an option category.
+ * Entity representing an option group.
  *
  * <p>Persists the {@code selection_type} (V37) and optional {@code replace_supply_category_id}
  * foreign key (V37) columns. The selection type is stored as the enum constant name via {@link
  * EnumType#STRING}.
  */
 @Entity
-@Table(name = "option_categories")
+@Table(name = "option_group")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OptionCategory {
+public class OptionGroup {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -13,7 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.category.domain.Category;
-import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.category.domain.OptionGroup;
 import aros.services.rms.core.category.domain.OptionSelectionType;
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.common.money.domain.Money;
@@ -21,7 +21,7 @@ import aros.services.rms.core.inventory.application.exception.InsufficientStockE
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.order.application.dto.TakeOrderCommand;
-import aros.services.rms.core.order.application.exception.SingleChoiceCategoryLimitException;
+import aros.services.rms.core.order.application.exception.SingleChoiceOptionGroupLimitException;
 import aros.services.rms.core.order.application.service.TakeOrderService;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
@@ -527,8 +527,8 @@ class TakeOrderUseCaseImplTest {
             .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
             .category(Category.builder().id(1L).name("Food").build())
             .build();
-    OptionCategory cheeseCat =
-        OptionCategory.builder()
+    OptionGroup cheeseCat =
+        OptionGroup.builder()
             .id(50L)
             .name("Queso")
             .selectionType(OptionSelectionType.SINGLE_CHOICE)
@@ -575,11 +575,11 @@ class TakeOrderUseCaseImplTest {
             .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
             .category(Category.builder().id(1L).name("Food").build())
             .build();
-    OptionCategory extrasCat =
-        OptionCategory.builder()
+    OptionGroup extrasCat =
+        OptionGroup.builder()
             .id(60L)
             .name("Adición")
-            .selectionType(OptionSelectionType.EXTRA)
+            .selectionType(OptionSelectionType.ADD_ON)
             .build();
     ProductOption extraCheese =
         ProductOption.builder().id(7L).name("Extra Cheese").category(extrasCat).build();
@@ -598,7 +598,7 @@ class TakeOrderUseCaseImplTest {
                     60L,
                     "Adición",
                     extraPrice,
-                    OptionSelectionType.EXTRA.name(),
+                    OptionSelectionType.ADD_ON.name(),
                     null,
                     Money.zero(Currency.getInstance("COP")))));
     when(orderRepositoryPort.save(any(Order.class)))
@@ -634,17 +634,17 @@ class TakeOrderUseCaseImplTest {
             .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
             .category(Category.builder().id(1L).name("Food").build())
             .build();
-    OptionCategory proteinCat =
-        OptionCategory.builder()
+    OptionGroup proteinCat =
+        OptionGroup.builder()
             .id(70L)
             .name("Proteína")
             .selectionType(OptionSelectionType.SINGLE_CHOICE)
             .build();
-    OptionCategory extrasCat =
-        OptionCategory.builder()
+    OptionGroup extrasCat =
+        OptionGroup.builder()
             .id(60L)
             .name("Adición")
-            .selectionType(OptionSelectionType.EXTRA)
+            .selectionType(OptionSelectionType.ADD_ON)
             .build();
     ProductOption protein =
         ProductOption.builder().id(8L).name("Pollo").category(proteinCat).build();
@@ -682,7 +682,7 @@ class TakeOrderUseCaseImplTest {
                     60L,
                     "Adición",
                     cheesePrice,
-                    OptionSelectionType.EXTRA.name(),
+                    OptionSelectionType.ADD_ON.name(),
                     null,
                     Money.zero(Currency.getInstance("COP"))),
                 new ProductOptionCostProfile(
@@ -691,7 +691,7 @@ class TakeOrderUseCaseImplTest {
                     60L,
                     "Adición",
                     baconPrice,
-                    OptionSelectionType.EXTRA.name(),
+                    OptionSelectionType.ADD_ON.name(),
                     null,
                     Money.zero(Currency.getInstance("COP")))));
     when(orderRepositoryPort.save(any(Order.class)))
@@ -722,7 +722,8 @@ class TakeOrderUseCaseImplTest {
   }
 
   @Test
-  void should_throwSingleChoiceCategoryLimitException_when_moreThanOneFromSingleChoiceCategory() {
+  void
+      should_throwSingleChoiceOptionGroupLimitException_when_moreThanOneFromSingleChoiceCategory() {
     Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
     Product product =
         Product.builder()
@@ -731,8 +732,8 @@ class TakeOrderUseCaseImplTest {
             .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
             .category(Category.builder().id(1L).name("Food").build())
             .build();
-    OptionCategory proteinCat =
-        OptionCategory.builder()
+    OptionGroup proteinCat =
+        OptionGroup.builder()
             .id(70L)
             .name("Proteína")
             .selectionType(OptionSelectionType.SINGLE_CHOICE)
@@ -760,9 +761,9 @@ class TakeOrderUseCaseImplTest {
                         .build()))
             .build();
 
-    SingleChoiceCategoryLimitException exception =
+    SingleChoiceOptionGroupLimitException exception =
         assertThrows(
-            SingleChoiceCategoryLimitException.class, () -> takeOrderUseCase.execute(command));
+            SingleChoiceOptionGroupLimitException.class, () -> takeOrderUseCase.execute(command));
 
     assertEquals(70L, exception.getCategoryId());
     assertEquals(2, exception.getSelectedCount());
@@ -780,11 +781,11 @@ class TakeOrderUseCaseImplTest {
             .basePrice(new Money(BigDecimal.valueOf(15.0), Currency.getInstance("COP")))
             .category(Category.builder().id(1L).name("Pizzas").build())
             .build();
-    OptionCategory toppingsCat =
-        OptionCategory.builder()
+    OptionGroup toppingsCat =
+        OptionGroup.builder()
             .id(80L)
             .name("Toppings")
-            .selectionType(OptionSelectionType.MULTI_SELECT)
+            .selectionType(OptionSelectionType.MULTI_CHOICE)
             .build();
     ProductOption mushrooms =
         ProductOption.builder().id(11L).name("Hongos").category(toppingsCat).build();
@@ -807,7 +808,7 @@ class TakeOrderUseCaseImplTest {
                     80L,
                     "Toppings",
                     zero,
-                    OptionSelectionType.MULTI_SELECT.name(),
+                    OptionSelectionType.MULTI_CHOICE.name(),
                     null,
                     zero),
                 new ProductOptionCostProfile(
@@ -816,7 +817,7 @@ class TakeOrderUseCaseImplTest {
                     80L,
                     "Toppings",
                     zero,
-                    OptionSelectionType.MULTI_SELECT.name(),
+                    OptionSelectionType.MULTI_CHOICE.name(),
                     null,
                     zero)));
     when(orderRepositoryPort.save(any(Order.class)))
@@ -852,17 +853,17 @@ class TakeOrderUseCaseImplTest {
             .basePrice(new Money(BigDecimal.valueOf(8.0), Currency.getInstance("COP")))
             .category(Category.builder().id(1L).name("Food").build())
             .build();
-    OptionCategory dressingCat =
-        OptionCategory.builder()
+    OptionGroup dressingCat =
+        OptionGroup.builder()
             .id(90L)
             .name("Salsa")
             .selectionType(OptionSelectionType.SINGLE_CHOICE)
             .build();
-    OptionCategory withoutOnionCat =
-        OptionCategory.builder()
+    OptionGroup withoutOnionCat =
+        OptionGroup.builder()
             .id(91L)
             .name("Sin cebolla")
-            .selectionType(OptionSelectionType.REMOVE)
+            .selectionType(OptionSelectionType.REMOVAL)
             .build();
     ProductOption ranch =
         ProductOption.builder().id(20L).name("Ranch").category(dressingCat).build();

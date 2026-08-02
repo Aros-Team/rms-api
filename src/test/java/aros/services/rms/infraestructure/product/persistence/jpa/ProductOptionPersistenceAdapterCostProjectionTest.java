@@ -51,7 +51,7 @@ class ProductOptionPersistenceAdapterCostProjectionTest {
                   3L,
                   "Proteína",
                   new BigDecimal("2.50"),
-                  "EXTRA",
+                  "ADD_ON",
                   9L,
                   new BigDecimal("12.75")
                 }));
@@ -59,7 +59,7 @@ class ProductOptionPersistenceAdapterCostProjectionTest {
     List<ProductOptionCostProfile> result = adapter.loadCostProfilesByProductId(42L);
 
     ProductOptionCostProfile profile = result.getFirst();
-    assertEquals("EXTRA", profile.categorySelectionType());
+    assertEquals("ADD_ON", profile.categorySelectionType());
     assertEquals(9L, profile.replaceSupplyCategoryId());
     assertEquals(0, new BigDecimal("12.75").compareTo(profile.defaultSlotCost().amount()));
 

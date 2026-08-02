@@ -3,7 +3,7 @@
 package aros.services.rms.core.category.domain;
 
 /**
- * Selection mode of an {@link OptionCategory}.
+ * Selection mode of an {@link OptionGroup}.
  *
  * <p>An option category groups customization options offered to a customer (e.g. "Proteína",
  * "Queso", "Adición"). The selection mode tells the order-entry logic how many options from the
@@ -13,12 +13,12 @@ package aros.services.rms.core.category.domain;
  *   <li>{@link #SINGLE_CHOICE} — exactly one option may be chosen. May carry a {@code
  *       replaceSupplyCategoryId} on the category to model a substitution swap (e.g. "Salsa tártara"
  *       in place of the base recipe's "Mayonesa").
- *   <li>{@link #MULTI_SELECT} — zero or more options may be chosen. Each option adds its material
+ *   <li>{@link #MULTI_CHOICE} — zero or more options may be chosen. Each option adds its material
  *       cost independently.
- *   <li>{@link #EXTRA} — standalone surcharge (e.g. "Extra queso"). Each EXTRA option carries its
+ *   <li>{@link #ADD_ON} — standalone surcharge (e.g. "Extra queso"). Each ADD_ON option carries its
  *       own {@code extraPrice} and contributes to the order line price independently. Excluded from
  *       projected effective cost.
- *   <li>{@link #REMOVE} — subtractive option (e.g. "Sin cebolla"). The recipe of a chosen REMOVE
+ *   <li>{@link #REMOVAL} — subtractive option (e.g. "Sin cebolla"). The recipe of a chosen REMOVAL
  *       option is subtracted from inventory deduction and the menu-engineering average option cost.
  *       Excluded from projected effective cost.
  * </ul>
@@ -28,7 +28,7 @@ package aros.services.rms.core.category.domain;
  */
 public enum OptionSelectionType {
   SINGLE_CHOICE,
-  MULTI_SELECT,
-  EXTRA,
-  REMOVE
+  MULTI_CHOICE,
+  ADD_ON,
+  REMOVAL
 }

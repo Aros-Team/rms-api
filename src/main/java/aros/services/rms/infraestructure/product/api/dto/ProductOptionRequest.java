@@ -12,7 +12,7 @@ import java.util.List;
 @Schema(
     description = "Request DTO to create or update a product option",
     example =
-        "{\"name\": \"Large (1.5L)\", \"optionCategoryId\": 1, "
+        "{\"name\": \"Large (1.5L)\", \"optionGroupId\": 1, "
             + "\"recipe\": [{\"supplyVariantId\": 1, \"requiredQuantity\": 500.0}]}")
 public record ProductOptionRequest(
     @Schema(description = "Option name", example = "Large (1.5L)")
@@ -20,7 +20,7 @@ public record ProductOptionRequest(
         String name,
     @Schema(description = "Option category ID this option belongs to", example = "1")
         @NotNull(message = "Option category ID is required")
-        Long optionCategoryId,
+        Long optionGroupId,
     @Schema(
             description = "Recipe items (supply variants and quantities)",
             example = "[{\"supplyVariantId\": 1, \"requiredQuantity\": 500.0}]")

@@ -19,15 +19,15 @@ import lombok.NoArgsConstructor;
  * <ul>
  *   <li>{@code selectionType} defaults to {@link OptionSelectionType#SINGLE_CHOICE} when null.
  *   <li>{@code replaceSupplyCategoryId} may only be non-null when {@code selectionType ==
- *       SINGLE_CHOICE}. For {@link OptionSelectionType#MULTI_SELECT}, {@link
- *       OptionSelectionType#EXTRA} and {@link OptionSelectionType#REMOVE} the field is forced to
+ *       SINGLE_CHOICE}. For {@link OptionSelectionType#MULTI_CHOICE}, {@link
+ *       OptionSelectionType#ADD_ON} and {@link OptionSelectionType#REMOVAL} the field is forced to
  *       null and assigning a non-null value throws {@link IllegalArgumentException}.
  * </ul>
  */
 @Data
 @Builder
 @NoArgsConstructor
-public class OptionCategory {
+public class OptionGroup {
   private Long id;
   private String name;
   private String description;
@@ -37,7 +37,7 @@ public class OptionCategory {
 
   /**
    * For SINGLE_CHOICE categories, this references the supply category whose base-recipe line is
-   * replaced when a customer picks an option from this category. {@code null} for MULTI_SELECT,
+   * replaced when a customer picks an option from this category. {@code null} for MULTI_CHOICE,
    * EXTRA and REMOVE; setting it otherwise throws.
    */
   private Long replaceSupplyCategoryId;
@@ -54,7 +54,7 @@ public class OptionCategory {
    * @param replaceSupplyCategoryId the replacement supply category id (nullable; only valid for
    *     SINGLE_CHOICE)
    */
-  public OptionCategory(
+  public OptionGroup(
       Long id,
       String name,
       String description,

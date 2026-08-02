@@ -13,8 +13,8 @@ import java.util.Currency;
 public record ProductOptionResponse(
     @Schema(description = "Option ID", example = "1") Long id,
     @Schema(description = "Option name", example = "Large (1.5L)") String name,
-    @Schema(description = "Option category ID", example = "1") Long optionCategoryId,
-    @Schema(description = "Option category name", example = "Sizes") String optionCategoryName,
+    @Schema(description = "Option category ID", example = "1") Long optionGroupId,
+    @Schema(description = "Option category name", example = "Sizes") String optionGroupName,
     @Schema(description = "Pure material cost of the option") Money cost,
     @Schema(description = "Configured surcharge when associated with the product") Money extraPrice,
     @Schema(description = "Selection mode of the option category", example = "SINGLE_CHOICE")

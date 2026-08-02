@@ -12,7 +12,7 @@ package aros.services.rms.core.order.application.exception;
  *
  * <p>Maps to HTTP 400 via {@code GlobalExceptionHandler}.
  */
-public class SingleChoiceCategoryLimitException extends RuntimeException {
+public class SingleChoiceOptionGroupLimitException extends RuntimeException {
 
   private final Long categoryId;
   private final int selectedCount;
@@ -24,7 +24,7 @@ public class SingleChoiceCategoryLimitException extends RuntimeException {
    * @param categoryName the option category name (cosmetic; may be null)
    * @param selectedCount the number of options selected from this category
    */
-  public SingleChoiceCategoryLimitException(
+  public SingleChoiceOptionGroupLimitException(
       Long categoryId, String categoryName, int selectedCount) {
     super(
         "SINGLE_CHOICE category limit exceeded: '"

@@ -3,11 +3,11 @@
 package aros.services.rms.infraestructure.category.config;
 
 import aros.services.rms.core.category.application.service.CategoryService;
-import aros.services.rms.core.category.application.service.OptionCategoryService;
+import aros.services.rms.core.category.application.service.OptionGroupService;
 import aros.services.rms.core.category.port.input.CategoryUseCase;
-import aros.services.rms.core.category.port.input.OptionCategoryUseCase;
+import aros.services.rms.core.category.port.input.OptionGroupUseCase;
 import aros.services.rms.core.category.port.output.CategoryRepositoryPort;
-import aros.services.rms.core.category.port.output.OptionCategoryRepositoryPort;
+import aros.services.rms.core.category.port.output.OptionGroupRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,8 +27,8 @@ public class CategoryConfigBeans {
 
   /** Creates bean for option category management use case. */
   @Bean
-  public OptionCategoryUseCase optionCategoryUseCase(
-      OptionCategoryRepositoryPort optionCategoryRepositoryPort, Logger logger) {
-    return new OptionCategoryService(optionCategoryRepositoryPort, logger);
+  public OptionGroupUseCase optionGroupUseCase(
+      OptionGroupRepositoryPort optionGroupRepositoryPort, Logger logger) {
+    return new OptionGroupService(optionGroupRepositoryPort, logger);
   }
 }

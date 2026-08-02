@@ -2,7 +2,7 @@
 
 package aros.services.rms.infraestructure.product.persistence;
 
-import aros.services.rms.infraestructure.category.persistence.OptionCategory;
+import aros.services.rms.infraestructure.category.persistence.OptionGroup;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,5 +32,5 @@ public class ProductOption {
 
   @ManyToOne
   @JoinColumn(name = "option_category_id")
-  private OptionCategory category;
+  private OptionGroup category;
 }

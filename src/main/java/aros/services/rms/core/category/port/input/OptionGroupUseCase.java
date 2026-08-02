@@ -2,7 +2,7 @@
 
 package aros.services.rms.core.category.port.input;
 
-import aros.services.rms.core.category.domain.OptionCategory;
+import aros.services.rms.core.category.domain.OptionGroup;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -11,31 +11,31 @@ import java.util.Map;
  * Input port for option category management. Option categories define customization types (e.g.,
  * "Cooking term", "Milk type"). These are different from product categories.
  */
-public interface OptionCategoryUseCase {
+public interface OptionGroupUseCase {
 
   /**
    * Creates a new option category.
    *
-   * @param optionCategory the option category data to create
+   * @param optionGroup the option category data to create
    * @return the created option category with generated ID
    */
-  OptionCategory create(OptionCategory optionCategory);
+  OptionGroup create(OptionGroup optionGroup);
 
   /**
    * Updates an existing option category.
    *
    * @param id the option category identifier
-   * @param optionCategory the option category data with updates
+   * @param optionGroup the option category data with updates
    * @return the updated option category
    */
-  OptionCategory update(Long id, OptionCategory optionCategory);
+  OptionGroup update(Long id, OptionGroup optionGroup);
 
   /**
    * Retrieves all option categories.
    *
    * @return list of all option categories
    */
-  List<OptionCategory> findAll();
+  List<OptionGroup> findAll();
 
   /**
    * Finds option categories whose name contains the given string (case-insensitive).
@@ -43,7 +43,7 @@ public interface OptionCategoryUseCase {
    * @param name the partial name to search for
    * @return list of matching option categories
    */
-  List<OptionCategory> findByNameContainingIgnoreCase(String name);
+  List<OptionGroup> findByNameContainingIgnoreCase(String name);
 
   /**
    * Loads selection types for the requested option categories.
@@ -59,5 +59,5 @@ public interface OptionCategoryUseCase {
    * @param id the option category identifier
    * @return the found option category
    */
-  OptionCategory findById(Long id);
+  OptionGroup findById(Long id);
 }

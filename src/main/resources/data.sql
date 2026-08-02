@@ -375,73 +375,73 @@ FROM dual WHERE @cat_count = 0;
 -- =============================================================================
 -- OPTION CATEGORIES (only insert if table is empty)
 -- =============================================================================
-SET @ocat_count = (SELECT COUNT(*) FROM option_categories);
+SET @ocat_count = (SELECT COUNT(*) FROM option_group);
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Proteína Hamburguesa', 'Elección de proteína para hamburguesa'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Queso Hamburguesa', 'Elección de queso para hamburguesa'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Vegetales Hamburguesa', 'Vegetales opcionales para hamburguesa'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Acompañamiento Hamburguesa', 'Acompañamiento para hamburguesa'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Adición Extra Hamburguesa', 'Ingredientes extra para hamburguesa'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Sabor Pizza', 'Elección de sabor/topping para pizza'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Vegetal Extra Pizza', 'Vegetales adicionales para pizza'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Borde Pizza', 'Tipo de borde para pizza'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Salsa Pasta', 'Elección de salsa para pasta'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Proteína Extra Pasta', 'Proteína adicional para pasta'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Especia Pasta', 'Especia para pasta'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Corte Parrilla', 'Elección de corte de res'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Término Parrilla', 'Punto de cocción del corte'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Guarnición Parrilla', 'Guarnición para el corte de res'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Base Fruta Bebida', 'Fruta o pulpa base para la bebida'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Endulzante Bebida', 'Tipo de endulzante para la bebida'
 FROM dual WHERE @ocat_count = 0;
 
-INSERT INTO option_categories (name, description)
+INSERT INTO option_group (name, description)
 SELECT 'Sabor Especial Bebida', 'Toque especial para la bebida'
 FROM dual WHERE @ocat_count = 0;
 
@@ -450,10 +450,10 @@ FROM dual WHERE @ocat_count = 0;
 -- Idempotent: ensures every seeded category is SINGLE_CHOICE with no substitution.
 -- Re-runs of data.sql are safe: the WHERE guard skips rows already in that mode.
 -- =============================================================================
-UPDATE option_categories SET selection_type = 'SINGLE_CHOICE'
+UPDATE option_group SET selection_type = 'SINGLE_CHOICE'
 WHERE selection_type IS NULL OR selection_type <> 'SINGLE_CHOICE';
 
-UPDATE option_categories SET replace_supply_category_id = NULL
+UPDATE option_group SET replace_supply_category_id = NULL
 WHERE replace_supply_category_id IS NOT NULL;
 
 -- =============================================================================
