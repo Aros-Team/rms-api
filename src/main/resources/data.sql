@@ -1463,3 +1463,48 @@ ON DUPLICATE KEY UPDATE
   net_sales = VALUES(net_sales), gross_sales = VALUES(gross_sales),
   cogs_food = VALUES(cogs_food), cogs_beverage = VALUES(cogs_beverage),
   cogs_alcohol = VALUES(cogs_alcohol), cogs_other = VALUES(cogs_other);
+
+-- =============================================================================
+-- PRODUCT_OPTION_GROUPS seed data
+-- Maps products to their applicable option groups. Uses subqueries on names to
+-- stay idempotent regardless of auto-increment offsets.
+-- =============================================================================
+
+-- Hamburguesa products → Hamburguesa option groups (1-5)
+INSERT IGNORE INTO product_option_groups (product_id, option_group_id, required)
+SELECT p.id, og.id, FALSE
+FROM products p
+CROSS JOIN option_group og
+WHERE p.name LIKE '%Hamburguesa%' AND og.name LIKE '%Hamburguesa%';
+
+-- Pizza products → Pizza option groups (6-8)
+INSERT IGNORE INTO product_option_groups (product_id, option_group_id, required)
+SELECT p.id, og.id, FALSE
+FROM products p
+CROSS JOIN option_group og
+WHERE p.name LIKE '%Pizza%' AND og.name LIKE '%Pizza%';
+
+-- Pasta products → Pasta option groups (9-11)
+INSERT IGNORE INTO product_option_groups (product_id, option_group_id, required)
+SELECT p.id, og.id, FALSE
+FROM products p
+CROSS JOIN option_group og
+WHERE (p.name LIKE '%Pasta%' OR p.name LIKE '%Spaghetti%' OR p.name LIKE '%Lasagna%')
+  AND og.name LIKE '%Pasta%';
+
+-- Corte de Res / Parrilla products → Parrilla option groups (12-14)
+INSERT IGNORE INTO product_option_groups (product_id, option_group_id, required)
+SELECT p.id, og.id, FALSE
+FROM products p
+CROSS JOIN option_group og
+WHERE (p.name LIKE '%Corte%' OR p.name LIKE '%Costillas%' OR p.name LIKE '%Lomo%')
+  AND og.name LIKE '%Parrilla%';
+
+-- Bebida products → Bebida option groups (15-17)
+INSERT IGNORE INTO product_option_groups (product_id, option_group_id, required)
+SELECT p.id, og.id, FALSE
+FROM products p
+CROSS JOIN option_group og
+WHERE (p.name LIKE '%Limonada%' OR p.name LIKE '%Jugo%' OR p.name LIKE '%Malteada%'
+       OR p.name LIKE '%Agua%' OR p.name LIKE '%Té%')
+  AND og.name LIKE '%Bebida%';

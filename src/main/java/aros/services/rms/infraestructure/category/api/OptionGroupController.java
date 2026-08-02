@@ -4,7 +4,7 @@ package aros.services.rms.infraestructure.category.api;
 
 import aros.services.rms.core.category.domain.OptionGroup;
 import aros.services.rms.core.category.port.input.OptionGroupUseCase;
-import aros.services.rms.infraestructure.category.api.dto.CategoryRequest;
+import aros.services.rms.infraestructure.category.api.dto.OptionGroupRequest;
 import aros.services.rms.infraestructure.category.api.dto.OptionGroupResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,17 +26,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST controller for option group management. Option categories define customization types (e.g.,
- * "Cooking term", "Milk type"), different from product categories.
+ * REST controller for option group management. Option groups define customization buckets for
+ * products (e.g., "Proteína Hamburguesa", "Acompañamiento Parrilla"), different from product
+ * categories.
  */
 @RestController
-@RequestMapping("/api/v1/option-categories")
+@RequestMapping("/api/v1/option-groups")
 @RequiredArgsConstructor
 @Tag(
     name = "Option Groups",
     description =
-        "Operations for managing option categories used in product customization"
-            + " (e.g. cooking term, milk type)")
+        "Operations for managing option groups used in product customization"
+            + " (e.g. protein type, side dish)")
 public class OptionGroupController {
 
   private final OptionGroupUseCase optionGroupUseCase;
@@ -44,44 +45,47 @@ public class OptionGroupController {
   /**
    * Creates a new option group.
    *
-   * @param request the category request
+   * @param request the option group request with product associations
    * @return the created option group
    */
   @Operation(
       tags = {"Option Groups"},
       summary = "Create new option group",
-      description = "Creates a new option group for product customization.",
+      description =
+          "Creates a new option group and associates it with one or more products. "
+              + "At least one product ID is required.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Option group created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "400", description = "Invalid input or no products supplied"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden"),
-        @ApiResponse(responseCode = "409", description = "Option group name already exists"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
-  public ResponseEntity<OptionGroupResponse> create(@Valid @RequestBody CategoryRequest request) {
+  public ResponseEntity<OptionGroupResponse> create(
+      @Valid @RequestBody OptionGroupRequest request) {
     OptionGroup optionGroup =
         OptionGroup.builder().name(request.name()).description(request.description()).build();
 
-    OptionGroup created = optionGroupUseCase.create(optionGroup);
-    return new ResponseEntity<>(toResponse(created), HttpStatus.CREATED);
+    OptionGroup created =
+        optionGroupUseCase.create(optionGroup, request.productIds(), request.required());
+    return new ResponseEntity<>(enrichAndMap(List.of(created)).getFirst(), HttpStatus.CREATED);
   }
 
   /**
    * Updates an option group.
    *
    * @param id the option group ID
-   * @param request the category request
+   * @param request the option group request with product associations
    * @return the updated option group
    */
   @Operation(
       tags = {"Option Groups"},
       summary = "Update option group",
-      description = "Updates an existing option group.",
+      description = "Updates an existing option group and replaces its product associations.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Option group updated successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "400", description = "Invalid input or no products supplied"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "404", description = "Option group not found"),
@@ -91,30 +95,30 @@ public class OptionGroupController {
   public ResponseEntity<OptionGroupResponse> update(
       @Parameter(description = "Option group ID", example = "1", required = true) @PathVariable
           Long id,
-      @Valid @RequestBody CategoryRequest request) {
+      @Valid @RequestBody OptionGroupRequest request) {
     OptionGroup optionGroup =
         OptionGroup.builder().name(request.name()).description(request.description()).build();
 
-    OptionGroup updated = optionGroupUseCase.update(id, optionGroup);
-    return ResponseEntity.ok(toResponse(updated));
+    OptionGroup updated =
+        optionGroupUseCase.update(id, optionGroup, request.productIds(), request.required());
+    return ResponseEntity.ok(enrichAndMap(List.of(updated)).getFirst());
   }
 
   /**
-   * Gets all option categories, optionally filtered by name.
+   * Gets all option groups, optionally filtered by name or product ID.
    *
    * @param search optional name filter (partial, case-insensitive)
-   * @return the list of option categories
+   * @param productId optional product ID filter (only groups attached to this product)
+   * @return the list of option groups
    */
   @Operation(
       tags = {"Option Groups"},
-      summary = "Get all option categories",
+      summary = "Get all option groups",
       description =
-          "Returns all option categories for customization. "
-              + "Optionally filters by name (partial, case-insensitive).",
+          "Returns all option groups for customization. "
+              + "Optionally filters by name (partial, case-insensitive) or product ID.",
       responses = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "Option categories retrieved successfully"),
+        @ApiResponse(responseCode = "200", description = "Option groups retrieved successfully"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -123,24 +127,28 @@ public class OptionGroupController {
   public ResponseEntity<List<OptionGroupResponse>> findAll(
       @Parameter(
               description = "Optional name filter (partial, case-insensitive)",
-              example = "tamaño")
+              example = "proteína")
           @RequestParam(required = false)
-          String search) {
-    List<OptionGroup> categories;
-    if (search != null && !search.isBlank()) {
-      categories = optionGroupUseCase.findByNameContainingIgnoreCase(search);
+          String search,
+      @Parameter(description = "Optional product ID filter", example = "1")
+          @RequestParam(required = false)
+          Long productId) {
+    List<OptionGroup> groups;
+    if (productId != null) {
+      groups = optionGroupUseCase.findByProductId(productId);
+      if (search != null && !search.isBlank()) {
+        String lowerSearch = search.toLowerCase();
+        groups =
+            groups.stream()
+                .filter(g -> g.getName() != null && g.getName().toLowerCase().contains(lowerSearch))
+                .toList();
+      }
+    } else if (search != null && !search.isBlank()) {
+      groups = optionGroupUseCase.findByNameContainingIgnoreCase(search);
     } else {
-      categories = optionGroupUseCase.findAll();
+      groups = optionGroupUseCase.findAll();
     }
-    Map<Long, String> selectionTypes =
-        optionGroupUseCase.loadSelectionTypesByIds(
-            categories.stream().map(OptionGroup::getId).toList());
-    List<OptionGroupResponse> responses =
-        categories.stream()
-            .map(
-                category ->
-                    OptionGroupResponse.fromDomain(category, selectionTypes.get(category.getId())))
-            .toList();
+    List<OptionGroupResponse> responses = enrichAndMap(groups);
     return ResponseEntity.ok(responses);
   }
 
@@ -166,12 +174,25 @@ public class OptionGroupController {
       @Parameter(description = "Option group ID", example = "1", required = true) @PathVariable
           Long id) {
     OptionGroup optionGroup = optionGroupUseCase.findById(id);
-    return ResponseEntity.ok(toResponse(optionGroup));
+    List<OptionGroupResponse> responses = enrichAndMap(List.of(optionGroup));
+    return ResponseEntity.ok(responses.getFirst());
   }
 
-  private OptionGroupResponse toResponse(OptionGroup category) {
-    String selectionType =
-        optionGroupUseCase.loadSelectionTypesByIds(List.of(category.getId())).get(category.getId());
-    return OptionGroupResponse.fromDomain(category, selectionType);
+  private List<OptionGroupResponse> enrichAndMap(List<OptionGroup> groups) {
+    if (groups.isEmpty()) {
+      return List.of();
+    }
+    List<Long> groupIds = groups.stream().map(OptionGroup::getId).toList();
+    Map<Long, String> selectionTypes = optionGroupUseCase.loadSelectionTypesByIds(groupIds);
+    Map<Long, List<Long>> productIdsByGroup =
+        optionGroupUseCase.loadProductIdsByOptionGroupIds(groupIds);
+    return groups.stream()
+        .map(
+            g ->
+                OptionGroupResponse.fromDomain(
+                    g,
+                    selectionTypes.get(g.getId()),
+                    productIdsByGroup.getOrDefault(g.getId(), List.of())))
+        .toList();
   }
 }

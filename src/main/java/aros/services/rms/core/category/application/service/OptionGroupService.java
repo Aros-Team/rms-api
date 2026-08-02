@@ -3,6 +3,7 @@
 package aros.services.rms.core.category.application.service;
 
 import aros.services.rms.core.category.application.exception.OptionGroupNotFoundException;
+import aros.services.rms.core.category.application.exception.OptionGroupRequiresProductException;
 import aros.services.rms.core.category.domain.OptionGroup;
 import aros.services.rms.core.category.port.input.OptionGroupUseCase;
 import aros.services.rms.core.category.port.output.OptionGroupRepositoryPort;
@@ -18,8 +19,9 @@ import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 
 /**
- * Implementation of option category management use cases. Handles CRUD for customization categories
- * (e.g., "Cooking term", "Milk type").
+ * Implementation of option group management use cases. Handles CRUD for customization groups (e.g.,
+ * "Proteína Hamburguesa", "Acompañamiento Parrilla") and enforces the business rule that every
+ * option group must be attached to at least one product.
  */
 public class OptionGroupService implements OptionGroupUseCase {
 
@@ -30,7 +32,7 @@ public class OptionGroupService implements OptionGroupUseCase {
   /**
    * Creates a new OptionGroupService instance.
    *
-   * @param optionGroupRepositoryPort the option category repository port
+   * @param optionGroupRepositoryPort the option group repository port
    * @param logger the logger instance
    */
   public OptionGroupService(OptionGroupRepositoryPort optionGroupRepositoryPort, Logger logger) {
@@ -39,35 +41,53 @@ public class OptionGroupService implements OptionGroupUseCase {
   }
 
   /**
-   * Creates a new option category.
+   * Creates a new option group, enforcing that at least one product ID is supplied.
    *
-   * @param optionGroup the option category data to create
-   * @return the created option category with generated ID
+   * @param optionGroup the option group data to create
+   * @param productIds the IDs of the products this group applies to (must contain at least one)
+   * @param required the required flag applied to every product association in this group
+   * @return the created option group with generated ID
+   * @throws OptionGroupRequiresProductException if {@code productIds} is empty
    */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000))
-  public OptionGroup create(OptionGroup optionGroup) {
+  public OptionGroup create(OptionGroup optionGroup, List<Long> productIds, boolean required) {
+    if (productIds == null || productIds.isEmpty()) {
+      throw new OptionGroupRequiresProductException();
+    }
     OptionGroup saved = optionGroupRepositoryPort.save(optionGroup);
-    logger.info("OptionGroup created: id={}, name={}", saved.getId(), saved.getName());
+    optionGroupRepositoryPort.replaceProductAssociations(saved.getId(), productIds, required);
+    logger.info(
+        "OptionGroup created: id={}, name={}, products={}",
+        saved.getId(),
+        saved.getName(),
+        productIds);
     return saved;
   }
 
   /**
-   * Updates an existing option category.
+   * Updates an existing option group and replaces its product associations.
    *
-   * @param id the option category identifier
-   * @param optionGroup the option category data with updates
-   * @return the updated option category
+   * @param id the option group identifier
+   * @param optionGroup the option group data with updates
+   * @param productIds the IDs of the products this group applies to (must contain at least one)
+   * @param required the required flag applied to every product association in this group
+   * @return the updated option group
+   * @throws OptionGroupRequiresProductException if {@code productIds} is empty
    */
   @Override
   @Retryable(
       retryFor = {DataAccessException.class},
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000))
-  public OptionGroup update(Long id, OptionGroup optionGroup) {
+  public OptionGroup update(
+      Long id, OptionGroup optionGroup, List<Long> productIds, boolean required) {
+    if (productIds == null || productIds.isEmpty()) {
+      throw new OptionGroupRequiresProductException();
+    }
     OptionGroup existing =
         optionGroupRepositoryPort
             .findById(id)
@@ -79,14 +99,19 @@ public class OptionGroupService implements OptionGroupUseCase {
     existing.setReplaceSupplyCategoryId(optionGroup.getReplaceSupplyCategoryId());
 
     OptionGroup saved = optionGroupRepositoryPort.save(existing);
-    logger.info("OptionGroup updated: id={}, name={}", saved.getId(), saved.getName());
+    optionGroupRepositoryPort.replaceProductAssociations(saved.getId(), productIds, required);
+    logger.info(
+        "OptionGroup updated: id={}, name={}, products={}",
+        saved.getId(),
+        saved.getName(),
+        productIds);
     return saved;
   }
 
   /**
-   * Retrieves all option categories.
+   * Retrieves all option groups.
    *
-   * @return list of all option categories
+   * @return list of all option groups
    */
   @Override
   @Retryable(
@@ -117,10 +142,10 @@ public class OptionGroupService implements OptionGroupUseCase {
   }
 
   /**
-   * Finds an option category by its identifier.
+   * Finds an option group by its identifier.
    *
-   * @param id the option category identifier
-   * @return the found option category
+   * @param id the option group identifier
+   * @return the found option group
    * @throws OptionGroupNotFoundException if not found
    */
   @Override
@@ -134,16 +159,34 @@ public class OptionGroupService implements OptionGroupUseCase {
         .orElseThrow(() -> new OptionGroupNotFoundException(id));
   }
 
+  /** {@inheritDoc} */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public List<OptionGroup> findByProductId(Long productId) {
+    return optionGroupRepositoryPort.findByProductId(productId);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Map<Long, List<Long>> loadProductIdsByOptionGroupIds(Collection<Long> optionGroupIds) {
+    if (optionGroupIds == null || optionGroupIds.isEmpty()) {
+      return Map.of();
+    }
+    return optionGroupRepositoryPort.loadProductIdsByOptionGroupIds(optionGroupIds);
+  }
+
   /**
    * Recovery handler for create operation when database is unavailable.
    *
    * @param e the data access exception
-   * @param optionGroup the option category that was being created
    * @return never returns, always throws ServiceUnavailableException
-   * @throws ServiceUnavailableException when database is unavailable
    */
   @Recover
-  public OptionGroup recoverCreate(DataAccessException e, OptionGroup optionGroup) {
+  public OptionGroup recoverCreate(
+      DataAccessException e, OptionGroup optionGroup, List<Long> productIds, boolean required) {
     log.warn(
         "BD no disponible - fallback para create(optionGroup={}): {}",
         optionGroup.getName(),
@@ -155,13 +198,15 @@ public class OptionGroupService implements OptionGroupUseCase {
    * Recovery handler for update operation when database is unavailable.
    *
    * @param e the data access exception
-   * @param id the option category identifier being updated
-   * @param optionGroup the option category data with updates
    * @return never returns, always throws ServiceUnavailableException
-   * @throws ServiceUnavailableException when database is unavailable
    */
   @Recover
-  public OptionGroup recoverUpdate(DataAccessException e, Long id, OptionGroup optionGroup) {
+  public OptionGroup recoverUpdate(
+      DataAccessException e,
+      Long id,
+      OptionGroup optionGroup,
+      List<Long> productIds,
+      boolean required) {
     log.warn("BD no disponible - fallback para update(id={}): {}", id, e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
@@ -171,7 +216,6 @@ public class OptionGroupService implements OptionGroupUseCase {
    *
    * @param e the data access exception
    * @return never returns, always throws ServiceUnavailableException
-   * @throws ServiceUnavailableException when database is unavailable
    */
   @Recover
   public List<OptionGroup> recoverFindAll(DataAccessException e) {
@@ -183,13 +227,42 @@ public class OptionGroupService implements OptionGroupUseCase {
    * Recovery handler for findById operation when database is unavailable.
    *
    * @param e the data access exception
-   * @param id the option category identifier being looked up
    * @return never returns, always throws ServiceUnavailableException
-   * @throws ServiceUnavailableException when database is unavailable
    */
   @Recover
   public OptionGroup recoverFindById(DataAccessException e, Long id) {
     log.warn("BD no disponible - fallback para findById(id={}): {}", id, e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  /**
+   * Recovery handler for findByNameContainingIgnoreCase when database is unavailable.
+   *
+   * @param e the data access exception
+   * @return never returns, always throws ServiceUnavailableException
+   */
+  @Recover
+  public List<OptionGroup> recoverFindByNameContainingIgnoreCase(
+      DataAccessException e, String name) {
+    log.warn(
+        "BD no disponible - fallback para findByNameContainingIgnoreCase({}): {}",
+        name,
+        e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  /**
+   * Recovery handler for findByProductId when database is unavailable.
+   *
+   * @param e the data access exception
+   * @return never returns, always throws ServiceUnavailableException
+   */
+  @Recover
+  public List<OptionGroup> recoverFindByProductId(DataAccessException e, Long productId) {
+    log.warn(
+        "BD no disponible - fallback para findByProductId(productId={}): {}",
+        productId,
+        e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 }

@@ -3,6 +3,8 @@
 package aros.services.rms.infraestructure.product.api;
 
 import aros.services.rms.core.category.domain.Category;
+import aros.services.rms.core.category.domain.OptionGroup;
+import aros.services.rms.core.category.port.input.OptionGroupUseCase;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.image.domain.EntityImage;
 import aros.services.rms.core.image.domain.ImageEntityType;
@@ -15,6 +17,7 @@ import aros.services.rms.core.product.domain.ProductCostBreakdown;
 import aros.services.rms.core.product.port.input.CalculateProductCostUseCase;
 import aros.services.rms.core.product.port.input.GetProductCostBreakdownUseCase;
 import aros.services.rms.core.product.port.input.ProductUseCase;
+import aros.services.rms.infraestructure.category.api.dto.OptionGroupResponse;
 import aros.services.rms.infraestructure.product.api.dto.OptionExtrasRequest;
 import aros.services.rms.infraestructure.product.api.dto.ProductCostResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductOptionResponse;
@@ -66,6 +69,7 @@ public class ProductController {
   private final GetProductCostBreakdownUseCase getProductCostBreakdownUseCase;
   private final ImageRepositoryPort imageRepositoryPort;
   private final StoragePort storagePort;
+  private final OptionGroupUseCase optionGroupUseCase;
 
   private static final Duration SIGNED_URL_EXPIRATION = Duration.ofMinutes(60);
 
@@ -338,6 +342,8 @@ public class ProductController {
       @Parameter(description = "Product ID", example = "1", required = true) @PathVariable
           Long id) {
     Product product = productUseCase.findById(id);
+    List<OptionGroup> optionGroups = optionGroupUseCase.findByProductId(id);
+    product.setOptionGroupIds(optionGroups.stream().map(OptionGroup::getId).toList());
     return ResponseEntity.ok(ProductResponse.fromDomain(product));
   }
 
@@ -417,6 +423,35 @@ public class ProductController {
     ProductCostBreakdown breakdown = getProductCostBreakdownUseCase.execute(id);
     List<ProductOptionResponse> responses =
         breakdown.options().stream().map(ProductOptionResponse::fromCostBreakdown).toList();
+    return ResponseEntity.ok(responses);
+  }
+
+  /**
+   * Gets option groups associated with a product.
+   *
+   * @param id the product ID
+   * @return the list of option groups with their options
+   */
+  @Operation(
+      tags = {"Products"},
+      summary = "Get product option groups",
+      description =
+          "Returns the option groups associated with a specific product, "
+              + "with selection type and required flag.")
+  @GetMapping("/{id}/option-groups")
+  public ResponseEntity<List<OptionGroupResponse>> findOptionGroupsByProductId(
+      @Parameter(description = "Product ID", example = "1", required = true) @PathVariable
+          Long id) {
+    List<OptionGroup> optionGroups = optionGroupUseCase.findByProductId(id);
+    Map<Long, String> selectionTypes =
+        optionGroupUseCase.loadSelectionTypesByIds(
+            optionGroups.stream().map(OptionGroup::getId).toList());
+    List<OptionGroupResponse> responses =
+        optionGroups.stream()
+            .map(
+                og ->
+                    OptionGroupResponse.fromDomain(og, selectionTypes.get(og.getId()), List.of(id)))
+            .toList();
     return ResponseEntity.ok(responses);
   }
 

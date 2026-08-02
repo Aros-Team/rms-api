@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import aros.services.rms.core.category.domain.Category;
+import aros.services.rms.core.category.port.input.OptionGroupUseCase;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.image.port.output.ImageRepositoryPort;
 import aros.services.rms.core.image.port.output.StoragePort;
@@ -74,6 +75,7 @@ class ProductControllerTest {
   @MockitoBean private GetProductCostBreakdownUseCase getProductCostBreakdownUseCase;
   @MockitoBean private ImageRepositoryPort imageRepositoryPort;
   @MockitoBean private StoragePort storagePort;
+  @MockitoBean private OptionGroupUseCase optionGroupUseCase;
   @MockitoBean private JwtDecoder jwtDecoder;
 
   @org.springframework.boot.test.context.TestConfiguration

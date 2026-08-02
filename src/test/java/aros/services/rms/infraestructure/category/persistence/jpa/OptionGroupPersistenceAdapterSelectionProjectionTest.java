@@ -26,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class OptionGroupPersistenceAdapterSelectionProjectionTest {
 
   @Mock private OptionGroupRepository optionGroupRepository;
+  @Mock private ProductOptionGroupJpaRepository productOptionGroupRepository;
   @Mock private CategoryMapper categoryMapper;
   @Mock private EntityManager entityManager;
   @Mock private Query dataQuery;
@@ -35,7 +36,8 @@ class OptionGroupPersistenceAdapterSelectionProjectionTest {
   @BeforeEach
   void setUp() {
     adapter =
-        new OptionGroupPersistenceAdapter(optionGroupRepository, categoryMapper, entityManager);
+        new OptionGroupPersistenceAdapter(
+            optionGroupRepository, productOptionGroupRepository, categoryMapper, entityManager);
   }
 
   @Test

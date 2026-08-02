@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 public class OptionGroupPersistenceAdapter implements OptionGroupRepositoryPort {
 
   private final OptionGroupRepository optionGroupRepository;
+  private final ProductOptionGroupJpaRepository productOptionGroupRepository;
   private final CategoryMapper categoryMapper;
   private final EntityManager entityManager;
 
@@ -94,5 +95,50 @@ public class OptionGroupPersistenceAdapter implements OptionGroupRepositoryPort 
   @Override
   public boolean existsById(Long id) {
     return optionGroupRepository.existsById(id);
+  }
+
+  @Override
+  public List<OptionGroup> findByProductId(Long productId) {
+    List<Long> groupIds = productOptionGroupRepository.findOptionGroupIdsByProductId(productId);
+    if (groupIds.isEmpty()) {
+      return List.of();
+    }
+    return optionGroupRepository.findAllById(groupIds).stream()
+        .map(categoryMapper::toOptionGroupDomain)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public Map<Long, List<Long>> loadProductIdsByOptionGroupIds(Collection<Long> optionGroupIds) {
+    if (optionGroupIds == null || optionGroupIds.isEmpty()) {
+      return Map.of();
+    }
+    List<ProductOptionGroupJpaRepository.ProductIdProjection> projections =
+        productOptionGroupRepository.findProductIdsByOptionGroupIds(List.copyOf(optionGroupIds));
+    Map<Long, List<Long>> result = new LinkedHashMap<>();
+    for (ProductOptionGroupJpaRepository.ProductIdProjection p : projections) {
+      result
+          .computeIfAbsent(p.getOptionGroupId(), k -> new java.util.ArrayList<>())
+          .add(p.getProductId());
+    }
+    return Map.copyOf(result);
+  }
+
+  @Override
+  @org.springframework.transaction.annotation.Transactional
+  public void replaceProductAssociations(
+      Long optionGroupId, List<Long> productIds, boolean required) {
+    productOptionGroupRepository.deleteByOptionGroupId(optionGroupId);
+    if (productIds == null || productIds.isEmpty()) {
+      return;
+    }
+    List<ProductOptionGroupEntity> entities =
+        productIds.stream()
+            .map(
+                productId ->
+                    new ProductOptionGroupEntity(
+                        new ProductOptionGroupId(productId, optionGroupId), required))
+            .toList();
+    productOptionGroupRepository.saveAll(entities);
   }
 }

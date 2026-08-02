@@ -36,7 +36,8 @@ public record ProductResponse(
     @Schema(
             description = "Signed URL of the primary image (mobile variant)",
             example = "/api/v1/images/local/products/1/mobile.webp")
-        String imageUrl) {
+        String imageUrl,
+    @Schema(description = "IDs of associated option groups") List<Long> optionGroupIds) {
 
   /** Nested DTO representing a single recipe item (supply variant + quantity). */
   @Schema(description = "A single ingredient in the product recipe")
@@ -82,7 +83,8 @@ public record ProductResponse(
         recipeItems,
         product.getEstimatedPrepMinutes(),
         product.getSelectionType() != null ? product.getSelectionType().name() : "STANDARD",
-        null);
+        null,
+        product.getOptionGroupIds() != null ? product.getOptionGroupIds() : List.of());
   }
 
   /**
@@ -110,6 +112,7 @@ public record ProductResponse(
         base.recipe(),
         base.estimatedPrepMinutes(),
         base.selectionType(),
-        imageUrl);
+        imageUrl,
+        base.optionGroupIds());
   }
 }

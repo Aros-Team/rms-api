@@ -247,4 +247,38 @@ public class ProductOptionPersistenceAdapter implements ProductOptionRepositoryP
     }
     return result;
   }
+
+  @Override
+  public Map<Long, Map<Long, List<ProductOption>>> loadOptionsByProductAndGroup(
+      java.util.Collection<Long> productIds) {
+    if (productIds == null || productIds.isEmpty()) {
+      return Map.of();
+    }
+    String sql =
+        """
+        SELECT ppo.product_id, po.option_category_id, po.id, po.name
+        FROM product_product_options ppo
+        JOIN product_options po ON po.id = ppo.option_id
+        WHERE ppo.product_id IN (:productIds)
+        ORDER BY ppo.product_id, po.option_category_id, ppo.display_order, po.id
+        """;
+    Query query = entityManager.createNativeQuery(sql).setParameter("productIds", productIds);
+    @SuppressWarnings("unchecked")
+    List<Object[]> rows = query.getResultList();
+    Map<Long, Map<Long, List<ProductOption>>> result = new HashMap<>();
+    for (Object[] row : rows) {
+      Long pid = toLong(row[0]);
+      Long groupId = toLong(row[1]);
+      Long optionId = toLong(row[2]);
+      String optionName = (String) row[3];
+      if (pid == null || groupId == null) {
+        continue;
+      }
+      result
+          .computeIfAbsent(pid, k -> new HashMap<>())
+          .computeIfAbsent(groupId, k -> new ArrayList<>())
+          .add(ProductOption.builder().id(optionId).name(optionName).build());
+    }
+    return result;
+  }
 }

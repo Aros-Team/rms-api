@@ -314,6 +314,16 @@ public class GlobalExceptionHandler {
         .body(new ErrorResponse(400, e.getMessage()));
   }
 
+  /** Handles OptionGroupRequiresProductException. */
+  @ExceptionHandler(
+      aros.services.rms.core.category.application.exception.OptionGroupRequiresProductException
+          .class)
+  public ResponseEntity<ErrorResponse> handleOptionGroupRequiresProduct(
+      aros.services.rms.core.category.application.exception.OptionGroupRequiresProductException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
+  }
+
   /** Handles validation errors for request body. */
   @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(

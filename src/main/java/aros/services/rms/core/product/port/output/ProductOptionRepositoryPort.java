@@ -7,6 +7,7 @@ import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.domain.ProductOptionCostProfile;
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -123,16 +124,19 @@ public interface ProductOptionRepositoryPort {
   List<ProductRecipe> loadBaseRecipeBySupplyCategory(Long productId, Long supplyCategoryId);
 
   /**
-   * Loads the base-recipe cost of each product's default slot per supply category. Mirrors the
-   * {@code default_slot_cost} field of {@link ProductOptionCostProfile} but exposed as a
-   * productId-keyed map of {@code supplyCategoryId → Money} for callers that need it independently
-   * of option projections (e.g. menu engineering substitution aggregation).
-   *
-   * <p>For each product, returns a map of {@code supplyCategoryId} → summed material cost of the
-   * product's base-recipe lines whose supply variant belongs to that category. Products without any
-   * recipe are absent from the outer map.
+   * Loads the base-recipe cost of each product's default slot per supply category.
    *
    * @return productId → supplyCategoryId → default-slot cost in COP
    */
   Map<Long, Map<Long, Money>> loadDefaultSlotCostByProductAndCategory();
+
+  /**
+   * Bulk loads product options grouped by option-group ID. Used for the {@code GET
+   * /products/{id}/option-groups} endpoint.
+   *
+   * @param productIds the product identifiers
+   * @return map of product ID → option-group ID → list of ProductOption
+   */
+  Map<Long, Map<Long, List<ProductOption>>> loadOptionsByProductAndGroup(
+      Collection<Long> productIds);
 }
