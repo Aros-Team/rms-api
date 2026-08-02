@@ -1022,7 +1022,11 @@ INSERT INTO users (id, document, name, email, password, address, phone, role, st
   (1003, 'TEST-WK-3',    'Trabajador 3', 'wk3.test@rms.local',     NULL, 'Calle 1 #1-03', '3000000003', 'WORKER', 'ACTIVE', 2800000.00),
   (1004, 'TEST-WK-4',    'Trabajador 4', 'wk4.test@rms.local',     NULL, 'Calle 1 #1-04', '3000000004', 'WORKER', 'ACTIVE', 2800000.00),
   (1005, 'TEST-WK-5',    'Trabajador 5', 'wk5.test@rms.local',     NULL, 'Calle 1 #1-05', '3000000005', 'WORKER', 'ACTIVE', 2800000.00),
-  (1006, 'TEST-WK-6',    'Trabajador 6', 'wk6.test@rms.local',     NULL, 'Calle 1 #1-06', '3000000006', 'WORKER', 'ACTIVE', 2800000.00);
+  (1006, 'TEST-WK-6',    'Trabajador 6', 'wk6.test@rms.local',     NULL, 'Calle 1 #1-06', '3000000006', 'WORKER', 'ACTIVE', 2800000.00)
+ON DUPLICATE KEY UPDATE
+  document = VALUES(document), name = VALUES(name), email = VALUES(email),
+  address = VALUES(address), phone = VALUES(phone), role = VALUES(role),
+  status = VALUES(status), salary = VALUES(salary);
 
 -- =============================================================================
 -- USER ASSIGNED AREAS (PK user_id + area_id -> INSERT IGNORE)
