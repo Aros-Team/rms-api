@@ -1002,6 +1002,7 @@ DELETE FROM time_logs
   WHERE timestamp >= '2026-04-01' AND timestamp < '2026-07-01'
      OR related_shift_id IN (SELECT id FROM schedule_shifts WHERE schedule_id IN (SELECT id FROM schedules WHERE name LIKE 'Turno%'));
 DELETE FROM orders WHERE date >= '2026-04-01' AND date < '2026-07-01';
+DELETE FROM payroll WHERE registered_by IN (SELECT id FROM users WHERE document LIKE 'TEST-%');
 DELETE FROM worker_schedule_assignments
   WHERE schedule_id IN (SELECT id FROM schedules WHERE name LIKE 'Turno%');
 DELETE FROM schedule_shifts
