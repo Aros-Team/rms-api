@@ -1054,7 +1054,7 @@ DELETE FROM payroll WHERE period_year = 2026 AND period_month = 6;
 
 INSERT INTO payroll (user_id, period_year, period_month, period_start, period_end,
                      base_salary, bonuses, deductions, net_amount, hours_worked,
-                     status, notes, performed_by, created_at, updated_at)
+                     status, notes, registered_by, created_at, updated_at)
 SELECT
   u.id, 2026, 6,
   '2026-06-01', '2026-06-30',
@@ -1070,7 +1070,7 @@ SELECT
     WHEN u.id = 1006 THEN 160.00            -- reduced schedule
     ELSE 192.00
   END,
-  'PAID', 'Pago junio 2026', 'admin@test.rms.local', NOW(), NOW()
+  'PAID', 'Pago junio 2026', 1001, NOW(), NOW()
 FROM users u
 WHERE u.document LIKE 'TEST-%' AND u.role = 'WORKER'
 ON DUPLICATE KEY UPDATE
