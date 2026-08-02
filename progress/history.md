@@ -555,3 +555,52 @@ FE TypeScript enum/union types and switch statements must be updated.
 - 2 reviewer-acknowledged cosmetic notes accepted as-is: `SingleChoiceOptionGroupLimitException.categoryId` field kept (internal API), URL `/api/v1/option-categories` kept (FE compat).
 
 **Reports:** `progress/explore/task-5a-report.md`, `task-5b-review.md`.
+
+---
+
+## 2026-08-01 — Activity 6: chore/option-group-product-association
+
+**Outcome:** all 12 acceptance items verified, reviewer verdict **CONDITIONAL PASS** (test gaps filled post-review), harness 8/8 `[OK]`, 561 tests pass. V40 forward-only additive migration.
+
+**Goal:** Add direct Product-OptionGroup M:N relationship via `product_option_groups` junction table and enforce the business rule that an OptionGroup must be associated with at least one Product.
+
+**Deliverables:**
+
+| # | Deliverable |
+|---|-------------|
+| 1 | V40 migration: `product_option_groups(product_id, option_group_id, required)` with composite PK + CASCADE FKs |
+| 2 | JPA entities: `ProductOptionGroupId` (embeddable), `ProductOptionGroupEntity`, `ProductOptionGroupJpaRepository` (5 queries + projection) |
+| 3 | `OptionGroupRequiresProductException` → HTTP 400 mapped in `GlobalExceptionHandler` |
+| 4 | `OptionGroupRepositoryPort`: `findByProductId`, `loadProductIdsByOptionGroupIds`, `replaceProductAssociations` |
+| 5 | `OptionGroupUseCase`: `create(OptionGroup, List<Long> productIds, boolean required)`, `update(...)`, `findByProductId`, `loadProductIdsByOptionGroupIds` |
+| 6 | `OptionGroupService`: business rule enforcement (throws on empty productIds) + retry/recover |
+| 7 | `OptionGroupPersistenceAdapter`: implements new port methods via JPA + native queries + `@Transactional` replace |
+| 8 | `OptionGroupController`: POST/PUT accept `OptionGroupRequest` with `productIds` + `required`; `GET ?productId=X` filter; `enrichAndMap` helper (2 bulk queries, no N+1) |
+| 9 | `OptionGroupRequest` DTO: `name`, `description`, `productIds` (@NotEmpty), `required` |
+| 10 | `OptionGroupResponse`: `id`, `name`, `description`, `selectionType`, `productIds` |
+| 11 | `ProductController`: `GET /products/{id}` populates `optionGroupIds`; new `GET /products/{id}/option-groups` endpoint |
+| 12 | `Product` domain + `ProductResponse`: `optionGroupIds` field (detail only, list stays lean) |
+| 13 | `ProductOptionRepositoryPort`: `loadOptionsByProductAndGroup` batch method |
+| 14 | `data.sql`: idempotent `INSERT IGNORE INTO product_option_groups` seed (5 CROSS JOIN subqueries by product name) |
+| 15 | Tests: `OptionGroupServiceTest` (9 tests), updated `OptionGroupControllerTest` (7 tests), `ProductControllerTest`, `OptionGroupPersistenceAdapterSelectionProjectionTest` |
+
+**New endpoints:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/v1/option-groups` | Create option group with product associations |
+| `PUT` | `/api/v1/option-groups/{id}` | Update option group + replace product associations |
+| `GET` | `/api/v1/option-groups` | List all (filters: `?search=`, `?productId=`) |
+| `GET` | `/api/v1/option-groups/{id}` | Detail with productIds |
+| `GET` | `/api/v1/products/{id}/option-groups` | Option groups for a product |
+
+**Wire format (FE relevant):**
+
+- `OptionGroupResponse` now includes `productIds: number[]`
+- `ProductResponse` (detail only) now includes `optionGroupIds: number[]`
+- `POST/PUT /option-groups` requires `productIds: number[]` (min 1) + `required: boolean`
+- `selectionType` values: `SINGLE_CHOICE`, `MULTI_CHOICE`, `ADD_ON`, `REMOVAL`
+
+**Migration safety:** V40 additive-only (CREATE TABLE + FKs); no existing tables modified.
+
+**Commits:** `c3a7836`
