@@ -496,3 +496,62 @@ src/test/java/aros/services/rms/core/analytics/application/config/RollupDailyJob
 **Migration safety:** V37/V38 additive-only; verified by reviewer + leader (`git diff --stat db/migration/` shows only the two new untracked files).
 
 
+
+---
+
+## 2026-08-01 — Activity 5: chore/rename-option-category-to-option-group
+
+**Outcome:** all 15 acceptance items verified by implementation-reviewer, harness 8/8 `[OK]`, full test suite green. V39 forward-only `RENAME TABLE` (no data loss). Pure rename — no behavior change.
+
+**Scope**
+
+- DB table: `option_categories` → `option_group` (V39 forward-only). FKs auto-updated by MySQL.
+- Java aggregate: `OptionCategory` → `OptionGroup` everywhere (10 files renamed + ~30 internal references updated).
+- Enum values:
+  - `SINGLE_CHOICE` (unchanged)
+  - `MULTI_SELECT` → `MULTI_CHOICE`
+  - `EXTRA` → `ADD_ON`
+  - `REMOVE` → `REMOVAL`
+- Exception: `SingleChoiceCategoryLimitException` → `SingleChoiceOptionGroupLimitException`.
+- `data.sql`: 17 INSERTs + 2 UPDATEs + 1 SET (table references migrated).
+- 4 OptionCategory test files renamed to OptionGroup prefix; test data fixtures updated.
+- OpenAPI: `@Tag`, `@Operation`, `@ApiResponse`, `@Parameter`, Javadoc all modernized to "Option group(s)" in controller, DTOs, exception, entity.
+- Broken Javadoc links `{@link OptionSelectionType#EXTRA/#REMOVE}` → `#ADD_ON/#REMOVAL` fixed in `OptionGroup.java` and `TakeOrderService.java`.
+
+**Out of scope (intentional)**
+
+- Package names `core/category/...` and `infraestructure/category/...` unchanged (still house `Category` product-category aggregate alongside `OptionGroup`).
+- FK column `option_category_id` on `product_options` unchanged (V1 already shipped; minimal disruption; not on API surface).
+- URL `/api/v1/option-categories` unchanged (defensible — FE compat).
+
+**Migration safety**
+
+- V39: `ALTER TABLE option_categories RENAME TO option_group;` (forward-only, preserves data + indexes + FKs).
+- No column changes. V1/V37/V38 untouched.
+- Existing `selection_type='SINGLE_CHOICE'` rows remain valid (SINGLE_CHOICE unchanged).
+
+**Wire format (FE breaking)**
+
+- `MULTI_SELECT` → `MULTI_CHOICE`
+- `EXTRA` → `ADD_ON`
+- `REMOVE` → `REMOVAL`
+- `SINGLE_CHOICE` unchanged
+
+FE TypeScript enum/union types and switch statements must be updated.
+
+**Files**
+
+- V39 (new)
+- 10 Java files renamed (core + infrastructure)
+- 4 test files renamed
+- 1 exception renamed
+- ~30 files modified for internal references
+- `data.sql` (20 references)
+- ~43 files total, net +0/-22 lines
+
+**Review notes**
+
+- Implementation-reviewer flagged the Swagger documentation drift as REQUEST_CHANGES; leader addressed it in the same diff (controller Javadoc, `@Tag/@Operation/@ApiResponse/@Parameter` descriptions, DTO Javadoc, entity Javadoc, exception message).
+- 2 reviewer-acknowledged cosmetic notes accepted as-is: `SingleChoiceOptionGroupLimitException.categoryId` field kept (internal API), URL `/api/v1/option-categories` kept (FE compat).
+
+**Reports:** `progress/explore/task-5a-report.md`, `task-5b-review.md`.
