@@ -50,4 +50,12 @@ public interface ProductOptionUseCase {
    * @return list of product options for the product
    */
   List<ProductOption> findByProductId(Long productId);
+
+  /**
+   * Finds all product options belonging to a specific option group.
+   *
+   * @param optionGroupId the option group identifier
+   * @return list of product options in the group
+   */
+  List<ProductOption> findByOptionGroupId(Long optionGroupId);
 }

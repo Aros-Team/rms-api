@@ -10,6 +10,7 @@ import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.inventory.port.output.OptionRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
+import aros.services.rms.core.payroll.domain.port.output.AreaLaborCostPort;
 import aros.services.rms.core.product.application.service.CalculateProductCostService;
 import aros.services.rms.core.product.application.service.GetProductCostBreakdownService;
 import aros.services.rms.core.product.application.service.ProductOptionService;
@@ -94,12 +95,14 @@ public class ProductConfigBeans {
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
       SupplyVariantRepositoryPort supplyVariantRepositoryPort,
       UserRepositoryPort userRepositoryPort,
+      AreaLaborCostPort areaLaborCostPort,
       Logger logger) {
     return new CalculateProductCostService(
         productRepositoryPort,
         productRecipeRepositoryPort,
         supplyVariantRepositoryPort,
         userRepositoryPort,
+        areaLaborCostPort,
         logger);
   }
 }

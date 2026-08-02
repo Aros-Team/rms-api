@@ -1016,17 +1016,18 @@ DELETE FROM users WHERE document LIKE 'TEST-%';
 -- 1001-1002 = FOH (Servicio + Caja) at 2,500,000 COP/month
 -- 1003-1006 = BOH (Cocina) at 2,800,000 COP/month
 -- =============================================================================
-INSERT INTO users (id, document, name, email, password, address, phone, role, status, salary) VALUES
-  (1001, 'TEST-WK-1',    'Trabajador 1', 'wk1.test@rms.local',     NULL, 'Calle 1 #1-01', '3000000001', 'WORKER', 'ACTIVE', 2500000.00),
-  (1002, 'TEST-WK-2',    'Trabajador 2', 'wk2.test@rms.local',     NULL, 'Calle 1 #1-02', '3000000002', 'WORKER', 'ACTIVE', 2500000.00),
-  (1003, 'TEST-WK-3',    'Trabajador 3', 'wk3.test@rms.local',     NULL, 'Calle 1 #1-03', '3000000003', 'WORKER', 'ACTIVE', 2800000.00),
-  (1004, 'TEST-WK-4',    'Trabajador 4', 'wk4.test@rms.local',     NULL, 'Calle 1 #1-04', '3000000004', 'WORKER', 'ACTIVE', 2800000.00),
-  (1005, 'TEST-WK-5',    'Trabajador 5', 'wk5.test@rms.local',     NULL, 'Calle 1 #1-05', '3000000005', 'WORKER', 'ACTIVE', 2800000.00),
-  (1006, 'TEST-WK-6',    'Trabajador 6', 'wk6.test@rms.local',     NULL, 'Calle 1 #1-06', '3000000006', 'WORKER', 'ACTIVE', 2800000.00)
+INSERT INTO users (id, document, name, email, password, address, phone, role, status, salary, expected_hours_per_month) VALUES
+  (1001, 'TEST-WK-1',    'Trabajador 1', 'wk1.test@rms.local',     NULL, 'Calle 1 #1-01', '3000000001', 'WORKER', 'ACTIVE', 2500000.00, 192),
+  (1002, 'TEST-WK-2',    'Trabajador 2', 'wk2.test@rms.local',     NULL, 'Calle 1 #1-02', '3000000002', 'WORKER', 'ACTIVE', 2500000.00, 192),
+  (1003, 'TEST-WK-3',    'Trabajador 3', 'wk3.test@rms.local',     NULL, 'Calle 1 #1-03', '3000000003', 'WORKER', 'ACTIVE', 2800000.00, 192),
+  (1004, 'TEST-WK-4',    'Trabajador 4', 'wk4.test@rms.local',     NULL, 'Calle 1 #1-04', '3000000004', 'WORKER', 'ACTIVE', 2800000.00, 192),
+  (1005, 'TEST-WK-5',    'Trabajador 5', 'wk5.test@rms.local',     NULL, 'Calle 1 #1-05', '3000000005', 'WORKER', 'ACTIVE', 2800000.00, 192),
+  (1006, 'TEST-WK-6',    'Trabajador 6', 'wk6.test@rms.local',     NULL, 'Calle 1 #1-06', '3000000006', 'WORKER', 'ACTIVE', 2800000.00, 192)
 ON DUPLICATE KEY UPDATE
   document = VALUES(document), name = VALUES(name), email = VALUES(email),
   address = VALUES(address), phone = VALUES(phone), role = VALUES(role),
-  status = VALUES(status), salary = VALUES(salary);
+  status = VALUES(status), salary = VALUES(salary),
+  expected_hours_per_month = VALUES(expected_hours_per_month);
 
 -- =============================================================================
 -- USER ASSIGNED AREAS (PK user_id + area_id -> INSERT IGNORE)
@@ -1035,6 +1036,48 @@ ON DUPLICATE KEY UPDATE
 INSERT IGNORE INTO user_assigned_areas (user_id, area_id) VALUES
   (1001, 2), (1001, 4), (1002, 2), (1002, 4),
   (1003, 1), (1004, 1), (1005, 1), (1006, 1);
+
+-- =============================================================================
+-- SYSTEM CONFIGURATION (key is UNIQUE -> INSERT IGNORE)
+-- labor_cost_mode: AUTO (uses REAL payroll if available, falls back to STANDARD)
+-- =============================================================================
+INSERT IGNORE INTO system_configuration (`key`, value) VALUES
+  ('labor_cost_mode', 'AUTO');
+
+-- =============================================================================
+-- PAYROLL SEED (Jun 2026 — PAID status, enables REAL mode for cost calculations)
+-- 6 workers x 1 month = 6 rows
+-- netAmount = baseSalary + bonuses - deductions
+-- hours_worked varies to simulate realistic attendance
+-- =============================================================================
+DELETE FROM payroll WHERE period_year = 2026 AND period_month = 6;
+
+INSERT INTO payroll (user_id, period_year, period_month, period_start, period_end,
+                     base_salary, bonuses, deductions, net_amount, hours_worked,
+                     status, notes, performed_by, created_at, updated_at)
+SELECT
+  u.id, 2026, 6,
+  '2026-06-01', '2026-06-30',
+  u.salary,
+  CASE WHEN u.id IN (1003, 1004) THEN 200000.00 ELSE 0 END,   -- BOH bonus
+  50000.00,                                                      -- deductions
+  u.salary + CASE WHEN u.id IN (1003, 1004) THEN 200000.00 ELSE 0 END - 50000.00,
+  CASE
+    WHEN u.id IN (1001, 1002) THEN 184.00   -- FOH: slightly under 192
+    WHEN u.id = 1003 THEN 176.00            -- BOH: lower attendance
+    WHEN u.id = 1004 THEN 188.00
+    WHEN u.id = 1005 THEN 192.00            -- full hours
+    WHEN u.id = 1006 THEN 160.00            -- reduced schedule
+    ELSE 192.00
+  END,
+  'PAID', 'Pago junio 2026', 'admin@test.rms.local', NOW(), NOW()
+FROM users u
+WHERE u.document LIKE 'TEST-%' AND u.role = 'WORKER'
+ON DUPLICATE KEY UPDATE
+  base_salary = VALUES(base_salary), bonuses = VALUES(bonuses),
+  deductions = VALUES(deductions), net_amount = VALUES(net_amount),
+  hours_worked = VALUES(hours_worked), status = VALUES(status),
+  updated_at = NOW();
 
 -- =============================================================================
 -- SCHEDULE + SHIFTS (deterministic IDs)

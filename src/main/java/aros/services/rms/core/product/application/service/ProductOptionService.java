@@ -191,6 +191,21 @@ public class ProductOptionService implements ProductOptionUseCase {
   }
 
   /**
+   * Finds all product options for a specific option group.
+   *
+   * @param optionGroupId the option group identifier
+   * @return list of product options in the group
+   */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public List<ProductOption> findByOptionGroupId(Long optionGroupId) {
+    return productOptionRepositoryPort.findByOptionGroupId(optionGroupId);
+  }
+
+  /**
    * Recovery handler for create operation when database is unavailable.
    *
    * @param e the data access exception
@@ -262,6 +277,23 @@ public class ProductOptionService implements ProductOptionUseCase {
     log.warn(
         "BD no disponible - fallback para findByProductId(productId={}): {}",
         productId,
+        e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  /**
+   * Recovery handler for findByOptionGroupId operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param optionGroupId the option group identifier
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
+  @Recover
+  public List<ProductOption> recoverFindByOptionGroupId(DataAccessException e, Long optionGroupId) {
+    log.warn(
+        "BD no disponible - fallback para findByOptionGroupId(optionGroupId={}): {}",
+        optionGroupId,
         e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }

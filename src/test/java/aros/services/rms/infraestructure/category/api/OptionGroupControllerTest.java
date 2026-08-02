@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import aros.services.rms.core.category.domain.OptionGroup;
 import aros.services.rms.core.category.port.input.OptionGroupUseCase;
+import aros.services.rms.core.product.port.input.ProductOptionUseCase;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,13 +27,16 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 class OptionGroupControllerTest {
 
   @Mock private OptionGroupUseCase optionGroupUseCase;
+  @Mock private ProductOptionUseCase productOptionUseCase;
 
   private MockMvc mockMvc;
 
   @BeforeEach
   void setUp() {
     mockMvc =
-        MockMvcBuilders.standaloneSetup(new OptionGroupController(optionGroupUseCase)).build();
+        MockMvcBuilders.standaloneSetup(
+                new OptionGroupController(optionGroupUseCase, productOptionUseCase))
+            .build();
   }
 
   // ---------------------------------------------------------------------------

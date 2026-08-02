@@ -65,6 +65,13 @@ public class ProductOptionPersistenceAdapter implements ProductOptionRepositoryP
         .collect(Collectors.toList());
   }
 
+  @Override
+  public List<ProductOption> findByOptionGroupId(Long optionGroupId) {
+    return productOptionRepository.findByOptionGroupId(optionGroupId).stream()
+        .map(productMapper::toProductOptionDomain)
+        .collect(Collectors.toList());
+  }
+
   /**
    * {@inheritDoc}
    *

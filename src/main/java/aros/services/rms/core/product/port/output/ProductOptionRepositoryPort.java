@@ -54,6 +54,14 @@ public interface ProductOptionRepositoryPort {
   List<ProductOption> findByProductId(Long productId);
 
   /**
+   * Finds all product options whose category matches the given option group.
+   *
+   * @param optionGroupId the option group identifier
+   * @return list of product options attached to the group
+   */
+  List<ProductOption> findByOptionGroupId(Long optionGroupId);
+
+  /**
    * Loads option pricing and category projection metadata for a product.
    *
    * <p>The persistence projection supplies a SINGLE_CHOICE default when the optional category

@@ -59,6 +59,9 @@ public class UserEntity {
 
   private BigDecimal salary;
 
+  @Column(name = "expected_hours_per_month")
+  private Integer expectedHoursPerMonth;
+
   public Long getId() {
     return id;
   }
@@ -153,5 +156,13 @@ public class UserEntity {
 
   public void setSalary(BigDecimal salary) {
     this.salary = salary;
+  }
+
+  public Integer getExpectedHoursPerMonth() {
+    return expectedHoursPerMonth;
+  }
+
+  public void setExpectedHoursPerMonth(Integer expectedHoursPerMonth) {
+    this.expectedHoursPerMonth = expectedHoursPerMonth;
   }
 }

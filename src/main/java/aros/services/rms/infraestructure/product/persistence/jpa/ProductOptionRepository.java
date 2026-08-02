@@ -24,6 +24,12 @@ public interface ProductOptionRepository extends JpaRepository<ProductOption, Lo
       nativeQuery = true)
   List<ProductOption> findByProductId(@Param("productId") Long productId);
 
+  /** Finds all options attached to a given option group (via {@code option_category_id}). */
+  @Query(
+      value = "SELECT * FROM product_options WHERE option_category_id = :optionGroupId",
+      nativeQuery = true)
+  List<ProductOption> findByOptionGroupId(@Param("optionGroupId") Long optionGroupId);
+
   /** Removes all options from a product. */
   @Modifying
   @Query(

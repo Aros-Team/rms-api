@@ -3,9 +3,12 @@
 package aros.services.rms.infraestructure.category.api;
 
 import aros.services.rms.core.category.domain.OptionGroup;
+import aros.services.rms.core.category.domain.OptionSelectionType;
 import aros.services.rms.core.category.port.input.OptionGroupUseCase;
+import aros.services.rms.core.product.port.input.ProductOptionUseCase;
 import aros.services.rms.infraestructure.category.api.dto.OptionGroupRequest;
 import aros.services.rms.infraestructure.category.api.dto.OptionGroupResponse;
+import aros.services.rms.infraestructure.product.api.dto.ProductOptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -41,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OptionGroupController {
 
   private final OptionGroupUseCase optionGroupUseCase;
+  private final ProductOptionUseCase productOptionUseCase;
 
   /**
    * Creates a new option group.
@@ -65,7 +69,11 @@ public class OptionGroupController {
   public ResponseEntity<OptionGroupResponse> create(
       @Valid @RequestBody OptionGroupRequest request) {
     OptionGroup optionGroup =
-        OptionGroup.builder().name(request.name()).description(request.description()).build();
+        OptionGroup.builder()
+            .name(request.name())
+            .description(request.description())
+            .selectionType(parseSelectionType(request.selectionType()))
+            .build();
 
     OptionGroup created =
         optionGroupUseCase.create(optionGroup, request.productIds(), request.required());
@@ -97,7 +105,11 @@ public class OptionGroupController {
           Long id,
       @Valid @RequestBody OptionGroupRequest request) {
     OptionGroup optionGroup =
-        OptionGroup.builder().name(request.name()).description(request.description()).build();
+        OptionGroup.builder()
+            .name(request.name())
+            .description(request.description())
+            .selectionType(parseSelectionType(request.selectionType()))
+            .build();
 
     OptionGroup updated =
         optionGroupUseCase.update(id, optionGroup, request.productIds(), request.required());
@@ -176,6 +188,64 @@ public class OptionGroupController {
     OptionGroup optionGroup = optionGroupUseCase.findById(id);
     List<OptionGroupResponse> responses = enrichAndMap(List.of(optionGroup));
     return ResponseEntity.ok(responses.getFirst());
+  }
+
+  /**
+   * Gets all product options belonging to an option group.
+   *
+   * @param id the option group ID
+   * @return the list of product options in the group (with category-level selection type and
+   *     optionGroupId/Name populated; per-product cost/extraPrice default to zero)
+   */
+  @Operation(
+      tags = {"Option Groups"},
+      summary = "Get options for an option group",
+      description =
+          "Returns the product options attached to a specific option group. "
+              + "Each option carries the group's selectionType "
+              + "via the categorySelectionType field. "
+              + "Per-product cost/extraPrice are not in scope for this endpoint; "
+              + "use GET /products/{id}/options or /products/{id}/cost-breakdown for those.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Options retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Option group not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @GetMapping("/{id}/options")
+  public ResponseEntity<List<ProductOptionResponse>> findOptionsByGroupId(
+      @Parameter(description = "Option group ID", example = "1", required = true) @PathVariable
+          Long id) {
+    optionGroupUseCase.findById(id);
+    List<ProductOptionResponse> responses =
+        productOptionUseCase.findByOptionGroupId(id).stream()
+            .map(ProductOptionResponse::fromDomainInGroupContext)
+            .toList();
+    return ResponseEntity.ok(responses);
+  }
+
+  /**
+   * Parses the {@code selectionType} string from the request into the domain enum. {@code null} or
+   * blank values default to {@link OptionSelectionType#SINGLE_CHOICE}. Unknown values trigger a 400
+   * via Spring's binding handler.
+   *
+   * @param value the raw string from the request (nullable)
+   * @return the parsed selection type
+   * @throws IllegalArgumentException if the value is non-blank and not a valid enum constant
+   */
+  private static OptionSelectionType parseSelectionType(String value) {
+    if (value == null || value.isBlank()) {
+      return OptionSelectionType.SINGLE_CHOICE;
+    }
+    try {
+      return OptionSelectionType.valueOf(value.trim());
+    } catch (IllegalArgumentException unknown) {
+      throw new IllegalArgumentException(
+          "Invalid selectionType: '"
+              + value
+              + "'. Allowed values: SINGLE_CHOICE, MULTI_CHOICE, ADD_ON, REMOVAL");
+    }
   }
 
   private List<OptionGroupResponse> enrichAndMap(List<OptionGroup> groups) {

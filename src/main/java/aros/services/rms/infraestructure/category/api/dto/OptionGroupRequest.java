@@ -21,4 +21,11 @@ public record OptionGroupRequest(
     @Schema(
             description = "Whether selecting this option group is mandatory for the product",
             example = "false")
-        boolean required) {}
+        boolean required,
+    @Schema(
+            description =
+                "Selection mode (optional; defaults to SINGLE_CHOICE when null or blank).",
+            example = "SINGLE_CHOICE",
+            allowableValues = {"SINGLE_CHOICE", "MULTI_CHOICE", "ADD_ON", "REMOVAL"},
+            defaultValue = "SINGLE_CHOICE")
+        String selectionType) {}

@@ -41,6 +41,32 @@ public record ProductOptionResponse(
   }
 
   /**
+   * Creates a response from a domain object, projecting the {@code categorySelectionType} from the
+   * option's category. Use this when the option is being returned in a group context (no
+   * per-product cost/extraPrice yet known).
+   *
+   * @param option the product option
+   * @return the response DTO with category-level selection type
+   */
+  public static ProductOptionResponse fromDomainInGroupContext(ProductOption option) {
+    if (option == null) {
+      return null;
+    }
+    String selectionType =
+        option.getCategory() != null && option.getCategory().getSelectionType() != null
+            ? option.getCategory().getSelectionType().name()
+            : "SINGLE_CHOICE";
+    return new ProductOptionResponse(
+        option.getId(),
+        option.getName(),
+        option.getCategory() != null ? option.getCategory().getId() : null,
+        option.getCategory() != null ? option.getCategory().getName() : null,
+        Money.zero(Currency.getInstance("COP")),
+        Money.zero(Currency.getInstance("COP")),
+        selectionType);
+  }
+
+  /**
    * Creates an enriched response from a product cost-breakdown option.
    *
    * @param option the projected option

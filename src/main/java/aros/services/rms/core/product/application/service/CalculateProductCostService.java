@@ -3,17 +3,19 @@
 package aros.services.rms.core.product.application.service;
 
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
+import aros.services.rms.core.payroll.domain.port.output.AreaLaborCostPort;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.product.domain.ProductCost;
 import aros.services.rms.core.product.domain.ProductCost.CostBreakdownItem;
 import aros.services.rms.core.product.port.input.CalculateProductCostUseCase;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
-import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CalculateProductCostService implements CalculateProductCostUseCase {
 
-  private static final BigDecimal MONTHLY_HOURS = BigDecimal.valueOf(160);
   private static final BigDecimal SIXTY = BigDecimal.valueOf(60);
   private static final int COST_SCALE = 2;
   private static final int CALC_SCALE = 6;
@@ -41,11 +42,18 @@ public class CalculateProductCostService implements CalculateProductCostUseCase 
   private final ProductRecipeRepositoryPort productRecipeRepositoryPort;
   private final SupplyVariantRepositoryPort supplyVariantRepositoryPort;
   private final UserRepositoryPort userRepositoryPort;
+  private final AreaLaborCostPort areaLaborCostPort;
   private final Logger logger;
 
   /** {@inheritDoc} */
   @Override
   public ProductCost calculateCost(Long productId) {
+    return calculateCost(productId, null);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public ProductCost calculateCost(Long productId, YearMonth period) {
     var product =
         productRepositoryPort
             .findById(productId)
@@ -89,37 +97,34 @@ public class CalculateProductCostService implements CalculateProductCostUseCase 
     BigDecimal laborCost = BigDecimal.ZERO;
     if (product.getEstimatedPrepMinutes() != null && product.getEstimatedPrepMinutes() > 0) {
       if (product.getPreparationAreaId() != null) {
-        List<User> workers = userRepositoryPort.findActiveByAreaId(product.getPreparationAreaId());
-        List<User> paidWorkers = workers.stream().filter(w -> w.getSalary() != null).toList();
-        if (!paidWorkers.isEmpty()) {
-          BigDecimal avgHourly =
-              paidWorkers.stream()
-                  .map(
-                      w ->
-                          w.getSalary()
-                              .value()
-                              .amount()
-                              .divide(MONTHLY_HOURS, CALC_SCALE, RoundingMode.HALF_UP))
-                  .reduce(BigDecimal.ZERO, BigDecimal::add)
-                  .divide(BigDecimal.valueOf(paidWorkers.size()), CALC_SCALE, RoundingMode.HALF_UP);
+        YearMonth effectivePeriod = period != null ? period : YearMonth.now();
+        Money costPerHour =
+            areaLaborCostPort.calculateCostPerHour(product.getPreparationAreaId(), effectivePeriod);
+
+        if (costPerHour.isPositive()) {
           BigDecimal hours =
               BigDecimal.valueOf(product.getEstimatedPrepMinutes())
                   .divide(SIXTY, CALC_SCALE, RoundingMode.HALF_UP);
-          laborCost = avgHourly.multiply(hours);
+          laborCost = costPerHour.amount().multiply(hours);
           breakdown.add(
               new CostBreakdownItem(
-                  "Labor: avg $"
-                      + avgHourly.setScale(2, RoundingMode.HALF_UP)
+                  "Labor: $"
+                      + costPerHour.amount().setScale(2, RoundingMode.HALF_UP)
                       + "/h * "
                       + hours.setScale(2, RoundingMode.HALF_UP)
-                      + "h ("
-                      + paidWorkers.size()
-                      + " workers)",
+                      + "h (area "
+                      + product.getPreparationAreaId()
+                      + ", mode: "
+                      + effectivePeriod
+                      + ")",
                   laborCost.setScale(COST_SCALE, RoundingMode.HALF_UP),
                   TYPE_LABOR));
         } else {
           breakdown.add(
-              new CostBreakdownItem("Labor: no paid workers in area", BigDecimal.ZERO, TYPE_LABOR));
+              new CostBreakdownItem(
+                  "Labor: no cost data for area " + product.getPreparationAreaId(),
+                  BigDecimal.ZERO,
+                  TYPE_LABOR));
         }
       }
     }

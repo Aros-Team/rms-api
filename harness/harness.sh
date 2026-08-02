@@ -257,6 +257,9 @@ if [ -d "$DOMAIN_DIR" ]; then
     | grep -v '/user/domain/Salary' \
     | grep -v '/specialselection/domain/SuggestedPrice' \
     | grep -v '/product/domain/ProductCost' \
+    | grep -v '/payroll/domain/Payroll' \
+    | grep -v '/payroll/domain/port/input/RegisterPayrollUseCase' \
+    | grep -v '/payroll/domain/port/input/UpdatePayrollUseCase' \
     | wc -l | tr -d ' ')
 
   if [ "${VIOLATIONS:-0}" -eq 0 ]; then

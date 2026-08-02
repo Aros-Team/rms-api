@@ -3,6 +3,7 @@
 package aros.services.rms.core.user.domain;
 
 import aros.services.rms.core.area.domain.AreaId;
+import aros.services.rms.core.common.money.domain.Money;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -23,6 +24,7 @@ public class User {
   private boolean active;
   private Instant deletedAt;
   private Salary salary;
+  private Integer expectedHoursPerMonth;
 
   /**
    * Creates a new User instance.
@@ -291,5 +293,41 @@ public class User {
 
   public void setSalary(Salary salary) {
     this.salary = salary;
+  }
+
+  /**
+   * Gets the expected hours per month.
+   *
+   * @return the expected hours per month
+   */
+  public Integer getExpectedHoursPerMonth() {
+    return expectedHoursPerMonth;
+  }
+
+  /**
+   * Sets the expected hours per month.
+   *
+   * @param expectedHoursPerMonth the expected hours per month
+   */
+  public void setExpectedHoursPerMonth(Integer expectedHoursPerMonth) {
+    this.expectedHoursPerMonth = expectedHoursPerMonth;
+  }
+
+  /**
+   * Calculates the hourly rate based on salary and expected hours per month. This is a derived
+   * value — the DB stores it as a GENERATED ALWAYS column.
+   *
+   * @return hourly rate, or Money.zero(COP) if salary or expectedHours is not set
+   */
+  public Money getHourlyRate() {
+    if (salary != null && expectedHoursPerMonth != null && expectedHoursPerMonth > 0) {
+      return salary
+          .value()
+          .divide(
+              java.math.BigDecimal.valueOf(expectedHoursPerMonth),
+              2,
+              java.math.RoundingMode.HALF_UP);
+    }
+    return Money.zero(java.util.Currency.getInstance("COP"));
   }
 }

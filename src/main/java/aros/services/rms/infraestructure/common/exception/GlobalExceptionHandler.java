@@ -19,6 +19,10 @@ import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFo
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.application.exception.SingleChoiceOptionGroupLimitException;
 import aros.services.rms.core.order.application.exception.TableNotAvailableException;
+import aros.services.rms.core.payroll.domain.exception.InvalidPayrollPeriodException;
+import aros.services.rms.core.payroll.domain.exception.PayrollAlreadyExistsException;
+import aros.services.rms.core.payroll.domain.exception.PayrollImmutableException;
+import aros.services.rms.core.payroll.domain.exception.PayrollNotFoundException;
 import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.schedule.application.exception.ScheduleAlreadyExistsException;
@@ -258,6 +262,33 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleWorkerScheduleAssignmentNotFound(
       WorkerScheduleAssignmentNotFoundException e) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  // --- Payroll exceptions ---
+
+  /** Handles PayrollNotFoundException. */
+  @ExceptionHandler(PayrollNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handlePayrollNotFound(PayrollNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  /** Handles PayrollAlreadyExistsException. */
+  @ExceptionHandler(PayrollAlreadyExistsException.class)
+  public ResponseEntity<ErrorResponse> handlePayrollAlreadyExists(PayrollAlreadyExistsException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
+  /** Handles PayrollImmutableException. */
+  @ExceptionHandler(PayrollImmutableException.class)
+  public ResponseEntity<ErrorResponse> handlePayrollImmutable(PayrollImmutableException e) {
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  }
+
+  /** Handles InvalidPayrollPeriodException. */
+  @ExceptionHandler(InvalidPayrollPeriodException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidPayrollPeriod(InvalidPayrollPeriodException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ErrorResponse(400, e.getMessage()));
   }
 
   // --- Analytics exceptions ---
