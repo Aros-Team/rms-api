@@ -46,6 +46,29 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link CreateUserService}.
+ *
+ * <p><b>Feature:</b> User registration and creation
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Create User Successfully
+ *   <li>should Throw when Document Or Email Already Exists
+ *   <li>should Throw when Area Not Found
+ *   <li>should Set Status Error when Email Fails
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks UserRepositoryPort, AreaRepositoryPort, AccountSetupTokenRepositoryPort dependencies
+ *       via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class CreateUserServiceTest {
 

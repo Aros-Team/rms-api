@@ -10,6 +10,26 @@ import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPublicKey;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link JwkKeyIdDeriver}.
+ *
+ * <p><b>Feature:</b> JWK key ID derivation from RSA public keys
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should derive same kid for same key
+ *   <li>should derive different kid for different keys
+ *   <li>should Derive Kid That Starts With K
+ *   <li>should Derive16Hex Chars After Prefix
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 class JwkKeyIdDeriverTest {
 
   @Test

@@ -32,16 +32,22 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 /**
- * Tests the selection-mode semantics of {@link
- * MenuEngineeringAggregationJpaAdapter#loadAvgOptionCostByProduct(LocalDate, LocalDate)} (Phase D).
+ * Tests for {@link MenuEngineeringAggregationJpaAdapter}.
+ *
+ * <p><b>Feature:</b> Menu engineering REST endpoint
+ *
+ * <p><b>Expected behavior:</b>
  *
  * <ul>
- *   <li>Substitution (SINGLE_CHOICE with {@code replace_supply_category_id}) → {@code optionCost −
- *       defaultSlotCost} (slot cost reused from {@link
- *       ProductOptionRepositoryPort#loadDefaultSlotCostByProductAndCategory()}).
- *   <li>REMOVE → {@code −optionCost}.
- *   <li>EXTRA / MULTI_CHOICE / non-replacement SINGLE_CHOICE → {@code +optionCost}.
- *   <li>Order lines without options contribute zero to the average.
+ *   <li>should Apply Selection Mode Contributions to Avg Option Cost
+ *   <li>should Default Unknown Selection Type To Single Choice Contribution
+ *   <li>should Build Sql With Selection Metadata And Distinct Order Line Denominator
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks service-layer dependencies via Mockito
  * </ul>
  */
 @ExtendWith(MockitoExtension.class)

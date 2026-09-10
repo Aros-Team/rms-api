@@ -37,7 +37,27 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** Web MVC tests for {@link SystemConfigurationController}. */
+/**
+ * Tests for {@link SystemConfigurationController}.
+ *
+ * <p><b>Feature:</b> System configuration REST endpoint
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should get all groups with entries
+ *   <li>should get entries by group
+ *   <li>should update configurations
+ *   <li>should return unauthorized without auth
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
+ */
 @WebMvcTest(
     value = SystemConfigurationController.class,
     excludeFilters =

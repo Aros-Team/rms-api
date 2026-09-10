@@ -49,6 +49,28 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Tests for {@link ScheduleController}.
+ *
+ * <p><b>Feature:</b> Schedule REST endpoint (CRUD)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Create Schedule
+ *   <li>should Return409 when Schedule Name Exists
+ *   <li>should Get All Schedules
+ *   <li>should Get Schedule By Id
+ *   <li>should Return404 when Schedule Not Found
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via @MockitoBean
+ * </ul>
+ */
 @WebMvcTest(
     value = ScheduleController.class,
     excludeFilters =

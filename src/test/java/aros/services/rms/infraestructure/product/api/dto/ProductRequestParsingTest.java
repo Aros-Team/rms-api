@@ -14,7 +14,26 @@ import java.util.Currency;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/** Round-trip JSON tests for {@link ProductRequest} covering the new {@code optionExtras} field. */
+/**
+ * Tests for {@link ProductRequest}.
+ *
+ * <p><b>Feature:</b> Product request DTO parsing
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should deserialize option Extras when present
+ *   <li>should deserialize when option Extras is absent
+ *   <li>should deserialize when option Extras is empty
+ *   <li>should deserialize when only option Extras is present no option Ids
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 class ProductRequestParsingTest {
 
   private final ObjectMapper mapper = new ObjectMapper();

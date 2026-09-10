@@ -27,6 +27,28 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link ChangePasswordService}.
+ *
+ * <p><b>Feature:</b> Password change operations
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Change Password Successfully
+ *   <li>should Throw when Email Not Found
+ *   <li>should Throw when Current Password Wrong
+ *   <li>should Throw when New Password Same As Current
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks UserRepositoryPort, PasswordEncoderPort dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class ChangePasswordServiceTest {
 

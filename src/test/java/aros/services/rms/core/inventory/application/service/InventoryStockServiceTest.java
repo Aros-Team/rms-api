@@ -32,14 +32,23 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 /**
- * Tests {@link InventoryStockService#isAvailable(Long, List)} selection-mode semantics (Phase D).
+ * Tests for {@link InventoryStockService}.
+ *
+ * <p><b>Feature:</b> Inventory stock service
+ *
+ * <p><b>Expected behavior:</b>
  *
  * <ul>
- *   <li>SINGLE_CHOICE with {@code replace_supply_category_id} selected → base-recipe lines of the
- *       replaced slot are removed and the option's recipe is required instead.
- *   <li>REMOVE selected → the option's recipe is subtracted from the base.
- *   <li>SINGLE_CHOICE (no replacement), MULTI_CHOICE and EXTRA → the option's recipe is added.
- *   <li>No selection → base recipe stays intact.
+ *   <li>should Be Available when Substitution Selected and Slot Variant Has No Stock
+ *   <li>should Be Unavailable when Substitution Selected and Option Recipe Has No Stock
+ *   <li>should Keep Base Intact when Substitution Slot Has No Base Lines
+ *   <li>should Be Available when No Selection and Base Stock Sufficient
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks service-layer dependencies via Mockito
  * </ul>
  */
 @ExtendWith(MockitoExtension.class)

@@ -273,6 +273,54 @@ else
 fi
 
 echo
+echo "── 6c. Test file header check ─────────────────────────"
+
+# Verify test classes have Javadoc header per docs/testing.md §3
+# Header must be right before the class declaration (not at top of file)
+# Accept formats: "Tests for {@" or "Unit tests for {@" or similar Javadoc
+TEST_DIR="src/test/java"
+if [ -d "$TEST_DIR" ]; then
+  # Find test files missing Javadoc class header
+  MISSING_HEADER=0
+  while IFS= read -r testfile; do
+    # Skip empty files
+    [ -s "$testfile" ] || continue
+    # Check if file has Javadoc header with tests for pattern
+    if ! grep -qE '(Tests|Unit tests|Test) for \{@' "$testfile" 2>/dev/null; then
+      MISSING_HEADER=$((MISSING_HEADER + 1))
+      echo "  Missing header: $testfile"
+    fi
+  done < <(find "$TEST_DIR" -name "*Test.java" 2>/dev/null)
+
+  if [ "${MISSING_HEADER:-0}" -eq 0 ]; then
+    ok "All test files have Javadoc headers"
+  else
+    fail "${MISSING_HEADER} test file(s) missing Javadoc headers (see docs/testing.md §3)"
+    EXIT=1
+  fi
+
+  # Check for duplicate Javadoc headers
+  DUPLICATE_HEADER=0
+  while IFS= read -r testfile; do
+    [ -s "$testfile" ] || continue
+    count=$(grep -cE '(Tests|Unit tests|Test) for \{@' "$testfile" 2>/dev/null || true)
+    if [ "${count:-0}" -gt 1 ]; then
+      DUPLICATE_HEADER=$((DUPLICATE_HEADER + 1))
+      echo "  Duplicate header: $testfile"
+    fi
+  done < <(find "$TEST_DIR" -name "*Test.java" 2>/dev/null)
+
+  if [ "${DUPLICATE_HEADER:-0}" -eq 0 ]; then
+    ok "No duplicate Javadoc headers"
+  else
+    fail "${DUPLICATE_HEADER} test file(s) have duplicate Javadoc headers"
+    EXIT=1
+  fi
+else
+  warn "$TEST_DIR not found, skipping test header check"
+fi
+
+echo
 echo "── 7. Running Tests ───────────────────────────────────"
 
 if [ -d "src/test" ] || [ -d "src/integrationTest" ]; then

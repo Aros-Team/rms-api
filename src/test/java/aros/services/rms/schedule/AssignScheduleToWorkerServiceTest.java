@@ -30,6 +30,28 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link AssignScheduleToWorkerService}.
+ *
+ * <p><b>Feature:</b> Schedule assignment to workers
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Assign Schedule Successfully
+ *   <li>should Throw When Schedule Not Found
+ *   <li>should Throw When Shift Overlaps
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks ScheduleRepositoryPort, Logger, WorkerScheduleAssignmentRepositoryPort dependencies
+ *       via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class AssignScheduleToWorkerServiceTest {
 

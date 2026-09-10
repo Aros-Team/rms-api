@@ -18,6 +18,27 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link ScrimeImageProcessor}.
+ *
+ * <p><b>Feature:</b> Image processing and validation (resize, format check)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Validate Supported Mime Type Jpeg
+ *   <li>should Validate Supported Mime Type Png
+ *   <li>should Validate Supported Mime Type Web P
+ *   <li>should Reject Invalid Format Bmp
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 class ScrimeImageProcessorTest {
 
   private ScrimeImageProcessor processor;

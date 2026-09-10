@@ -31,6 +31,28 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link TransferInventoryService}.
+ *
+ * <p><b>Feature:</b> Inventory transfer between locations (bodega to cocina)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Deduct Bodega And Add Cocina when Transfer Is Valid
+ *   <li>should Register Transfer Movement when Transfer Is Valid
+ *   <li>should Throw Insufficient Stock Exception when Bodega Has Not Enough Stock
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks SupplyVariantRepositoryPort, InventoryStockRepositoryPort,
+ *       InventoryMovementRepositoryPort dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class TransferInventoryServiceTest {
 

@@ -27,10 +27,23 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Tests the two Phase D projection methods of {@link ProductOptionPersistenceAdapter}: the
- * substitution-slot base-recipe read ({@link
- * ProductOptionPersistenceAdapter#loadBaseRecipeBySupplyCategory}) and the default-slot cost map
- * ({@link ProductOptionPersistenceAdapter#loadDefaultSlotCostByProductAndCategory}).
+ * Tests for {@link ProductOptionPersistenceAdapter}.
+ *
+ * <p><b>Feature:</b> Product option selection SQL persistence
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should load base recipe by supply category with three table join
+ *   <li>should skip slot query when product or category is null
+ *   <li>should load default slot cost grouped by product and category
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
  */
 @ExtendWith(MockitoExtension.class)
 class ProductOptionPersistenceAdapterSelectionSqlTest {

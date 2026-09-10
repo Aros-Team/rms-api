@@ -19,6 +19,27 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+/**
+ * Tests for {@link LocalStorageAdapter}.
+ *
+ * <p><b>Feature:</b> Local filesystem storage adapter (store, load, delete)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Store File And Return Url
+ *   <li>should Load Stored File
+ *   <li>should Return Empty For Non Existent File
+ *   <li>should Delete File
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 class LocalStorageAdapterTest {
 
   @TempDir Path tempDir;

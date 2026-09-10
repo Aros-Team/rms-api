@@ -25,6 +25,28 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link DeleteScheduleService}.
+ *
+ * <p><b>Feature:</b> Schedule deletion
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Delete Schedule Successfully
+ *   <li>should Throw When Schedule Not Found
+ *   <li>should Throw When Schedule Has Assignments
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks ScheduleRepositoryPort, Logger, WorkerScheduleAssignmentRepositoryPort dependencies
+ *       via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class DeleteScheduleServiceTest {
 

@@ -45,6 +45,29 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link LoginService}.
+ *
+ * <p><b>Feature:</b> Login service (credential validation, 2FA flow)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Return Success when Credentials Valid And Device Known
+ *   <li>should Return Requires Tfa when Credentials Valid And Device Unknown
+ *   <li>should Throw Invalid Credentials when User Not Found
+ *   <li>should Throw Invalid Credentials when Password Mismatch
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks UserRepositoryPort, PasswordEncoderPort, DeviceRepositoryPort dependencies via
+ *       Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class LoginServiceTest {
 

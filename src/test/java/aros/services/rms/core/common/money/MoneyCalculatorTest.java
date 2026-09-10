@@ -11,6 +11,27 @@ import java.util.Currency;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link MoneyCalculator}.
+ *
+ * <p><b>Feature:</b> Money arithmetic calculations
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>weighted Average With Known Values
+ *   <li>weighted Average Same Price
+ *   <li>split Evenly3Parts From10
+ *   <li>apply Percentage19On100
+ *   <li>apply Percentage0
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 class MoneyCalculatorTest {
 
   private static final Currency COP = Currency.getInstance("COP");

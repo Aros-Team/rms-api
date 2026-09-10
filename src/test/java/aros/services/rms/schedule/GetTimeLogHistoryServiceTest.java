@@ -22,6 +22,26 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link GetTimeLogHistoryService}.
+ *
+ * <p><b>Feature:</b> Time log history retrieval
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Return History For Worker
+ *   <li>should Return All History when No Worker Filter
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks TimeLogRepositoryPort dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class GetTimeLogHistoryServiceTest {
 

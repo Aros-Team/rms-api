@@ -10,6 +10,24 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Tests for {@link JwksCachePropertiesBinding}.
+ *
+ * <p><b>Feature:</b> JWKS cache configuration property binding
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Create Bean With Valid Max Age
+ *   <li>should Fail With Negative Max Age
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 class JwksCachePropertiesBindingTest {
 
   private final ApplicationContextRunner runner =

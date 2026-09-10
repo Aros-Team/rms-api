@@ -17,6 +17,27 @@ import java.util.Currency;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link Money}.
+ *
+ * <p><b>Feature:</b> Money value object (arithmetic, comparisons, allocation)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Normalize Scale On Construction
+ *   <li>should Accept Zero Fraction Currency
+ *   <li>should Throw When Scale Exceeds10
+ *   <li>should Throw On Null Amount
+ *   <li>should Throw On Null Currency
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 class MoneyTest {
 
   private static final Currency COP = Currency.getInstance("COP");

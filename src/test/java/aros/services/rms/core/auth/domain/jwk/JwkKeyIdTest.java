@@ -5,6 +5,25 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link JwkKeyId}.
+ *
+ * <p><b>Feature:</b> JWK key ID derivation from RSA public keys
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Reject Null
+ *   <li>should Reject Blank
+ *   <li>should Accept Valid Value
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 class JwkKeyIdTest {
 
   @Test

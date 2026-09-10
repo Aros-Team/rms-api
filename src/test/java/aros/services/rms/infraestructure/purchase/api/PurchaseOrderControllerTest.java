@@ -24,7 +24,27 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-/** Endpoint tests for PurchaseOrderController search behavior and filter precedence. */
+/**
+ * Tests for {@link PurchaseOrderController}.
+ *
+ * <p><b>Feature:</b> Purchase order REST endpoint
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Return200 with Purchase Orders Filtered By Search
+ *   <li>should Return200 with All Purchase Orders when Search Is Blank
+ *   <li>should Return200 with Empty List when Search Has No Matches
+ *   <li>should Prioritize Search over Date Range
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class PurchaseOrderControllerTest {
 

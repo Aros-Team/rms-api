@@ -38,12 +38,26 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Endpoint tests for Supply Catalog endpoints.
+ * Tests for {@link SupplyCatalogController}.
  *
- * <p>E-I-01: shouldReturn201_whenSupplyIsCreatedSuccessfully E-I-02:
- * shouldReturn409_whenSupplyNameIsDuplicated E-I-03: shouldReturn404_whenCategoryNotFound E-I-04:
- * shouldReturn201_whenVariantIsCreatedSuccessfully E-I-05:
- * shouldReturn409_whenVariantCombinationIsDuplicated E-I-06: shouldReturn200_withVariantsAndStock
+ * <p><b>Feature:</b> Supply catalog REST endpoint
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Return201 when Supply Is Created Successfully
+ *   <li>should Return409 when Supply Name Is Duplicated
+ *   <li>should Return404 when Category Not Found
+ *   <li>should Return201 when Variant Is Created Successfully
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via Mockito
+ *   <li>Loads full Spring context with embedded test database
+ * </ul>
  */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,

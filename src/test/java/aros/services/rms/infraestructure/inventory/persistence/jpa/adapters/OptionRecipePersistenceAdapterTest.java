@@ -26,7 +26,26 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/** Unit tests for the option-recipe native cost aggregation adapter. */
+/**
+ * Tests for {@link OptionRecipePersistenceAdapter}.
+ *
+ * <p><b>Feature:</b> Option recipe persistence adapter
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should map batch native cost rows to money by option id
+ *   <li>should map null aggregate to zero money
+ *   <li>should define one native grouped material cost query
+ *   <li>should skip native query when option ids are empty
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class OptionRecipePersistenceAdapterTest {
 

@@ -27,6 +27,27 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+/**
+ * Tests for {@link RefreshMenuEngineeringService}.
+ *
+ * <p><b>Feature:</b> Menu engineering data refresh
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Compute Bcg For3Products
+ *   <li>should Handle No Active Products
+ *   <li>should Handle No Sales And No Recipes
+ *   <li>should Propagate Avg Option Cost And Effective Cost
+ *   <li>should Default Avg Option Cost To Zero When Missing
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 class RefreshMenuEngineeringServiceTest {
 
   private static final Currency COP = Currency.getInstance("COP");

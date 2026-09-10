@@ -27,6 +27,27 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link CreateScheduleService}.
+ *
+ * <p><b>Feature:</b> Schedule creation
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Create Schedule Successfully
+ *   <li>should Throw When Name Already Exists
+ *   <li>should Throw When Shifts Have Overlap
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks ScheduleRepositoryPort, Logger dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class CreateScheduleServiceTest {
 

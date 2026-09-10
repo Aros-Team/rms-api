@@ -18,6 +18,26 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Tests for {@link JwksController}.
+ *
+ * <p><b>Feature:</b> Auth security rules (public vs protected endpoints)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>configure Jwt Keys
+ *   <li>should Allow Public Access To Jwks Endpoint
+ *   <li>should Reject Access To Protected Endpoint
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Loads full Spring context with embedded test database
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ * </ul>
+ */
 @SpringBootTest(
     properties = {
       "app.jwt.public-key=unused",

@@ -35,7 +35,25 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** Web MVC tests for GET /api/v1/products/{id}/cost-breakdown. */
+/**
+ * Tests for {@link ProductCostBreakdownController}.
+ *
+ * <p><b>Feature:</b> Product cost breakdown REST endpoint
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should return cost breakdown when product exists
+ *   <li>should return not found when product does not exist
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
+ */
 @WebMvcTest(
     value = ProductCostBreakdownController.class,
     excludeFilters =

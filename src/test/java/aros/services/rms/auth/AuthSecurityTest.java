@@ -41,6 +41,28 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Tests for {@link AuthController}.
+ *
+ * <p><b>Feature:</b> Auth security rules (public vs protected endpoints)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Allow Public Access when Login Without Auth
+ *   <li>should Allow Public Access when Forgot Password Without Auth
+ *   <li>should Return403 when Verify Endpoint With Access Token
+ *   <li>should Return403 when Refresh Endpoint With Tfa Token
+ *   <li>should Return401 when Get Me Without Auth
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Loads WebMvc slice with test security configuration
+ *   <li>Verifies HTTP status codes for authenticated vs public access
+ * </ul>
+ */
 @WebMvcTest(
     value = AuthController.class,
     excludeFilters =

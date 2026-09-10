@@ -28,10 +28,24 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Endpoint tests for POST /api/v1/inventory/transfer.
+ * Tests for {@link InventoryTransferController}.
  *
- * <p>E-I-07: shouldReturn200_whenTransferIsSuccessful E-I-08:
- * shouldReturn400_whenInsufficientStockInBodega
+ * <p><b>Feature:</b> Inventory transfer REST endpoint
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Return200 when Transfer Is Successful
+ *   <li>should Return400 when Insufficient Stock In Bodega
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via Mockito
+ *   <li>Loads full Spring context with embedded test database
+ * </ul>
  */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,

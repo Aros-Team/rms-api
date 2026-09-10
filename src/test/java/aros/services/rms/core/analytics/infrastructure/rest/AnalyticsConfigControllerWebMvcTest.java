@@ -48,8 +48,25 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * Web MVC slice tests for {@link AnalyticsConfigController}. Covers auth + validation rules for GET
- * and PATCH /api/v1/analytics/config.
+ * Tests for {@link AnalyticsConfigController}.
+ *
+ * <p><b>Feature:</b> Analytics configuration REST endpoint
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should allow admin to get config
+ *   <li>should reject unauthenticated get
+ *   <li>should reject non admin get
+ *   <li>should allow admin to update config
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
  */
 @WebMvcTest(
     value = AnalyticsConfigController.class,

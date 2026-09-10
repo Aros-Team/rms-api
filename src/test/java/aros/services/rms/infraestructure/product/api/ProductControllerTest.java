@@ -50,9 +50,25 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * Web MVC slice tests for {@code GET /api/v1/products} search behavior. Loads the production Page
- * serialization config ({@link RestApiConfig}) so the response shape matches what the harness and
- * other integration tests assert.
+ * Tests for {@link ProductController}.
+ *
+ * <p><b>Feature:</b> Product REST endpoint
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Return200 with Products Filtered By Search Matching Name
+ *   <li>should Return200 with Products Filtered By Search Matching Description
+ *   <li>should Return200 with Products Filtered By Search Matching Category Name
+ *   <li>should Return200 with Empty Page when Search Has No Matches
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
  */
 @WebMvcTest(
     value = ProductController.class,

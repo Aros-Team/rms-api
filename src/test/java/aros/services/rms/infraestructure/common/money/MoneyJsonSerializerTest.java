@@ -9,6 +9,27 @@ import java.util.Currency;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link MoneyJsonSerializer}.
+ *
+ * <p><b>Feature:</b> Money JSON serialization/deserialization
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Serialize Money To Json Object
+ *   <li>should Serialize Negative Amount
+ *   <li>should Serialize Zero Amount
+ *   <li>should Serialize Zero Fraction Currency
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 class MoneyJsonSerializerTest {
 
   private ObjectMapper mapper;

@@ -13,8 +13,24 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pure unit tests for the BCG math logic ({@link RefreshMenuEngineeringService#assignQuadrant},
- * median). No mocking needed.
+ * Tests for {@link MenuEngineeringBcgTest}.
+ *
+ * <p><b>Feature:</b> Menu engineering BCG matrix analysis
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>star
+ *   <li>plowhorse
+ *   <li>puzzle
+ *   <li>dog
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
  */
 class MenuEngineeringBcgTest {
 

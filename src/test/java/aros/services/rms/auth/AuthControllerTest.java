@@ -38,6 +38,28 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Tests for {@link AuthController}.
+ *
+ * <p><b>Feature:</b> Authentication REST endpoints (login, 2FA, forgot password)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Return200With Tokens when Login Succeeds
+ *   <li>should Return200With Tfa when Login Requires2fa
+ *   <li>should Return401 when Invalid Credentials
+ *   <li>should Return400 when Email Invalid
+ *   <li>should Return400 when Password Blank
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via @MockitoBean
+ * </ul>
+ */
 @WebMvcTest(
     value = AuthController.class,
     excludeFilters =

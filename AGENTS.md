@@ -27,6 +27,7 @@
 | `progress/history.md` | Append-only log of previous sessions | Need historical context |
 | `docs/architecture.md` | Hexagonal layering, use case naming, exceptions | Before implement |
 | `docs/conventions.md` | Style rules, names, Lombok usage, Checkstyle traps | Before write code |
+| `docs/testing.md` | Testing policy: mutation mindset, assertions, mocking, coverage | Before write tests |
 | `docs/verification.md` | How verify work works (the 8 harness sections) | Before declare task `done` |
 | `docs/CHECKPOINTS.md` | Final state evaluation checklist | Before declare task `done` |
 | `harness/harness.sh` / `.bat` | Entry verifier (env + quality + tests) | Before start |

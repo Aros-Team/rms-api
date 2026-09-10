@@ -7,6 +7,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import aros.services.rms.core.image.domain.ImageFormat;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link ImageFormat}.
+ *
+ * <p><b>Feature:</b> Image format detection and MIME type validation
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Recognize Supported Mime Types
+ *   <li>should Reject Unsupported Mime Types
+ *   <li>should Return Correct Format From Mime Type
+ *   <li>should Return Empty For Unknown Mime Type
+ *   <li>should Have Correct Extensions
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 class ImageFormatTest {
 
   @Test

@@ -60,6 +60,28 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Tests for {@link WorkerController}.
+ *
+ * <p><b>Feature:</b> Worker management REST endpoint
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Return200 when Listing Workers
+ *   <li>should Return200 when No Workers
+ *   <li>should Return200 when Searching Workers By Name
+ *   <li>should Return200 when Searching Workers By Document
+ *   <li>should Return200 when Search Has No Matches
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via @MockitoBean
+ * </ul>
+ */
 @WebMvcTest(
     value = WorkerController.class,
     excludeFilters =

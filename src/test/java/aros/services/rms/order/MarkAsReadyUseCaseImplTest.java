@@ -23,6 +23,28 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link MarkAsReadyUseCase}.
+ *
+ * <p><b>Feature:</b> Order preparation completion
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Mark Order As Ready Successfully when Order Is Preparing
+ *   <li>should Throw Exception when Order Not Found
+ *   <li>should Throw Exception when Order Status Is Queue
+ *   <li>should Throw Exception when Order Status Is Ready
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks BusinessMetricsPort, OrderRepositoryPort dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class MarkAsReadyUseCaseImplTest {
 

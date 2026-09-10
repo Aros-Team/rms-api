@@ -18,9 +18,24 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Null-safety tests for {@link OrderMapper} covering the three columns added in V32: party size,
- * open time, and close time. These fields must round-trip cleanly when null (back-compat with rows
- * created before V32) and when populated.
+ * Tests for {@link OrderMapper}.
+ *
+ * <p><b>Feature:</b> Order JPA entity-DTO mapper
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>to Domain should preserve Null New Fields
+ *   <li>to Entity should preserve Null New Fields
+ *   <li>round Trip should preserve Set New Fields
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
  */
 @ExtendWith(MockitoExtension.class)
 class OrderMapperTest {

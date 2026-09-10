@@ -23,7 +23,24 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/** Tests the option cost-profile native projection. */
+/**
+ * Tests for {@link ProductOptionPersistenceAdapter}.
+ *
+ * <p><b>Feature:</b> Product option cost projection persistence
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should read selection replacement and default slot cost directly
+ *   <li>should default unknown selection type to single choice
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class ProductOptionPersistenceAdapterCostProjectionTest {
 

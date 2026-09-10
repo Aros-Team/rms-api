@@ -31,6 +31,28 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link GcsStorageAdapter}.
+ *
+ * <p><b>Feature:</b> Google Cloud Storage adapter (store, load, delete, signed URLs)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>setup
+ *   <li>should Store File In Gcs
+ *   <li>should Load File From Gcs
+ *   <li>should Return Empty When File Not Found In Gcs
+ *   <li>should Delete File From Gcs
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks StorageProperties, Storage dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class GcsStorageAdapterTest {
 

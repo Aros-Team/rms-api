@@ -41,6 +41,28 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+/**
+ * Tests for {@link OrderResponseMapper}.
+ *
+ * <p><b>Feature:</b> Order response DTO mapping
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should return Null when order Is Null
+ *   <li>should resolve Selected Products And Additions when combo Order
+ *   <li>should return Empty Lists when no Combo Data
+ *   <li>should handle Missing Products Gracefully when product Not Found
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks persistence entities and verifies DTO mapping
+ *   <li>Validates field-by-field mapping accuracy
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class OrderResponseMapperTest {

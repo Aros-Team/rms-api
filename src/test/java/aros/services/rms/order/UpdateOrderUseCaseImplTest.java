@@ -49,6 +49,29 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+/**
+ * Tests for {@link UpdateOrderUseCase}.
+ *
+ * <p><b>Feature:</b> Order updates and status transitions
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Cancel Order Successfully when Order Is In Queue And Has Table
+ *   <li>should Cancel Order Successfully when Order Is In Queue And Has No Table
+ *   <li>should Throw Exception when Canceling Order Not Found
+ *   <li>should Throw Exception when Canceling Order Not In Queue
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks TableRepositoryPort, ProductRepositoryPort, OrderRepositoryPort dependencies via
+ *       Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class UpdateOrderUseCaseImplTest {

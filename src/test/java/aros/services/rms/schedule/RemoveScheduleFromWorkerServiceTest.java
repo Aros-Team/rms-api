@@ -14,6 +14,25 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link RemoveScheduleFromWorkerService}.
+ *
+ * <p><b>Feature:</b> Schedule removal from workers
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Remove Assignment Successfully
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks Logger, WorkerScheduleAssignmentRepositoryPort dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class RemoveScheduleFromWorkerServiceTest {
 

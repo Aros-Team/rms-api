@@ -24,6 +24,27 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link GetWorkerShiftsService}.
+ *
+ * <p><b>Feature:</b> Worker shift queries
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Return Shifts For Worker
+ *   <li>should Return Empty Shifts when No Assignments
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks ScheduleRepositoryPort, WorkerScheduleAssignmentRepositoryPort dependencies via
+ *       Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class GetWorkerShiftsServiceTest {
 

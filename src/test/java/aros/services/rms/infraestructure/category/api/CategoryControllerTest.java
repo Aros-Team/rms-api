@@ -19,7 +19,27 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-/** Endpoint tests for CategoryController. */
+/**
+ * Tests for {@link CategoryController}.
+ *
+ * <p><b>Feature:</b> Category REST endpoint
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Return200 with Categories Filtered By Search
+ *   <li>should Return200 with All Categories when Search Is Blank
+ *   <li>should Return200 with Empty List when Search Has No Matches
+ *   <li>should Return200 with All Categories when No Search Param
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class CategoryControllerTest {
 

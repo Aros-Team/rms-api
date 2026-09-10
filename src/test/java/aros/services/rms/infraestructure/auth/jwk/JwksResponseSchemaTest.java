@@ -38,6 +38,26 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Tests for {@link JwksResponseSchema}.
+ *
+ * <p><b>Feature:</b> JWKS response JSON schema validation
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Match Rfc7517Shape
+ *   <li>should Reject Unexpected Fields
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks JwksCacheProperties, PublishJwksUseCase dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @WebMvcTest(
     value = JwksController.class,
     excludeFilters =

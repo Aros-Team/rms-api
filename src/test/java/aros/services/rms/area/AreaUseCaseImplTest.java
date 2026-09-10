@@ -26,6 +26,28 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link AreaService}.
+ *
+ * <p><b>Feature:</b> Area management (CRUD, search, enable/disable)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Create Area Successfully
+ *   <li>should Throw When Area Name Already Exists
+ *   <li>should Update Area Successfully
+ *   <li>should Throw When Updating Non Existent Area
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks AreaRepositoryPort, Logger dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class AreaUseCaseImplTest {
 

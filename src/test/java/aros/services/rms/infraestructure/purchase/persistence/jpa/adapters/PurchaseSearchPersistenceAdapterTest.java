@@ -25,7 +25,25 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.repository.Query;
 
-/** Unit tests for supplier and purchase-order search persistence plumbing. */
+/**
+ * Tests for {@link PurchaseSearchPersistenceAdapter}.
+ *
+ * <p><b>Feature:</b> Purchase search persistence adapter
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Find Suppliers By Partial Name Ignoring Case
+ *   <li>should Find Purchase Orders By Notes Or Supplier Name Ignoring Case
+ *   <li>should Define Purchase Search Query For Notes And Supplier Name
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class PurchaseSearchPersistenceAdapterTest {
 

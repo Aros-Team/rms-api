@@ -11,6 +11,24 @@ import aros.services.rms.core.product.domain.event.ProductUpdatedEvent;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link AnalyticsEventHandler}.
+ *
+ * <p><b>Feature:</b> Analytics event handling and aggregation
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Invalidate Cache On Product Updated
+ *   <li>should Invalidate Cache On Recipe Updated
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 class AnalyticsEventHandlerTest {
 
   private final MenuEngineeringCacheRepositoryPort cacheRepo =

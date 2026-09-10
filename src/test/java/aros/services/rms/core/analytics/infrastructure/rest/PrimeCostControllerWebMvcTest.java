@@ -41,8 +41,24 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * Web MVC slice tests for {@link PrimeCostController}. Covers auth, validation, and response shape
- * for GET /api/v1/analytics/prime-cost.
+ * Tests for {@link PrimeCostController}.
+ *
+ * <p><b>Feature:</b> Prime cost REST endpoint
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should allow admin to get prime cost
+ *   <li>should reject unauthenticated
+ *   <li>should reject non admin
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
  */
 @WebMvcTest(
     value = PrimeCostController.class,

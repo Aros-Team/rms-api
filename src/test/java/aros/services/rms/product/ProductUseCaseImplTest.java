@@ -42,6 +42,29 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+/**
+ * Tests for {@link ProductService}.
+ *
+ * <p><b>Feature:</b> Product catalog management (CRUD, options, cost)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Create Product Successfully
+ *   <li>should Upsert Option Associations With Extra Price And Display Order On Create
+ *   <li>should Append Option Extras Entries Not In Option Ids On Create
+ *   <li>should Replace All Options And Apply Extra Prices On Update
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks AreaRepositoryPort, CategoryRepositoryPort, ProductRepositoryPort dependencies via
+ *       Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class ProductUseCaseImplTest {
 

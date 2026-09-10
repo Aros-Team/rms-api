@@ -28,6 +28,27 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link UpdateScheduleService}.
+ *
+ * <p><b>Feature:</b> Schedule update operations
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Update Schedule Successfully
+ *   <li>should Throw When Schedule Not Found
+ *   <li>should Throw When Name Already Exists
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks ScheduleRepositoryPort, Logger dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class UpdateScheduleServiceTest {
 

@@ -41,6 +41,29 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+/**
+ * Tests for {@link SupplyCatalogService}.
+ *
+ * <p><b>Feature:</b> Supply catalog management (supplies, variants, stock init)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Create Supply when Category Exists
+ *   <li>should Throw Exception when Supply Name Is Duplicated
+ *   <li>should Throw Exception when Category Not Found
+ *   <li>should Create Supply Variant when Supply And Unit Exist
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks SupplyVariantRepository, SupplyRepository, SupplyCategoryRepository dependencies via
+ *       Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class SupplyCatalogServiceTest {
 

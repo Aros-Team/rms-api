@@ -51,6 +51,28 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Tests for {@link UserController}.
+ *
+ * <p><b>Feature:</b> User endpoint security rules
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Return401 when No Token On Create
+ *   <li>should Return403 when Worker Creates Worker
+ *   <li>should Return201 when Admin Creates Worker
+ *   <li>should Return403 when Worker Updates Worker
+ *   <li>should Return200 when Admin Updates Worker
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Loads WebMvc slice with test security configuration
+ *   <li>Verifies HTTP status codes for authenticated vs public access
+ * </ul>
+ */
 @WebMvcTest(
     value = WorkerController.class,
     excludeFilters =

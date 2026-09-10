@@ -17,8 +17,24 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Verifies that {@code associateOptionToProduct} persists {@code extra_price} and {@code
- * display_order}.
+ * Tests for {@link ProductOptionRepository}.
+ *
+ * <p><b>Feature:</b> Product option repository upsert
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should persist extra price and display order when upserting association
+ *   <li>should persist null extra price when upserting with null
+ *   <li>should call associate for each option in order
+ *   <li>should remove all options when asked
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
  */
 @ExtendWith(MockitoExtension.class)
 class ProductOptionRepositoryUpsertTest {

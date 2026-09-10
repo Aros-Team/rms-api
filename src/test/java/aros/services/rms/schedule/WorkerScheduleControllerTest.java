@@ -41,6 +41,24 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Tests for {@link WorkerScheduleController}.
+ *
+ * <p><b>Feature:</b> Schedule REST endpoint (CRUD)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Return My Schedule
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via @MockitoBean
+ * </ul>
+ */
 @WebMvcTest(
     value = WorkerScheduleController.class,
     excludeFilters =

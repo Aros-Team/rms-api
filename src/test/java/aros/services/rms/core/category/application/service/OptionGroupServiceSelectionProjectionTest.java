@@ -17,7 +17,24 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/** Tests selection-type projection behavior in {@link OptionGroupService}. */
+/**
+ * Tests for {@link OptionGroupService}.
+ *
+ * <p><b>Feature:</b> Option group selection projection
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should load selection types for all requested categories
+ *   <li>should return empty selection projection without repository call
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class OptionGroupServiceSelectionProjectionTest {
 

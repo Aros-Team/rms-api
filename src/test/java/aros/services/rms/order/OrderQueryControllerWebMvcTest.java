@@ -49,7 +49,27 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** Web MVC slice tests for GET /api/v1/orders with pagination. */
+/**
+ * Tests for {@link OrderQueryController}.
+ *
+ * <p><b>Feature:</b> Order REST endpoint (take, query, update)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Return200 when Querying Orders With Defaults
+ *   <li>should Return200 when Filtering By Single Status
+ *   <li>should Return200 when Filtering By Multiple Statuses
+ *   <li>should Return200 when Custom Page And Size
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
+ */
 @WebMvcTest(
     value = OrderController.class,
     excludeFilters =

@@ -31,11 +31,26 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Endpoint tests for POST /api/v1/orders.
+ * Tests for {@link OrderController}.
  *
- * <p>E-P-01: shouldReturn201_whenOrderIsCreatedSuccessfully E-P-02:
- * shouldReturn400_whenTableNotFound E-P-03: shouldReturn409_whenTableIsOccupied E-P-04:
- * shouldReturn400_whenProductNotFound E-P-05: shouldReturn409_whenInsufficientStock
+ * <p><b>Feature:</b> Order REST endpoint (take, query, update)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Return201 when Order Is Created Successfully
+ *   <li>should Return400 when Table Not Found
+ *   <li>should Return409 when Table Is Occupied
+ *   <li>should Return400 when Product Not Found
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via Mockito
+ *   <li>Loads full Spring context with embedded test database
+ * </ul>
  */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,

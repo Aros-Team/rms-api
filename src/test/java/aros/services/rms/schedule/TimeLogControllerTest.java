@@ -37,6 +37,25 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Tests for {@link TimeLogController}.
+ *
+ * <p><b>Feature:</b> Time log REST endpoint
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Return Time Logs
+ *   <li>should Filter By Worker Id
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via @MockitoBean
+ * </ul>
+ */
 @WebMvcTest(
     value = TimeLogController.class,
     excludeFilters =

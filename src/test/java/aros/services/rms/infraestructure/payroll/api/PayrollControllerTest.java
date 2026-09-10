@@ -42,7 +42,27 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** Web MVC tests for {@link PayrollController}. */
+/**
+ * Tests for {@link PayrollController}.
+ *
+ * <p><b>Feature:</b> Payroll REST endpoint
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>create Payroll returns201
+ *   <li>create Payroll validates Request
+ *   <li>get Payroll returns200
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
+ */
 @WebMvcTest(
     value = PayrollController.class,
     excludeFilters =

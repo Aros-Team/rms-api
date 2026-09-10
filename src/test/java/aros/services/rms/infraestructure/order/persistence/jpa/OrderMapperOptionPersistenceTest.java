@@ -27,12 +27,23 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Unit test for the Phase C changes in {@link OrderMapper}: round-tripping an {@link
- * aros.services.rms.infraestructure.order.persistence.OrderDetail} that has {@link
- * OrderDetailOption} rows with non-zero {@code extra_price} (V38 schema addition).
+ * Tests for {@link OrderMapper}.
  *
- * <p>Verifies that the per-row surcharge ({@code extra_price}) is preserved both directions and
- * that the {@code extraCharge} field on the domain is computed as the sum of those values.
+ * <p><b>Feature:</b> Order JPA entity-DTO mapper
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>to Domain sums Join Row Extra Price into Extra Charge and rebuilds Selected Options
+ *   <li>round Trip preserves Extra Price per Join Row
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
  */
 @ExtendWith(MockitoExtension.class)
 class OrderMapperOptionPersistenceTest {

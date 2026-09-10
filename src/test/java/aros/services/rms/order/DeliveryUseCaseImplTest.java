@@ -27,6 +27,29 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link DeliveryUseCase}.
+ *
+ * <p><b>Feature:</b> Order delivery workflow
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Mark Order As Delivered Successfully when Order Is Ready And Has Table
+ *   <li>should Mark Order As Delivered Successfully when Order Is Ready And Has No Table
+ *   <li>should Throw Exception when Order Not Found
+ *   <li>should Throw Exception when Order Status Is Not Ready
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks TableRepositoryPort, BusinessMetricsPort, OrderRepositoryPort dependencies via
+ *       Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class DeliveryUseCaseImplTest {
 

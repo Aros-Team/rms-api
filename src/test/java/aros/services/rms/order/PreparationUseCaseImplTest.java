@@ -22,6 +22,27 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link PreparationUseCase}.
+ *
+ * <p><b>Feature:</b> Order preparation workflow
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Process Next Order Successfully when Order Is In Queue
+ *   <li>should Throw Exception when No Orders In Queue
+ *   <li>should Process Oldest Order First
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks BusinessMetricsPort, OrderRepositoryPort dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class PreparationUseCaseImplTest {
 

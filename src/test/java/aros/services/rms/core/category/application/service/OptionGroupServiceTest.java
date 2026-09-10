@@ -23,7 +23,26 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/** Unit tests for OptionGroupService business rules and CRUD operations. */
+/**
+ * Tests for {@link OptionGroupService}.
+ *
+ * <p><b>Feature:</b> Option group service (CRUD, selection)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Throw Option Group Requires Product Exception when Product Ids Empty
+ *   <li>should Throw Option Group Requires Product Exception when Product Ids Null
+ *   <li>should Throw On Update when Product Ids Empty
+ *   <li>should Create Option Group when Valid Product Ids Provided
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class OptionGroupServiceTest {
 

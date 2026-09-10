@@ -46,7 +46,27 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-/** Web MVC tests for the /calculate endpoint on {@link PayrollEventController}. */
+/**
+ * Tests for {@link PayrollEventController}.
+ *
+ * <p><b>Feature:</b> Payroll event REST endpoint
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should create event
+ *   <li>should list events
+ *   <li>should delete event
+ *   <li>should reject unauthenticated request
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
+ */
 @WebMvcTest(
     value = PayrollEventController.class,
     excludeFilters =

@@ -23,6 +23,28 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link CategoryService}.
+ *
+ * <p><b>Feature:</b> Category management (CRUD, hierarchy)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Create Category Successfully
+ *   <li>should Update Category Successfully
+ *   <li>should Throw When Updating Non Existent Category
+ *   <li>should Find All Categories
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks Logger, CategoryRepositoryPort dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class CategoryUseCaseImplTest {
 

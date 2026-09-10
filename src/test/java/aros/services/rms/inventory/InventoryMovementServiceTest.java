@@ -52,6 +52,29 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+/**
+ * Tests for {@link InventoryMovementService}.
+ *
+ * <p><b>Feature:</b> Inventory stock movements (purchase, deduction, transfers)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Add Stock To Bodega when Purchase Is Registered
+ *   <li>should Register Entry Movement when Purchase Is Registered
+ *   <li>stub Option Recipe
+ *   <li>should Deduct Without Base Slot Variant when Substitution Selected
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks InventoryStockRepositoryPort, InventoryMovementRepositoryPort,
+ *       StorageLocationRepositoryPort dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class InventoryMovementServiceTest {

@@ -39,6 +39,29 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link UpdateUserService}.
+ *
+ * <p><b>Feature:</b> User profile updates
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Update User Info Successfully without Email Change
+ *   <li>should Change Email when Email Differs
+ *   <li>should Throw when User Not Found
+ *   <li>should Throw when Area Not Found
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks UserRepositoryPort, AreaRepositoryPort, SalaryHistoryRepositoryPort dependencies via
+ *       Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class UpdateUserServiceTest {
 

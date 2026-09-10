@@ -25,6 +25,28 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link OrderQueryUseCase}.
+ *
+ * <p><b>Feature:</b> Order query and retrieval operations
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Find All Orders when No Filters Provided
+ *   <li>should Find Orders By Status when Only Status Provided
+ *   <li>should Find Orders By Date Range when Only Dates Provided
+ *   <li>should Find Orders By Status And Date Range when All Filters Provided
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks OrderRepositoryPort dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class OrderQueryUseCaseImplTest {
 

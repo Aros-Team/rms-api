@@ -19,6 +19,24 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link JwkSourceAdapter}.
+ *
+ * <p><b>Feature:</b> JWK source adapter (key loading, caching)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should load single key
+ *   <li>active Signing Key should return active key
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 class JwkSourceAdapterTest {
 
   @Test

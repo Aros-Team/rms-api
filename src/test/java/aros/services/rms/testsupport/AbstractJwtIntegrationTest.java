@@ -9,11 +9,21 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 /**
- * Base class for integration tests that need a valid RSA key pair for JWT signing and verifying.
+ * Tests for {@link for}.
  *
- * <p>Generates a fresh RSA key pair at context initialization and exposes it as the {@code
- * app.jwt.public-key} and {@code app.jwt.private-key} properties so {@code JwtEncoder} and {@code
- * JwtDecoder} beans can be created.
+ * <p><b>Feature:</b> JWT integration test base class
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>register Jwt Keys
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
  */
 public abstract class AbstractJwtIntegrationTest {
 

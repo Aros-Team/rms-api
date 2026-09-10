@@ -24,6 +24,28 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link TableService}.
+ *
+ * <p><b>Feature:</b> Table management (CRUD, status tracking)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Create Table Successfully
+ *   <li>should Update Table Successfully
+ *   <li>should Throw When Updating Non Existent Table
+ *   <li>should Change Status Successfully
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks TableRepositoryPort, Logger dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class TableUseCaseImplTest {
 

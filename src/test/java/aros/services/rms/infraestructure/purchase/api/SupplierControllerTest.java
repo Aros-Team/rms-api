@@ -22,7 +22,26 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-/** Endpoint tests for SupplierController search behavior. */
+/**
+ * Tests for {@link SupplierController}.
+ *
+ * <p><b>Feature:</b> Supplier REST endpoint
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Return200 with Suppliers Filtered By Search
+ *   <li>should Return200 with All Suppliers when Search Is Blank
+ *   <li>should Return200 with Empty List when Search Has No Matches
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class SupplierControllerTest {
 

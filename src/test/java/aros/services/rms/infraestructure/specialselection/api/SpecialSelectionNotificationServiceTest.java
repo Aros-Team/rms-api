@@ -17,6 +17,27 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link SpecialSelectionNotificationService}.
+ *
+ * <p><b>Feature:</b> Special selection notification dispatch
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should send envelope with change type and selection
+ *   <li>should send delete event with null selection
+ *   <li>should not propagate exception when notification fails
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks NotificationPort dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class SpecialSelectionNotificationServiceTest {
 

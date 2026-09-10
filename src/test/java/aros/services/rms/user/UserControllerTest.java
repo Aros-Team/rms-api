@@ -35,6 +35,28 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Tests for {@link UserController}.
+ *
+ * <p><b>Feature:</b> User REST endpoint (CRUD)
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Return200 when Changing Password
+ *   <li>should Return400 when New Password Weak
+ *   <li>should Return400 when Current Password Blank
+ *   <li>should Return400 when Email Not Found
+ *   <li>should Return400 when Invalid Password
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Uses MockMvc to simulate HTTP requests and verify responses
+ *   <li>Mocks service-layer dependencies via @MockitoBean
+ * </ul>
+ */
 @WebMvcTest(
     value = UserController.class,
     excludeFilters =

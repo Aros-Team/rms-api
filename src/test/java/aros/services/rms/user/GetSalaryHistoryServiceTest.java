@@ -30,6 +30,27 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Tests for {@link GetSalaryHistoryService}.
+ *
+ * <p><b>Feature:</b> Salary history retrieval
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Return Salary History when User Exists
+ *   <li>should Return Empty List when User Has No History
+ *   <li>should Throw User Not Found Exception when User Not Found
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks UserRepositoryPort, SalaryHistoryRepositoryPort dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class GetSalaryHistoryServiceTest {
 

@@ -21,7 +21,26 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/** Tests the option-category selection-type native projection. */
+/**
+ * Tests for {@link OptionGroupPersistenceAdapter}.
+ *
+ * <p><b>Feature:</b> Option group selection projection
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should read selection type directly when column exists
+ *   <li>should default unknown selection type to single choice
+ *   <li>should default null selection type to single choice
+ *   <li>should skip projection queries when category ids are empty
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks service-layer dependencies via Mockito
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 class OptionGroupPersistenceAdapterSelectionProjectionTest {
 

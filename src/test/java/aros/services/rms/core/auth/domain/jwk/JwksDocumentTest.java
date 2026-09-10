@@ -7,6 +7,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link JwksDocument}.
+ *
+ * <p><b>Feature:</b> JWKS document structure and serialization
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>should Reject Null Keys
+ *   <li>should Allow Empty List
+ *   <li>should Find Key By Id When Present
+ *   <li>should Return Empty When Key Not Found
+ *   <li>should Return Immutable Copy
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 class JwksDocumentTest {
 
   private static final JwkKeyId KEY_ID_1 = new JwkKeyId("key-1");

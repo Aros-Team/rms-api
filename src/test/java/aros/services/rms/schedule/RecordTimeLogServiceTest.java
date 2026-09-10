@@ -28,6 +28,27 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+/**
+ * Tests for {@link RecordTimeLogService}.
+ *
+ * <p><b>Feature:</b> Time log recording
+ *
+ * <p><b>Expected behavior:</b>
+ *
+ * <ul>
+ *   <li>set Up
+ *   <li>should Save Time Log when Worker Has Assignment
+ *   <li>should Save Time Log when No Assignment
+ * </ul>
+ *
+ * <p><b>How this test works:</b>
+ *
+ * <ul>
+ *   <li>Mocks TimeLogRepositoryPort, ScheduleRepositoryPort, WorkerScheduleAssignmentRepositoryPort
+ *       dependencies via Mockito
+ *   <li>Verifies business logic with unit-level assertions
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class RecordTimeLogServiceTest {
