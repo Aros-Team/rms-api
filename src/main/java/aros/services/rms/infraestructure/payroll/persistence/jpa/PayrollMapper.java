@@ -3,6 +3,7 @@
 package aros.services.rms.infraestructure.payroll.persistence.jpa;
 
 import aros.services.rms.core.payroll.domain.Payroll;
+import java.util.Currency;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -11,7 +12,7 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public abstract class PayrollMapper {
 
-  /** Converts a PayrollEntity to a Payroll domain object. */
+  /** Converts a PayrollEntity to a Payroll domain object using the given currency. */
   @Mapping(target = "id", source = "entity.id")
   @Mapping(target = "userId", source = "entity.userId")
   @Mapping(
@@ -19,28 +20,18 @@ public abstract class PayrollMapper {
       expression = "java(YearMonth.of(entity.getPeriodYear(), entity.getPeriodMonth()))")
   @Mapping(target = "periodStart", source = "entity.periodStart")
   @Mapping(target = "periodEnd", source = "entity.periodEnd")
-  @Mapping(
-      target = "baseSalary",
-      expression =
-          "java(new Money(entity.getBaseSalary(), java.util.Currency.getInstance(\"COP\")))")
-  @Mapping(
-      target = "bonuses",
-      expression = "java(new Money(entity.getBonuses(), java.util.Currency.getInstance(\"COP\")))")
-  @Mapping(
-      target = "deductions",
-      expression =
-          "java(new Money(entity.getDeductions(), java.util.Currency.getInstance(\"COP\")))")
-  @Mapping(
-      target = "netAmount",
-      expression =
-          "java(new Money(entity.getNetAmount(), java.util.Currency.getInstance(\"COP\")))")
+  @Mapping(target = "baseSalary", expression = "java(new Money(entity.getBaseSalary(), currency))")
+  @Mapping(target = "bonuses", expression = "java(new Money(entity.getBonuses(), currency))")
+  @Mapping(target = "deductions", expression = "java(new Money(entity.getDeductions(), currency))")
+  @Mapping(target = "netAmount", expression = "java(new Money(entity.getNetAmount(), currency))")
+  @Mapping(target = "paidAmount", expression = "java(new Money(entity.getPaidAmount(), currency))")
   @Mapping(target = "hoursWorked", source = "entity.hoursWorked")
   @Mapping(target = "status", expression = "java(PayrollStatus.valueOf(entity.getStatus()))")
   @Mapping(target = "notes", source = "entity.notes")
   @Mapping(target = "registeredBy", source = "entity.registeredBy")
   @Mapping(target = "createdAt", source = "entity.createdAt")
   @Mapping(target = "updatedAt", source = "entity.updatedAt")
-  public abstract Payroll toDomain(PayrollEntity entity);
+  public abstract Payroll toDomain(PayrollEntity entity, Currency currency);
 
   /** Converts a Payroll domain object to a PayrollEntity. */
   @Mapping(target = "id", source = "domain.id")
@@ -53,6 +44,7 @@ public abstract class PayrollMapper {
   @Mapping(target = "bonuses", expression = "java(domain.bonuses().amount())")
   @Mapping(target = "deductions", expression = "java(domain.deductions().amount())")
   @Mapping(target = "netAmount", expression = "java(domain.netAmount().amount())")
+  @Mapping(target = "paidAmount", expression = "java(domain.paidAmount().amount())")
   @Mapping(target = "hoursWorked", source = "domain.hoursWorked")
   @Mapping(target = "status", expression = "java(domain.status().name())")
   @Mapping(target = "notes", source = "domain.notes")

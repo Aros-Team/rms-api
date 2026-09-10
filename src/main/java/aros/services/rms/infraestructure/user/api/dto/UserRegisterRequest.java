@@ -15,6 +15,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,8 +53,8 @@ public record UserRegisterRequest(
     @Schema(description = "Monthly salary (must be positive)", example = "2500000.00")
         @Positive(message = "Salary must be a positive value")
         BigDecimal salary) {
-  /** Converts this request to CreateUserInfo. */
-  public CreateUserInfo toCreateUserInfo() {
+  /** Converts this request to CreateUserInfo using the given currency for salary. */
+  public CreateUserInfo toCreateUserInfo(Currency currency) {
     return new CreateUserInfo(
         document,
         name,
@@ -61,6 +62,6 @@ public record UserRegisterRequest(
         address,
         phone,
         areas.stream().map(AreaId::of).collect(Collectors.toSet()),
-        salary != null ? Salary.of(salary) : null);
+        salary != null ? Salary.of(salary, currency) : null);
   }
 }

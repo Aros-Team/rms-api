@@ -7,12 +7,12 @@ import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.domain.ProductOptionCostProfile;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +29,7 @@ public class ProductOptionPersistenceAdapter implements ProductOptionRepositoryP
   private final ProductOptionRepository productOptionRepository;
   private final ProductMapper productMapper;
   private final EntityManager entityManager;
+  private final CurrencyProvider currencyProvider;
 
   @Override
   public ProductOption save(ProductOption productOption) {
@@ -128,7 +129,7 @@ public class ProductOptionPersistenceAdapter implements ProductOptionRepositoryP
 
   private Money toMoney(Object value) {
     BigDecimal amount = value == null ? BigDecimal.ZERO : new BigDecimal(value.toString());
-    return new Money(amount, Currency.getInstance("COP"));
+    return new Money(amount, currencyProvider.getCurrency());
   }
 
   private static String normalizeSelectionType(String stored) {
@@ -250,7 +251,7 @@ public class ProductOptionPersistenceAdapter implements ProductOptionRepositoryP
       BigDecimal cost = costObj == null ? BigDecimal.ZERO : new BigDecimal(costObj.toString());
       result
           .computeIfAbsent(productId, k -> new HashMap<>())
-          .put(supplyCategoryId, new Money(cost, Currency.getInstance("COP")));
+          .put(supplyCategoryId, new Money(cost, currencyProvider.getCurrency()));
     }
     return result;
   }

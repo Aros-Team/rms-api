@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -25,6 +26,7 @@ import aros.services.rms.core.product.application.service.ProductService;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.List;
@@ -52,11 +54,13 @@ class ProductUseCaseImplTest {
   @Mock private InventoryStockUseCase inventoryStockUseCase;
   @Mock private ProductOptionRepositoryPort productOptionRepositoryPort;
   @Mock private ApplicationEventPublisher eventPublisher;
+  @Mock private CurrencyProvider currencyProvider;
 
   private ProductService productUseCase;
 
   @BeforeEach
   void setUp() {
+    lenient().when(currencyProvider.getCurrency()).thenReturn(Currency.getInstance("COP"));
     productUseCase =
         new ProductService(
             productRepositoryPort,
@@ -67,6 +71,7 @@ class ProductUseCaseImplTest {
             inventoryStockUseCase,
             productOptionRepositoryPort,
             eventPublisher,
+            currencyProvider,
             logger);
   }
 

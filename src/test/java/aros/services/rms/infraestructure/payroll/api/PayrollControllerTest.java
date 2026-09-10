@@ -16,6 +16,7 @@ import aros.services.rms.core.payroll.domain.PayrollStatus;
 import aros.services.rms.core.payroll.domain.port.input.GetPayrollUseCase;
 import aros.services.rms.core.payroll.domain.port.input.ListPayrollsUseCase;
 import aros.services.rms.core.payroll.domain.port.input.RegisterPayrollUseCase;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.common.exception.GlobalExceptionHandler;
 import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
 import java.math.BigDecimal;
@@ -24,6 +25,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Currency;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -66,6 +68,7 @@ class PayrollControllerTest {
   private aros.services.rms.core.payroll.domain.port.input.DeletePayrollUseCase
       deletePayrollUseCase;
 
+  @MockitoBean private CurrencyProvider currencyProvider;
   @MockitoBean private JwtDecoder jwtDecoder;
 
   @org.springframework.boot.test.context.TestConfiguration
@@ -85,6 +88,11 @@ class PayrollControllerTest {
   // ---------------------------------------------------------------------------
   // UC-01: createPayroll_returns201
   // ---------------------------------------------------------------------------
+
+  @BeforeEach
+  void setUp() {
+    when(currencyProvider.getCurrency()).thenReturn(COP);
+  }
 
   @Test
   void createPayroll_returns201() throws Exception {
@@ -197,6 +205,7 @@ class PayrollControllerTest {
         new Money(new BigDecimal("200000"), COP),
         new Money(new BigDecimal("150000"), COP),
         new Money(netAmount, COP),
+        Money.zero(COP),
         new BigDecimal("192"),
         status,
         "Overtime included",

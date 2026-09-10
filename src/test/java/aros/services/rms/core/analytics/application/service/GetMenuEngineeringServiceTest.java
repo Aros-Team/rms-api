@@ -12,26 +12,32 @@ import aros.services.rms.core.analytics.domain.MenuEngineeringReport;
 import aros.services.rms.core.analytics.domain.MenuEngineeringReport.MenuItemSummary;
 import aros.services.rms.core.analytics.domain.port.out.MenuEngineeringCacheRepositoryPort;
 import aros.services.rms.core.common.money.domain.Money;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import java.util.Currency;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * Unit tests for {@link GetMenuEngineeringService}. Covers period generation, missing data, and
  * validation.
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class GetMenuEngineeringServiceTest {
 
   private static final Currency COP = Currency.getInstance("COP");
 
   @Mock private MenuEngineeringCacheRepositoryPort cacheRepo;
+  @Mock private CurrencyProvider currencyProvider;
 
   private GetMenuEngineeringService service() {
-    return new GetMenuEngineeringService(cacheRepo);
+    when(currencyProvider.getCurrency()).thenReturn(COP);
+    return new GetMenuEngineeringService(cacheRepo, currencyProvider);
   }
 
   // ---------------------------------------------------------------------------

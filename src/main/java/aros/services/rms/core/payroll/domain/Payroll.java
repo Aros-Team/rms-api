@@ -20,6 +20,7 @@ import java.time.YearMonth;
  * @param bonuses bonus amount
  * @param deductions deductions amount
  * @param netAmount net payable amount
+ * @param paidAmount total amount paid
  * @param hoursWorked total hours worked in the period
  * @param status current payroll status
  * @param notes optional notes
@@ -37,6 +38,7 @@ public record Payroll(
     Money bonuses,
     Money deductions,
     Money netAmount,
+    Money paidAmount,
     BigDecimal hoursWorked,
     PayrollStatus status,
     String notes,
@@ -67,6 +69,9 @@ public record Payroll(
     if (netAmount == null) {
       throw new IllegalArgumentException("netAmount must not be null");
     }
+    if (paidAmount == null) {
+      throw new IllegalArgumentException("paidAmount must not be null");
+    }
     if (hoursWorked == null) {
       throw new IllegalArgumentException("hoursWorked must not be null");
     }
@@ -91,5 +96,14 @@ public record Payroll(
    */
   public boolean isPaid() {
     return status == PayrollStatus.PAID;
+  }
+
+  /**
+   * Returns the pending amount (netAmount minus paidAmount).
+   *
+   * @return the pending amount
+   */
+  public Money pendingAmount() {
+    return netAmount.minus(paidAmount);
   }
 }

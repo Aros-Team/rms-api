@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.user.api;
 
 import aros.services.rms.core.auth.application.exception.UserNotFoundException;
 import aros.services.rms.core.auth.port.input.AccountSetupUseCase;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.user.application.exception.UserAlreadyExistsException;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserId;
@@ -56,6 +57,7 @@ public class WorkerController {
   private final AccountSetupUseCase accountSetupUseCase;
   private final UserRepositoryPort userRepositoryPort;
   private final GetSalaryHistoryUseCase getSalaryHistoryUseCase;
+  private final CurrencyProvider currencyProvider;
 
   /**
    * Returns all workers in the system, optionally filtered by search term. Admin access only.
@@ -122,7 +124,8 @@ public class WorkerController {
   public ResponseEntity<UserRegisterResponse> register(
       @Valid @RequestBody UserRegisterRequest request) throws UserAlreadyExistsException {
     log.info("Admin is creating a new worker: document={}", request.document());
-    var result = this.createUserUseCase.create(request.toCreateUserInfo());
+    var result =
+        this.createUserUseCase.create(request.toCreateUserInfo(currencyProvider.getCurrency()));
     log.info("Worker created: id={}, status={}", result.user().getId(), result.user().getStatus());
 
     return ResponseEntity.status(HttpStatus.CREATED)
@@ -155,7 +158,8 @@ public class WorkerController {
       @Valid @RequestBody UpdateUserRequest request)
       throws UserNotFoundException {
     log.info("Admin updating worker: id={}", id);
-    var user = this.updateUserUseCase.update(id, request.toUpdateUserInfo());
+    var user =
+        this.updateUserUseCase.update(id, request.toUpdateUserInfo(currencyProvider.getCurrency()));
     log.info("Worker updated successfully: id={}", id);
     return ResponseEntity.ok(UserResponse.fromDomain(user));
   }

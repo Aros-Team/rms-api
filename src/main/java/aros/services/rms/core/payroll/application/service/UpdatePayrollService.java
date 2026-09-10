@@ -64,6 +64,7 @@ public class UpdatePayrollService implements UpdatePayrollUseCase {
             bonuses,
             deductions,
             netAmount,
+            existing.paidAmount(),
             hoursWorked,
             status,
             notes,

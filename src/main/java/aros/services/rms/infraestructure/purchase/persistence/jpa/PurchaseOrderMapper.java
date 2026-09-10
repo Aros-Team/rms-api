@@ -32,9 +32,10 @@ public class PurchaseOrderMapper {
    * Converts an entity to domain.
    *
    * @param entity the entity
+   * @param currency the system currency
    * @return the domain
    */
-  public PurchaseOrder toDomain(PurchaseOrderEntity entity) {
+  public PurchaseOrder toDomain(PurchaseOrderEntity entity, Currency currency) {
     if (entity == null) {
       return null;
     }
@@ -43,12 +44,14 @@ public class PurchaseOrderMapper {
         .supplierId(entity.getSupplier() != null ? entity.getSupplier().getId() : null)
         .registeredById(entity.getRegisteredBy() != null ? entity.getRegisteredBy().getId() : null)
         .purchasedAt(entity.getPurchasedAt())
-        .totalAmount(new Money(entity.getTotalAmount(), Currency.getInstance("COP")))
+        .totalAmount(new Money(entity.getTotalAmount(), currency))
         .notes(entity.getNotes())
         .createdAt(entity.getCreatedAt())
         .items(
             entity.getItems() != null
-                ? entity.getItems().stream().map(itemMapper::toDomain).collect(Collectors.toList())
+                ? entity.getItems().stream()
+                    .map(item -> itemMapper.toDomain(item, currency))
+                    .collect(Collectors.toList())
                 : Collections.emptyList())
         .build();
   }

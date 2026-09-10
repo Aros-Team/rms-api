@@ -10,6 +10,7 @@ import aros.services.rms.core.payroll.domain.port.input.GetPayrollUseCase;
 import aros.services.rms.core.payroll.domain.port.input.ListPayrollsUseCase;
 import aros.services.rms.core.payroll.domain.port.input.RegisterPayrollUseCase;
 import aros.services.rms.core.payroll.domain.port.input.UpdatePayrollUseCase;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollRequest;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,7 +19,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
-import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -40,8 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Payroll", description = "Operations for managing employee payroll records")
 public class PayrollController {
 
-  private static final Currency COP = Currency.getInstance("COP");
-
+  private final CurrencyProvider currencyProvider;
   private final RegisterPayrollUseCase registerPayrollUseCase;
   private final UpdatePayrollUseCase updatePayrollUseCase;
   private final GetPayrollUseCase getPayrollUseCase;
@@ -78,9 +77,13 @@ public class PayrollController {
             request.month(),
             request.periodStart(),
             request.periodEnd(),
-            new Money(request.baseSalary(), COP),
-            new Money(request.bonuses() != null ? request.bonuses() : BigDecimal.ZERO, COP),
-            new Money(request.deductions() != null ? request.deductions() : BigDecimal.ZERO, COP),
+            new Money(request.baseSalary(), currencyProvider.getCurrency()),
+            new Money(
+                request.bonuses() != null ? request.bonuses() : BigDecimal.ZERO,
+                currencyProvider.getCurrency()),
+            new Money(
+                request.deductions() != null ? request.deductions() : BigDecimal.ZERO,
+                currencyProvider.getCurrency()),
             request.hoursWorked(),
             request.notes(),
             null);
@@ -223,9 +226,15 @@ public class PayrollController {
 
     UpdatePayrollUseCase.UpdatePayrollCommand command =
         new UpdatePayrollUseCase.UpdatePayrollCommand(
-            request.baseSalary() != null ? new Money(request.baseSalary(), COP) : null,
-            request.bonuses() != null ? new Money(request.bonuses(), COP) : null,
-            request.deductions() != null ? new Money(request.deductions(), COP) : null,
+            request.baseSalary() != null
+                ? new Money(request.baseSalary(), currencyProvider.getCurrency())
+                : null,
+            request.bonuses() != null
+                ? new Money(request.bonuses(), currencyProvider.getCurrency())
+                : null,
+            request.deductions() != null
+                ? new Money(request.deductions(), currencyProvider.getCurrency())
+                : null,
             request.hoursWorked(),
             status,
             request.notes(),

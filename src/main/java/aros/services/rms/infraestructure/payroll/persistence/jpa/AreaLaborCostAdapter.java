@@ -4,12 +4,12 @@ package aros.services.rms.infraestructure.payroll.persistence.jpa;
 
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.payroll.domain.port.output.AreaLaborCostPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.YearMonth;
-import java.util.Currency;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class AreaLaborCostAdapter implements AreaLaborCostPort {
 
-  private static final Currency COP = Currency.getInstance("COP");
+  private final CurrencyProvider currencyProvider;
 
   @PersistenceContext private EntityManager entityManager;
 
@@ -50,7 +50,8 @@ public class AreaLaborCostAdapter implements AreaLaborCostPort {
             totalNet,
             totalHours,
             totalNet.divide(totalHours, 2, RoundingMode.HALF_UP));
-        return new Money(totalNet.divide(totalHours, 2, RoundingMode.HALF_UP), COP);
+        return new Money(
+            totalNet.divide(totalHours, 2, RoundingMode.HALF_UP), currencyProvider.getCurrency());
       }
       log.warn("Payroll exists for area {} but total hours is 0, falling back to STANDARD", areaId);
     }
@@ -68,12 +69,14 @@ public class AreaLaborCostAdapter implements AreaLaborCostPort {
             totalSalary,
             totalExpectedHours,
             totalSalary.divide(totalExpectedHours, 2, RoundingMode.HALF_UP));
-        return new Money(totalSalary.divide(totalExpectedHours, 2, RoundingMode.HALF_UP), COP);
+        return new Money(
+            totalSalary.divide(totalExpectedHours, 2, RoundingMode.HALF_UP),
+            currencyProvider.getCurrency());
       }
     }
 
     log.warn("No workers or payroll data for area {}, returning zero cost", areaId);
-    return Money.zero(COP);
+    return Money.zero(currencyProvider.getCurrency());
   }
 
   @SuppressWarnings("unchecked")

@@ -28,13 +28,13 @@ public record OptionExtrasRequest(
         BigDecimal extraPrice) {
 
   /**
-   * Converts this request DTO to a {@link Money} value in COP. Returns {@code Money.zero(COP)} when
-   * the amount is null.
+   * Converts this request DTO to a {@link Money} value using the given currency. Returns {@code
+   * Money.zero(currency)} when the amount is null.
    *
-   * @return the surcharge as a {@link Money} in COP
+   * @param currency the currency to use
+   * @return the surcharge as a {@link Money}
    */
-  public Money toMoney() {
-    Currency cop = Currency.getInstance("COP");
-    return extraPrice == null ? Money.zero(cop) : new Money(extraPrice, cop);
+  public Money toMoney(Currency currency) {
+    return extraPrice == null ? Money.zero(currency) : new Money(extraPrice, currency);
   }
 }

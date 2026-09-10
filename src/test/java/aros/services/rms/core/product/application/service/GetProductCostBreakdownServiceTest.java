@@ -4,6 +4,7 @@ package aros.services.rms.core.product.application.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -19,6 +20,7 @@ import aros.services.rms.core.product.domain.ProductCostBreakdown;
 import aros.services.rms.core.product.domain.ProductOptionCostProfile;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.List;
@@ -42,18 +44,21 @@ class GetProductCostBreakdownServiceTest {
   @Mock private SupplyVariantRepositoryPort supplyVariantRepositoryPort;
   @Mock private ProductOptionRepositoryPort productOptionRepositoryPort;
   @Mock private OptionRecipeRepositoryPort optionRecipeRepositoryPort;
+  @Mock private CurrencyProvider currencyProvider;
 
   private GetProductCostBreakdownService service;
 
   @BeforeEach
   void setUp() {
+    lenient().when(currencyProvider.getCurrency()).thenReturn(COP);
     service =
         new GetProductCostBreakdownService(
             productRepositoryPort,
             productRecipeRepositoryPort,
             supplyVariantRepositoryPort,
             productOptionRepositoryPort,
-            optionRecipeRepositoryPort);
+            optionRecipeRepositoryPort,
+            currencyProvider);
   }
 
   @Test

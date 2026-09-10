@@ -5,12 +5,14 @@ package aros.services.rms.infraestructure.product.persistence.jpa;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import java.math.BigDecimal;
@@ -38,14 +40,17 @@ class ProductOptionPersistenceAdapterSelectionSqlTest {
   @Mock private ProductOptionRepository productOptionRepository;
   @Mock private ProductMapper productMapper;
   @Mock private EntityManager entityManager;
+  @Mock private CurrencyProvider currencyProvider;
   @Mock private Query dataQuery;
 
   private ProductOptionPersistenceAdapter adapter;
 
   @BeforeEach
   void setUp() {
+    lenient().when(currencyProvider.getCurrency()).thenReturn(COP);
     adapter =
-        new ProductOptionPersistenceAdapter(productOptionRepository, productMapper, entityManager);
+        new ProductOptionPersistenceAdapter(
+            productOptionRepository, productMapper, entityManager, currencyProvider);
   }
 
   @Test

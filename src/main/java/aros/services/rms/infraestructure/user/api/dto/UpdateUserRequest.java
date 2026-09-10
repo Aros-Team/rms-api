@@ -14,6 +14,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -59,8 +60,8 @@ public record UpdateUserRequest(
         String reason,
     @Schema(description = "Additional observations", example = "Approved by management")
         String observations) {
-  /** Converts this request to UpdateUserInfo. */
-  public UpdateUserInfo toUpdateUserInfo() {
+  /** Converts this request to UpdateUserInfo using the given currency for salary. */
+  public UpdateUserInfo toUpdateUserInfo(Currency currency) {
     return new UpdateUserInfo(
         document,
         name,
@@ -68,7 +69,7 @@ public record UpdateUserRequest(
         address,
         phone,
         areas.stream().map(AreaId::of).collect(Collectors.toSet()),
-        salary != null ? Salary.of(salary) : null,
+        salary != null ? Salary.of(salary, currency) : null,
         reason,
         observations);
   }

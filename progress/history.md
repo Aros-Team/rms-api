@@ -604,3 +604,55 @@ FE TypeScript enum/union types and switch statements must be updated.
 **Migration safety:** V40 additive-only (CREATE TABLE + FKs); no existing tables modified.
 
 **Commits:** `c3a7836`
+
+---
+
+## 2026-08-02 — Activity 8: Payroll Events, Settlements & Aggregation
+
+**Outcome:** all 12 tasks completed, harness 8/8 `[OK]`, full test suite green.
+
+**Goal:** Add daily event tracking (overtime, bonuses, deductions) and settlement (payment) recording to payroll. Events aggregate into payroll bonuses/deductions/hoursWorked/netAmount. Settlements track paid amounts against the payroll net.
+
+**Deliverables:**
+
+| # | Deliverable |
+|---|-------------|
+| 1 | V45 migration: `payroll_events` table with constraints and indexes |
+| 2 | V46 migration: `payroll_settlements` table with constraints and indexes |
+| 3 | V47 migration: adds `paid_amount` column to payroll table |
+| 4 | `PayrollEventType` enum: OVERTIME, NIGHT_SURCHARGE, ABSENCE, BONUS_ATTENDANCE, BONUS_PERFORMANCE, DEDUCTION |
+| 5 | `SettlementType` enum: DAILY, WEEKLY, BIWEEKLY, MONTHLY |
+| 6 | `PayrollEvent` + `PayrollSettlement` domain records with factory methods |
+| 7 | 5 input ports (Register/List/Delete events, Register/List settlements) |
+| 8 | 2 output ports (PayrollEventRepositoryPort, PayrollSettlementRepositoryPort) |
+| 9 | 5 application services with `@Service` annotation |
+| 10 | 2 JPA entities + 2 repositories + 2 adapters + 2 mappers |
+| 11 | 2 controllers: `PayrollEventController` + `PayrollSettlementController` |
+| 12 | 4 DTOs: Request/Response for events and settlements |
+| 13 | `/calculate` endpoint returning suggested unitRate from hourly_rate |
+| 14 | `PayrollConfigBeans` updated with 5 new use case beans |
+| 15 | `Payroll` domain/entity/mapper/response updated with `paidAmount` field |
+| 16 | 50+ test methods across 12 test classes |
+
+**New endpoints:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/v1/payroll/events` | Register event |
+| GET | `/api/v1/payroll/events/{userId}/{year}/{month}` | List events for period |
+| DELETE | `/api/v1/payroll/events/{id}` | Delete event |
+| POST | `/api/v1/payroll/events/calculate` | Calculate suggested rate |
+| POST | `/api/v1/payroll/settle` | Register settlement |
+| GET | `/api/v1/payroll/settlements/{userId}/{year}/{month}` | List settlements |
+
+**Event multipliers:**
+- OVERTIME: hourly_rate × 1.5
+- NIGHT_SURCHARGE: hourly_rate × 1.75
+- ABSENCE: hourly_rate × -1
+- BONUS_ATTENDANCE: hourly_rate × 0.5
+- BONUS_PERFORMANCE: manual
+- DEDUCTION: manual
+
+**Migration safety:** V45-V47 additive-only; no existing tables modified.
+
+**Harness:** all 8 sections `[OK]`

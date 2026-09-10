@@ -18,6 +18,7 @@ import aros.services.rms.core.analytics.domain.port.out.MenuEngineeringAggregati
 import aros.services.rms.core.analytics.domain.port.out.MenuEngineeringAggregationPort.SalesData;
 import aros.services.rms.core.analytics.domain.port.out.MenuEngineeringCacheRepositoryPort;
 import aros.services.rms.core.common.money.domain.Money;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Currency;
@@ -29,6 +30,12 @@ import org.mockito.ArgumentCaptor;
 class RefreshMenuEngineeringServiceTest {
 
   private static final Currency COP = Currency.getInstance("COP");
+
+  private CurrencyProvider currencyProvider() {
+    CurrencyProvider provider = mock(CurrencyProvider.class);
+    when(provider.getCurrency()).thenReturn(COP);
+    return provider;
+  }
 
   @Test
   void shouldComputeBcgFor3Products() {
@@ -61,7 +68,7 @@ class RefreshMenuEngineeringServiceTest {
         .thenReturn(Map.of());
 
     RefreshMenuEngineeringService service =
-        new RefreshMenuEngineeringService(aggregationPort, cacheRepo);
+        new RefreshMenuEngineeringService(aggregationPort, cacheRepo, currencyProvider());
     service.refresh("monthly", "2026-07");
 
     ArgumentCaptor<MenuItemSummary> captor = ArgumentCaptor.forClass(MenuItemSummary.class);
@@ -85,7 +92,7 @@ class RefreshMenuEngineeringServiceTest {
     when(aggregationPort.loadActiveProducts()).thenReturn(List.of());
 
     RefreshMenuEngineeringService service =
-        new RefreshMenuEngineeringService(aggregationPort, cacheRepo);
+        new RefreshMenuEngineeringService(aggregationPort, cacheRepo, currencyProvider());
     service.refresh("monthly", "2026-07");
 
     verify(cacheRepo, never()).upsert(any(), anyString(), anyString(), anyString());
@@ -107,7 +114,7 @@ class RefreshMenuEngineeringServiceTest {
         .thenReturn(Map.of());
 
     RefreshMenuEngineeringService service =
-        new RefreshMenuEngineeringService(aggregationPort, cacheRepo);
+        new RefreshMenuEngineeringService(aggregationPort, cacheRepo, currencyProvider());
     service.refresh("monthly", "2026-07");
 
     ArgumentCaptor<MenuItemSummary> captor = ArgumentCaptor.forClass(MenuItemSummary.class);
@@ -140,7 +147,7 @@ class RefreshMenuEngineeringServiceTest {
         .thenReturn(avgOptions);
 
     RefreshMenuEngineeringService service =
-        new RefreshMenuEngineeringService(aggregationPort, cacheRepo);
+        new RefreshMenuEngineeringService(aggregationPort, cacheRepo, currencyProvider());
     service.refresh("monthly", "2026-07");
 
     ArgumentCaptor<MenuItemSummary> captor = ArgumentCaptor.forClass(MenuItemSummary.class);
@@ -166,7 +173,7 @@ class RefreshMenuEngineeringServiceTest {
     when(aggregationPort.loadAvgOptionCostByProduct(any(), any())).thenReturn(Map.of());
 
     RefreshMenuEngineeringService service =
-        new RefreshMenuEngineeringService(aggregationPort, cacheRepo);
+        new RefreshMenuEngineeringService(aggregationPort, cacheRepo, currencyProvider());
     service.refresh("monthly", "2026-07");
 
     ArgumentCaptor<MenuItemSummary> captor = ArgumentCaptor.forClass(MenuItemSummary.class);
@@ -194,7 +201,7 @@ class RefreshMenuEngineeringServiceTest {
         .thenReturn(Map.of(1L, new Money(BigDecimal.valueOf(500), COP)));
 
     RefreshMenuEngineeringService service =
-        new RefreshMenuEngineeringService(aggregationPort, cacheRepo);
+        new RefreshMenuEngineeringService(aggregationPort, cacheRepo, currencyProvider());
     service.refresh("monthly", "2026-07");
 
     ArgumentCaptor<MenuItemSummary> captor = ArgumentCaptor.forClass(MenuItemSummary.class);
@@ -221,7 +228,7 @@ class RefreshMenuEngineeringServiceTest {
         .thenReturn(Map.of(1L, new Money(new BigDecimal("-2000"), COP)));
 
     RefreshMenuEngineeringService service =
-        new RefreshMenuEngineeringService(aggregationPort, cacheRepo);
+        new RefreshMenuEngineeringService(aggregationPort, cacheRepo, currencyProvider());
     service.refresh("monthly", "2026-07");
 
     ArgumentCaptor<MenuItemSummary> captor = ArgumentCaptor.forClass(MenuItemSummary.class);
@@ -265,7 +272,7 @@ class RefreshMenuEngineeringServiceTest {
         .thenReturn(avgOptions);
 
     RefreshMenuEngineeringService service =
-        new RefreshMenuEngineeringService(aggregationPort, cacheRepo);
+        new RefreshMenuEngineeringService(aggregationPort, cacheRepo, currencyProvider());
     service.refresh("monthly", "2026-07");
 
     ArgumentCaptor<MenuItemSummary> captor = ArgumentCaptor.forClass(MenuItemSummary.class);

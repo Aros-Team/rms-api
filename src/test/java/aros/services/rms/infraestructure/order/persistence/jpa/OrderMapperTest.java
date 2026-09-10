@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import aros.services.rms.core.order.domain.Order;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.order.persistence.OrderStatus;
 import aros.services.rms.infraestructure.product.persistence.jpa.ProductMapper;
 import aros.services.rms.infraestructure.table.persistence.jpa.TableMapper;
@@ -29,12 +30,13 @@ class OrderMapperTest {
 
   @Mock private TableMapper tableMapper;
   @Mock private ProductMapper productMapper;
+  @Mock private CurrencyProvider currencyProvider;
 
   private OrderMapper orderMapper;
 
   @BeforeEach
   void setUp() {
-    orderMapper = new OrderMapper(tableMapper, productMapper);
+    orderMapper = new OrderMapper(tableMapper, productMapper, currencyProvider);
   }
 
   // ---------------------------------------------------------------------------

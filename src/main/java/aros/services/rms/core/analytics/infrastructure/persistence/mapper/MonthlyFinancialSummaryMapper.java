@@ -5,18 +5,24 @@ package aros.services.rms.core.analytics.infrastructure.persistence.mapper;
 import aros.services.rms.core.analytics.domain.MonthlyFinancialSummary;
 import aros.services.rms.core.analytics.infrastructure.persistence.entity.MonthlyFinancialSummaryEntity;
 import aros.services.rms.core.common.money.domain.Money;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import java.math.BigDecimal;
-import java.util.Currency;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.Named;
+import org.springframework.stereotype.Component;
 
-/** MapStruct mapper between monthly financial summary persistence and domain models. */
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface MonthlyFinancialSummaryMapper {
+/** Mapper between monthly financial summary persistence and domain models. */
+@Component
+public class MonthlyFinancialSummaryMapper {
 
-  Currency COP = Currency.getInstance("COP");
+  private final CurrencyProvider currencyProvider;
+
+  /**
+   * Creates a new instance.
+   *
+   * @param currencyProvider the system currency provider
+   */
+  public MonthlyFinancialSummaryMapper(CurrencyProvider currencyProvider) {
+    this.currencyProvider = currencyProvider;
+  }
 
   /**
    * Maps a domain {@link MonthlyFinancialSummary} to a persistence entity.
@@ -24,43 +30,68 @@ public interface MonthlyFinancialSummaryMapper {
    * @param domain the domain record
    * @return the persistence entity with raw BigDecimal columns
    */
-  @Mapping(target = "netSales", source = "netSales", qualifiedByName = "moneyToBigDecimal")
-  @Mapping(target = "grossSales", source = "grossSales", qualifiedByName = "moneyToBigDecimal")
-  @Mapping(target = "discounts", source = "discounts", qualifiedByName = "moneyToBigDecimal")
-  @Mapping(target = "comped", source = "comped", qualifiedByName = "moneyToBigDecimal")
-  @Mapping(target = "cogsFood", source = "cogsFood", qualifiedByName = "moneyToBigDecimal")
-  @Mapping(target = "cogsBeverage", source = "cogsBeverage", qualifiedByName = "moneyToBigDecimal")
-  @Mapping(target = "cogsAlcohol", source = "cogsAlcohol", qualifiedByName = "moneyToBigDecimal")
-  @Mapping(target = "cogsOther", source = "cogsOther", qualifiedByName = "moneyToBigDecimal")
-  @Mapping(target = "laborFoh", source = "laborFoh", qualifiedByName = "moneyToBigDecimal")
-  @Mapping(target = "laborBoh", source = "laborBoh", qualifiedByName = "moneyToBigDecimal")
-  @Mapping(target = "laborTotal", source = "laborTotal", qualifiedByName = "moneyToBigDecimal")
-  @Mapping(target = "primeCost", source = "primeCost", qualifiedByName = "moneyToBigDecimal")
-  @Mapping(target = "id", ignore = true)
-  @Mapping(target = "createdAt", ignore = true)
-  @Mapping(target = "updatedAt", ignore = true)
-  MonthlyFinancialSummaryEntity toEntity(MonthlyFinancialSummary domain);
+  public MonthlyFinancialSummaryEntity toEntity(MonthlyFinancialSummary domain) {
+    if (domain == null) {
+      return null;
+    }
+    return MonthlyFinancialSummaryEntity.builder()
+        .periodKey(domain.getPeriodKey())
+        .bucket(domain.getBucket())
+        .netSales(moneyToBigDecimal(domain.getNetSales()))
+        .grossSales(moneyToBigDecimal(domain.getGrossSales()))
+        .discounts(moneyToBigDecimal(domain.getDiscounts()))
+        .comped(moneyToBigDecimal(domain.getComped()))
+        .cogsFood(moneyToBigDecimal(domain.getCogsFood()))
+        .cogsBeverage(moneyToBigDecimal(domain.getCogsBeverage()))
+        .cogsAlcohol(moneyToBigDecimal(domain.getCogsAlcohol()))
+        .cogsOther(moneyToBigDecimal(domain.getCogsOther()))
+        .foodCogsPct(domain.getFoodCogsPct())
+        .laborFoh(moneyToBigDecimal(domain.getLaborFoh()))
+        .laborBoh(moneyToBigDecimal(domain.getLaborBoh()))
+        .laborTotal(moneyToBigDecimal(domain.getLaborTotal()))
+        .laborPct(domain.getLaborPct())
+        .primeCost(moneyToBigDecimal(domain.getPrimeCost()))
+        .primeCostPct(domain.getPrimeCostPct())
+        .grossProfitPct(domain.getGrossProfitPct())
+        .netProfitPct(domain.getNetProfitPct())
+        .dataCompleteness(domain.getDataCompleteness())
+        .build();
+  }
 
   /**
-   * Maps a {@link MonthlyFinancialSummary} entity to its domain representation.
+   * Maps a {@link MonthlyFinancialSummaryEntity} to its domain representation.
    *
    * @param entity the persistence entity
    * @return the domain record with Money wrappers
    */
-  @Mapping(target = "netSales", source = "netSales", qualifiedByName = "bigDecimalToMoney")
-  @Mapping(target = "grossSales", source = "grossSales", qualifiedByName = "bigDecimalToMoney")
-  @Mapping(target = "discounts", source = "discounts", qualifiedByName = "bigDecimalToMoney")
-  @Mapping(target = "comped", source = "comped", qualifiedByName = "bigDecimalToMoney")
-  @Mapping(target = "cogsFood", source = "cogsFood", qualifiedByName = "bigDecimalToMoney")
-  @Mapping(target = "cogsBeverage", source = "cogsBeverage", qualifiedByName = "bigDecimalToMoney")
-  @Mapping(target = "cogsAlcohol", source = "cogsAlcohol", qualifiedByName = "bigDecimalToMoney")
-  @Mapping(target = "cogsOther", source = "cogsOther", qualifiedByName = "bigDecimalToMoney")
-  @Mapping(target = "laborFoh", source = "laborFoh", qualifiedByName = "bigDecimalToMoney")
-  @Mapping(target = "laborBoh", source = "laborBoh", qualifiedByName = "bigDecimalToMoney")
-  @Mapping(target = "laborTotal", source = "laborTotal", qualifiedByName = "bigDecimalToMoney")
-  @Mapping(target = "primeCost", source = "primeCost", qualifiedByName = "bigDecimalToMoney")
-  @Mapping(target = "id", ignore = true)
-  MonthlyFinancialSummary toDomain(MonthlyFinancialSummaryEntity entity);
+  public MonthlyFinancialSummary toDomain(MonthlyFinancialSummaryEntity entity) {
+    if (entity == null) {
+      return null;
+    }
+    var currency = currencyProvider.getCurrency();
+    return MonthlyFinancialSummary.builder()
+        .periodKey(entity.getPeriodKey())
+        .bucket(entity.getBucket())
+        .netSales(bigDecimalToMoney(entity.getNetSales(), currency))
+        .grossSales(bigDecimalToMoney(entity.getGrossSales(), currency))
+        .discounts(bigDecimalToMoney(entity.getDiscounts(), currency))
+        .comped(bigDecimalToMoney(entity.getComped(), currency))
+        .cogsFood(bigDecimalToMoney(entity.getCogsFood(), currency))
+        .cogsBeverage(bigDecimalToMoney(entity.getCogsBeverage(), currency))
+        .cogsAlcohol(bigDecimalToMoney(entity.getCogsAlcohol(), currency))
+        .cogsOther(bigDecimalToMoney(entity.getCogsOther(), currency))
+        .foodCogsPct(entity.getFoodCogsPct())
+        .laborFoh(bigDecimalToMoney(entity.getLaborFoh(), currency))
+        .laborBoh(bigDecimalToMoney(entity.getLaborBoh(), currency))
+        .laborTotal(bigDecimalToMoney(entity.getLaborTotal(), currency))
+        .laborPct(entity.getLaborPct())
+        .primeCost(bigDecimalToMoney(entity.getPrimeCost(), currency))
+        .primeCostPct(entity.getPrimeCostPct())
+        .grossProfitPct(entity.getGrossProfitPct())
+        .netProfitPct(entity.getNetProfitPct())
+        .dataCompleteness(entity.getDataCompleteness())
+        .build();
+  }
 
   /**
    * Converts a Money domain value to its raw BigDecimal for persistence.
@@ -68,8 +99,7 @@ public interface MonthlyFinancialSummaryMapper {
    * @param money the money value
    * @return the raw BigDecimal amount, or zero if null
    */
-  @Named("moneyToBigDecimal")
-  default BigDecimal moneyToBigDecimal(Money money) {
+  private BigDecimal moneyToBigDecimal(Money money) {
     return money == null ? BigDecimal.ZERO : money.amount();
   }
 
@@ -77,10 +107,10 @@ public interface MonthlyFinancialSummaryMapper {
    * Converts a raw BigDecimal from the database to a Money domain value.
    *
    * @param value the raw decimal amount
-   * @return the Money wrapper with COP currency, or zero if null
+   * @param currency the system currency
+   * @return the Money wrapper, or zero if null
    */
-  @Named("bigDecimalToMoney")
-  default Money bigDecimalToMoney(BigDecimal value) {
-    return value == null ? Money.zero(COP) : new Money(value, COP);
+  private Money bigDecimalToMoney(BigDecimal value, java.util.Currency currency) {
+    return value == null ? Money.zero(currency) : new Money(value, currency);
   }
 }

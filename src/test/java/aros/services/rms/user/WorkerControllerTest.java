@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import aros.services.rms.core.auth.port.input.AccountSetupUseCase;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.user.application.exception.UserAlreadyExistsException;
 import aros.services.rms.core.user.application.exception.UserNotFoundException;
 import aros.services.rms.core.user.domain.Salary;
@@ -38,6 +39,7 @@ import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig
 import aros.services.rms.infraestructure.user.api.WorkerController;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Currency;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -67,6 +69,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import(WorkerControllerTest.TestSecurityConfig.class)
 class WorkerControllerTest {
 
+  private static final Currency COP = Currency.getInstance("COP");
+
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private CreateUserUseCase createUserUseCase;
@@ -76,6 +80,7 @@ class WorkerControllerTest {
   @MockitoBean private AccountSetupUseCase accountSetupUseCase;
   @MockitoBean private UserRepositoryPort userRepositoryPort;
   @MockitoBean private GetSalaryHistoryUseCase getSalaryHistoryUseCase;
+  @MockitoBean private CurrencyProvider currencyProvider;
 
   @MockitoBean private JwtDecoder jwtDecoder;
 
@@ -120,8 +125,8 @@ class WorkerControllerTest {
     return new SalaryHistoryEntry(
         entryId != null ? new SalaryHistoryId(entryId) : null,
         UserId.of(1L),
-        oldVal != null ? Salary.of(oldVal) : null,
-        Salary.of(newVal),
+        oldVal != null ? Salary.of(oldVal, COP) : null,
+        Salary.of(newVal, COP),
         Instant.now(),
         reason,
         observations);

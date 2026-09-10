@@ -10,12 +10,14 @@ import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
 import aros.services.rms.core.purchase.domain.Supplier;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.purchase.persistence.PurchaseOrderEntity;
 import aros.services.rms.infraestructure.purchase.persistence.SupplierEntity;
 import aros.services.rms.infraestructure.purchase.persistence.jpa.PurchaseOrderJpaRepository;
 import aros.services.rms.infraestructure.purchase.persistence.jpa.PurchaseOrderMapper;
 import aros.services.rms.infraestructure.purchase.persistence.jpa.SupplierJpaRepository;
 import aros.services.rms.infraestructure.purchase.persistence.jpa.SupplierMapper;
+import java.util.Currency;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +33,7 @@ class PurchaseSearchPersistenceAdapterTest {
   @Mock private SupplierMapper supplierMapper;
   @Mock private PurchaseOrderJpaRepository purchaseOrderRepository;
   @Mock private PurchaseOrderMapper purchaseOrderMapper;
+  @Mock private CurrencyProvider currencyProvider;
 
   @Test
   void shouldFindSuppliersByPartialNameIgnoringCase() {
@@ -52,11 +55,14 @@ class PurchaseSearchPersistenceAdapterTest {
     PurchaseOrderEntity entity =
         PurchaseOrderEntity.builder().id(5L).notes("Fresh produce").build();
     PurchaseOrder order = PurchaseOrder.builder().id(5L).notes("Fresh produce").build();
+    Currency cop = Currency.getInstance("COP");
+    when(currencyProvider.getCurrency()).thenReturn(cop);
     when(purchaseOrderRepository.findByNotesOrSupplierNameContainingIgnoreCase("produce"))
         .thenReturn(List.of(entity));
-    when(purchaseOrderMapper.toDomain(entity)).thenReturn(order);
+    when(purchaseOrderMapper.toDomain(entity, cop)).thenReturn(order);
     PurchaseOrderPersistenceAdapter adapter =
-        new PurchaseOrderPersistenceAdapter(purchaseOrderRepository, purchaseOrderMapper);
+        new PurchaseOrderPersistenceAdapter(
+            purchaseOrderRepository, purchaseOrderMapper, currencyProvider);
 
     List<PurchaseOrder> result =
         adapter.findByNotesContainingIgnoreCaseOrSupplierNameContainingIgnoreCase("produce");

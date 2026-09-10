@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import aros.services.rms.core.analytics.domain.MonthlyFinancialSummary;
 import aros.services.rms.core.analytics.domain.port.out.MonthlyFinancialSummaryRepositoryPort;
 import aros.services.rms.core.common.money.domain.Money;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import java.math.BigDecimal;
@@ -34,10 +35,12 @@ class RefreshPrimeCostServiceTest {
 
   @Mock private EntityManager entityManager;
   @Mock private MonthlyFinancialSummaryRepositoryPort summaryRepo;
+  @Mock private CurrencyProvider currencyProvider;
   @Mock private Query query;
 
   private RefreshPrimeCostService service() {
-    return new RefreshPrimeCostService(entityManager, summaryRepo);
+    when(currencyProvider.getCurrency()).thenReturn(COP);
+    return new RefreshPrimeCostService(entityManager, summaryRepo, currencyProvider);
   }
 
   // ---------------------------------------------------------------------------

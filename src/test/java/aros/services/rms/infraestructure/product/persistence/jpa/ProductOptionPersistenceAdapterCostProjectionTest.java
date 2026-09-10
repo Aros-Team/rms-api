@@ -9,10 +9,12 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.product.domain.ProductOptionCostProfile;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.Currency;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,14 +30,17 @@ class ProductOptionPersistenceAdapterCostProjectionTest {
   @Mock private ProductOptionRepository productOptionRepository;
   @Mock private ProductMapper productMapper;
   @Mock private EntityManager entityManager;
+  @Mock private CurrencyProvider currencyProvider;
   @Mock private Query dataQuery;
 
   private ProductOptionPersistenceAdapter adapter;
 
   @BeforeEach
   void setUp() {
+    when(currencyProvider.getCurrency()).thenReturn(Currency.getInstance("COP"));
     adapter =
-        new ProductOptionPersistenceAdapter(productOptionRepository, productMapper, entityManager);
+        new ProductOptionPersistenceAdapter(
+            productOptionRepository, productMapper, entityManager, currencyProvider);
   }
 
   @Test

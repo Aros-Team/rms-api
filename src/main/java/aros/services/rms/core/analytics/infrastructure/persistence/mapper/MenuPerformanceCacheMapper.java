@@ -6,14 +6,23 @@ import aros.services.rms.core.analytics.domain.BcgQuadrant;
 import aros.services.rms.core.analytics.domain.MenuEngineeringReport.MenuItemSummary;
 import aros.services.rms.core.analytics.infrastructure.persistence.entity.MenuPerformanceCacheEntity;
 import aros.services.rms.core.common.money.domain.Money;
-import java.util.Currency;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import org.springframework.stereotype.Component;
 
 /** Maps between {@link MenuPerformanceCacheEntity} and {@link MenuItemSummary} domain objects. */
 @Component
 public class MenuPerformanceCacheMapper {
 
-  private static final Currency COP = Currency.getInstance("COP");
+  private final CurrencyProvider currencyProvider;
+
+  /**
+   * Creates a new instance.
+   *
+   * @param currencyProvider the system currency provider
+   */
+  public MenuPerformanceCacheMapper(CurrencyProvider currencyProvider) {
+    this.currencyProvider = currencyProvider;
+  }
 
   /**
    * Maps a persistence entity to a domain menu item summary.
@@ -22,18 +31,19 @@ public class MenuPerformanceCacheMapper {
    * @return the domain record with Money wrappers
    */
   public MenuItemSummary toDomain(MenuPerformanceCacheEntity entity) {
+    var currency = currencyProvider.getCurrency();
     return new MenuItemSummary(
         entity.getProductId(),
         entity.getProductName(),
         entity.getCategoryId(),
         entity.getCategoryName(),
         entity.getUnitsSold(),
-        new Money(entity.getRevenue(), COP),
-        new Money(entity.getRecipeCost(), COP),
-        new Money(entity.getAvgOptionCost(), COP),
-        new Money(entity.getEffectiveCost(), COP),
-        new Money(entity.getGrossProfitPerUnit(), COP),
-        new Money(entity.getTotalContribution(), COP),
+        new Money(entity.getRevenue(), currency),
+        new Money(entity.getRecipeCost(), currency),
+        new Money(entity.getAvgOptionCost(), currency),
+        new Money(entity.getEffectiveCost(), currency),
+        new Money(entity.getGrossProfitPerUnit(), currency),
+        new Money(entity.getTotalContribution(), currency),
         BcgQuadrant.valueOf(entity.getQuadrant()));
   }
 

@@ -6,7 +6,6 @@ import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.specialselection.domain.SelectionType;
-import java.util.Currency;
 import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -26,7 +25,7 @@ public class Product {
   private Long id;
   private String name;
   private String description;
-  @Builder.Default private Money basePrice = Money.zero(Currency.getInstance("COP"));
+  @Builder.Default private Money basePrice = null;
   @Builder.Default private boolean active = true;
   private Category category;
   private Long preparationAreaId;

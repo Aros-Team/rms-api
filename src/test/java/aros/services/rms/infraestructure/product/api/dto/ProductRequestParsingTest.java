@@ -42,9 +42,14 @@ class ProductRequestParsingTest {
     assertEquals(new BigDecimal("2500.00"), request.optionExtras().get(0).extraPrice());
     assertEquals(5L, request.optionExtras().get(1).optionId());
     assertEquals(new BigDecimal("1500.00"), request.optionExtras().get(1).extraPrice());
-    assertEquals(Currency.getInstance("COP"), request.optionExtras().get(0).toMoney().currency());
     assertEquals(
-        0, new BigDecimal("2500.00").compareTo(request.optionExtras().get(0).toMoney().amount()));
+        Currency.getInstance("COP"),
+        request.optionExtras().get(0).toMoney(Currency.getInstance("COP")).currency());
+    assertEquals(
+        0,
+        new BigDecimal("2500.00")
+            .compareTo(
+                request.optionExtras().get(0).toMoney(Currency.getInstance("COP")).amount()));
   }
 
   @Test

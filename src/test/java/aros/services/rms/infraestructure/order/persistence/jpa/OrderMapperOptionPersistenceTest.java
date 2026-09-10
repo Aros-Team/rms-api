@@ -12,6 +12,7 @@ import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.order.persistence.OrderDetailOption;
 import aros.services.rms.infraestructure.order.persistence.OrderDetailOption.OrderDetailOptionId;
 import aros.services.rms.infraestructure.product.persistence.jpa.ProductMapper;
@@ -38,6 +39,7 @@ class OrderMapperOptionPersistenceTest {
 
   @Mock private TableMapper tableMapper;
   @Mock private ProductMapper productMapper;
+  @Mock private CurrencyProvider currencyProvider;
 
   private OrderMapper orderMapper;
 
@@ -46,7 +48,8 @@ class OrderMapperOptionPersistenceTest {
 
   @BeforeEach
   void setUp() {
-    orderMapper = new OrderMapper(tableMapper, productMapper);
+    when(currencyProvider.getCurrency()).thenReturn(Currency.getInstance("COP"));
+    orderMapper = new OrderMapper(tableMapper, productMapper, currencyProvider);
   }
 
   @Test
@@ -98,7 +101,8 @@ class OrderMapperOptionPersistenceTest {
     ProductOption optionDomain =
         ProductOption.builder().id(OPTION_ID).name("Extra Cheese").category(optionGroup()).build();
 
-    when(productMapper.toProductDomain(productEntity)).thenReturn(productDomain);
+    when(productMapper.toProductDomain(productEntity, Currency.getInstance("COP")))
+        .thenReturn(productDomain);
     when(productMapper.toProductOptionDomain(optionEntity)).thenReturn(optionDomain);
 
     Order domain = orderMapper.toDomain(orderEntity);
@@ -165,7 +169,8 @@ class OrderMapperOptionPersistenceTest {
     ProductOption optionDomain =
         ProductOption.builder().id(OPTION_ID).name("Extra Cheese").category(optionGroup()).build();
 
-    when(productMapper.toProductDomain(productEntity)).thenReturn(productDomain);
+    when(productMapper.toProductDomain(productEntity, Currency.getInstance("COP")))
+        .thenReturn(productDomain);
     when(productMapper.toProductOptionEntity(optionDomain)).thenReturn(optionEntity);
     when(productMapper.toProductOptionDomain(optionEntity)).thenReturn(optionDomain);
 

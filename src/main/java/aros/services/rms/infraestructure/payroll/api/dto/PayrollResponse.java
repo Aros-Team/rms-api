@@ -24,6 +24,9 @@ public record PayrollResponse(
     @Schema(description = "Bonus amount", example = "200000.00") BigDecimal bonuses,
     @Schema(description = "Deductions amount", example = "150000.00") BigDecimal deductions,
     @Schema(description = "Net payable amount", example = "2550000.00") BigDecimal netAmount,
+    @Schema(description = "Total amount paid", example = "1000000.00") BigDecimal paidAmount,
+    @Schema(description = "Pending amount (netAmount - paidAmount)", example = "1550000.00")
+        BigDecimal pendingAmount,
     @Schema(description = "Total hours worked in the period", example = "192.0")
         BigDecimal hoursWorked,
     @Schema(description = "Current payroll status", example = "PENDING") String status,
@@ -50,6 +53,8 @@ public record PayrollResponse(
         payroll.bonuses() != null ? payroll.bonuses().amount() : null,
         payroll.deductions() != null ? payroll.deductions().amount() : null,
         payroll.netAmount() != null ? payroll.netAmount().amount() : null,
+        payroll.paidAmount() != null ? payroll.paidAmount().amount() : null,
+        payroll.pendingAmount() != null ? payroll.pendingAmount().amount() : null,
         payroll.hoursWorked(),
         payroll.status() != null ? payroll.status().name() : null,
         payroll.notes(),
@@ -76,6 +81,8 @@ public record PayrollResponse(
         base.bonuses(),
         base.deductions(),
         base.netAmount(),
+        base.paidAmount(),
+        base.pendingAmount(),
         base.hoursWorked(),
         base.status(),
         base.notes(),

@@ -3,6 +3,7 @@
 package aros.services.rms.infraestructure.user.persistence.jpa;
 
 import aros.services.rms.core.area.domain.AreaId;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.user.domain.Salary;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserWithAreas;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class UserPersistenceMapper {
 
   @Autowired protected AreaMapper areaMapper;
+  @Autowired protected CurrencyProvider currencyProvider;
 
   /** Converts a UserEntity to a User domain object. */
   @Mapping(source = "id", target = "id.value")
@@ -89,7 +91,7 @@ public abstract class UserPersistenceMapper {
     if (value == null) {
       return null;
     }
-    return Salary.of(value);
+    return Salary.of(value, currencyProvider.getCurrency());
   }
 
   @Named("salaryToBigDecimal")

@@ -5,6 +5,7 @@ package aros.services.rms.infraestructure.inventory.persistence.jpa.adapters;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.domain.OptionRecipe;
 import aros.services.rms.core.inventory.port.output.OptionRecipeRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.inventory.persistence.OptionRecipeEntity;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.OptionRecipeMapper;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.OptionRecipeRepository;
@@ -13,7 +14,6 @@ import aros.services.rms.infraestructure.inventory.persistence.jpa.SupplyVariant
 import aros.services.rms.infraestructure.product.persistence.ProductOption;
 import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.Currency;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +30,7 @@ public class OptionRecipePersistenceAdapter implements OptionRecipeRepositoryPor
   private final OptionRecipeRepository optionRecipeRepository;
   private final OptionRecipeMapper optionRecipeMapper;
   private final SupplyVariantRepository supplyVariantRepository;
+  private final CurrencyProvider currencyProvider;
 
   @Override
   @Transactional
@@ -81,7 +82,7 @@ public class OptionRecipePersistenceAdapter implements OptionRecipeRepositoryPor
     for (OptionMaterialCostProjection row :
         optionRecipeRepository.loadMaterialCostByOptionIds(optionIds)) {
       BigDecimal cost = row.getCost() == null ? BigDecimal.ZERO : row.getCost();
-      costs.put(row.getOptionId(), new Money(cost, Currency.getInstance("COP")));
+      costs.put(row.getOptionId(), new Money(cost, currencyProvider.getCurrency()));
     }
     return Map.copyOf(costs);
   }

@@ -2,6 +2,7 @@
 
 package aros.services.rms.infraestructure.user.persistence.jpa;
 
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.user.domain.Salary;
 import aros.services.rms.core.user.domain.SalaryHistoryEntry;
 import java.math.BigDecimal;
@@ -9,10 +10,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /** MapStruct mapper for SalaryHistory persistence. */
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface SalaryHistoryPersistenceMapper {
+public abstract class SalaryHistoryPersistenceMapper {
+
+  @Autowired protected CurrencyProvider currencyProvider;
 
   /**
    * Converts a SalaryHistoryEntity to a domain SalaryHistoryEntry.
@@ -24,7 +28,7 @@ public interface SalaryHistoryPersistenceMapper {
   @Mapping(source = "userId", target = "userId.value")
   @Mapping(source = "oldSalary", target = "oldSalary", qualifiedByName = "bigDecimalToSalary")
   @Mapping(source = "newSalary", target = "newSalary", qualifiedByName = "bigDecimalToSalary")
-  SalaryHistoryEntry toDomain(SalaryHistoryEntity entity);
+  public abstract SalaryHistoryEntry toDomain(SalaryHistoryEntity entity);
 
   /**
    * Converts a domain SalaryHistoryEntry to a SalaryHistoryEntity.
@@ -37,20 +41,20 @@ public interface SalaryHistoryPersistenceMapper {
   @Mapping(source = "oldSalary", target = "oldSalary", qualifiedByName = "salaryToBigDecimal")
   @Mapping(source = "newSalary", target = "newSalary", qualifiedByName = "salaryToBigDecimal")
   @Mapping(target = "createdAt", ignore = true)
-  SalaryHistoryEntity toEntity(SalaryHistoryEntry domain);
+  public abstract SalaryHistoryEntity toEntity(SalaryHistoryEntry domain);
 
   /**
-   * Converts a BigDecimal to a Salary value object.
+   * Converts a BigDecimal to a Salary value object using the system currency.
    *
    * @param value the BigDecimal value
    * @return the Salary value object
    */
   @Named("bigDecimalToSalary")
-  default Salary bigDecimalToSalary(BigDecimal value) {
+  public Salary bigDecimalToSalary(BigDecimal value) {
     if (value == null) {
       return null;
     }
-    return Salary.of(value);
+    return Salary.of(value, currencyProvider.getCurrency());
   }
 
   /**
@@ -60,7 +64,7 @@ public interface SalaryHistoryPersistenceMapper {
    * @return the BigDecimal value
    */
   @Named("salaryToBigDecimal")
-  default BigDecimal salaryToBigDecimal(Salary salary) {
+  public BigDecimal salaryToBigDecimal(Salary salary) {
     if (salary == null) {
       return null;
     }

@@ -48,6 +48,9 @@ public class PayrollEntity {
   @Column(name = "net_amount", nullable = false)
   private BigDecimal netAmount;
 
+  @Column(name = "paid_amount", nullable = false, precision = 12, scale = 2)
+  private BigDecimal paidAmount;
+
   @Column(name = "hours_worked", nullable = false)
   private BigDecimal hoursWorked;
 
@@ -143,6 +146,14 @@ public class PayrollEntity {
 
   public void setNetAmount(BigDecimal netAmount) {
     this.netAmount = netAmount;
+  }
+
+  public BigDecimal getPaidAmount() {
+    return paidAmount;
+  }
+
+  public void setPaidAmount(BigDecimal paidAmount) {
+    this.paidAmount = paidAmount;
   }
 
   public BigDecimal getHoursWorked() {

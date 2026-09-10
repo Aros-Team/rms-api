@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.inventory.persistence.jpa.adapters;
 
 import aros.services.rms.core.inventory.domain.SupplyVariant;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.SupplyVariantMapper;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.SupplyVariantRepository;
 import java.util.List;
@@ -21,6 +22,7 @@ public class SupplyVariantPersistenceAdapter implements SupplyVariantRepositoryP
 
   private final SupplyVariantRepository supplyVariantRepository;
   private final SupplyVariantMapper supplyVariantMapper;
+  private final CurrencyProvider currencyProvider;
 
   @Override
   public boolean existsById(Long id) {
@@ -29,13 +31,15 @@ public class SupplyVariantPersistenceAdapter implements SupplyVariantRepositoryP
 
   @Override
   public Optional<SupplyVariant> findById(Long id) {
-    return supplyVariantRepository.findById(id).map(supplyVariantMapper::toDomain);
+    return supplyVariantRepository
+        .findById(id)
+        .map(e -> supplyVariantMapper.toDomain(e, currencyProvider.getCurrency()));
   }
 
   @Override
   public List<SupplyVariant> findAllById(List<Long> ids) {
     return supplyVariantRepository.findAllById(ids).stream()
-        .map(supplyVariantMapper::toDomain)
+        .map(e -> supplyVariantMapper.toDomain(e, currencyProvider.getCurrency()))
         .collect(Collectors.toList());
   }
 
@@ -43,6 +47,6 @@ public class SupplyVariantPersistenceAdapter implements SupplyVariantRepositoryP
   public Page<SupplyVariant> findByNameContainingIgnoreCase(String name, Pageable pageable) {
     return supplyVariantRepository
         .findByNameContainingIgnoreCase(name, pageable)
-        .map(supplyVariantMapper::toDomain);
+        .map(e -> supplyVariantMapper.toDomain(e, currencyProvider.getCurrency()));
   }
 }

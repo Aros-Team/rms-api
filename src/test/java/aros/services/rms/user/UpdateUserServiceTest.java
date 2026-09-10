@@ -27,6 +27,7 @@ import aros.services.rms.core.user.port.dto.UpdateUserInfo;
 import aros.services.rms.core.user.port.output.SalaryHistoryRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -40,6 +41,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class UpdateUserServiceTest {
+
+  private static final Currency COP = Currency.getInstance("COP");
 
   @Mock private UserRepositoryPort userPort;
   @Mock private AreaRepositoryPort areaPort;
@@ -73,7 +76,7 @@ class UpdateUserServiceTest {
             UserRole.WORKER,
             UserStatus.ACTIVE,
             List.of(AreaId.of(1L)));
-    user.setSalary(Salary.of(new BigDecimal("2500000")));
+    user.setSalary(Salary.of(new BigDecimal("2500000"), COP));
   }
 
   // ---------------------------------------------------------------------------
@@ -182,7 +185,7 @@ class UpdateUserServiceTest {
     when(areaPort.existsAllByIds(AREAS)).thenReturn(true);
     when(userPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-    Salary newSalary = Salary.of(new BigDecimal("3000000"));
+    Salary newSalary = Salary.of(new BigDecimal("3000000"), COP);
     UpdateUserInfo info =
         new UpdateUserInfo(
             "1234567890",
@@ -200,7 +203,7 @@ class UpdateUserServiceTest {
     assertEquals(newSalary, result.getSalary());
     verify(salaryHistoryPort).save(salaryHistoryCaptor.capture());
     SalaryHistoryEntry entry = salaryHistoryCaptor.getValue();
-    assertEquals(Salary.of(new BigDecimal("2500000")), entry.getOldSalary());
+    assertEquals(Salary.of(new BigDecimal("2500000"), COP), entry.getOldSalary());
     assertEquals(newSalary, entry.getNewSalary());
     assertEquals("Aumento anual", entry.getReason());
     assertEquals("Periodo 2026", entry.getObservations());
@@ -216,7 +219,7 @@ class UpdateUserServiceTest {
     when(areaPort.existsAllByIds(AREAS)).thenReturn(true);
     when(userPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-    Salary sameSalary = Salary.of(new BigDecimal("2500000"));
+    Salary sameSalary = Salary.of(new BigDecimal("2500000"), COP);
     UpdateUserInfo info =
         new UpdateUserInfo(
             "1234567890",
@@ -258,7 +261,7 @@ class UpdateUserServiceTest {
 
     updateUserService.update(USER_ID, info);
 
-    assertEquals(Salary.of(new BigDecimal("2500000")), user.getSalary());
+    assertEquals(Salary.of(new BigDecimal("2500000"), COP), user.getSalary());
     verify(salaryHistoryPort, never()).save(any());
   }
 
@@ -271,7 +274,7 @@ class UpdateUserServiceTest {
     when(userPort.findById(UserId.of(USER_ID))).thenReturn(Optional.of(user));
     when(areaPort.existsAllByIds(AREAS)).thenReturn(true);
 
-    Salary newSalary = Salary.of(new BigDecimal("3000000"));
+    Salary newSalary = Salary.of(new BigDecimal("3000000"), COP);
     UpdateUserInfo info =
         new UpdateUserInfo(
             "1234567890",
@@ -297,7 +300,7 @@ class UpdateUserServiceTest {
     when(userPort.findById(UserId.of(USER_ID))).thenReturn(Optional.of(user));
     when(areaPort.existsAllByIds(AREAS)).thenReturn(true);
 
-    Salary newSalary = Salary.of(new BigDecimal("3000000"));
+    Salary newSalary = Salary.of(new BigDecimal("3000000"), COP);
     UpdateUserInfo info =
         new UpdateUserInfo(
             "1234567890",
@@ -320,12 +323,12 @@ class UpdateUserServiceTest {
 
   @Test
   void shouldThrow_whenSalaryIsZero() {
-    assertThrows(IllegalArgumentException.class, () -> Salary.of(BigDecimal.ZERO));
+    assertThrows(IllegalArgumentException.class, () -> Salary.of(BigDecimal.ZERO, COP));
   }
 
   @Test
   void shouldThrow_whenSalaryIsNegative() {
-    assertThrows(IllegalArgumentException.class, () -> Salary.of(new BigDecimal("-1000")));
+    assertThrows(IllegalArgumentException.class, () -> Salary.of(new BigDecimal("-1000"), COP));
   }
 
   // ---------------------------------------------------------------------------
@@ -340,7 +343,7 @@ class UpdateUserServiceTest {
     when(areaPort.existsAllByIds(AREAS)).thenReturn(true);
     when(userPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-    Salary newSalary = Salary.of(new BigDecimal("3000000"));
+    Salary newSalary = Salary.of(new BigDecimal("3000000"), COP);
     UpdateUserInfo info =
         new UpdateUserInfo(
             "1234567890",

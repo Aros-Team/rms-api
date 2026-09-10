@@ -6,12 +6,12 @@ import aros.services.rms.core.analytics.domain.MonthlyFinancialSummary;
 import aros.services.rms.core.analytics.domain.port.in.RefreshPrimeCostUseCase;
 import aros.services.rms.core.analytics.domain.port.out.MonthlyFinancialSummaryRepositoryPort;
 import aros.services.rms.core.common.money.domain.Money;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Currency;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -29,11 +29,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class RefreshPrimeCostService implements RefreshPrimeCostUseCase {
 
   private static final Logger log = LoggerFactory.getLogger(RefreshPrimeCostService.class);
-  private static final Currency COP = Currency.getInstance("COP");
   private static final BigDecimal HOURS_PER_MONTH = new BigDecimal("160");
 
   private final EntityManager entityManager;
   private final MonthlyFinancialSummaryRepositoryPort summaryRepo;
+  private final CurrencyProvider currencyProvider;
 
   /** {@inheritDoc} */
   @Override
@@ -88,8 +88,8 @@ public class RefreshPrimeCostService implements RefreshPrimeCostUseCase {
             .bucket(bucket)
             .netSales(netSales)
             .grossSales(grossSales)
-            .discounts(Money.zero(COP))
-            .comped(Money.zero(COP))
+            .discounts(Money.zero(currencyProvider.getCurrency()))
+            .comped(Money.zero(currencyProvider.getCurrency()))
             .cogsFood(cogsFood)
             .cogsBeverage(cogsBeverage)
             .cogsAlcohol(cogsAlcohol)
@@ -145,7 +145,7 @@ public class RefreshPrimeCostService implements RefreshPrimeCostUseCase {
             .setParameter("end", date.plusDays(1).atStartOfDay());
 
     BigDecimal result = (BigDecimal) query.getSingleResult();
-    return new Money(result, COP);
+    return new Money(result, currencyProvider.getCurrency());
   }
 
   /**
@@ -179,7 +179,8 @@ public class RefreshPrimeCostService implements RefreshPrimeCostUseCase {
             .setParameter("end", date.plusDays(1).atStartOfDay());
 
     Double result = (Double) query.getSingleResult();
-    return new Money(BigDecimal.valueOf(result != null ? result : 0.0), COP);
+    return new Money(
+        BigDecimal.valueOf(result != null ? result : 0.0), currencyProvider.getCurrency());
   }
 
   /**
@@ -193,7 +194,7 @@ public class RefreshPrimeCostService implements RefreshPrimeCostUseCase {
   private Money computeLaborForArea(LocalDate date, String areaGroup) {
     List<String> areaTypes = mapAreaGroupToTypes(areaGroup);
     if (areaTypes.isEmpty()) {
-      return Money.zero(COP);
+      return Money.zero(currencyProvider.getCurrency());
     }
 
     try {
@@ -229,13 +230,13 @@ public class RefreshPrimeCostService implements RefreshPrimeCostUseCase {
               .setParameter("areaTypes", areaTypes);
 
       BigDecimal result = (BigDecimal) query.getSingleResult();
-      return new Money(result, COP);
+      return new Money(result, currencyProvider.getCurrency());
     } catch (Exception e) {
       log.debug(
           "Shift-based labor aggregation failed for {}: {}. Falling back to 0.",
           areaGroup,
           e.getMessage());
-      return Money.zero(COP);
+      return Money.zero(currencyProvider.getCurrency());
     }
   }
 

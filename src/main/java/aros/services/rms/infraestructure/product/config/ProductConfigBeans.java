@@ -21,6 +21,7 @@ import aros.services.rms.core.product.port.input.ProductOptionUseCase;
 import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -43,6 +44,7 @@ public class ProductConfigBeans {
       InventoryStockUseCase inventoryStockUseCase,
       ProductOptionRepositoryPort productOptionRepositoryPort,
       ApplicationEventPublisher eventPublisher,
+      CurrencyProvider currencyProvider,
       Logger logger) {
     return new ProductService(
         productRepositoryPort,
@@ -53,6 +55,7 @@ public class ProductConfigBeans {
         inventoryStockUseCase,
         productOptionRepositoryPort,
         eventPublisher,
+        currencyProvider,
         logger);
   }
 
@@ -79,13 +82,15 @@ public class ProductConfigBeans {
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
       SupplyVariantRepositoryPort supplyVariantRepositoryPort,
       ProductOptionRepositoryPort productOptionRepositoryPort,
-      OptionRecipeRepositoryPort optionRecipeRepositoryPort) {
+      OptionRecipeRepositoryPort optionRecipeRepositoryPort,
+      CurrencyProvider currencyProvider) {
     return new GetProductCostBreakdownService(
         productRepositoryPort,
         productRecipeRepositoryPort,
         supplyVariantRepositoryPort,
         productOptionRepositoryPort,
-        optionRecipeRepositoryPort);
+        optionRecipeRepositoryPort,
+        currencyProvider);
   }
 
   /** Creates bean for on-the-fly product cost calculation use case. */

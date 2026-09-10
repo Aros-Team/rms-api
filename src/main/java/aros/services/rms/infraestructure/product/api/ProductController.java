@@ -17,6 +17,7 @@ import aros.services.rms.core.product.domain.ProductCostBreakdown;
 import aros.services.rms.core.product.port.input.CalculateProductCostUseCase;
 import aros.services.rms.core.product.port.input.GetProductCostBreakdownUseCase;
 import aros.services.rms.core.product.port.input.ProductUseCase;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.category.api.dto.OptionGroupResponse;
 import aros.services.rms.infraestructure.product.api.dto.OptionExtrasRequest;
 import aros.services.rms.infraestructure.product.api.dto.ProductCostResponse;
@@ -34,7 +35,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Currency;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +70,7 @@ public class ProductController {
   private final ImageRepositoryPort imageRepositoryPort;
   private final StoragePort storagePort;
   private final OptionGroupUseCase optionGroupUseCase;
+  private final CurrencyProvider currencyProvider;
 
   private static final Duration SIGNED_URL_EXPIRATION = Duration.ofMinutes(60);
 
@@ -102,7 +103,7 @@ public class ProductController {
             .name(request.name())
             .description(request.description())
             .basePrice(
-                new Money(BigDecimal.valueOf(request.basePrice()), Currency.getInstance("COP")))
+                new Money(BigDecimal.valueOf(request.basePrice()), currencyProvider.getCurrency()))
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())
             .optionIds(request.optionIds())
@@ -144,7 +145,7 @@ public class ProductController {
             .name(request.name())
             .description(request.description())
             .basePrice(
-                new Money(BigDecimal.valueOf(request.basePrice()), Currency.getInstance("COP")))
+                new Money(BigDecimal.valueOf(request.basePrice()), currencyProvider.getCurrency()))
             .category(Category.builder().id(request.categoryId()).build())
             .preparationAreaId(request.areaId())
             .optionIds(request.optionIds())
@@ -508,11 +509,12 @@ public class ProductController {
     if (optionExtras == null || optionExtras.isEmpty()) {
       return null;
     }
+    var currency = currencyProvider.getCurrency();
     return optionExtras.stream()
         .collect(
             Collectors.toMap(
                 OptionExtrasRequest::optionId,
-                OptionExtrasRequest::toMoney,
+                req -> req.toMoney(currency),
                 (first, ignored) -> first));
   }
 }

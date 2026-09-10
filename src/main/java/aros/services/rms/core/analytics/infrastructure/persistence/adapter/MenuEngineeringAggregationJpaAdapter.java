@@ -8,13 +8,13 @@ import aros.services.rms.core.analytics.domain.port.out.MenuEngineeringAggregati
 import aros.services.rms.core.category.domain.OptionSelectionType;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,10 +26,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MenuEngineeringAggregationJpaAdapter implements MenuEngineeringAggregationPort {
 
-  private static final Currency COP = Currency.getInstance("COP");
-
   private final EntityManager entityManager;
   private final ProductOptionRepositoryPort productOptionRepositoryPort;
+  private final CurrencyProvider currencyProvider;
 
   @Override
   public List<ActiveProduct> loadActiveProducts() {
@@ -50,7 +49,7 @@ public class MenuEngineeringAggregationJpaAdapter implements MenuEngineeringAggr
       Long id = ((Number) row[0]).longValue();
       String name = (String) row[1];
       double basePriceVal = row[2] != null ? ((Number) row[2]).doubleValue() : 0.0;
-      Money basePrice = new Money(BigDecimal.valueOf(basePriceVal), COP);
+      Money basePrice = new Money(BigDecimal.valueOf(basePriceVal), currencyProvider.getCurrency());
       Long categoryId = row[3] != null ? ((Number) row[3]).longValue() : null;
       String categoryName = (String) row[4];
       products.add(new ActiveProduct(id, name, basePrice, categoryId, categoryName));
@@ -84,7 +83,10 @@ public class MenuEngineeringAggregationJpaAdapter implements MenuEngineeringAggr
       int unitsSold = ((Number) row[1]).intValue();
       double revenueVal = row[2] != null ? ((Number) row[2]).doubleValue() : 0.0;
       result.add(
-          new SalesData(productId, unitsSold, new Money(BigDecimal.valueOf(revenueVal), COP)));
+          new SalesData(
+              productId,
+              unitsSold,
+              new Money(BigDecimal.valueOf(revenueVal), currencyProvider.getCurrency())));
     }
     return result;
   }
@@ -108,7 +110,7 @@ public class MenuEngineeringAggregationJpaAdapter implements MenuEngineeringAggr
     for (Object[] row : rows) {
       Long productId = ((Number) row[0]).longValue();
       BigDecimal cost = (BigDecimal) row[1];
-      result.put(productId, new Money(cost, COP));
+      result.put(productId, new Money(cost, currencyProvider.getCurrency()));
     }
     return result;
   }
@@ -204,7 +206,7 @@ public class MenuEngineeringAggregationJpaAdapter implements MenuEngineeringAggr
       }
       BigDecimal total = totalsByProduct.getOrDefault(productId, BigDecimal.ZERO);
       BigDecimal avg = total.divide(BigDecimal.valueOf(orderLines), 10, RoundingMode.HALF_UP);
-      result.put(productId, new Money(avg, COP));
+      result.put(productId, new Money(avg, currencyProvider.getCurrency()));
     }
     return result;
   }

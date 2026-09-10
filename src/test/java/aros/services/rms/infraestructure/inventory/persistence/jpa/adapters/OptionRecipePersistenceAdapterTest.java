@@ -4,11 +4,13 @@ package aros.services.rms.infraestructure.inventory.persistence.jpa.adapters;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.common.money.domain.Money;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.OptionRecipeMapper;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.OptionRecipeRepository;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.OptionRecipeRepository.OptionMaterialCostProjection;
@@ -33,6 +35,7 @@ class OptionRecipePersistenceAdapterTest {
   @Mock private OptionRecipeRepository optionRecipeRepository;
   @Mock private OptionRecipeMapper optionRecipeMapper;
   @Mock private SupplyVariantRepository supplyVariantRepository;
+  @Mock private CurrencyProvider currencyProvider;
   @Mock private OptionMaterialCostProjection firstRow;
   @Mock private OptionMaterialCostProjection secondRow;
 
@@ -40,9 +43,10 @@ class OptionRecipePersistenceAdapterTest {
 
   @BeforeEach
   void setUp() {
+    lenient().when(currencyProvider.getCurrency()).thenReturn(COP);
     adapter =
         new OptionRecipePersistenceAdapter(
-            optionRecipeRepository, optionRecipeMapper, supplyVariantRepository);
+            optionRecipeRepository, optionRecipeMapper, supplyVariantRepository, currencyProvider);
   }
 
   @Test

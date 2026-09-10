@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.purchase.persistence.jpa.adapters;
 
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
 import aros.services.rms.core.purchase.port.output.PurchaseOrderRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.purchase.persistence.jpa.PurchaseOrderJpaRepository;
 import aros.services.rms.infraestructure.purchase.persistence.jpa.PurchaseOrderMapper;
 import java.time.LocalDateTime;
@@ -19,17 +20,22 @@ public class PurchaseOrderPersistenceAdapter implements PurchaseOrderRepositoryP
 
   private final PurchaseOrderJpaRepository repository;
   private final PurchaseOrderMapper mapper;
+  private final CurrencyProvider currencyProvider;
 
   /**
    * Creates a new instance.
    *
    * @param repository the JPA repository
    * @param mapper the mapper
+   * @param currencyProvider the system currency provider
    */
   public PurchaseOrderPersistenceAdapter(
-      PurchaseOrderJpaRepository repository, PurchaseOrderMapper mapper) {
+      PurchaseOrderJpaRepository repository,
+      PurchaseOrderMapper mapper,
+      CurrencyProvider currencyProvider) {
     this.repository = repository;
     this.mapper = mapper;
+    this.currencyProvider = currencyProvider;
   }
 
   /**
@@ -39,7 +45,7 @@ public class PurchaseOrderPersistenceAdapter implements PurchaseOrderRepositoryP
   @Override
   @Transactional
   public PurchaseOrder save(PurchaseOrder order) {
-    return mapper.toDomain(repository.save(mapper.toEntity(order)));
+    return mapper.toDomain(repository.save(mapper.toEntity(order)), currencyProvider.getCurrency());
   }
 
   /**
@@ -49,14 +55,16 @@ public class PurchaseOrderPersistenceAdapter implements PurchaseOrderRepositoryP
   @Override
   @Transactional(readOnly = true)
   public Optional<PurchaseOrder> findById(Long id) {
-    return repository.findById(id).map(mapper::toDomain);
+    return repository.findById(id).map(e -> mapper.toDomain(e, currencyProvider.getCurrency()));
   }
 
   /** Returns all purchase orders with their items loaded within the same session. */
   @Override
   @Transactional(readOnly = true)
   public List<PurchaseOrder> findAll() {
-    return repository.findAll().stream().map(mapper::toDomain).collect(Collectors.toList());
+    return repository.findAll().stream()
+        .map(e -> mapper.toDomain(e, currencyProvider.getCurrency()))
+        .collect(Collectors.toList());
   }
 
   /** Returns purchase orders matching notes or supplier name within the same read-only session. */
@@ -65,7 +73,7 @@ public class PurchaseOrderPersistenceAdapter implements PurchaseOrderRepositoryP
   public List<PurchaseOrder> findByNotesContainingIgnoreCaseOrSupplierNameContainingIgnoreCase(
       String search) {
     return repository.findByNotesOrSupplierNameContainingIgnoreCase(search).stream()
-        .map(mapper::toDomain)
+        .map(e -> mapper.toDomain(e, currencyProvider.getCurrency()))
         .collect(Collectors.toList());
   }
 
@@ -74,7 +82,7 @@ public class PurchaseOrderPersistenceAdapter implements PurchaseOrderRepositoryP
   @Transactional(readOnly = true)
   public List<PurchaseOrder> findBySupplierId(Long supplierId) {
     return repository.findBySupplierId(supplierId).stream()
-        .map(mapper::toDomain)
+        .map(e -> mapper.toDomain(e, currencyProvider.getCurrency()))
         .collect(Collectors.toList());
   }
 
@@ -83,7 +91,7 @@ public class PurchaseOrderPersistenceAdapter implements PurchaseOrderRepositoryP
   @Transactional(readOnly = true)
   public List<PurchaseOrder> findByPurchasedAtBetween(LocalDateTime from, LocalDateTime to) {
     return repository.findByPurchasedAtBetween(from, to).stream()
-        .map(mapper::toDomain)
+        .map(e -> mapper.toDomain(e, currencyProvider.getCurrency()))
         .collect(Collectors.toList());
   }
 }

@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class SupplyVariantMapper {
 
-  /** Converts a SupplyVariantEntity JPA entity to a domain model. */
-  public SupplyVariant toDomain(SupplyVariantEntity entity) {
+  /** Converts a SupplyVariantEntity JPA entity to a domain model using the given currency. */
+  public SupplyVariant toDomain(SupplyVariantEntity entity, Currency currency) {
     if (entity == null) {
       return null;
     }
@@ -22,7 +22,7 @@ public class SupplyVariantMapper {
         .supplyId(entity.getSupply() != null ? entity.getSupply().getId() : null)
         .unitId(entity.getUnit() != null ? entity.getUnit().getId() : null)
         .quantity(entity.getQuantity())
-        .unitCost(new Money(entity.getUnitCost(), Currency.getInstance("COP")))
+        .unitCost(new Money(entity.getUnitCost(), currency))
         .build();
   }
 

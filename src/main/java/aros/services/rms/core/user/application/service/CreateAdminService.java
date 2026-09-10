@@ -135,6 +135,7 @@ public class CreateAdminService {
             UserRole.ADMIN,
             UserStatus.ACTIVE,
             List.of());
+    admin.setExpectedHoursPerMonth(160);
 
     userRepository.save(admin);
     log.info("Administrator created successfully and persisted in database");

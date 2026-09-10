@@ -7,6 +7,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,12 +25,15 @@ class ProductOptionRepositoryUpsertTest {
 
   @Mock private ProductOptionRepository productOptionRepository;
   @Mock private ProductMapper productMapper;
+  @Mock private CurrencyProvider currencyProvider;
 
   private ProductOptionPersistenceAdapter adapter;
 
   @BeforeEach
   void setUp() {
-    adapter = new ProductOptionPersistenceAdapter(productOptionRepository, productMapper, null);
+    adapter =
+        new ProductOptionPersistenceAdapter(
+            productOptionRepository, productMapper, null, currencyProvider);
   }
 
   @Test

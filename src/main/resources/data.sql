@@ -1042,8 +1042,10 @@ INSERT IGNORE INTO user_assigned_areas (user_id, area_id) VALUES
 -- SYSTEM CONFIGURATION (key is UNIQUE -> INSERT IGNORE)
 -- labor_cost_mode: AUTO (uses REAL payroll if available, falls back to STANDARD)
 -- =============================================================================
-INSERT IGNORE INTO system_configuration (`key`, value) VALUES
-  ('labor_cost_mode', 'AUTO');
+INSERT IGNORE INTO system_configuration (`key`, value, description, group_id, sort_order) VALUES
+  ('labor_cost_mode', 'AUTO', 'Costo laboral: AUTO, REAL o STANDARD', 1, 1),
+  ('default_currency', 'COP', 'Código ISO 4217 de la moneda del sistema', 1, 2),
+  ('business_timezone', 'America/Bogota', 'Zona horaria del negocio', 1, 3);
 
 -- =============================================================================
 -- PAYROLL SEED (Jun 2026 — PAID status, enables REAL mode for cost calculations)

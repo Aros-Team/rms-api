@@ -20,9 +20,9 @@ public class ProductMapper {
 
   private final CategoryMapper categoryMapper;
 
-  /** Converts a Product JPA entity to a domain model. */
+  /** Converts a Product JPA entity to a domain model using the given currency. */
   public Product toProductDomain(
-      aros.services.rms.infraestructure.product.persistence.Product entity) {
+      aros.services.rms.infraestructure.product.persistence.Product entity, Currency currency) {
     if (entity == null) {
       return null;
     }
@@ -43,8 +43,8 @@ public class ProductMapper {
         .description(entity.getDescription())
         .basePrice(
             entity.getBasePrice() != null
-                ? new Money(BigDecimal.valueOf(entity.getBasePrice()), Currency.getInstance("COP"))
-                : Money.zero(Currency.getInstance("COP")))
+                ? new Money(BigDecimal.valueOf(entity.getBasePrice()), currency)
+                : Money.zero(currency))
         .active(entity.isActive())
         .category(categoryMapper.toDomain(entity.getCategory()))
         .preparationAreaId(

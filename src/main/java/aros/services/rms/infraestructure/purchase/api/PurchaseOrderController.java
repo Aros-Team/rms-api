@@ -6,6 +6,7 @@ import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
 import aros.services.rms.core.purchase.domain.PurchaseOrderItem;
 import aros.services.rms.core.purchase.port.input.GetPurchaseHistoryUseCase;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.purchase.api.dto.PurchaseOrderRequest;
 import aros.services.rms.infraestructure.purchase.api.dto.PurchaseOrderResponse;
 import aros.services.rms.infraestructure.purchase.config.RegisterPurchaseOrderService;
@@ -15,7 +16,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
-import java.util.Currency;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +41,7 @@ public class PurchaseOrderController {
 
   private final RegisterPurchaseOrderService registerPurchaseOrderService;
   private final GetPurchaseHistoryUseCase getPurchaseHistoryUseCase;
+  private final CurrencyProvider currencyProvider;
 
   /**
    * Registers a purchase order.
@@ -78,7 +79,7 @@ public class PurchaseOrderController {
                         .supplyVariantId(itemReq.supplyVariantId())
                         .quantityOrdered(itemReq.quantityOrdered())
                         .quantityReceived(itemReq.quantityReceived())
-                        .unitPrice(new Money(itemReq.unitPrice(), Currency.getInstance("COP")))
+                        .unitPrice(new Money(itemReq.unitPrice(), currencyProvider.getCurrency()))
                         .build())
             .collect(Collectors.toList());
 
@@ -87,7 +88,7 @@ public class PurchaseOrderController {
             .supplierId(request.supplierId())
             .registeredById(request.registeredById())
             .purchasedAt(request.purchasedAt())
-            .totalAmount(new Money(request.totalAmount(), Currency.getInstance("COP")))
+            .totalAmount(new Money(request.totalAmount(), currencyProvider.getCurrency()))
             .notes(request.notes())
             .items(items)
             .build();

@@ -21,6 +21,7 @@ import aros.services.rms.core.order.application.exception.SingleChoiceOptionGrou
 import aros.services.rms.core.order.application.exception.TableNotAvailableException;
 import aros.services.rms.core.payroll.domain.exception.InvalidPayrollPeriodException;
 import aros.services.rms.core.payroll.domain.exception.PayrollAlreadyExistsException;
+import aros.services.rms.core.payroll.domain.exception.PayrollEventNotFoundException;
 import aros.services.rms.core.payroll.domain.exception.PayrollImmutableException;
 import aros.services.rms.core.payroll.domain.exception.PayrollNotFoundException;
 import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
@@ -269,6 +270,12 @@ public class GlobalExceptionHandler {
   /** Handles PayrollNotFoundException. */
   @ExceptionHandler(PayrollNotFoundException.class)
   public ResponseEntity<ErrorResponse> handlePayrollNotFound(PayrollNotFoundException e) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  }
+
+  /** Handles PayrollEventNotFoundException. */
+  @ExceptionHandler(PayrollEventNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handlePayrollEventNotFound(PayrollEventNotFoundException e) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
   }
 

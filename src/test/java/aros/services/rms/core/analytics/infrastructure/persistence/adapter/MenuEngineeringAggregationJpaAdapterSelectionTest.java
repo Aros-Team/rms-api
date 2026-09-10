@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import java.math.BigDecimal;
@@ -53,12 +54,16 @@ class MenuEngineeringAggregationJpaAdapterSelectionTest {
   @Mock private Query optionQuery;
   @Mock private Query countQuery;
   @Mock private ProductOptionRepositoryPort productOptionRepositoryPort;
+  @Mock private CurrencyProvider currencyProvider;
 
   private MenuEngineeringAggregationJpaAdapter adapter;
 
   @BeforeEach
   void setUp() {
-    adapter = new MenuEngineeringAggregationJpaAdapter(entityManager, productOptionRepositoryPort);
+    when(currencyProvider.getCurrency()).thenReturn(COP);
+    adapter =
+        new MenuEngineeringAggregationJpaAdapter(
+            entityManager, productOptionRepositoryPort, currencyProvider);
     when(entityManager.createNativeQuery(anyString())).thenReturn(optionQuery, countQuery);
     when(optionQuery.setParameter(anyString(), any())).thenReturn(optionQuery);
     when(countQuery.setParameter(anyString(), any())).thenReturn(countQuery);

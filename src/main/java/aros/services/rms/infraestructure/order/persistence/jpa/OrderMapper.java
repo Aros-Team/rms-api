@@ -5,13 +5,13 @@ package aros.services.rms.infraestructure.order.persistence.jpa;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.area.persistence.jpa.Area;
 import aros.services.rms.infraestructure.order.persistence.OrderDetailOption;
 import aros.services.rms.infraestructure.product.persistence.jpa.ProductMapper;
 import aros.services.rms.infraestructure.table.persistence.jpa.TableMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +27,7 @@ public class OrderMapper {
 
   private final TableMapper tableMapper;
   private final ProductMapper productMapper;
+  private final CurrencyProvider currencyProvider;
 
   /**
    * Converts a domain to entity.
@@ -186,12 +187,12 @@ public class OrderMapper {
             .map(productMapper::toProductOptionDomain)
             .collect(Collectors.toList());
 
+    var currency = currencyProvider.getCurrency();
     Money unitPrice =
         entity.getUnitPrice() != null
-            ? new Money(BigDecimal.valueOf(entity.getUnitPrice()), Currency.getInstance("COP"))
-            : Money.zero(Currency.getInstance("COP"));
+            ? new Money(BigDecimal.valueOf(entity.getUnitPrice()), currency)
+            : Money.zero(currency);
 
-    Currency currency = unitPrice.currency();
     Money extraCharge = Money.zero(currency);
     Map<Long, Money> optionExtraPrices = new HashMap<>();
     for (OrderDetailOption row : rows) {
@@ -206,7 +207,7 @@ public class OrderMapper {
 
     return OrderDetail.builder()
         .id(entity.getId())
-        .product(productMapper.toProductDomain(entity.getProduct()))
+        .product(productMapper.toProductDomain(entity.getProduct(), currency))
         .unitPrice(unitPrice)
         .extraCharge(extraCharge)
         .optionExtraPrices(optionExtraPrices)

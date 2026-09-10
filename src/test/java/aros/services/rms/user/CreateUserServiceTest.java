@@ -36,6 +36,7 @@ import aros.services.rms.core.user.port.input.CreateUserUseCase.CreateUserResult
 import aros.services.rms.core.user.port.output.SalaryHistoryRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,6 +48,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class CreateUserServiceTest {
+
+  private static final Currency COP = Currency.getInstance("COP");
 
   @Mock private UserRepositoryPort userPort;
   @Mock private AreaRepositoryPort areaPort;
@@ -203,7 +206,7 @@ class CreateUserServiceTest {
         .thenAnswer(invocation -> userWithId(invocation.getArgument(0), 1L));
     when(hashServicePort.hash(anyString())).thenReturn(TOKEN_HASH);
 
-    Salary salary = Salary.of(new BigDecimal("2500000"));
+    Salary salary = Salary.of(new BigDecimal("2500000"), COP);
     CreateUserInfo infoWithSalary =
         new CreateUserInfo(DOCUMENT, NAME, EMAIL, ADDRESS, PHONE, AREAS, salary);
 
@@ -242,7 +245,7 @@ class CreateUserServiceTest {
 
   @Test
   void shouldThrow_whenSalaryIsZero() {
-    assertThrows(IllegalArgumentException.class, () -> Salary.of(BigDecimal.ZERO));
+    assertThrows(IllegalArgumentException.class, () -> Salary.of(BigDecimal.ZERO, COP));
   }
 
   // ---------------------------------------------------------------------------
@@ -251,6 +254,6 @@ class CreateUserServiceTest {
 
   @Test
   void shouldThrow_whenSalaryIsNegative() {
-    assertThrows(IllegalArgumentException.class, () -> Salary.of(new BigDecimal("-1000")));
+    assertThrows(IllegalArgumentException.class, () -> Salary.of(new BigDecimal("-1000"), COP));
   }
 }

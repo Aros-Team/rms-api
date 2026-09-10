@@ -17,10 +17,10 @@ import aros.services.rms.core.product.domain.ProductOptionCostProfile;
 import aros.services.rms.core.product.port.input.GetProductCostBreakdownUseCase;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -29,7 +29,6 @@ import java.util.Map;
 /** Calculates material-cost projections for a product and its configured option categories. */
 public class GetProductCostBreakdownService implements GetProductCostBreakdownUseCase {
 
-  private static final Currency COP = Currency.getInstance("COP");
   private static final String SINGLE_CHOICE = "SINGLE_CHOICE";
   private static final String MULTI_CHOICE = "MULTI_CHOICE";
   private static final String ADD_ON = "ADD_ON";
@@ -41,6 +40,7 @@ public class GetProductCostBreakdownService implements GetProductCostBreakdownUs
   private final SupplyVariantRepositoryPort supplyVariantRepositoryPort;
   private final ProductOptionRepositoryPort productOptionRepositoryPort;
   private final OptionRecipeRepositoryPort optionRecipeRepositoryPort;
+  private final CurrencyProvider currencyProvider;
 
   /**
    * Creates a product cost-breakdown service.
@@ -50,18 +50,21 @@ public class GetProductCostBreakdownService implements GetProductCostBreakdownUs
    * @param supplyVariantRepositoryPort supply variant persistence port
    * @param productOptionRepositoryPort product option persistence port
    * @param optionRecipeRepositoryPort option recipe persistence port
+   * @param currencyProvider the currency provider
    */
   public GetProductCostBreakdownService(
       ProductRepositoryPort productRepositoryPort,
       ProductRecipeRepositoryPort productRecipeRepositoryPort,
       SupplyVariantRepositoryPort supplyVariantRepositoryPort,
       ProductOptionRepositoryPort productOptionRepositoryPort,
-      OptionRecipeRepositoryPort optionRecipeRepositoryPort) {
+      OptionRecipeRepositoryPort optionRecipeRepositoryPort,
+      CurrencyProvider currencyProvider) {
     this.productRepositoryPort = productRepositoryPort;
     this.productRecipeRepositoryPort = productRecipeRepositoryPort;
     this.supplyVariantRepositoryPort = supplyVariantRepositoryPort;
     this.productOptionRepositoryPort = productOptionRepositoryPort;
     this.optionRecipeRepositoryPort = optionRecipeRepositoryPort;
+    this.currencyProvider = currencyProvider;
   }
 
   /** {@inheritDoc} */
@@ -94,7 +97,7 @@ public class GetProductCostBreakdownService implements GetProductCostBreakdownUs
     Money projectedOptionCost =
         categories.stream()
             .map(CategoryCost::projectedContribution)
-            .reduce(Money.zero(COP), Money::plus);
+            .reduce(Money.zero(currencyProvider.getCurrency()), Money::plus);
 
     return new ProductCostBreakdown(
         productId,
@@ -109,7 +112,7 @@ public class GetProductCostBreakdownService implements GetProductCostBreakdownUs
   private Money calculateBaseMaterialCost(Long productId) {
     List<ProductRecipe> recipes = productRecipeRepositoryPort.findByProductId(productId);
     if (recipes == null || recipes.isEmpty()) {
-      return Money.zero(COP);
+      return Money.zero(currencyProvider.getCurrency());
     }
 
     List<Long> variantIds =
@@ -126,7 +129,7 @@ public class GetProductCostBreakdownService implements GetProductCostBreakdownUs
         total = total.add(unitCost.amount().multiply(recipe.getRequiredQuantity()));
       }
     }
-    return new Money(total, COP);
+    return new Money(total, currencyProvider.getCurrency());
   }
 
   private List<OptionCost> buildOptions(
@@ -185,13 +188,16 @@ public class GetProductCostBreakdownService implements GetProductCostBreakdownUs
       Money defaultSlotCost,
       List<Money> optionCosts) {
     if (ADD_ON.equals(selectionType) || REMOVAL.equals(selectionType)) {
-      return new Projection(Money.zero(COP), Money.zero(COP));
+      return new Projection(
+          Money.zero(currencyProvider.getCurrency()), Money.zero(currencyProvider.getCurrency()));
     }
     if (optionCosts.isEmpty()) {
-      return new Projection(Money.zero(COP), Money.zero(COP));
+      return new Projection(
+          Money.zero(currencyProvider.getCurrency()), Money.zero(currencyProvider.getCurrency()));
     }
 
-    Money optionTotal = optionCosts.stream().reduce(Money.zero(COP), Money::plus);
+    Money optionTotal =
+        optionCosts.stream().reduce(Money.zero(currencyProvider.getCurrency()), Money::plus);
     if (SINGLE_CHOICE.equals(selectionType) && replaceSupplyCategoryId != null) {
       Money slotProjectedCost =
           defaultSlotCost
@@ -209,7 +215,8 @@ public class GetProductCostBreakdownService implements GetProductCostBreakdownUs
               BigDecimal.valueOf(optionCosts.size()), CALCULATION_SCALE, RoundingMode.HALF_UP);
       return new Projection(average, average);
     }
-    return new Projection(Money.zero(COP), Money.zero(COP));
+    return new Projection(
+        Money.zero(currencyProvider.getCurrency()), Money.zero(currencyProvider.getCurrency()));
   }
 
   private String normalizeSelectionType(String selectionType) {
@@ -224,7 +231,7 @@ public class GetProductCostBreakdownService implements GetProductCostBreakdownUs
   }
 
   private Money moneyOrZero(Money money) {
-    return money == null ? Money.zero(COP) : money;
+    return money == null ? Money.zero(currencyProvider.getCurrency()) : money;
   }
 
   private record Projection(Money slotProjectedCost, Money contribution) {}

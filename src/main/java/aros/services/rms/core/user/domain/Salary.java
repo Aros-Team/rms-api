@@ -46,16 +46,6 @@ public record Salary(Money value) implements Comparable<Salary> {
   }
 
   /**
-   * Factory method to create a Salary from a BigDecimal (COP).
-   *
-   * @param amount the salary amount
-   * @return new Salary instance
-   */
-  public static Salary of(BigDecimal amount) {
-    return new Salary(new Money(amount, Currency.getInstance("COP")));
-  }
-
-  /**
    * Checks if this salary is greater than another.
    *
    * @param other the other salary

@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.product.persistence.jpa;
 
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -19,6 +20,7 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
 
   private final ProductRepository productRepository;
   private final ProductMapper productMapper;
+  private final CurrencyProvider currencyProvider;
 
   @Override
   public Product save(Product product) {
@@ -26,18 +28,20 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
         productMapper.toProductEntity(product);
     aros.services.rms.infraestructure.product.persistence.Product savedEntity =
         productRepository.save(entity);
-    return productMapper.toProductDomain(savedEntity);
+    return productMapper.toProductDomain(savedEntity, currencyProvider.getCurrency());
   }
 
   @Override
   public Optional<Product> findById(Long id) {
-    return productRepository.findById(id).map(productMapper::toProductDomain);
+    return productRepository
+        .findById(id)
+        .map(e -> productMapper.toProductDomain(e, currencyProvider.getCurrency()));
   }
 
   @Override
   public List<Product> findAll() {
     return productRepository.findAll().stream()
-        .map(productMapper::toProductDomain)
+        .map(e -> productMapper.toProductDomain(e, currencyProvider.getCurrency()))
         .collect(Collectors.toList());
   }
 
@@ -49,7 +53,7 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
   @Override
   public List<Product> findByCategoryIds(List<Long> categoryIds) {
     return productRepository.findByCategoryIdIn(categoryIds).stream()
-        .map(productMapper::toProductDomain)
+        .map(e -> productMapper.toProductDomain(e, currencyProvider.getCurrency()))
         .collect(Collectors.toList());
   }
 
@@ -59,31 +63,35 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
       return List.of();
     }
     return productRepository.findAllById(ids).stream()
-        .map(productMapper::toProductDomain)
+        .map(e -> productMapper.toProductDomain(e, currencyProvider.getCurrency()))
         .collect(Collectors.toList());
   }
 
   @Override
   public Page<Product> findAllActive(Pageable pageable) {
-    return productRepository.findAllActive(true, pageable).map(productMapper::toProductDomain);
+    return productRepository
+        .findAllActive(true, pageable)
+        .map(e -> productMapper.toProductDomain(e, currencyProvider.getCurrency()));
   }
 
   @Override
   public List<Product> findAllStandard() {
     return productRepository.findAllStandard().stream()
-        .map(productMapper::toProductDomain)
+        .map(e -> productMapper.toProductDomain(e, currencyProvider.getCurrency()))
         .collect(Collectors.toList());
   }
 
   @Override
   public Page<Product> findAllStandard(Pageable pageable) {
-    return productRepository.findAllStandard(pageable).map(productMapper::toProductDomain);
+    return productRepository
+        .findAllStandard(pageable)
+        .map(e -> productMapper.toProductDomain(e, currencyProvider.getCurrency()));
   }
 
   @Override
   public List<Product> findByCategoryIdsStandard(List<Long> categoryIds) {
     return productRepository.findByCategoryIdInStandard(categoryIds).stream()
-        .map(productMapper::toProductDomain)
+        .map(e -> productMapper.toProductDomain(e, currencyProvider.getCurrency()))
         .collect(Collectors.toList());
   }
 
@@ -99,6 +107,6 @@ public class ProductPersistenceAdapter implements ProductRepositoryPort {
     return productRepository
         .searchByNameOrDescriptionOrCategoryName(
             search, effectiveCategoryIds, includeInactive, includeSelections, pageable)
-        .map(productMapper::toProductDomain);
+        .map(e -> productMapper.toProductDomain(e, currencyProvider.getCurrency()));
   }
 }

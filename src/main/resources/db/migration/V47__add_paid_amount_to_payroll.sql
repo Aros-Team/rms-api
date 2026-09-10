@@ -1,0 +1,1 @@
+ALTER TABLE payroll ADD COLUMN paid_amount DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER net_amount;

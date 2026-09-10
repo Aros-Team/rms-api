@@ -18,9 +18,10 @@ public class PurchaseOrderItemMapper {
    * Converts an entity to domain.
    *
    * @param entity the entity
+   * @param currency the system currency
    * @return the domain
    */
-  public PurchaseOrderItem toDomain(PurchaseOrderItemEntity entity) {
+  public PurchaseOrderItem toDomain(PurchaseOrderItemEntity entity, Currency currency) {
     if (entity == null) {
       return null;
     }
@@ -32,7 +33,7 @@ public class PurchaseOrderItemMapper {
             entity.getSupplyVariant() != null ? entity.getSupplyVariant().getId() : null)
         .quantityOrdered(entity.getQuantityOrdered())
         .quantityReceived(entity.getQuantityReceived())
-        .unitPrice(new Money(entity.getUnitPrice(), Currency.getInstance("COP")))
+        .unitPrice(new Money(entity.getUnitPrice(), currency))
         .build();
   }
 

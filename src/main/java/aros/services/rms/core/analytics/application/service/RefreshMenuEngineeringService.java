@@ -10,6 +10,7 @@ import aros.services.rms.core.analytics.domain.port.out.MenuEngineeringAggregati
 import aros.services.rms.core.analytics.domain.port.out.MenuEngineeringAggregationPort.SalesData;
 import aros.services.rms.core.analytics.domain.port.out.MenuEngineeringCacheRepositoryPort;
 import aros.services.rms.core.common.money.domain.Money;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -17,7 +18,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.IsoFields;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,11 +37,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class RefreshMenuEngineeringService implements RefreshMenuEngineeringUseCase {
 
   private static final Logger log = LoggerFactory.getLogger(RefreshMenuEngineeringService.class);
-  private static final Currency COP = Currency.getInstance("COP");
   private static final String SOURCE_VERSION = "v1";
 
   private final MenuEngineeringAggregationPort aggregationPort;
   private final MenuEngineeringCacheRepositoryPort cacheRepo;
+  private final CurrencyProvider currencyProvider;
 
   @Override
   @Transactional
@@ -74,17 +74,22 @@ public class RefreshMenuEngineeringService implements RefreshMenuEngineeringUseC
     for (ActiveProduct product : products) {
       SalesData sales =
           salesByProduct.getOrDefault(
-              product.id(), new SalesData(product.id(), 0, Money.zero(COP)));
+              product.id(),
+              new SalesData(product.id(), 0, Money.zero(currencyProvider.getCurrency())));
       int unitsSold = sales.unitsSold();
       Money revenue = sales.revenue();
-      Money recipeCost = recipeCostByProduct.getOrDefault(product.id(), Money.zero(COP));
-      Money avgOptionCost = avgOptionCostByProduct.getOrDefault(product.id(), Money.zero(COP));
+      Money recipeCost =
+          recipeCostByProduct.getOrDefault(
+              product.id(), Money.zero(currencyProvider.getCurrency()));
+      Money avgOptionCost =
+          avgOptionCostByProduct.getOrDefault(
+              product.id(), Money.zero(currencyProvider.getCurrency()));
       Money effectiveCost = recipeCost.plus(avgOptionCost);
       Money sellPrice = product.basePrice();
 
       Money gpPerUnit = sellPrice.minus(effectiveCost);
       if (gpPerUnit.isNegative()) {
-        gpPerUnit = Money.zero(COP);
+        gpPerUnit = Money.zero(currencyProvider.getCurrency());
       }
       Money contribution = gpPerUnit.times(BigDecimal.valueOf(unitsSold));
 
@@ -112,7 +117,9 @@ public class RefreshMenuEngineeringService implements RefreshMenuEngineeringUseC
     BigDecimal medianMargin = medianBigDecimal(allMargins);
 
     for (MenuItemSummary item : items) {
-      BcgQuadrant quadrant = assignQuadrant(item, medianVolume, new Money(medianMargin, COP));
+      BcgQuadrant quadrant =
+          assignQuadrant(
+              item, medianVolume, new Money(medianMargin, currencyProvider.getCurrency()));
       MenuItemSummary updated =
           new MenuItemSummary(
               item.productId(),

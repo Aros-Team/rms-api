@@ -21,6 +21,7 @@ import aros.services.rms.core.user.port.output.SalaryHistoryRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class GetSalaryHistoryServiceTest {
+
+  private static final Currency COP = Currency.getInstance("COP");
 
   @Mock private UserRepositoryPort userPort;
   @Mock private SalaryHistoryRepositoryPort salaryHistoryPort;
@@ -63,8 +66,8 @@ class GetSalaryHistoryServiceTest {
     return new SalaryHistoryEntry(
         entryId != null ? new SalaryHistoryId(entryId) : null,
         UserId.of(USER_ID),
-        oldVal != null ? Salary.of(oldVal) : null,
-        Salary.of(newVal),
+        oldVal != null ? Salary.of(oldVal, COP) : null,
+        Salary.of(newVal, COP),
         Instant.now(),
         reason,
         observations);

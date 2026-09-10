@@ -13,14 +13,12 @@ import aros.services.rms.core.payroll.domain.port.output.PayrollRepositoryPort;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.YearMonth;
-import java.util.Currency;
 import lombok.RequiredArgsConstructor;
 
 /** Service implementation for registering a new payroll record. */
 @RequiredArgsConstructor
 public class RegisterPayrollService implements RegisterPayrollUseCase {
 
-  private static final Currency COP = Currency.getInstance("COP");
   private static final BigDecimal EXPECTED_HOURS_THRESHOLD = new BigDecimal("0.8");
 
   private final PayrollRepositoryPort payrollRepositoryPort;
@@ -70,6 +68,7 @@ public class RegisterPayrollService implements RegisterPayrollUseCase {
             cmd.bonuses(),
             cmd.deductions(),
             netAmount,
+            Money.zero(cmd.baseSalary().currency()),
             cmd.hoursWorked(),
             PayrollStatus.PENDING,
             cmd.notes(),

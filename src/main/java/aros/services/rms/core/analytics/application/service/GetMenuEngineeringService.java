@@ -10,10 +10,10 @@ import aros.services.rms.core.analytics.domain.MenuEngineeringReport.PeriodInfo;
 import aros.services.rms.core.analytics.domain.port.in.GetMenuEngineeringUseCase;
 import aros.services.rms.core.analytics.domain.port.out.MenuEngineeringCacheRepositoryPort;
 import aros.services.rms.core.common.money.domain.Money;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +27,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class GetMenuEngineeringService implements GetMenuEngineeringUseCase {
 
-  private static final Currency COP = Currency.getInstance("COP");
   private static final long TTL_SECONDS = 86400;
 
   private final MenuEngineeringCacheRepositoryPort cacheRepo;
+  private final CurrencyProvider currencyProvider;
 
   /** {@inheritDoc} */
   @Override
@@ -52,7 +52,7 @@ public class GetMenuEngineeringService implements GetMenuEngineeringUseCase {
     if (cachedItems.isEmpty()) {
       return new MenuEngineeringReport(
           period,
-          new MedianInfo(0, Money.zero(COP)),
+          new MedianInfo(0, Money.zero(currencyProvider.getCurrency())),
           List.of(),
           cacheStatus,
           "EMPTY",
@@ -77,7 +77,7 @@ public class GetMenuEngineeringService implements GetMenuEngineeringUseCase {
     }
     int medianVolume = medianInt(volumes);
     BigDecimal medianMargin = medianBigDecimal(margins);
-    return new MedianInfo(medianVolume, new Money(medianMargin, COP));
+    return new MedianInfo(medianVolume, new Money(medianMargin, currencyProvider.getCurrency()));
   }
 
   private static int medianInt(List<Integer> values) {
@@ -110,7 +110,7 @@ public class GetMenuEngineeringService implements GetMenuEngineeringUseCase {
     PeriodInfo period = new PeriodInfo(bucket, from, to, List.of());
     return new MenuEngineeringReport(
         period,
-        new MedianInfo(0, Money.zero(COP)),
+        new MedianInfo(0, Money.zero(currencyProvider.getCurrency())),
         List.of(),
         buildCacheStatus(),
         "EMPTY",

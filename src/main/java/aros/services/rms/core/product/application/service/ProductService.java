@@ -20,11 +20,11 @@ import aros.services.rms.core.product.domain.event.ProductUpdatedEvent;
 import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Currency;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ import org.springframework.retry.annotation.Retryable;
 public class ProductService implements ProductUseCase {
 
   private static final org.slf4j.Logger log = LoggerFactory.getLogger(ProductService.class);
-  private static final Currency COP = Currency.getInstance("COP");
+  private final CurrencyProvider currencyProvider;
   private final ProductRepositoryPort productRepositoryPort;
   private final AreaRepositoryPort areaRepositoryPort;
   private final CategoryRepositoryPort categoryRepositoryPort;
@@ -64,6 +64,7 @@ public class ProductService implements ProductUseCase {
    * @param supplyVariantRepositoryPort the supply variant repository port
    * @param inventoryStockUseCase the inventory stock use case
    * @param productOptionRepositoryPort the product option repository port
+   * @param currencyProvider the currency provider
    * @param logger the logger instance
    */
   public ProductService(
@@ -75,6 +76,7 @@ public class ProductService implements ProductUseCase {
       InventoryStockUseCase inventoryStockUseCase,
       ProductOptionRepositoryPort productOptionRepositoryPort,
       ApplicationEventPublisher eventPublisher,
+      CurrencyProvider currencyProvider,
       Logger logger) {
     this.productRepositoryPort = productRepositoryPort;
     this.areaRepositoryPort = areaRepositoryPort;
@@ -84,6 +86,7 @@ public class ProductService implements ProductUseCase {
     this.inventoryStockUseCase = inventoryStockUseCase;
     this.productOptionRepositoryPort = productOptionRepositoryPort;
     this.eventPublisher = eventPublisher;
+    this.currencyProvider = currencyProvider;
     this.logger = logger;
   }
 
@@ -491,7 +494,8 @@ public class ProductService implements ProductUseCase {
       if (optionId == null || !seen.add(optionId)) {
         continue;
       }
-      Money surcharge = surcharges.getOrDefault(optionId, Money.zero(COP));
+      Money surcharge =
+          surcharges.getOrDefault(optionId, Money.zero(currencyProvider.getCurrency()));
       productOptionRepositoryPort.upsertOptionAssociation(
           productId, optionId, surcharge.amount(), order++);
     }
@@ -499,7 +503,8 @@ public class ProductService implements ProductUseCase {
       if (entry.getKey() == null || !seen.add(entry.getKey())) {
         continue;
       }
-      Money surcharge = entry.getValue() == null ? Money.zero(COP) : entry.getValue();
+      Money surcharge =
+          entry.getValue() == null ? Money.zero(currencyProvider.getCurrency()) : entry.getValue();
       productOptionRepositoryPort.upsertOptionAssociation(
           productId, entry.getKey(), surcharge.amount(), order++);
     }

@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
 import aros.services.rms.core.purchase.port.input.GetPurchaseHistoryUseCase;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.purchase.config.RegisterPurchaseOrderService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +30,7 @@ class PurchaseOrderControllerTest {
 
   @Mock private RegisterPurchaseOrderService registerPurchaseOrderService;
   @Mock private GetPurchaseHistoryUseCase getPurchaseHistoryUseCase;
+  @Mock private CurrencyProvider currencyProvider;
 
   private MockMvc mockMvc;
 
@@ -37,7 +39,7 @@ class PurchaseOrderControllerTest {
     mockMvc =
         MockMvcBuilders.standaloneSetup(
                 new PurchaseOrderController(
-                    registerPurchaseOrderService, getPurchaseHistoryUseCase))
+                    registerPurchaseOrderService, getPurchaseHistoryUseCase, currencyProvider))
             .build();
   }
 

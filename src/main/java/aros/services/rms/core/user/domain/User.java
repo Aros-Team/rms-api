@@ -317,9 +317,10 @@ public class User {
    * Calculates the hourly rate based on salary and expected hours per month. This is a derived
    * value — the DB stores it as a GENERATED ALWAYS column.
    *
-   * @return hourly rate, or Money.zero(COP) if salary or expectedHours is not set
+   * @param currency the currency for the fallback zero value
+   * @return hourly rate, or Money.zero(currency) if salary or expectedHours is not set
    */
-  public Money getHourlyRate() {
+  public Money getHourlyRate(java.util.Currency currency) {
     if (salary != null && expectedHoursPerMonth != null && expectedHoursPerMonth > 0) {
       return salary
           .value()
@@ -328,6 +329,6 @@ public class User {
               2,
               java.math.RoundingMode.HALF_UP);
     }
-    return Money.zero(java.util.Currency.getInstance("COP"));
+    return Money.zero(currency);
   }
 }
