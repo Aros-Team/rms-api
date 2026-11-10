@@ -5,6 +5,7 @@ package aros.services.rms.order;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -117,9 +118,9 @@ class OrderControllerTest extends AbstractJwtIntegrationTest {
     mockMvc
         .perform(post("/api/v1/orders").contentType(MediaType.APPLICATION_JSON).content(VALID_BODY))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").value(42))
-        .andExpect(jsonPath("$.status").value("QUEUE"))
-        .andExpect(jsonPath("$.tableId").value(1));
+        .andExpect(jsonPath("$.data.id").value(42))
+        .andExpect(jsonPath("$.data.status").value("QUEUE"))
+        .andExpect(jsonPath("$.data.tableId").value(1));
   }
 
   // ---------------------------------------------------------------------------
@@ -135,7 +136,8 @@ class OrderControllerTest extends AbstractJwtIntegrationTest {
     mockMvc
         .perform(post("/api/v1/orders").contentType(MediaType.APPLICATION_JSON).content(VALID_BODY))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message").value("Table not found"));
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+        .andExpect(jsonPath("$.detail").value("Table not found"));
   }
 
   // ---------------------------------------------------------------------------
@@ -151,7 +153,7 @@ class OrderControllerTest extends AbstractJwtIntegrationTest {
     mockMvc
         .perform(post("/api/v1/orders").contentType(MediaType.APPLICATION_JSON).content(VALID_BODY))
         .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.message").value("Table is not available"));
+        .andExpect(jsonPath("$.detail").value("Table is not available"));
   }
 
   // ---------------------------------------------------------------------------
@@ -184,7 +186,7 @@ class OrderControllerTest extends AbstractJwtIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(bodyWithInvalidProduct))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message").value("Product not found"));
+        .andExpect(jsonPath("$.detail").value("Product not found"));
   }
 
   // ---------------------------------------------------------------------------
@@ -202,6 +204,6 @@ class OrderControllerTest extends AbstractJwtIntegrationTest {
     mockMvc
         .perform(post("/api/v1/orders").contentType(MediaType.APPLICATION_JSON).content(VALID_BODY))
         .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.message").value("Insufficient stock for product: Test Product"));
+        .andExpect(jsonPath("$.detail").value("Insufficient stock for product: Test Product"));
   }
 }

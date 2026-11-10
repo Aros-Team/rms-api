@@ -35,158 +35,172 @@ import aros.services.rms.core.schedule.application.exception.WorkerScheduleAssig
 import aros.services.rms.core.specialselection.application.exception.SpecialSelectionNotAvailableException;
 import aros.services.rms.core.table.application.exception.InvalidTableStatusException;
 import aros.services.rms.core.user.application.exception.InvalidSalaryException;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.ExhaustedRetryException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/** Global exception handler that maps core exceptions to HTTP responses. */
+/**
+ * Global exception handler that maps core exceptions to RFC 7807 problem responses.
+ *
+ * <p>Every handler returns {@code application/problem+json} ({@link ProblemDetail}) with the same
+ * HTTP status as before. The body exposes {@code type}, {@code title}, {@code status} and {@code
+ * detail}; it is never wrapped in the success envelope.
+ */
 @RestControllerAdvice
 @Order(10)
 public class GlobalExceptionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+  /**
+   * Builds a problem response for the given status and detail.
+   *
+   * @param status the HTTP status
+   * @param detail human-readable explanation
+   * @return a {@code application/problem+json} response
+   */
+  private static ResponseEntity<ProblemDetail> problem(HttpStatus status, String detail) {
+    ProblemDetail body = ProblemDetail.forStatusAndDetail(status, detail);
+    body.setTitle(status.getReasonPhrase());
+    return ResponseEntity.status(status).contentType(MediaType.APPLICATION_PROBLEM_JSON).body(body);
+  }
+
   // --- Auth exceptions ---
 
   /** Handles InvalidCredentialsException. */
   @ExceptionHandler(InvalidCredentialsException.class)
-  public ResponseEntity<Map<String, Object>> handleInvalidCredentials(
-      InvalidCredentialsException e) {
-    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-        .body(Map.of("status", 401, "message", e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleInvalidCredentials(InvalidCredentialsException e) {
+    return problem(HttpStatus.UNAUTHORIZED, e.getMessage());
   }
 
   /** Handles UserNotFoundException. */
   @ExceptionHandler(UserNotFoundException.class)
-  public ResponseEntity<Map<String, Object>> handleUserNotFound(UserNotFoundException e) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(Map.of("status", 400, "message", e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleUserNotFound(UserNotFoundException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   /** Handles UserNotFoundException (user domain). */
   @ExceptionHandler(aros.services.rms.core.user.application.exception.UserNotFoundException.class)
-  public ResponseEntity<ErrorResponse> handleUserNotFound(
+  public ResponseEntity<ProblemDetail> handleUserNotFound(
       aros.services.rms.core.user.application.exception.UserNotFoundException e) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   /** Handles InvalidRefreshTokenException. */
   @ExceptionHandler(InvalidRefreshTokenException.class)
-  public ResponseEntity<Map<String, Object>> handleInvalidToken(InvalidRefreshTokenException e) {
-    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-        .body(Map.of("status", 401, "message", e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleInvalidToken(InvalidRefreshTokenException e) {
+    return problem(HttpStatus.UNAUTHORIZED, e.getMessage());
   }
 
   // --- Order exceptions ---
 
   /** Handles OrderNotFoundException. */
   @ExceptionHandler(OrderNotFoundException.class)
-  public ResponseEntity<ErrorResponse> handleOrderNotFound(OrderNotFoundException e) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleOrderNotFound(OrderNotFoundException e) {
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   /** Handles ProductNotFoundException in order context. */
   @ExceptionHandler(
       aros.services.rms.core.order.application.exception.ProductNotFoundException.class)
-  public ResponseEntity<ErrorResponse> handleOrderProductNotFound(
+  public ResponseEntity<ProblemDetail> handleOrderProductNotFound(
       aros.services.rms.core.order.application.exception.ProductNotFoundException e) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   /** Handles ProductNotFoundException in the product context. */
   @ExceptionHandler(ProductNotFoundException.class)
-  public ResponseEntity<ErrorResponse> handleProductNotFound(ProductNotFoundException e) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleProductNotFound(ProductNotFoundException e) {
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   /**
    * Handles TableNotAvailableException.
    *
    * @param e the exception
-   * @return error response
+   * @return problem response
    */
   @ExceptionHandler(TableNotAvailableException.class)
-  public ResponseEntity<ErrorResponse> handleTableNotAvailable(TableNotAvailableException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleTableNotAvailable(TableNotAvailableException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 
   /** Handles InvalidTableStatusException. */
   @ExceptionHandler(InvalidTableStatusException.class)
-  public ResponseEntity<ErrorResponse> handleInvalidTableStatus(InvalidTableStatusException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleInvalidTableStatus(InvalidTableStatusException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 
   // --- Inventory exceptions ---
 
   /** Handles SpecialSelectionNotAvailableException. */
   @ExceptionHandler(SpecialSelectionNotAvailableException.class)
-  public ResponseEntity<ErrorResponse> handleSpecialSelectionNotAvailable(
+  public ResponseEntity<ProblemDetail> handleSpecialSelectionNotAvailable(
       SpecialSelectionNotAvailableException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+    return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 
   /** Handles InsufficientStockException. */
   @ExceptionHandler(InsufficientStockException.class)
-  public ResponseEntity<ErrorResponse> handleInsufficientStock(InsufficientStockException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleInsufficientStock(InsufficientStockException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 
   /**
    * Handles SupplyVariantNotFoundException.
    *
    * @param e the exception
-   * @return error response
+   * @return problem response
    */
   @ExceptionHandler(SupplyVariantNotFoundException.class)
-  public ResponseEntity<ErrorResponse> handleSupplyVariantNotFound(
+  public ResponseEntity<ProblemDetail> handleSupplyVariantNotFound(
       SupplyVariantNotFoundException e) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   /** Handles SupplyVariantAlreadyExistsException. */
   @ExceptionHandler(SupplyVariantAlreadyExistsException.class)
-  public ResponseEntity<ErrorResponse> handleSupplyVariantAlreadyExists(
+  public ResponseEntity<ProblemDetail> handleSupplyVariantAlreadyExists(
       SupplyVariantAlreadyExistsException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+    return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 
   /** Handles SupplyAlreadyExistsException. */
   @ExceptionHandler(SupplyAlreadyExistsException.class)
-  public ResponseEntity<ErrorResponse> handleSupplyAlreadyExists(SupplyAlreadyExistsException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleSupplyAlreadyExists(SupplyAlreadyExistsException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 
   /** Handles SupplyCategoryAlreadyExistsException. */
   @ExceptionHandler(SupplyCategoryAlreadyExistsException.class)
-  public ResponseEntity<ErrorResponse> handleSupplyCategoryAlreadyExists(
+  public ResponseEntity<ProblemDetail> handleSupplyCategoryAlreadyExists(
       SupplyCategoryAlreadyExistsException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+    return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 
   /** Handles AccountSetupTokenAlreadyUsedException. */
   @ExceptionHandler(
       aros.services.rms.core.auth.application.exception.AccountSetupTokenAlreadyUsedException.class)
-  public ResponseEntity<ErrorResponse> handleAccountSetupTokenAlreadyUsed(
+  public ResponseEntity<ProblemDetail> handleAccountSetupTokenAlreadyUsed(
       aros.services.rms.core.auth.application.exception.AccountSetupTokenAlreadyUsedException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+    return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 
   // --- Authorization handlers ---
 
   /** Handles AuthorizationDeniedException. */
   @ExceptionHandler(AuthorizationDeniedException.class)
-  public ResponseEntity<ErrorResponse> handleAccessDenied(AuthorizationDeniedException e) {
+  public ResponseEntity<ProblemDetail> handleAccessDenied(AuthorizationDeniedException e) {
     log.warn("accesso denegado: {}", e.getMessage());
-    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-        .body(new ErrorResponse(HttpStatus.FORBIDDEN.value(), e.getMessage()));
+    return problem(HttpStatus.FORBIDDEN, e.getMessage());
   }
 
   // --- User exceptions ---
@@ -194,195 +208,183 @@ public class GlobalExceptionHandler {
   /** Handles UserNotFoundByEmailException. */
   @ExceptionHandler(
       aros.services.rms.core.user.application.exception.UserNotFoundByEmailException.class)
-  public ResponseEntity<ErrorResponse> handleUserNotFoundByEmail(
+  public ResponseEntity<ProblemDetail> handleUserNotFoundByEmail(
       aros.services.rms.core.user.application.exception.UserNotFoundByEmailException e) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(new ErrorResponse(400, e.getMessage()));
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   /** Handles InvalidPasswordException. */
   @ExceptionHandler(
       aros.services.rms.core.user.application.exception.InvalidPasswordException.class)
-  public ResponseEntity<ErrorResponse> handleInvalidPassword(
+  public ResponseEntity<ProblemDetail> handleInvalidPassword(
       aros.services.rms.core.user.application.exception.InvalidPasswordException e) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(new ErrorResponse(400, e.getMessage()));
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   /** Handles SamePasswordException. */
   @ExceptionHandler(aros.services.rms.core.user.application.exception.SamePasswordException.class)
-  public ResponseEntity<ErrorResponse> handleSamePassword(
+  public ResponseEntity<ProblemDetail> handleSamePassword(
       aros.services.rms.core.user.application.exception.SamePasswordException e) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(new ErrorResponse(400, e.getMessage()));
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   /** Handles InvalidSalaryException. */
   @ExceptionHandler(InvalidSalaryException.class)
-  public ResponseEntity<ErrorResponse> handleInvalidSalary(InvalidSalaryException e) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(new ErrorResponse(400, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleInvalidSalary(InvalidSalaryException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   // --- Schedule exceptions ---
 
   /** Handles ScheduleNotFoundException. */
   @ExceptionHandler(ScheduleNotFoundException.class)
-  public ResponseEntity<ErrorResponse> handleScheduleNotFound(ScheduleNotFoundException e) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleScheduleNotFound(ScheduleNotFoundException e) {
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   /** Handles ScheduleAlreadyExistsException. */
   @ExceptionHandler(ScheduleAlreadyExistsException.class)
-  public ResponseEntity<ErrorResponse> handleScheduleAlreadyExists(
+  public ResponseEntity<ProblemDetail> handleScheduleAlreadyExists(
       ScheduleAlreadyExistsException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+    return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 
   /** Handles ShiftOverlapException. */
   @ExceptionHandler(ShiftOverlapException.class)
-  public ResponseEntity<ErrorResponse> handleShiftOverlap(ShiftOverlapException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleShiftOverlap(ShiftOverlapException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 
   /** Handles ScheduleHasAssignmentsException. */
   @ExceptionHandler(ScheduleHasAssignmentsException.class)
-  public ResponseEntity<ErrorResponse> handleScheduleHasAssignments(
+  public ResponseEntity<ProblemDetail> handleScheduleHasAssignments(
       ScheduleHasAssignmentsException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+    return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 
   /** Handles WorkerNotInShiftException. */
   @ExceptionHandler(WorkerNotInShiftException.class)
-  public ResponseEntity<ErrorResponse> handleWorkerNotInShift(WorkerNotInShiftException e) {
-    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(403, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleWorkerNotInShift(WorkerNotInShiftException e) {
+    return problem(HttpStatus.FORBIDDEN, e.getMessage());
   }
 
   /** Handles WorkerScheduleAssignmentNotFoundException. */
   @ExceptionHandler(WorkerScheduleAssignmentNotFoundException.class)
-  public ResponseEntity<ErrorResponse> handleWorkerScheduleAssignmentNotFound(
+  public ResponseEntity<ProblemDetail> handleWorkerScheduleAssignmentNotFound(
       WorkerScheduleAssignmentNotFoundException e) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   // --- Payroll exceptions ---
 
   /** Handles PayrollNotFoundException. */
   @ExceptionHandler(PayrollNotFoundException.class)
-  public ResponseEntity<ErrorResponse> handlePayrollNotFound(PayrollNotFoundException e) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handlePayrollNotFound(PayrollNotFoundException e) {
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   /** Handles PayrollEventNotFoundException. */
   @ExceptionHandler(PayrollEventNotFoundException.class)
-  public ResponseEntity<ErrorResponse> handlePayrollEventNotFound(PayrollEventNotFoundException e) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handlePayrollEventNotFound(PayrollEventNotFoundException e) {
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   /** Handles PayrollAlreadyExistsException. */
   @ExceptionHandler(PayrollAlreadyExistsException.class)
-  public ResponseEntity<ErrorResponse> handlePayrollAlreadyExists(PayrollAlreadyExistsException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handlePayrollAlreadyExists(PayrollAlreadyExistsException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 
   /** Handles PayrollImmutableException. */
   @ExceptionHandler(PayrollImmutableException.class)
-  public ResponseEntity<ErrorResponse> handlePayrollImmutable(PayrollImmutableException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handlePayrollImmutable(PayrollImmutableException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 
   /** Handles InvalidPayrollPeriodException. */
   @ExceptionHandler(InvalidPayrollPeriodException.class)
-  public ResponseEntity<ErrorResponse> handleInvalidPayrollPeriod(InvalidPayrollPeriodException e) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(new ErrorResponse(400, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleInvalidPayrollPeriod(InvalidPayrollPeriodException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   // --- Analytics exceptions ---
 
   /** Handles AnalyticsConfigNotFoundException. */
   @ExceptionHandler(AnalyticsConfigNotFoundException.class)
-  public ResponseEntity<ErrorResponse> handleAnalyticsConfigNotFound(
+  public ResponseEntity<ProblemDetail> handleAnalyticsConfigNotFound(
       AnalyticsConfigNotFoundException e) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   /** Handles InvalidAnalyticsConfigException. */
   @ExceptionHandler(InvalidAnalyticsConfigException.class)
-  public ResponseEntity<ErrorResponse> handleInvalidAnalyticsConfig(
+  public ResponseEntity<ProblemDetail> handleInvalidAnalyticsConfig(
       InvalidAnalyticsConfigException e) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(new ErrorResponse(400, e.getMessage()));
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   // --- Missing handlers referenced in ExhaustedRetryException ---
 
   /** Handles StorageLocationNotFoundException. */
   @ExceptionHandler(StorageLocationNotFoundException.class)
-  public ResponseEntity<ErrorResponse> handleStorageLocationNotFound(
+  public ResponseEntity<ProblemDetail> handleStorageLocationNotFound(
       StorageLocationNotFoundException e) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   /** Handles IllegalArgumentException. */
   @ExceptionHandler(IllegalArgumentException.class)
-  public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(new ErrorResponse(400, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleIllegalArgument(IllegalArgumentException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   /** Handles IllegalStateException. */
   @ExceptionHandler(IllegalStateException.class)
-  public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException e) {
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(409, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleIllegalState(IllegalStateException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 
   /** Handles InvalidProductOptionException. */
   @ExceptionHandler(InvalidProductOptionException.class)
-  public ResponseEntity<ErrorResponse> handleInvalidProductOption(InvalidProductOptionException e) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(new ErrorResponse(400, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleInvalidProductOption(InvalidProductOptionException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   /** Handles SingleChoiceOptionGroupLimitException. */
   @ExceptionHandler(SingleChoiceOptionGroupLimitException.class)
-  public ResponseEntity<ErrorResponse> handleSingleChoiceOptionGroupLimit(
+  public ResponseEntity<ProblemDetail> handleSingleChoiceOptionGroupLimit(
       SingleChoiceOptionGroupLimitException e) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(new ErrorResponse(400, e.getMessage()));
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   /** Handles OptionGroupRequiresProductException. */
   @ExceptionHandler(
       aros.services.rms.core.category.application.exception.OptionGroupRequiresProductException
           .class)
-  public ResponseEntity<ErrorResponse> handleOptionGroupRequiresProduct(
+  public ResponseEntity<ProblemDetail> handleOptionGroupRequiresProduct(
       aros.services.rms.core.category.application.exception.OptionGroupRequiresProductException e) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(new ErrorResponse(400, e.getMessage()));
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   /** Handles validation errors for request body. */
   @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
-  public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(
+  public ResponseEntity<ProblemDetail> handleMethodArgumentNotValid(
       org.springframework.web.bind.MethodArgumentNotValidException e) {
     String message =
         e.getBindingResult().getFieldErrors().stream()
             .map(error -> error.getField() + ": " + error.getDefaultMessage())
             .findFirst()
             .orElse("Validation failed");
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(new ErrorResponse(400, message));
+    return problem(HttpStatus.BAD_REQUEST, message);
   }
 
   // --- Spring Retry ---
 
   /** Handles ExhaustedRetryException. */
   @ExceptionHandler(ExhaustedRetryException.class)
-  public ResponseEntity<ErrorResponse> handleExhaustedRetry(ExhaustedRetryException e) {
+  public ResponseEntity<ProblemDetail> handleExhaustedRetry(ExhaustedRetryException e) {
     Throwable cause = e.getCause();
-    if (cause instanceof RuntimeException runtimeException) {
+    if (cause instanceof RuntimeException) {
       // Re-dispatch to the appropriate handler by rethrowing the real cause
       // We handle known business exceptions explicitly here
       if (cause instanceof InsufficientStockException ex) {
@@ -406,38 +408,34 @@ public class GlobalExceptionHandler {
     }
     log.error(
         "Retry agotado sin recovery: causa={}", cause != null ? cause.getMessage() : "unknown", e);
-    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(new ErrorResponse(500, "Error interno del servidor"));
+    return problem(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno del servidor");
   }
 
   // --- Image exceptions ---
 
   /** Handles ImageNotFoundException. */
   @ExceptionHandler(ImageNotFoundException.class)
-  public ResponseEntity<ErrorResponse> handleImageNotFound(ImageNotFoundException e) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(404, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleImageNotFound(ImageNotFoundException e) {
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   /** Handles InvalidImageException. */
   @ExceptionHandler(InvalidImageException.class)
-  public ResponseEntity<ErrorResponse> handleInvalidImage(InvalidImageException e) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(new ErrorResponse(400, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleInvalidImage(InvalidImageException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   /** Handles ImageUploadException. */
   @ExceptionHandler(ImageUploadException.class)
-  public ResponseEntity<ErrorResponse> handleImageUpload(ImageUploadException e) {
-    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(new ErrorResponse(500, e.getMessage()));
+  public ResponseEntity<ProblemDetail> handleImageUpload(ImageUploadException e) {
+    return problem(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
   }
 
   /** Handles MaxUploadSizeExceededException. */
   @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
-  public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(
+  public ResponseEntity<ProblemDetail> handleMaxUploadSizeExceeded(
       org.springframework.web.multipart.MaxUploadSizeExceededException e) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(new ErrorResponse(400, "File size exceeds maximum allowed size"));
+    return problem(HttpStatus.BAD_REQUEST, "File size exceeds maximum allowed size");
   }
 
   // --- Generic catch-all handlers ---
@@ -445,35 +443,33 @@ public class GlobalExceptionHandler {
   /** Handles MethodArgumentTypeMismatchException - invalid enum/path variable values. */
   @ExceptionHandler(
       org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
-  public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(
+  public ResponseEntity<ProblemDetail> handleMethodArgumentTypeMismatch(
       org.springframework.web.method.annotation.MethodArgumentTypeMismatchException e) {
     String message = "Invalid value '" + e.getName() + "': " + e.getValue();
     log.warn("Invalid parameter: {}", message);
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(400, message));
+    return problem(HttpStatus.BAD_REQUEST, message);
   }
 
   /** Handles HttpMediaTypeNotAcceptableException - content negotiation failures. */
   @ExceptionHandler(org.springframework.web.HttpMediaTypeNotAcceptableException.class)
-  public ResponseEntity<ErrorResponse> handleHttpMediaTypeNotAcceptable(
+  public ResponseEntity<ProblemDetail> handleHttpMediaTypeNotAcceptable(
       org.springframework.web.HttpMediaTypeNotAcceptableException e) {
     log.warn("Unsupported media type: {}", e.getMessage());
-    return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
-        .body(new ErrorResponse(406, "Content type not accepted"));
+    return problem(HttpStatus.NOT_ACCEPTABLE, "Content type not accepted");
   }
 
   /** Handles MissingServletRequestParameterException. */
   @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
-  public ResponseEntity<ErrorResponse> handleMissingServletRequestParameter(
+  public ResponseEntity<ProblemDetail> handleMissingServletRequestParameter(
       org.springframework.web.bind.MissingServletRequestParameterException e) {
     log.warn("Missing required parameter: {}", e.getParameterName());
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(
-            new ErrorResponse(400, "Required parameter '" + e.getParameterName() + "' not found"));
+    return problem(
+        HttpStatus.BAD_REQUEST, "Required parameter '" + e.getParameterName() + "' not found");
   }
 
   /** Handles NoResourceFoundException - for requests to non-existent endpoints. */
   @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
-  public ResponseEntity<ErrorResponse> handleNoResourceFound(
+  public ResponseEntity<ProblemDetail> handleNoResourceFound(
       org.springframework.web.servlet.resource.NoResourceFoundException e) {
     String path = e.getResourcePath();
     if (path.endsWith(".map")
@@ -495,30 +491,28 @@ public class GlobalExceptionHandler {
       message = "Endpoint not found: " + path;
     }
     log.warn("Resource not found: {}", path);
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(400, message));
+    return problem(HttpStatus.BAD_REQUEST, message);
   }
 
   /** Handles generic Exception. */
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<ErrorResponse> handleGenericException(Exception e) {
+  public ResponseEntity<ProblemDetail> handleGenericException(Exception e) {
     log.error(
         "Error interno no esperado: mensaje={}, tipo={}",
         e.getMessage(),
         e.getClass().getName(),
         e);
-    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(new ErrorResponse(500, "Error interno del servidor"));
+    return problem(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno del servidor");
   }
 
   /** Handles Throwable. */
   @ExceptionHandler(Throwable.class)
-  public ResponseEntity<ErrorResponse> handleThrowable(Throwable t) {
+  public ResponseEntity<ProblemDetail> handleThrowable(Throwable t) {
     log.error(
         "Error crítico del sistema: mensaje={}, tipo={}",
         t.getMessage(),
         t.getClass().getName(),
         t);
-    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(new ErrorResponse(500, "Error interno del servidor"));
+    return problem(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno del servidor");
   }
 }

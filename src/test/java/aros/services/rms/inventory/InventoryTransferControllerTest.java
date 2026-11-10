@@ -115,10 +115,10 @@ class InventoryTransferControllerTest extends AbstractJwtIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(VALID_TRANSFER_BODY))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].id").value(100))
-        .andExpect(jsonPath("$[0].supplyVariantId").value(1))
-        .andExpect(jsonPath("$[0].quantity").value(5.0))
-        .andExpect(jsonPath("$[0].movementType").value("TRANSFER"));
+        .andExpect(jsonPath("$.data[0].id").value(100))
+        .andExpect(jsonPath("$.data[0].supplyVariantId").value(1))
+        .andExpect(jsonPath("$.data[0].quantity").value(5.0))
+        .andExpect(jsonPath("$.data[0].movementType").value("TRANSFER"));
   }
 
   // ---------------------------------------------------------------------------
@@ -139,7 +139,7 @@ class InventoryTransferControllerTest extends AbstractJwtIntegrationTest {
                 .content(VALID_TRANSFER_BODY))
         .andExpect(status().isConflict())
         .andExpect(
-            jsonPath("$.message")
+            jsonPath("$.detail")
                 .value("Insufficient stock for variant 1: required=5.000, available=0.000"));
   }
 }

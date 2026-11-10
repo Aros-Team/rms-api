@@ -9,6 +9,7 @@ import aros.services.rms.core.payroll.domain.port.input.CalculatePayrollEventUse
 import aros.services.rms.core.payroll.domain.port.input.DeletePayrollEventUseCase;
 import aros.services.rms.core.payroll.domain.port.input.ListPayrollEventsUseCase;
 import aros.services.rms.core.payroll.domain.port.input.RegisterPayrollEventUseCase;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollCalculateRequest;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollCalculateResponse;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollEventRequest;
@@ -159,9 +160,9 @@ public class PayrollEventController {
         new PayrollCalculateResponse(
             result.userId(),
             result.eventType(),
-            result.hourlyRate(),
+            MoneyDto.of(result.hourlyRate()),
             result.multiplier(),
-            result.suggestedUnitRate(),
-            result.suggestedAmount()));
+            MoneyDto.of(result.suggestedUnitRate()),
+            MoneyDto.of(result.suggestedAmount())));
   }
 }

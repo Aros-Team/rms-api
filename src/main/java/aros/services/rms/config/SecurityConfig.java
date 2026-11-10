@@ -7,6 +7,8 @@ import aros.services.rms.core.auth.domain.jwk.JwksDocument;
 import aros.services.rms.core.auth.domain.jwk.exception.NoActiveSigningKeyException;
 import aros.services.rms.infraestructure.auth.jwk.JwkSourceAdapter;
 import aros.services.rms.infraestructure.common.config.JwtConfigValidator;
+import aros.services.rms.infraestructure.common.exception.ProblemDetailAccessDeniedHandler;
+import aros.services.rms.infraestructure.common.exception.ProblemDetailAuthenticationEntryPoint;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -54,19 +56,31 @@ public class SecurityConfig {
 
   private final CorsConfigurationSource corsConfigurationSource;
 
+  private final ProblemDetailAuthenticationEntryPoint problemDetailAuthenticationEntryPoint;
+
+  private final ProblemDetailAccessDeniedHandler problemDetailAccessDeniedHandler;
+
   @Value("${app.env:development}")
   private String appEnv;
 
   /**
-   * Constructs the security configuration with JWT validator and CORS configuration source.
+   * Constructs the security configuration with JWT validator, CORS configuration source and RFC
+   * 7807 error handlers.
    *
    * @param jwtConfigValidator JWT configuration validator
    * @param corsConfigurationSource CORS configuration source
+   * @param problemDetailAuthenticationEntryPoint entry point returning problem documents on 401
+   * @param problemDetailAccessDeniedHandler handler returning problem documents on 403
    */
   public SecurityConfig(
-      JwtConfigValidator jwtConfigValidator, CorsConfigurationSource corsConfigurationSource) {
+      JwtConfigValidator jwtConfigValidator,
+      CorsConfigurationSource corsConfigurationSource,
+      ProblemDetailAuthenticationEntryPoint problemDetailAuthenticationEntryPoint,
+      ProblemDetailAccessDeniedHandler problemDetailAccessDeniedHandler) {
     this.jwtConfigValidator = jwtConfigValidator;
     this.corsConfigurationSource = corsConfigurationSource;
+    this.problemDetailAuthenticationEntryPoint = problemDetailAuthenticationEntryPoint;
+    this.problemDetailAccessDeniedHandler = problemDetailAccessDeniedHandler;
   }
 
   /**
@@ -149,7 +163,12 @@ public class SecurityConfig {
     http.csrf(csrf -> csrf.disable())
         .cors(cors -> cors.configurationSource(corsConfigurationSource))
         .sessionManagement(
-            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .exceptionHandling(
+            exception ->
+                exception
+                    .authenticationEntryPoint(problemDetailAuthenticationEntryPoint)
+                    .accessDeniedHandler(problemDetailAccessDeniedHandler));
 
     if (jwtConfigValidator.isConfigured()) {
       http.authorizeHttpRequests(
@@ -175,7 +194,11 @@ public class SecurityConfig {
                       .permitAll()
                       .anyRequest()
                       .authenticated())
-          .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+          .oauth2ResourceServer(
+              oauth2 ->
+                  oauth2
+                      .jwt(Customizer.withDefaults())
+                      .authenticationEntryPoint(problemDetailAuthenticationEntryPoint));
     } else {
       http.authorizeHttpRequests(
               auth ->
@@ -197,7 +220,11 @@ public class SecurityConfig {
                       .permitAll()
                       .anyRequest()
                       .permitAll())
-          .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+          .oauth2ResourceServer(
+              oauth2 ->
+                  oauth2
+                      .jwt(Customizer.withDefaults())
+                      .authenticationEntryPoint(problemDetailAuthenticationEntryPoint));
     }
 
     return http.build();

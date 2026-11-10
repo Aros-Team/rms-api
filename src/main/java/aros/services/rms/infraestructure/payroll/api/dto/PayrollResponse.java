@@ -3,6 +3,7 @@
 package aros.services.rms.infraestructure.payroll.api.dto;
 
 import aros.services.rms.core.payroll.domain.Payroll;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -20,13 +21,12 @@ public record PayrollResponse(
         LocalDate periodStart,
     @Schema(description = "Last day of the payroll period", example = "2026-07-31")
         LocalDate periodEnd,
-    @Schema(description = "Base salary amount", example = "2500000.00") BigDecimal baseSalary,
-    @Schema(description = "Bonus amount", example = "200000.00") BigDecimal bonuses,
-    @Schema(description = "Deductions amount", example = "150000.00") BigDecimal deductions,
-    @Schema(description = "Net payable amount", example = "2550000.00") BigDecimal netAmount,
-    @Schema(description = "Total amount paid", example = "1000000.00") BigDecimal paidAmount,
-    @Schema(description = "Pending amount (netAmount - paidAmount)", example = "1550000.00")
-        BigDecimal pendingAmount,
+    @Schema(description = "Base salary amount") MoneyDto baseSalary,
+    @Schema(description = "Bonus amount") MoneyDto bonuses,
+    @Schema(description = "Deductions amount") MoneyDto deductions,
+    @Schema(description = "Net payable amount") MoneyDto netAmount,
+    @Schema(description = "Total amount paid") MoneyDto paidAmount,
+    @Schema(description = "Pending amount (netAmount - paidAmount)") MoneyDto pendingAmount,
     @Schema(description = "Total hours worked in the period", example = "192.0")
         BigDecimal hoursWorked,
     @Schema(description = "Current payroll status", example = "PENDING") String status,
@@ -49,12 +49,12 @@ public record PayrollResponse(
         payroll.period().getMonthValue(),
         payroll.periodStart(),
         payroll.periodEnd(),
-        payroll.baseSalary() != null ? payroll.baseSalary().amount() : null,
-        payroll.bonuses() != null ? payroll.bonuses().amount() : null,
-        payroll.deductions() != null ? payroll.deductions().amount() : null,
-        payroll.netAmount() != null ? payroll.netAmount().amount() : null,
-        payroll.paidAmount() != null ? payroll.paidAmount().amount() : null,
-        payroll.pendingAmount() != null ? payroll.pendingAmount().amount() : null,
+        payroll.baseSalary() != null ? MoneyDto.of(payroll.baseSalary()) : null,
+        payroll.bonuses() != null ? MoneyDto.of(payroll.bonuses()) : null,
+        payroll.deductions() != null ? MoneyDto.of(payroll.deductions()) : null,
+        payroll.netAmount() != null ? MoneyDto.of(payroll.netAmount()) : null,
+        payroll.paidAmount() != null ? MoneyDto.of(payroll.paidAmount()) : null,
+        payroll.pendingAmount() != null ? MoneyDto.of(payroll.pendingAmount()) : null,
         payroll.hoursWorked(),
         payroll.status() != null ? payroll.status().name() : null,
         payroll.notes(),

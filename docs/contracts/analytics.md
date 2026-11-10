@@ -68,13 +68,18 @@ GET /api/v1/analytics/prime-cost?bucket=monthly&year=2026&month=7
 
 ## 4. Money
 
-Per Activity 4 (Money value object):
+Analytics uses the shared API money contract (see `docs/contracts/api-envelope.md`):
 
 ```json
 { "amount": "1234.56", "currency": "COP" }
 ```
 
-All monetary fields in responses use this wrapper. Never raw floats.
+`amount` is always a decimal **string**; `currency` is an ISO 4217 code. All monetary fields in
+responses use this wrapper — never raw floats or numbers. Percentages (`pct`, `marginPercent`)
+remain numeric.
+
+All 2xx JSON envelopes in this document are additionally wrapped as `{ "data": ..., "meta": ... }`
+and errors are RFC 7807 `application/problem+json`. See `docs/contracts/api-envelope.md`.
 
 ## 5. Module contracts
 

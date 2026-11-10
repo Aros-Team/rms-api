@@ -104,8 +104,8 @@ class TimeLogControllerTest {
     mockMvc
         .perform(get(URL).header("Authorization", "Bearer token"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].id").value(1))
-        .andExpect(jsonPath("$[0].type").value("IN"));
+        .andExpect(jsonPath("$.data[0].id").value(1))
+        .andExpect(jsonPath("$.data[0].type").value("IN"));
   }
 
   @Test

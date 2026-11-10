@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -157,28 +158,65 @@ class OrderResponseMapperTest {
     OrderResponse.OrderDetailResponse dr = response.details().get(0);
     assertEquals(10L, dr.productId());
     assertEquals("Burger", dr.productName());
-    assertEquals(12.5, dr.unitPrice());
+    assertEquals("12.50", dr.unitPrice().getAmount());
+    assertEquals("COP", dr.unitPrice().getCurrency());
     assertEquals("No onions", dr.instructions());
 
     // Selected products resolved
     assertEquals(2, dr.selectedProductIds().size());
     assertEquals(2, dr.selectedProducts().size());
     assertEquals("Burger", dr.selectedProducts().get(0).name());
-    assertEquals(12.5, dr.selectedProducts().get(0).basePrice());
+    assertEquals("12.50", dr.selectedProducts().get(0).basePrice().getAmount());
     assertEquals("Fries", dr.selectedProducts().get(1).name());
-    assertEquals(5.0, dr.selectedProducts().get(1).basePrice());
+    assertEquals("5.00", dr.selectedProducts().get(1).basePrice().getAmount());
 
     // Additions resolved
     assertEquals(1, dr.additionIds().size());
     assertEquals(1, dr.selectedAdditions().size());
     assertEquals("Extra Cheese", dr.selectedAdditions().get(0).name());
-    assertEquals(2.0, dr.selectedAdditions().get(0).extraPrice());
+    assertEquals("2.00", dr.selectedAdditions().get(0).extraPrice().getAmount());
+    assertEquals("COP", dr.selectedAdditions().get(0).extraPrice().getCurrency());
 
     // Clarifications resolved
     assertEquals(1, dr.clarifications().size());
     assertEquals(1L, dr.clarifications().get(0).questionId());
     assertEquals("How cooked?", dr.clarifications().get(0).question());
     assertEquals("Medium", dr.clarifications().get(0).answer());
+  }
+
+  @Test
+  void should_computeTotal_when_mappingOrder() {
+    // Arrange
+    OrderDetail first =
+        OrderDetail.builder()
+            .id(1L)
+            .unitPrice(new Money(BigDecimal.valueOf(12.5), Currency.getInstance("COP")))
+            .extraCharge(new Money(BigDecimal.valueOf(2.5), Currency.getInstance("COP")))
+            .build();
+    OrderDetail second =
+        OrderDetail.builder()
+            .id(2L)
+            .unitPrice(new Money(BigDecimal.valueOf(25.0), Currency.getInstance("COP")))
+            .build();
+
+    Order order =
+        Order.builder()
+            .id(7L)
+            .date(LocalDateTime.now())
+            .status(OrderStatus.QUEUE)
+            .details(List.of(first, second))
+            .build();
+
+    when(specialSelectionRepositoryPort.findById(anyLong())).thenReturn(Optional.empty());
+
+    // Act
+    OrderResponse response = orderResponseMapper.toResponse(order);
+
+    // Assert
+    assertNotNull(response.total());
+    assertEquals("37.50", response.total().getAmount());
+    assertEquals("COP", response.total().getCurrency());
+    assertEquals(response.total(), OrderResponse.calculateTotal(order.getDetails()));
   }
 
   @Test

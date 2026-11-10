@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -132,10 +133,10 @@ class AuthControllerTest {
     mockMvc
         .perform(post(LOGIN_URL).contentType(MediaType.APPLICATION_JSON).content(VALID_LOGIN_BODY))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.type").value("SUCCESS"))
-        .andExpect(jsonPath("$.username").value("test@example.com"))
-        .andExpect(jsonPath("$.accessToken").value("access-token-123"))
-        .andExpect(jsonPath("$.refreshToken").value("refresh-token-456"));
+        .andExpect(jsonPath("$.data.type").value("SUCCESS"))
+        .andExpect(jsonPath("$.data.username").value("test@example.com"))
+        .andExpect(jsonPath("$.data.accessToken").value("access-token-123"))
+        .andExpect(jsonPath("$.data.refreshToken").value("refresh-token-456"));
   }
 
   // ---------------------------------------------------------------------------
@@ -150,10 +151,10 @@ class AuthControllerTest {
     mockMvc
         .perform(post(LOGIN_URL).contentType(MediaType.APPLICATION_JSON).content(VALID_LOGIN_BODY))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.type").value("TFA_REQUIRED"))
-        .andExpect(jsonPath("$.username").value("test@example.com"))
-        .andExpect(jsonPath("$.accessToken").value("tfa-token-789"))
-        .andExpect(jsonPath("$.refreshToken").isEmpty());
+        .andExpect(jsonPath("$.data.type").value("TFA_REQUIRED"))
+        .andExpect(jsonPath("$.data.username").value("test@example.com"))
+        .andExpect(jsonPath("$.data.accessToken").value("tfa-token-789"))
+        .andExpect(jsonPath("$.data.refreshToken").isEmpty());
   }
 
   // ---------------------------------------------------------------------------
@@ -168,8 +169,9 @@ class AuthControllerTest {
     mockMvc
         .perform(post(LOGIN_URL).contentType(MediaType.APPLICATION_JSON).content(VALID_LOGIN_BODY))
         .andExpect(status().isUnauthorized())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
         .andExpect(jsonPath("$.status").value(401))
-        .andExpect(jsonPath("$.message").isNotEmpty());
+        .andExpect(jsonPath("$.detail").isNotEmpty());
   }
 
   // ---------------------------------------------------------------------------
@@ -257,7 +259,7 @@ class AuthControllerTest {
     mockMvc
         .perform(post(LOGIN_URL).contentType(MediaType.APPLICATION_JSON).content(bodyWithExtra))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.type").value("SUCCESS"));
+        .andExpect(jsonPath("$.data.type").value("SUCCESS"));
   }
 
   // ---------------------------------------------------------------------------
@@ -284,6 +286,6 @@ class AuthControllerTest {
                 .content(forgotBody))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value(400))
-        .andExpect(jsonPath("$.message").value("User not found"));
+        .andExpect(jsonPath("$.detail").value("User not found"));
   }
 }

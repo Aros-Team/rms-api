@@ -3,6 +3,7 @@
 package aros.services.rms.infraestructure.product.api.mapper;
 
 import aros.services.rms.core.product.domain.ProductCostBreakdown;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import aros.services.rms.infraestructure.product.api.dto.ProductCostBreakdownResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductCostBreakdownResponse.CategoryCostResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductCostBreakdownResponse.OptionCostResponse;
@@ -25,15 +26,15 @@ public class ProductCostBreakdownResponseMapper {
     return new ProductCostBreakdownResponse(
         breakdown.productId(),
         breakdown.name(),
-        breakdown.baseCost(),
+        MoneyDto.of(breakdown.baseCost()),
         breakdown.options().stream()
             .map(
                 option ->
                     new OptionCostResponse(
                         option.optionId(),
                         option.name(),
-                        option.cost(),
-                        option.extraPrice(),
+                        MoneyDto.of(option.cost()),
+                        MoneyDto.of(option.extraPrice()),
                         option.categoryId(),
                         option.categorySelectionType()))
             .toList(),
@@ -44,11 +45,11 @@ public class ProductCostBreakdownResponseMapper {
                         category.categoryId(),
                         category.name(),
                         category.selectionType(),
-                        category.defaultSlotCost(),
-                        category.slotProjectedCost(),
-                        category.projectedContribution()))
+                        MoneyDto.of(category.defaultSlotCost()),
+                        MoneyDto.of(category.slotProjectedCost()),
+                        MoneyDto.of(category.projectedContribution())))
             .toList(),
-        breakdown.projectedOptionCost(),
-        breakdown.projectedEffectiveCost());
+        MoneyDto.of(breakdown.projectedOptionCost()),
+        MoneyDto.of(breakdown.projectedEffectiveCost()));
   }
 }

@@ -5,8 +5,8 @@ package aros.services.rms.infraestructure.user.api.dto;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserRole;
 import aros.services.rms.core.user.domain.UserStatus;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.math.BigDecimal;
 import java.util.List;
 
 /** Response DTO for user data. */
@@ -22,7 +22,7 @@ public record UserResponse(
     @Schema(description = "User status", example = "ACTIVE") UserStatus status,
     @Schema(description = "IDs of areas assigned to the user", example = "[1, 2]")
         List<Long> assignedAreas,
-    @Schema(description = "Current salary", example = "2500000.00") BigDecimal salary) {
+    @Schema(description = "Current salary") MoneyDto salary) {
   /** Creates a response from a User domain object. */
   public static UserResponse fromDomain(User user) {
     return new UserResponse(
@@ -35,6 +35,6 @@ public record UserResponse(
         user.getRole(),
         user.getStatus(),
         user.getAssignedAreas().stream().map(areaId -> areaId.value()).toList(),
-        user.getSalary() != null ? user.getSalary().value().amount() : null);
+        user.getSalary() != null ? MoneyDto.of(user.getSalary().value()) : null);
   }
 }

@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -139,8 +140,8 @@ class ScheduleControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(VALID_BODY))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").value(1))
-        .andExpect(jsonPath("$.name").value("Morning"));
+        .andExpect(jsonPath("$.data.id").value(1))
+        .andExpect(jsonPath("$.data.name").value("Morning"));
   }
 
   @Test
@@ -156,7 +157,8 @@ class ScheduleControllerTest {
                 .header("Authorization", "Bearer token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(VALID_BODY))
-        .andExpect(status().isConflict());
+        .andExpect(status().isConflict())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
   }
 
   @Test
@@ -173,7 +175,7 @@ class ScheduleControllerTest {
     mockMvc
         .perform(get(URL).header("Authorization", "Bearer token"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].name").value("Morning"));
+        .andExpect(jsonPath("$.data[0].name").value("Morning"));
   }
 
   @Test
@@ -190,7 +192,7 @@ class ScheduleControllerTest {
     mockMvc
         .perform(get(URL + "/1").header("Authorization", "Bearer token"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(1));
+        .andExpect(jsonPath("$.data.id").value(1));
   }
 
   @Test
@@ -221,7 +223,7 @@ class ScheduleControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(VALID_BODY))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.name").value("Evening"));
+        .andExpect(jsonPath("$.data.name").value("Evening"));
   }
 
   @Test

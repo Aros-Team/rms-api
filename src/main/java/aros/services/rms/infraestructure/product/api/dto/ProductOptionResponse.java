@@ -2,11 +2,11 @@
 
 package aros.services.rms.infraestructure.product.api.dto;
 
-import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.product.domain.ProductCostBreakdown.OptionCost;
 import aros.services.rms.core.product.domain.ProductOption;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.Currency;
+import java.math.BigDecimal;
 
 /** Response DTO for product option data. */
 @Schema(description = "Response DTO for product option data")
@@ -15,8 +15,9 @@ public record ProductOptionResponse(
     @Schema(description = "Option name", example = "Large (1.5L)") String name,
     @Schema(description = "Option category ID", example = "1") Long optionGroupId,
     @Schema(description = "Option category name", example = "Sizes") String optionGroupName,
-    @Schema(description = "Pure material cost of the option") Money cost,
-    @Schema(description = "Configured surcharge when associated with the product") Money extraPrice,
+    @Schema(description = "Pure material cost of the option") MoneyDto cost,
+    @Schema(description = "Configured surcharge when associated with the product")
+        MoneyDto extraPrice,
     @Schema(description = "Selection mode of the option category", example = "SINGLE_CHOICE")
         String categorySelectionType) {
 
@@ -35,8 +36,8 @@ public record ProductOptionResponse(
         option.getName(),
         option.getCategory() != null ? option.getCategory().getId() : null,
         option.getCategory() != null ? option.getCategory().getName() : null,
-        Money.zero(Currency.getInstance("COP")),
-        Money.zero(Currency.getInstance("COP")),
+        MoneyDto.of(BigDecimal.ZERO),
+        MoneyDto.of(BigDecimal.ZERO),
         "SINGLE_CHOICE");
   }
 
@@ -61,8 +62,8 @@ public record ProductOptionResponse(
         option.getName(),
         option.getCategory() != null ? option.getCategory().getId() : null,
         option.getCategory() != null ? option.getCategory().getName() : null,
-        Money.zero(Currency.getInstance("COP")),
-        Money.zero(Currency.getInstance("COP")),
+        MoneyDto.of(BigDecimal.ZERO),
+        MoneyDto.of(BigDecimal.ZERO),
         selectionType);
   }
 
@@ -81,8 +82,8 @@ public record ProductOptionResponse(
         option.name(),
         option.categoryId(),
         option.categoryName(),
-        option.cost(),
-        option.extraPrice(),
+        MoneyDto.of(option.cost()),
+        MoneyDto.of(option.extraPrice()),
         option.categorySelectionType());
   }
 }

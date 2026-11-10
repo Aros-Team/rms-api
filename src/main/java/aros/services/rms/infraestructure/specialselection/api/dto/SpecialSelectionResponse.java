@@ -5,7 +5,9 @@ import aros.services.rms.core.specialselection.domain.SpecialSelectionConfigurat
 import aros.services.rms.core.specialselection.domain.SpecialSelectionGroup;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionQuestion;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionScheduleEntry;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
@@ -20,7 +22,7 @@ public record SpecialSelectionResponse(
     @Schema(description = "Product ID", example = "1") Long productId,
     @Schema(description = "Display name", example = "Menú ejecutivo") String name,
     @Schema(description = "Description") String description,
-    @Schema(description = "Base price", example = "12.99") Double basePrice,
+    @Schema(description = "Base price") MoneyDto basePrice,
     @Schema(description = "Whether active", example = "true") boolean active,
     @Schema(description = "Preparation area ID") Long preparationAreaId,
     @Schema(description = "Selection type", example = "SPECIAL_SELECTION") String selectionType,
@@ -45,7 +47,9 @@ public record SpecialSelectionResponse(
         config.getProductId(),
         config.getName(),
         config.getDescription(),
-        config.getBasePrice(),
+        config.getBasePrice() != null
+            ? MoneyDto.of(BigDecimal.valueOf(config.getBasePrice()))
+            : null,
         config.isActive(),
         config.getPreparationAreaId(),
         config.getSelectionType() != null ? config.getSelectionType().name() : "STANDARD",
@@ -101,14 +105,16 @@ public record SpecialSelectionResponse(
       @Schema(description = "Addition ID") Long id,
       @Schema(description = "Option ID") Long optionId,
       @Schema(description = "Display name") String name,
-      @Schema(description = "Extra price") Double extraPrice,
+      @Schema(description = "Extra price") MoneyDto extraPrice,
       @Schema(description = "Display order") int displayOrder) {
     static AdditionResponse fromDomain(SpecialSelectionAddition addition) {
       return new AdditionResponse(
           addition.getId(),
           addition.getOptionId(),
           addition.getName(),
-          addition.getExtraPrice(),
+          addition.getExtraPrice() != null
+              ? MoneyDto.of(BigDecimal.valueOf(addition.getExtraPrice()))
+              : null,
           addition.getDisplayOrder());
     }
   }

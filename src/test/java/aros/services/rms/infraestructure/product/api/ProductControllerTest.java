@@ -124,11 +124,11 @@ class ProductControllerTest {
     mockMvc
         .perform(get("/api/v1/products").param("search", "burger").with(jwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content.length()").value(1))
-        .andExpect(jsonPath("$.content[0].id").value(1))
-        .andExpect(jsonPath("$.content[0].name").value("Hamburguesa Clásica"))
-        .andExpect(jsonPath("$.page.totalElements").value(1));
+        .andExpect(jsonPath("$.data.content").isArray())
+        .andExpect(jsonPath("$.data.content.length()").value(1))
+        .andExpect(jsonPath("$.data.content[0].id").value(1))
+        .andExpect(jsonPath("$.data.content[0].name").value("Hamburguesa Clásica"))
+        .andExpect(jsonPath("$.data.page.totalElements").value(1));
 
     verify(productUseCase)
         .search(eq("burger"), isNull(), eq(false), eq(false), any(Pageable.class));
@@ -150,9 +150,9 @@ class ProductControllerTest {
     mockMvc
         .perform(get("/api/v1/products").param("search", "carbonatada").with(jwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content[0].id").value(2))
-        .andExpect(jsonPath("$.content[0].name").value("Gaseosa 350ml"))
-        .andExpect(jsonPath("$.page.totalElements").value(1));
+        .andExpect(jsonPath("$.data.content[0].id").value(2))
+        .andExpect(jsonPath("$.data.content[0].name").value("Gaseosa 350ml"))
+        .andExpect(jsonPath("$.data.page.totalElements").value(1));
 
     verify(productUseCase)
         .search(eq("carbonatada"), isNull(), eq(false), eq(false), any(Pageable.class));
@@ -173,9 +173,9 @@ class ProductControllerTest {
     mockMvc
         .perform(get("/api/v1/products").param("search", "hamburguesas").with(jwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content[0].id").value(3))
-        .andExpect(jsonPath("$.content[0].categoryName").value("Hamburguesas"))
-        .andExpect(jsonPath("$.page.totalElements").value(1));
+        .andExpect(jsonPath("$.data.content[0].id").value(3))
+        .andExpect(jsonPath("$.data.content[0].categoryName").value("Hamburguesas"))
+        .andExpect(jsonPath("$.data.page.totalElements").value(1));
 
     verify(productUseCase)
         .search(eq("hamburguesas"), isNull(), eq(false), eq(false), any(Pageable.class));
@@ -195,9 +195,9 @@ class ProductControllerTest {
     mockMvc
         .perform(get("/api/v1/products").param("search", "nonexistent").with(jwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content").isEmpty())
-        .andExpect(jsonPath("$.page.totalElements").value(0));
+        .andExpect(jsonPath("$.data.content").isArray())
+        .andExpect(jsonPath("$.data.content").isEmpty())
+        .andExpect(jsonPath("$.data.page.totalElements").value(0));
 
     verify(productUseCase)
         .search(eq("nonexistent"), isNull(), eq(false), eq(false), any(Pageable.class));
@@ -218,10 +218,10 @@ class ProductControllerTest {
     mockMvc
         .perform(get("/api/v1/products").with(jwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content.length()").value(2))
-        .andExpect(jsonPath("$.content[0].name").value("Burger"))
-        .andExpect(jsonPath("$.content[1].name").value("Drink"))
-        .andExpect(jsonPath("$.page.totalElements").value(2));
+        .andExpect(jsonPath("$.data.content.length()").value(2))
+        .andExpect(jsonPath("$.data.content[0].name").value("Burger"))
+        .andExpect(jsonPath("$.data.content[1].name").value("Drink"))
+        .andExpect(jsonPath("$.data.page.totalElements").value(2));
 
     verify(productUseCase).findAllActive(any(Pageable.class), eq(false));
     verify(productUseCase, never()).search(any(), any(), anyBoolean(), anyBoolean(), any());
@@ -243,8 +243,8 @@ class ProductControllerTest {
         .perform(
             get("/api/v1/products").param("search", "burger").param("categories", "7").with(jwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content[0].id").value(4))
-        .andExpect(jsonPath("$.page.totalElements").value(1));
+        .andExpect(jsonPath("$.data.content[0].id").value(4))
+        .andExpect(jsonPath("$.data.page.totalElements").value(1));
 
     verify(productUseCase)
         .search(eq("burger"), eq(List.of(7L)), eq(false), eq(false), any(Pageable.class));
@@ -269,8 +269,8 @@ class ProductControllerTest {
                 .param("includeInactive", "true")
                 .with(jwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content[0].id").value(5))
-        .andExpect(jsonPath("$.page.totalElements").value(1));
+        .andExpect(jsonPath("$.data.content[0].id").value(5))
+        .andExpect(jsonPath("$.data.page.totalElements").value(1));
 
     verify(productUseCase).search(eq("burger"), isNull(), eq(true), eq(false), any(Pageable.class));
   }
@@ -289,7 +289,7 @@ class ProductControllerTest {
     mockMvc
         .perform(get("/api/v1/products").param("search", "").with(jwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content.length()").value(1));
+        .andExpect(jsonPath("$.data.content.length()").value(1));
 
     verify(productUseCase).findAllActive(any(Pageable.class), eq(false));
     verify(productUseCase, never()).search(any(), any(), anyBoolean(), anyBoolean(), any());

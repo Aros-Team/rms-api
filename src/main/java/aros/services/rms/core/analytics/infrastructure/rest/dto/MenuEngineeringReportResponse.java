@@ -2,6 +2,7 @@
 
 package aros.services.rms.core.analytics.infrastructure.rest.dto;
 
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;

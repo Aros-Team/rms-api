@@ -125,6 +125,6 @@ class WorkerScheduleControllerTest {
     mockMvc
         .perform(get(URL).header("Authorization", "Bearer token"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.days[0].dayOfWeek").value("MONDAY"));
+        .andExpect(jsonPath("$.data.days[0].dayOfWeek").value("MONDAY"));
   }
 }

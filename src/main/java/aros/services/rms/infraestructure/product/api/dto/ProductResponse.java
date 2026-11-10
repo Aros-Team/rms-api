@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.product.api.dto;
 
 import aros.services.rms.core.inventory.domain.ProductRecipe;
 import aros.services.rms.core.product.domain.Product;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -19,7 +20,7 @@ public record ProductResponse(
             description = "Product description",
             example = "Deliciosa hamburguesa con queso cheddar")
         String description,
-    @Schema(description = "Product base price", example = "12.50") Double basePrice,
+    @Schema(description = "Product base price") MoneyDto basePrice,
     @Schema(description = "Whether product is active", example = "true") boolean active,
     @Schema(description = "Category ID", example = "1") Long categoryId,
     @Schema(description = "Category name", example = "Hamburguesas") String categoryName,
@@ -74,7 +75,7 @@ public record ProductResponse(
         product.getId(),
         product.getName(),
         product.getDescription(),
-        product.getBasePrice() != null ? product.getBasePrice().amount().doubleValue() : null,
+        product.getBasePrice() != null ? MoneyDto.of(product.getBasePrice()) : null,
         product.isActive(),
         product.getCategory() != null ? product.getCategory().getId() : null,
         product.getCategory() != null ? product.getCategory().getName() : null,

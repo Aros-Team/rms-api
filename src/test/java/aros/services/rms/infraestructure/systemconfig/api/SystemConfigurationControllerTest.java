@@ -132,12 +132,12 @@ class SystemConfigurationControllerTest {
                 .header("Authorization", "Bearer test-token")
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].id").value(1))
-        .andExpect(jsonPath("$[0].name").value("General"))
-        .andExpect(jsonPath("$[0].entries.length()").value(1))
-        .andExpect(jsonPath("$[0].entries[0].key").value("default_currency"))
-        .andExpect(jsonPath("$[0].entries[0].value").value("COP"));
+        .andExpect(jsonPath("$.data.length()").value(1))
+        .andExpect(jsonPath("$.data[0].id").value(1))
+        .andExpect(jsonPath("$.data[0].name").value("General"))
+        .andExpect(jsonPath("$.data[0].entries.length()").value(1))
+        .andExpect(jsonPath("$.data[0].entries[0].key").value("default_currency"))
+        .andExpect(jsonPath("$.data[0].entries[0].value").value("COP"));
   }
 
   // ---------------------------------------------------------------------------
@@ -159,9 +159,9 @@ class SystemConfigurationControllerTest {
                 .header("Authorization", "Bearer test-token")
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].key").value("currency"))
-        .andExpect(jsonPath("$[1].key").value("timezone"));
+        .andExpect(jsonPath("$.data.length()").value(2))
+        .andExpect(jsonPath("$.data[0].key").value("currency"))
+        .andExpect(jsonPath("$.data[1].key").value("timezone"));
   }
 
   // ---------------------------------------------------------------------------
@@ -184,9 +184,9 @@ class SystemConfigurationControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].key").value("currency"))
-        .andExpect(jsonPath("$[0].value").value("USD"));
+        .andExpect(jsonPath("$.data.length()").value(1))
+        .andExpect(jsonPath("$.data[0].key").value("currency"))
+        .andExpect(jsonPath("$.data[0].value").value("USD"));
   }
 
   // ---------------------------------------------------------------------------

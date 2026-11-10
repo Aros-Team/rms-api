@@ -12,7 +12,7 @@ import aros.services.rms.core.analytics.infrastructure.rest.dto.MenuEngineeringR
 import aros.services.rms.core.analytics.infrastructure.rest.dto.MenuEngineeringReportResponse.MedianResponse;
 import aros.services.rms.core.analytics.infrastructure.rest.dto.MenuEngineeringReportResponse.MenuItemResponse;
 import aros.services.rms.core.analytics.infrastructure.rest.dto.MenuEngineeringReportResponse.PeriodResponse;
-import aros.services.rms.core.analytics.infrastructure.rest.dto.MoneyDto;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;

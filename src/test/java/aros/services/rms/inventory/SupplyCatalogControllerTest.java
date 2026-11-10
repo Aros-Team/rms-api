@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -115,9 +116,9 @@ class SupplyCatalogControllerTest extends AbstractJwtIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\": \"Pan\", \"categoryId\": 1}"))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").value(10))
-        .andExpect(jsonPath("$.name").value("Pan"))
-        .andExpect(jsonPath("$.categoryId").value(1));
+        .andExpect(jsonPath("$.data.id").value(10))
+        .andExpect(jsonPath("$.data.name").value("Pan"))
+        .andExpect(jsonPath("$.data.categoryId").value(1));
   }
 
   // ---------------------------------------------------------------------------
@@ -140,7 +141,8 @@ class SupplyCatalogControllerTest extends AbstractJwtIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\": \"Pan\", \"categoryId\": 1}"))
         .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.message").value("Supply already exists: name=Pan"));
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+        .andExpect(jsonPath("$.detail").value("Supply already exists: name=Pan"));
   }
 
   // ---------------------------------------------------------------------------
@@ -159,7 +161,7 @@ class SupplyCatalogControllerTest extends AbstractJwtIntegrationTest {
                 .content("{\"name\": \"Pan\", \"categoryId\": 9999}"))
         .andExpect(status().isNotFound())
         .andExpect(
-            jsonPath("$.message").value("Storage location not found: Category not found: id=9999"));
+            jsonPath("$.detail").value("Storage location not found: Category not found: id=9999"));
   }
 
   // ---------------------------------------------------------------------------
@@ -198,11 +200,11 @@ class SupplyCatalogControllerTest extends AbstractJwtIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"supplyId\": 3, \"unitId\": 2, \"quantity\": 0.500}"))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").value(7))
-        .andExpect(jsonPath("$.supplyId").value(3))
-        .andExpect(jsonPath("$.unitId").value(2))
-        .andExpect(jsonPath("$.stockBodega").value(0))
-        .andExpect(jsonPath("$.stockCocina").value(0));
+        .andExpect(jsonPath("$.data.id").value(7))
+        .andExpect(jsonPath("$.data.supplyId").value(3))
+        .andExpect(jsonPath("$.data.unitId").value(2))
+        .andExpect(jsonPath("$.data.stockBodega").value(0))
+        .andExpect(jsonPath("$.data.stockCocina").value(0));
   }
 
   // ---------------------------------------------------------------------------
@@ -241,7 +243,7 @@ class SupplyCatalogControllerTest extends AbstractJwtIntegrationTest {
                 .content("{\"supplyId\": 3, \"unitId\": 2, \"quantity\": 0.500}"))
         .andExpect(status().isConflict())
         .andExpect(
-            jsonPath("$.message")
+            jsonPath("$.detail")
                 .value("Supply variant already exists: supplyId=3, unitId=2, quantity=0.500"));
   }
 
@@ -274,11 +276,11 @@ class SupplyCatalogControllerTest extends AbstractJwtIntegrationTest {
     mockMvc
         .perform(get("/api/v1/supplies/variants"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content[0].id").value(7))
-        .andExpect(jsonPath("$.content[0].supplyId").value(3))
-        .andExpect(jsonPath("$.page.totalElements").value(1))
-        .andExpect(jsonPath("$.page.number").value(0));
+        .andExpect(jsonPath("$.data.content").isArray())
+        .andExpect(jsonPath("$.data.content[0].id").value(7))
+        .andExpect(jsonPath("$.data.content[0].supplyId").value(3))
+        .andExpect(jsonPath("$.data.page.totalElements").value(1))
+        .andExpect(jsonPath("$.data.page.number").value(0));
   }
 
   // ---------------------------------------------------------------------------
@@ -329,10 +331,10 @@ class SupplyCatalogControllerTest extends AbstractJwtIntegrationTest {
     mockMvc
         .perform(get("/api/v1/supplies/variants").param("search", "carne"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content[0].id").value(7))
-        .andExpect(jsonPath("$.content[0].supplyName").value("Carne de Res"))
-        .andExpect(jsonPath("$.page.totalElements").value(1));
+        .andExpect(jsonPath("$.data.content").isArray())
+        .andExpect(jsonPath("$.data.content[0].id").value(7))
+        .andExpect(jsonPath("$.data.content[0].supplyName").value("Carne de Res"))
+        .andExpect(jsonPath("$.data.page.totalElements").value(1));
   }
 
   // ---------------------------------------------------------------------------
@@ -365,10 +367,10 @@ class SupplyCatalogControllerTest extends AbstractJwtIntegrationTest {
     mockMvc
         .perform(get("/api/v1/supplies/variants").param("supplyId", "3").param("search", "carne"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content[0].id").value(7))
-        .andExpect(jsonPath("$.content[0].supplyId").value(3))
-        .andExpect(jsonPath("$.page.totalElements").value(1));
+        .andExpect(jsonPath("$.data.content").isArray())
+        .andExpect(jsonPath("$.data.content[0].id").value(7))
+        .andExpect(jsonPath("$.data.content[0].supplyId").value(3))
+        .andExpect(jsonPath("$.data.page.totalElements").value(1));
   }
 
   // ---------------------------------------------------------------------------
@@ -384,8 +386,8 @@ class SupplyCatalogControllerTest extends AbstractJwtIntegrationTest {
     mockMvc
         .perform(get("/api/v1/supplies/variants").param("search", "nonexistent"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isArray())
-        .andExpect(jsonPath("$.content").isEmpty())
-        .andExpect(jsonPath("$.page.totalElements").value(0));
+        .andExpect(jsonPath("$.data.content").isArray())
+        .andExpect(jsonPath("$.data.content").isEmpty())
+        .andExpect(jsonPath("$.data.page.totalElements").value(0));
   }
 }

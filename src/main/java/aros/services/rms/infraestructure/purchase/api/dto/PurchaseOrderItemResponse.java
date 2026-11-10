@@ -3,6 +3,7 @@
 package aros.services.rms.infraestructure.purchase.api.dto;
 
 import aros.services.rms.core.purchase.domain.PurchaseOrderItem;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 
@@ -15,7 +16,7 @@ public record PurchaseOrderItemResponse(
         BigDecimal quantityOrdered,
     @Schema(description = "Quantity received in good condition", example = "8.000")
         BigDecimal quantityReceived,
-    @Schema(description = "Unit price paid", example = "15000.00") BigDecimal unitPrice) {
+    @Schema(description = "Unit price paid") MoneyDto unitPrice) {
 
   /** Converts a PurchaseOrderItem domain object to a response DTO. */
   public static PurchaseOrderItemResponse fromDomain(PurchaseOrderItem item) {
@@ -27,6 +28,6 @@ public record PurchaseOrderItemResponse(
         item.getSupplyVariantId(),
         item.getQuantityOrdered(),
         item.getQuantityReceived(),
-        item.getUnitPrice() != null ? item.getUnitPrice().amount() : null);
+        item.getUnitPrice() != null ? MoneyDto.of(item.getUnitPrice()) : null);
   }
 }

@@ -129,7 +129,7 @@ class WorkerScheduleAssignmentControllerTest {
     mockMvc
         .perform(get(URL).header("Authorization", "Bearer token"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0]").value(1));
+        .andExpect(jsonPath("$.data[0]").value(1));
   }
 
   @Test

@@ -13,6 +13,11 @@ app:
   version: "@project.version@"
   timezone: America/Bogota
   default-currency: COP
+  api:
+    # Wrap every 2xx JSON controller response as { "data": ..., "meta": ... }.
+    # Set to false to opt out (errors are always RFC 7807 and never wrapped).
+    envelope:
+      enabled: true
   jwt:
     issuer: rms-api
     expiration-minutes: 360
@@ -72,15 +77,10 @@ app:
     preview-ttl-hours: 24
 
   # ---------------------------------------------------------------------------
-  # Money value object (Plan 06)
+  # Money
   # ---------------------------------------------------------------------------
-  money:
-    # Standard rounding mode applied to all Money arithmetic. Either HALF_UP
-    # (matches existing CalculateProductCostService; default) or HALF_EVEN
-    # (banker's rounding, IFRS). The weighted-average intermediate pass is
-    # always HALF_UP regardless of this setting, so historical reconciliation
-    # is not affected by flipping display rounding.
-    rounding-mode: HALF_UP
+  # Rounding is enforced inside the Money value object (HALF_UP to the
+  # currency's fraction digits). Percentages and quantities stay numeric.
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}

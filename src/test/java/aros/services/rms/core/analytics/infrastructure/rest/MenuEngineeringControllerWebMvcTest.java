@@ -16,9 +16,9 @@ import aros.services.rms.core.analytics.domain.MenuEngineeringReport.MenuItemSum
 import aros.services.rms.core.analytics.domain.MenuEngineeringReport.PeriodInfo;
 import aros.services.rms.core.analytics.domain.port.in.GetMenuEngineeringUseCase;
 import aros.services.rms.core.analytics.infrastructure.rest.dto.MenuEngineeringReportResponse;
-import aros.services.rms.core.analytics.infrastructure.rest.dto.MoneyDto;
 import aros.services.rms.core.analytics.infrastructure.rest.mapper.MenuEngineeringReportMapper;
 import aros.services.rms.core.common.money.domain.Money;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
 import java.time.Instant;
 import java.util.Currency;
@@ -115,8 +115,8 @@ class MenuEngineeringControllerWebMvcTest {
                 .param("to", "2026-07")
                 .with(adminJwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.items[0].avgOptionCost").exists())
-        .andExpect(jsonPath("$.items[0].effectiveCost").exists());
+        .andExpect(jsonPath("$.data.items[0].avgOptionCost").exists())
+        .andExpect(jsonPath("$.data.items[0].effectiveCost").exists());
   }
 
   // ---------------------------------------------------------------------------

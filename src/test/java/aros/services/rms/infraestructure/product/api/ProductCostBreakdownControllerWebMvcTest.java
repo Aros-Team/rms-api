@@ -5,6 +5,7 @@ package aros.services.rms.infraestructure.product.api;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -26,6 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -109,16 +111,16 @@ class ProductCostBreakdownControllerWebMvcTest {
     mockMvc
         .perform(get(URL).with(jwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.productId").value(42))
-        .andExpect(jsonPath("$.name").value("Burger"))
-        .andExpect(jsonPath("$.baseCost.amount").value(10.0))
-        .andExpect(jsonPath("$.baseCost.currency").value("COP"))
-        .andExpect(jsonPath("$.options[0].optionId").value(7))
-        .andExpect(jsonPath("$.options[0].cost.amount").value(6.0))
-        .andExpect(jsonPath("$.options[0].extraPrice.amount").value(2.0))
-        .andExpect(jsonPath("$.categories[0].projectedContribution.amount").value(1.0))
-        .andExpect(jsonPath("$.projectedOptionCost.amount").value(1.0))
-        .andExpect(jsonPath("$.projectedEffectiveCost.amount").value(11.0));
+        .andExpect(jsonPath("$.data.productId").value(42))
+        .andExpect(jsonPath("$.data.name").value("Burger"))
+        .andExpect(jsonPath("$.data.baseCost.amount").value("10.00"))
+        .andExpect(jsonPath("$.data.baseCost.currency").value("COP"))
+        .andExpect(jsonPath("$.data.options[0].optionId").value(7))
+        .andExpect(jsonPath("$.data.options[0].cost.amount").value("6.00"))
+        .andExpect(jsonPath("$.data.options[0].extraPrice.amount").value("2.00"))
+        .andExpect(jsonPath("$.data.categories[0].projectedContribution.amount").value("1.00"))
+        .andExpect(jsonPath("$.data.projectedOptionCost.amount").value("1.00"))
+        .andExpect(jsonPath("$.data.projectedEffectiveCost.amount").value("11.00"));
   }
 
   @Test
@@ -128,8 +130,9 @@ class ProductCostBreakdownControllerWebMvcTest {
     mockMvc
         .perform(get(URL).with(jwt()))
         .andExpect(status().isNotFound())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
         .andExpect(jsonPath("$.status").value(404))
-        .andExpect(jsonPath("$.message").value("Product not found: 42"));
+        .andExpect(jsonPath("$.detail").value("Product not found: 42"));
   }
 
   private static Money money(String amount) {

@@ -1,6 +1,7 @@
 package aros.services.rms.infraestructure.specialselection.api.dto;
 
 import aros.services.rms.core.specialselection.domain.SuggestedPrice;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.util.List;
@@ -9,8 +10,8 @@ import java.util.stream.Collectors;
 /** Response payload containing the result of a suggested price calculation. */
 @Schema(description = "Suggested price calculation result")
 public record SuggestedPriceResponse(
-    @Schema(description = "Suggested selling price") BigDecimal suggestedPrice,
-    @Schema(description = "Total ingredient cost") BigDecimal totalCost,
+    @Schema(description = "Suggested selling price") MoneyDto suggestedPrice,
+    @Schema(description = "Total ingredient cost") MoneyDto totalCost,
     @Schema(description = "Applied margin percent") BigDecimal marginPercent,
     @Schema(description = "Cost breakdown items") List<CostBreakdownItem> breakdown) {
 
@@ -25,15 +26,18 @@ public record SuggestedPriceResponse(
       return null;
     }
     return new SuggestedPriceResponse(
-        price.getSuggestedPrice(),
-        price.getTotalCost(),
+        MoneyDto.of(price.getSuggestedPrice()),
+        MoneyDto.of(price.getTotalCost()),
         price.getMarginPercent(),
         price.getBreakdown() != null
             ? price.getBreakdown().stream()
                 .map(
                     b ->
                         new CostBreakdownItem(
-                            b.getOptionId(), b.getProductId(), b.getName(), b.getCost()))
+                            b.getOptionId(),
+                            b.getProductId(),
+                            b.getName(),
+                            MoneyDto.of(b.getCost())))
                 .collect(Collectors.toList())
             : null);
   }
@@ -44,5 +48,5 @@ public record SuggestedPriceResponse(
       @Schema(description = "Product option ID (null for base recipe)") Long optionId,
       @Schema(description = "Product ID (null for base recipe)") Long productId,
       @Schema(description = "Item display name") String name,
-      @Schema(description = "Cost") BigDecimal cost) {}
+      @Schema(description = "Cost") MoneyDto cost) {}
 }

@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import aros.services.rms.core.category.domain.OptionGroup;
 import aros.services.rms.core.category.port.input.OptionGroupUseCase;
 import aros.services.rms.core.product.port.input.ProductOptionUseCase;
+import aros.services.rms.infraestructure.common.dto.ApiEnvelopeAdvice;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +57,7 @@ class OptionGroupControllerTest {
     mockMvc =
         MockMvcBuilders.standaloneSetup(
                 new OptionGroupController(optionGroupUseCase, productOptionUseCase))
+            .setControllerAdvice(new ApiEnvelopeAdvice())
             .build();
   }
 
@@ -74,10 +76,10 @@ class OptionGroupControllerTest {
     mockMvc
         .perform(get("/api/v1/option-groups").param("search", "tamaño"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].name").value("Tamaño"))
-        .andExpect(jsonPath("$[0].selectionType").value("SINGLE_CHOICE"));
+        .andExpect(jsonPath("$.data").isArray())
+        .andExpect(jsonPath("$.data.length()").value(1))
+        .andExpect(jsonPath("$.data[0].name").value("Tamaño"))
+        .andExpect(jsonPath("$.data[0].selectionType").value("SINGLE_CHOICE"));
   }
 
   // ---------------------------------------------------------------------------
@@ -95,9 +97,9 @@ class OptionGroupControllerTest {
     mockMvc
         .perform(get("/api/v1/option-groups").param("search", ""))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].name").value("Sizes"));
+        .andExpect(jsonPath("$.data").isArray())
+        .andExpect(jsonPath("$.data.length()").value(1))
+        .andExpect(jsonPath("$.data[0].name").value("Sizes"));
   }
 
   // ---------------------------------------------------------------------------
@@ -112,8 +114,8 @@ class OptionGroupControllerTest {
     mockMvc
         .perform(get("/api/v1/option-groups").param("search", "nonexistent"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(0));
+        .andExpect(jsonPath("$.data").isArray())
+        .andExpect(jsonPath("$.data.length()").value(0));
   }
 
   // ---------------------------------------------------------------------------
@@ -131,9 +133,9 @@ class OptionGroupControllerTest {
     mockMvc
         .perform(get("/api/v1/option-groups"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].name").value("Sizes"));
+        .andExpect(jsonPath("$.data").isArray())
+        .andExpect(jsonPath("$.data.length()").value(1))
+        .andExpect(jsonPath("$.data[0].name").value("Sizes"));
   }
 
   // ---------------------------------------------------------------------------
@@ -155,10 +157,10 @@ class OptionGroupControllerTest {
     mockMvc
         .perform(get("/api/v1/option-groups").param("productId", "5"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].name").value("Proteína"))
-        .andExpect(jsonPath("$[1].name").value("Queso"));
+        .andExpect(jsonPath("$.data").isArray())
+        .andExpect(jsonPath("$.data.length()").value(2))
+        .andExpect(jsonPath("$.data[0].name").value("Proteína"))
+        .andExpect(jsonPath("$.data[1].name").value("Queso"));
   }
 
   // ---------------------------------------------------------------------------
@@ -177,10 +179,10 @@ class OptionGroupControllerTest {
     mockMvc
         .perform(get("/api/v1/option-groups").param("search", "tamaño"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].productIds").isArray())
-        .andExpect(jsonPath("$[0].productIds.length()").value(2))
-        .andExpect(jsonPath("$[0].productIds[0]").value(10))
-        .andExpect(jsonPath("$[0].productIds[1]").value(20));
+        .andExpect(jsonPath("$.data[0].productIds").isArray())
+        .andExpect(jsonPath("$.data[0].productIds.length()").value(2))
+        .andExpect(jsonPath("$.data[0].productIds[0]").value(10))
+        .andExpect(jsonPath("$.data[0].productIds[1]").value(20));
   }
 
   // ---------------------------------------------------------------------------
@@ -199,7 +201,7 @@ class OptionGroupControllerTest {
     mockMvc
         .perform(get("/api/v1/option-groups/1"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.name").value("Proteína"))
-        .andExpect(jsonPath("$.productIds.length()").value(2));
+        .andExpect(jsonPath("$.data.name").value("Proteína"))
+        .andExpect(jsonPath("$.data.productIds.length()").value(2));
   }
 }

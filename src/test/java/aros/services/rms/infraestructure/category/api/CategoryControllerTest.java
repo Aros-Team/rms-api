@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.category.port.input.CategoryUseCase;
+import aros.services.rms.infraestructure.common.dto.ApiEnvelopeAdvice;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,10 @@ class CategoryControllerTest {
 
   @BeforeEach
   void setUp() {
-    mockMvc = MockMvcBuilders.standaloneSetup(new CategoryController(categoryUseCase)).build();
+    mockMvc =
+        MockMvcBuilders.standaloneSetup(new CategoryController(categoryUseCase))
+            .setControllerAdvice(new ApiEnvelopeAdvice())
+            .build();
   }
 
   // ---------------------------------------------------------------------------
@@ -67,10 +71,10 @@ class CategoryControllerTest {
     mockMvc
         .perform(get("/api/v1/categories").param("search", "tamaño"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].name").value("Tamaño grande"))
-        .andExpect(jsonPath("$[1].name").value("Tamaño mediano"));
+        .andExpect(jsonPath("$.data").isArray())
+        .andExpect(jsonPath("$.data.length()").value(2))
+        .andExpect(jsonPath("$.data[0].name").value("Tamaño grande"))
+        .andExpect(jsonPath("$.data[1].name").value("Tamaño mediano"));
   }
 
   // ---------------------------------------------------------------------------
@@ -88,10 +92,10 @@ class CategoryControllerTest {
     mockMvc
         .perform(get("/api/v1/categories").param("search", ""))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].name").value("Entradas"))
-        .andExpect(jsonPath("$[1].name").value("Bebidas"));
+        .andExpect(jsonPath("$.data").isArray())
+        .andExpect(jsonPath("$.data.length()").value(2))
+        .andExpect(jsonPath("$.data[0].name").value("Entradas"))
+        .andExpect(jsonPath("$.data[1].name").value("Bebidas"));
   }
 
   // ---------------------------------------------------------------------------
@@ -105,8 +109,8 @@ class CategoryControllerTest {
     mockMvc
         .perform(get("/api/v1/categories").param("search", "nonexistent"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(0));
+        .andExpect(jsonPath("$.data").isArray())
+        .andExpect(jsonPath("$.data.length()").value(0));
   }
 
   // ---------------------------------------------------------------------------
@@ -124,9 +128,9 @@ class CategoryControllerTest {
     mockMvc
         .perform(get("/api/v1/categories"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].name").value("Entradas"))
-        .andExpect(jsonPath("$[1].name").value("Bebidas"));
+        .andExpect(jsonPath("$.data").isArray())
+        .andExpect(jsonPath("$.data.length()").value(2))
+        .andExpect(jsonPath("$.data[0].name").value("Entradas"))
+        .andExpect(jsonPath("$.data[1].name").value("Bebidas"));
   }
 }

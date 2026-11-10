@@ -10,7 +10,6 @@ import aros.services.rms.core.analytics.domain.PrimeCostReport.LaborBreakdown;
 import aros.services.rms.core.analytics.domain.PrimeCostReport.Margins;
 import aros.services.rms.core.analytics.domain.PrimeCostReport.Period;
 import aros.services.rms.core.analytics.domain.PrimeCostReport.PrimeCostSeries;
-import aros.services.rms.core.analytics.infrastructure.rest.dto.MoneyDto;
 import aros.services.rms.core.analytics.infrastructure.rest.dto.PrimeCostReportResponse;
 import aros.services.rms.core.analytics.infrastructure.rest.dto.PrimeCostReportResponse.CogsBreakdownResponse;
 import aros.services.rms.core.analytics.infrastructure.rest.dto.PrimeCostReportResponse.CogsCategoryResponse;
@@ -19,6 +18,7 @@ import aros.services.rms.core.analytics.infrastructure.rest.dto.PrimeCostReportR
 import aros.services.rms.core.analytics.infrastructure.rest.dto.PrimeCostReportResponse.MarginsResponse;
 import aros.services.rms.core.analytics.infrastructure.rest.dto.PrimeCostReportResponse.PeriodResponse;
 import aros.services.rms.core.analytics.infrastructure.rest.dto.PrimeCostReportResponse.PrimeCostSeriesResponse;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;

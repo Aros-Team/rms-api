@@ -98,6 +98,7 @@ class JwksControllerWebMvcTest {
         .andExpect(header().exists("Cache-Control"))
         .andExpect(header().string("X-Content-Type-Options", "nosniff"))
         .andExpect(jsonPath("$.keys[0].kty").value("RSA"))
+        .andExpect(jsonPath("$.data").doesNotExist())
         .andExpect(jsonPath("$.keys[0].kid").exists())
         .andExpect(jsonPath("$.keys[0].alg").value("RS256"))
         .andExpect(jsonPath("$.keys[0].use").value("sig"))

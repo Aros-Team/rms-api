@@ -2,6 +2,7 @@
 
 package aros.services.rms.infraestructure.payroll.api.dto;
 
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 
@@ -10,8 +11,7 @@ import java.math.BigDecimal;
 public record PayrollCalculateResponse(
     @Schema(description = "User ID", example = "1") Long userId,
     @Schema(description = "Event type", example = "OVERTIME") String eventType,
-    @Schema(description = "User's hourly rate", example = "15625") BigDecimal hourlyRate,
+    @Schema(description = "User's hourly rate") MoneyDto hourlyRate,
     @Schema(description = "Applied multiplier", example = "1.5") BigDecimal multiplier,
-    @Schema(description = "Suggested unit rate", example = "23437.50") BigDecimal suggestedUnitRate,
-    @Schema(description = "Suggested amount (quantity x unitRate)", example = "58593.75")
-        BigDecimal suggestedAmount) {}
+    @Schema(description = "Suggested unit rate") MoneyDto suggestedUnitRate,
+    @Schema(description = "Suggested amount (quantity x unitRate)") MoneyDto suggestedAmount) {}

@@ -656,3 +656,86 @@ FE TypeScript enum/union types and switch statements must be updated.
 **Migration safety:** V45-V47 additive-only; no existing tables modified.
 
 **Harness:** all 8 sections `[OK]`
+
+---
+
+## 2026-09-08 — Activity 9: Testing Policy & Compliance
+
+**Outcome:** all tasks completed, harness 8/8 `[OK]`, 579+ tests pass.
+
+**Goal:** Adopt comprehensive testing policy, add Javadoc headers to all test files, fix weak assertions.
+
+**Deliverables:**
+
+| # | Deliverable |
+|---|-------------|
+| 1 | `docs/testing.md` — comprehensive testing policy for Java/Spring Boot (mutation mindset, AAA, assertions, mocking, test file headers) |
+| 2 | `AGENTS.md` updated to reference `docs/testing.md` |
+| 3 | `harness/harness.sh` section 6c added: verifies test headers exist, no duplicates |
+| 4 | Javadoc headers added to 115+ test files (feature, expected behavior, how test works) |
+| 5 | Fixed 81 duplicate headers |
+| 6 | Fixed weak assertions: removed assertDoesNotThrow, added ArgumentCaptor for verify().save() |
+
+**Harness:** all 8 sections `[OK]`
+
+**Commit:** `4f02ccb`
+
+## 2026-11-10 — Activity 11: API Envelope, MoneyDto & Order Total
+
+**Outcome:** all tasks completed, harness 8/8 `[OK]`, 694 tests pass.
+
+**Goal:** Standardize every HTTP response on one envelope, one monetary wire type, and a server-computed order total.
+
+**Decisions (locked with user):**
+
+| Topic | Decision |
+|-------|----------|
+| 2xx envelope | `{ "data": <payload>, "meta": <optional> }` |
+| Errors | RFC 7807 `application/problem+json`, never wrapped |
+| Rollout | all controllers, single breaking change |
+| Money | one `MoneyDto` with `String amount` |
+| Order total | `OrderResponse.total` as `MoneyDto` = Σ `details[].unitPrice` |
+
+**Deliverables:**
+
+| # | Deliverable |
+|---|-------------|
+| 1 | `ApiResponse<T>` + `ApiEnvelopeAdvice` (wraps all 2xx JSON exactly once; skips 204, binary, `/.well-known`, JWKS, ProblemDetail) |
+| 2 | `ApiEnvelopeOpenApiCustomizer` documents the envelope with the concrete data schema |
+| 3 | Shared `MoneyDto` in `infraestructure/common/dto`; analytics copy deleted; all response money fields converted |
+| 4 | Dead Jackson 2 `MoneyConfig`/`MoneyJsonSerializer` retired; no domain `Money` on the wire |
+| 5 | `GlobalExceptionHandler` + `UserAdvice` migrated to `ProblemDetail` (52 + 2 handlers); `ErrorResponse` deleted |
+| 6 | `OrderResponse.total` computed by one shared helper used by `fromDomain` and the mapper |
+| 7 | 27 web test files migrated to `$.data` / `$.detail`; new envelope/JWKS/total tests |
+| 8 | `docs/contracts/api-envelope.md` for frontend coordination; architecture + analytics contracts updated |
+
+**Coordination:** frontend must unwrap `data`, switch money to `{amount, currency}` strings, read `detail` on errors, and replace `calculateTotalPrice` with `order.total`. See `docs/contracts/api-envelope.md`.
+
+**Harness:** all 8 sections `[OK]` (694 tests, 0 failures, 1 skipped)
+
+**Commit:** pending
+
+## 2026-11-10 — Activity 12: Contract Hardening (OpenAPI truth + uniform auth errors)
+
+**Outcome:** all tasks completed, harness 8/8 `[OK]`, 715 tests pass.
+
+**Problems reported:**
+1. `/v3/api-docs` published flat 200s (`*/*` media type skipped by the customizer) — spec diverged from runtime.
+2. Filter-level 401 was bodyless while application errors were RFC 7807.
+
+**Deliverables:**
+
+| # | Deliverable |
+|---|-------------|
+| 1 | `ApiEnvelopeOpenApiCustomizer` now wraps `*/*` and `application/*` (still skips JWKS/well-known) |
+| 2 | `ApiDocsEnvelopeIntegrationTest` fetches real `/v3/api-docs` and fails if ANY 2xx JSON response is flat; asserts wildcard traversal + JWKS raw |
+| 3 | `ProblemDetailAuthenticationEntryPoint` + `ProblemDetailAccessDeniedHandler` return `application/problem+json` with `type/title/status/detail/instance`; 401 preserves `WWW-Authenticate` |
+| 4 | `ProblemDetailInstanceAdvice` adds `instance` + `about:blank` type to application errors, unifying both surfaces |
+| 5 | SecurityConfig wires both handlers in all branches; security integration tests assert real 401/403 bodies |
+| 6 | `docs/contracts/api-envelope.md` + `docs/architecture.md` updated (instance, auth failures, spec truth) |
+
+**Verification:** harness all `[OK]`; 715 tests, 0 failures (1 pre-existing `@Disabled`); independent reviewer PASS.
+
+**Note:** a dev server may still be running an older build on `:8080`; restart it to serve the corrected spec.
+
+**Commit:** pending

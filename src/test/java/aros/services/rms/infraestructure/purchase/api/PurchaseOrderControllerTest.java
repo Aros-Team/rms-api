@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
 import aros.services.rms.core.purchase.port.input.GetPurchaseHistoryUseCase;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
+import aros.services.rms.infraestructure.common.dto.ApiEnvelopeAdvice;
 import aros.services.rms.infraestructure.purchase.config.RegisterPurchaseOrderService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,6 +61,7 @@ class PurchaseOrderControllerTest {
         MockMvcBuilders.standaloneSetup(
                 new PurchaseOrderController(
                     registerPurchaseOrderService, getPurchaseHistoryUseCase, currencyProvider))
+            .setControllerAdvice(new ApiEnvelopeAdvice())
             .build();
   }
 
@@ -71,10 +73,10 @@ class PurchaseOrderControllerTest {
     mockMvc
         .perform(get("/api/v1/purchases").param("search", "produce"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].id").value(10))
-        .andExpect(jsonPath("$[0].notes").value("Fresh produce delivery"));
+        .andExpect(jsonPath("$.data").isArray())
+        .andExpect(jsonPath("$.data.length()").value(1))
+        .andExpect(jsonPath("$.data[0].id").value(10))
+        .andExpect(jsonPath("$.data[0].notes").value("Fresh produce delivery"));
 
     verify(getPurchaseHistoryUseCase).findBySearch("produce");
   }
@@ -88,7 +90,7 @@ class PurchaseOrderControllerTest {
     mockMvc
         .perform(get("/api/v1/purchases").param("search", ""))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2));
+        .andExpect(jsonPath("$.data.length()").value(2));
 
     verify(getPurchaseHistoryUseCase).findAll();
     verify(getPurchaseHistoryUseCase, never()).findBySearch(anyString());
@@ -101,8 +103,8 @@ class PurchaseOrderControllerTest {
     mockMvc
         .perform(get("/api/v1/purchases").param("search", "nonexistent"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(0));
+        .andExpect(jsonPath("$.data").isArray())
+        .andExpect(jsonPath("$.data.length()").value(0));
   }
 
   @Test
@@ -117,7 +119,7 @@ class PurchaseOrderControllerTest {
                 .param("from", "2026-01-01")
                 .param("to", "2026-01-31"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].id").value(10));
+        .andExpect(jsonPath("$.data[0].id").value(10));
 
     verify(getPurchaseHistoryUseCase).findBySearch("produce");
     verify(getPurchaseHistoryUseCase, never()).findByDateRange(any(), any());
@@ -131,8 +133,8 @@ class PurchaseOrderControllerTest {
     mockMvc
         .perform(get("/api/v1/purchases").param("supplierId", "7").param("search", "ignored"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].id").value(12))
-        .andExpect(jsonPath("$[0].supplierId").value(7));
+        .andExpect(jsonPath("$.data[0].id").value(12))
+        .andExpect(jsonPath("$.data[0].supplierId").value(7));
 
     verify(getPurchaseHistoryUseCase).findBySupplierId(7L);
     verify(getPurchaseHistoryUseCase, never()).findBySearch(anyString());

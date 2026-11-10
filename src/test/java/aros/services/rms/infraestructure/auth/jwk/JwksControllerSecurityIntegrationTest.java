@@ -2,7 +2,12 @@
 
 package aros.services.rms.infraestructure.auth.jwk;
 
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import aros.services.rms.infraestructure.user.config.AdminInitializer;
@@ -13,10 +18,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 /**
  * Tests for {@link JwksController}.
@@ -85,5 +92,55 @@ class JwksControllerSecurityIntegrationTest {
   @Test
   void shouldRejectAccessToProtectedEndpoint() throws Exception {
     mockMvc.perform(get("/api/auth")).andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void should_return_problem_detail_body_when_unauthenticated() throws Exception {
+    MvcResult result =
+        mockMvc
+            .perform(get("/api/auth"))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("about:blank"))
+            .andExpect(jsonPath("$.title").value("Unauthorized"))
+            .andExpect(jsonPath("$.status").value(401))
+            .andExpect(jsonPath("$.detail").isNotEmpty())
+            .andExpect(jsonPath("$.instance").value("/api/auth"))
+            .andReturn();
+
+    String body = result.getResponse().getContentAsString();
+    assertTrue(!body.isEmpty(), "unauthenticated response must carry a body");
+    assertNotEquals(0, result.getResponse().getContentLength(), "Content-Length must not be 0");
+  }
+
+  @Test
+  void should_return_problem_detail_when_authenticated_user_lacks_admin_role() throws Exception {
+    // The 403 here is produced by method security (@PreAuthorize) and rendered by
+    // GlobalExceptionHandler, not by the URL-based AccessDeniedHandler. The filter-level
+    // AccessDeniedHandler is covered directly by ProblemDetailAccessDeniedHandlerTest.
+    MvcResult result =
+        mockMvc
+            .perform(
+                get("/api/v1/analytics/config")
+                    .with(
+                        jwt()
+                            .jwt(
+                                token ->
+                                    token
+                                        .subject("worker@rms.local")
+                                        .claim("role", "WORKER")
+                                        .claim("type", "access"))))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("about:blank"))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.detail").isNotEmpty())
+            .andExpect(jsonPath("$.instance").value("/api/v1/analytics/config"))
+            .andReturn();
+
+    String body = result.getResponse().getContentAsString();
+    assertTrue(!body.isEmpty(), "forbidden response must carry a body");
+    assertNotEquals(0, result.getResponse().getContentLength(), "Content-Length must not be 0");
   }
 }

@@ -7,8 +7,10 @@ import static org.mockito.Mockito.verify;
 
 import aros.services.rms.core.common.notification.port.output.NotificationPort;
 import aros.services.rms.core.specialselection.domain.ChangeType;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import aros.services.rms.infraestructure.specialselection.api.dto.SpecialSelectionResponse;
 import aros.services.rms.infraestructure.specialselection.api.dto.SpecialSelectionUpdateEvent;
+import java.math.BigDecimal;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -102,7 +104,7 @@ class SpecialSelectionNotificationServiceTest {
         productId,
         "Test Selection",
         "Desc",
-        10.0,
+        MoneyDto.of(BigDecimal.TEN),
         active,
         1L,
         "SPECIAL_SELECTION",

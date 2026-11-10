@@ -13,6 +13,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -132,12 +133,12 @@ class PayrollEventControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.userId").value(1))
-        .andExpect(jsonPath("$.eventType").value("OVERTIME"))
-        .andExpect(jsonPath("$.hourlyRate").value(15625))
-        .andExpect(jsonPath("$.multiplier").value(1.5))
-        .andExpect(jsonPath("$.suggestedUnitRate").value(23437.50))
-        .andExpect(jsonPath("$.suggestedAmount").value(58593.75));
+        .andExpect(jsonPath("$.data.userId").value(1))
+        .andExpect(jsonPath("$.data.eventType").value("OVERTIME"))
+        .andExpect(jsonPath("$.data.hourlyRate.amount").value("15625"))
+        .andExpect(jsonPath("$.data.multiplier").value(1.5))
+        .andExpect(jsonPath("$.data.suggestedUnitRate.amount").value("23437.50"))
+        .andExpect(jsonPath("$.data.suggestedAmount.amount").value("58593.75"));
   }
 
   // ---------------------------------------------------------------------------
@@ -169,12 +170,12 @@ class PayrollEventControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.userId").value(1))
-        .andExpect(jsonPath("$.eventType").value("BONUS_PERFORMANCE"))
-        .andExpect(jsonPath("$.hourlyRate").value(15625))
-        .andExpect(jsonPath("$.multiplier").doesNotExist())
-        .andExpect(jsonPath("$.suggestedUnitRate").doesNotExist())
-        .andExpect(jsonPath("$.suggestedAmount").doesNotExist());
+        .andExpect(jsonPath("$.data.userId").value(1))
+        .andExpect(jsonPath("$.data.eventType").value("BONUS_PERFORMANCE"))
+        .andExpect(jsonPath("$.data.hourlyRate.amount").value("15625"))
+        .andExpect(jsonPath("$.data.multiplier").doesNotExist())
+        .andExpect(jsonPath("$.data.suggestedUnitRate").doesNotExist())
+        .andExpect(jsonPath("$.data.suggestedAmount").doesNotExist());
   }
 
   // ---------------------------------------------------------------------------
@@ -264,13 +265,13 @@ class PayrollEventControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").value(1))
-        .andExpect(jsonPath("$.userId").value(1))
-        .andExpect(jsonPath("$.eventType").value("OVERTIME"))
-        .andExpect(jsonPath("$.quantity").value(2.5))
-        .andExpect(jsonPath("$.unitRate").value(23437.50))
-        .andExpect(jsonPath("$.amount").value(58593.75))
-        .andExpect(jsonPath("$.notes").value("Weekend extra"));
+        .andExpect(jsonPath("$.data.id").value(1))
+        .andExpect(jsonPath("$.data.userId").value(1))
+        .andExpect(jsonPath("$.data.eventType").value("OVERTIME"))
+        .andExpect(jsonPath("$.data.quantity").value(2.5))
+        .andExpect(jsonPath("$.data.unitRate.amount").value("23437.50"))
+        .andExpect(jsonPath("$.data.amount.amount").value("58593.75"))
+        .andExpect(jsonPath("$.data.notes").value("Weekend extra"));
   }
 
   // ---------------------------------------------------------------------------
@@ -314,11 +315,11 @@ class PayrollEventControllerTest {
                 .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].id").value(1))
-        .andExpect(jsonPath("$[0].eventType").value("OVERTIME"))
-        .andExpect(jsonPath("$[1].id").value(2))
-        .andExpect(jsonPath("$[1].eventType").value("BONUS_ATTENDANCE"));
+        .andExpect(jsonPath("$.data.length()").value(2))
+        .andExpect(jsonPath("$.data[0].id").value(1))
+        .andExpect(jsonPath("$.data[0].eventType").value("OVERTIME"))
+        .andExpect(jsonPath("$.data[1].id").value(2))
+        .andExpect(jsonPath("$.data[1].eventType").value("BONUS_ATTENDANCE"));
   }
 
   // ---------------------------------------------------------------------------
@@ -360,7 +361,8 @@ class PayrollEventControllerTest {
 
     mockMvc
         .perform(delete("/api/v1/payroll/events/99").with(jwt()))
-        .andExpect(status().isNotFound());
+        .andExpect(status().isNotFound())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
   }
 
   // ---------------------------------------------------------------------------
@@ -400,6 +402,6 @@ class PayrollEventControllerTest {
                 .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(0));
+        .andExpect(jsonPath("$.data.length()").value(0));
   }
 }

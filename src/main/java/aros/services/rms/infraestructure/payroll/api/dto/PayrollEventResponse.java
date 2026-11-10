@@ -3,6 +3,7 @@
 package aros.services.rms.infraestructure.payroll.api.dto;
 
 import aros.services.rms.core.payroll.domain.PayrollEvent;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -16,8 +17,8 @@ public record PayrollEventResponse(
     @Schema(description = "Event date", example = "2026-08-01") LocalDate eventDate,
     @Schema(description = "Event type", example = "OVERTIME") String eventType,
     @Schema(description = "Quantity", example = "2.5") BigDecimal quantity,
-    @Schema(description = "Unit rate", example = "25000") BigDecimal unitRate,
-    @Schema(description = "Total amount", example = "62500") BigDecimal amount,
+    @Schema(description = "Unit rate") MoneyDto unitRate,
+    @Schema(description = "Total amount") MoneyDto amount,
     @Schema(description = "Optional notes") String notes,
     @Schema(description = "Creation timestamp", example = "2026-08-01T10:30:00Z") Instant createdAt,
     @Schema(description = "Created by") String createdBy) {
@@ -33,8 +34,8 @@ public record PayrollEventResponse(
         event.eventDate(),
         event.eventType() != null ? event.eventType().name() : null,
         event.quantity(),
-        event.unitRate(),
-        event.amount(),
+        MoneyDto.of(event.unitRate()),
+        MoneyDto.of(event.amount()),
         event.notes(),
         event.createdAt(),
         event.createdBy());

@@ -13,6 +13,7 @@ import aros.services.rms.core.purchase.domain.Supplier;
 import aros.services.rms.core.purchase.port.input.CreateSupplierUseCase;
 import aros.services.rms.core.purchase.port.input.GetSuppliersUseCase;
 import aros.services.rms.core.purchase.port.input.UpdateSupplierUseCase;
+import aros.services.rms.infraestructure.common.dto.ApiEnvelopeAdvice;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,7 @@ class SupplierControllerTest {
         MockMvcBuilders.standaloneSetup(
                 new SupplierController(
                     createSupplierUseCase, updateSupplierUseCase, getSuppliersUseCase))
+            .setControllerAdvice(new ApiEnvelopeAdvice())
             .build();
   }
 
@@ -70,10 +72,10 @@ class SupplierControllerTest {
     mockMvc
         .perform(get("/api/v1/suppliers").param("search", "mayorista"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].id").value(1))
-        .andExpect(jsonPath("$[0].name").value("Distribuidora Mayorista"));
+        .andExpect(jsonPath("$.data").isArray())
+        .andExpect(jsonPath("$.data.length()").value(1))
+        .andExpect(jsonPath("$.data[0].id").value(1))
+        .andExpect(jsonPath("$.data[0].name").value("Distribuidora Mayorista"));
 
     verify(getSuppliersUseCase).findByNameContainingIgnoreCase("mayorista");
   }
@@ -89,7 +91,7 @@ class SupplierControllerTest {
     mockMvc
         .perform(get("/api/v1/suppliers").param("search", ""))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2));
+        .andExpect(jsonPath("$.data.length()").value(2));
 
     verify(getSuppliersUseCase).findAll();
     verify(getSuppliersUseCase, never()).findByNameContainingIgnoreCase("");
@@ -102,7 +104,7 @@ class SupplierControllerTest {
     mockMvc
         .perform(get("/api/v1/suppliers").param("search", "nonexistent"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isArray())
-        .andExpect(jsonPath("$.length()").value(0));
+        .andExpect(jsonPath("$.data").isArray())
+        .andExpect(jsonPath("$.data.length()").value(0));
   }
 }

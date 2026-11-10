@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -130,12 +131,13 @@ class PayrollSettlementControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").value(1))
-        .andExpect(jsonPath("$.payrollId").value(10))
-        .andExpect(jsonPath("$.userId").value(1))
-        .andExpect(jsonPath("$.settlementType").value("MONTHLY"))
-        .andExpect(jsonPath("$.amount").value(2500000))
-        .andExpect(jsonPath("$.notes").value("August salary"));
+        .andExpect(jsonPath("$.data.id").value(1))
+        .andExpect(jsonPath("$.data.payrollId").value(10))
+        .andExpect(jsonPath("$.data.userId").value(1))
+        .andExpect(jsonPath("$.data.settlementType").value("MONTHLY"))
+        .andExpect(jsonPath("$.data.amount.amount").value("2500000"))
+        .andExpect(jsonPath("$.data.amount.currency").value("COP"))
+        .andExpect(jsonPath("$.data.notes").value("August salary"));
   }
 
   // ---------------------------------------------------------------------------
@@ -179,11 +181,11 @@ class PayrollSettlementControllerTest {
                 .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].id").value(1))
-        .andExpect(jsonPath("$[0].settlementType").value("MONTHLY"))
-        .andExpect(jsonPath("$[1].id").value(2))
-        .andExpect(jsonPath("$[1].settlementType").value("BIWEEKLY"));
+        .andExpect(jsonPath("$.data.length()").value(2))
+        .andExpect(jsonPath("$.data[0].id").value(1))
+        .andExpect(jsonPath("$.data[0].settlementType").value("MONTHLY"))
+        .andExpect(jsonPath("$.data[1].id").value(2))
+        .andExpect(jsonPath("$.data[1].settlementType").value("BIWEEKLY"));
   }
 
   // ---------------------------------------------------------------------------
@@ -219,7 +221,8 @@ class PayrollSettlementControllerTest {
                 .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
   }
 
   // ---------------------------------------------------------------------------
@@ -237,6 +240,6 @@ class PayrollSettlementControllerTest {
                 .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(0));
+        .andExpect(jsonPath("$.data.length()").value(0));
   }
 }

@@ -2,7 +2,7 @@
 
 package aros.services.rms.infraestructure.product.api.dto;
 
-import aros.services.rms.core.common.money.domain.Money;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
@@ -11,22 +11,22 @@ import java.util.List;
 public record ProductCostBreakdownResponse(
     @Schema(description = "Product ID", example = "1") Long productId,
     @Schema(description = "Product name", example = "Hamburguesa Clásica") String name,
-    @Schema(description = "Base recipe material cost") Money baseCost,
+    @Schema(description = "Base recipe material cost") MoneyDto baseCost,
     @Schema(description = "Associated options and their material costs")
         List<OptionCostResponse> options,
     @Schema(description = "Option-category projected contributions")
         List<CategoryCostResponse> categories,
     @Schema(description = "Sum of projected option-category contributions")
-        Money projectedOptionCost,
-    @Schema(description = "Base cost plus projected option cost") Money projectedEffectiveCost) {
+        MoneyDto projectedOptionCost,
+    @Schema(description = "Base cost plus projected option cost") MoneyDto projectedEffectiveCost) {
 
   /** One associated option with material cost and configured surcharge. */
   @Schema(description = "Associated product option cost")
   public record OptionCostResponse(
       @Schema(description = "Option ID", example = "3") Long optionId,
       @Schema(description = "Option name", example = "Pollo") String name,
-      @Schema(description = "Pure option material cost") Money cost,
-      @Schema(description = "Configured product surcharge") Money extraPrice,
+      @Schema(description = "Pure option material cost") MoneyDto cost,
+      @Schema(description = "Configured product surcharge") MoneyDto extraPrice,
       @Schema(description = "Option category ID", example = "2") Long categoryId,
       @Schema(description = "Category selection mode", example = "SINGLE_CHOICE")
           String categorySelectionType) {}
@@ -39,9 +39,9 @@ public record ProductCostBreakdownResponse(
       @Schema(description = "Category selection mode", example = "SINGLE_CHOICE")
           String selectionType,
       @Schema(description = "Base-recipe material cost replaced by this category")
-          Money defaultSlotCost,
+          MoneyDto defaultSlotCost,
       @Schema(description = "Projected material cost for this category slot")
-          Money slotProjectedCost,
+          MoneyDto slotProjectedCost,
       @Schema(description = "Projected category contribution over the base recipe")
-          Money projectedContribution) {}
+          MoneyDto projectedContribution) {}
 }

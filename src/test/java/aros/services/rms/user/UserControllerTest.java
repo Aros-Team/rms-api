@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -194,8 +195,9 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(VALID_CHANGE_PASSWORD_BODY))
         .andExpect(status().isBadRequest())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
         .andExpect(jsonPath("$.status").value(400))
-        .andExpect(jsonPath("$.message").isNotEmpty());
+        .andExpect(jsonPath("$.detail").isNotEmpty());
   }
 
   // ---------------------------------------------------------------------------
@@ -219,7 +221,7 @@ class UserControllerTest {
                 .content(VALID_CHANGE_PASSWORD_BODY))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value(400))
-        .andExpect(jsonPath("$.message").isNotEmpty());
+        .andExpect(jsonPath("$.detail").isNotEmpty());
   }
 
   // ---------------------------------------------------------------------------
@@ -243,6 +245,6 @@ class UserControllerTest {
                 .content(VALID_CHANGE_PASSWORD_BODY))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value(400))
-        .andExpect(jsonPath("$.message").isNotEmpty());
+        .andExpect(jsonPath("$.detail").isNotEmpty());
   }
 }

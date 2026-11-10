@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -116,12 +117,12 @@ class AnalyticsConfigControllerWebMvcTest {
     mockMvc
         .perform(get(URL).with(adminJwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(1))
-        .andExpect(jsonPath("$.defaultOpen").value("11:00:00"))
-        .andExpect(jsonPath("$.defaultClose").value("23:00:00"))
-        .andExpect(jsonPath("$.foodCostDeviationPp").value(2.00))
-        .andExpect(jsonPath("$.laborCostDeviationPp").value(3.00))
-        .andExpect(jsonPath("$.salesDropYoyPct").value(10.00));
+        .andExpect(jsonPath("$.data.id").value(1))
+        .andExpect(jsonPath("$.data.defaultOpen").value("11:00:00"))
+        .andExpect(jsonPath("$.data.defaultClose").value("23:00:00"))
+        .andExpect(jsonPath("$.data.foodCostDeviationPp").value(2.00))
+        .andExpect(jsonPath("$.data.laborCostDeviationPp").value(3.00))
+        .andExpect(jsonPath("$.data.salesDropYoyPct").value(10.00));
   }
 
   // ---------------------------------------------------------------------------
@@ -172,7 +173,7 @@ class AnalyticsConfigControllerWebMvcTest {
     mockMvc
         .perform(patch(URL).with(adminJwt()).contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(1));
+        .andExpect(jsonPath("$.data.id").value(1));
   }
 
   // ---------------------------------------------------------------------------
@@ -198,7 +199,8 @@ class AnalyticsConfigControllerWebMvcTest {
 
     mockMvc
         .perform(patch(URL).with(adminJwt()).contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
   }
 
   // ---------------------------------------------------------------------------

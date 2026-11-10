@@ -208,6 +208,6 @@ class AuthSecurityTest {
         .perform(post("/api/auth/refresh").header("Authorization", "Bearer refresh-token"))
         .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.status").value(401))
-        .andExpect(jsonPath("$.message").value("Refresh token expired or revoked"));
+        .andExpect(jsonPath("$.detail").value("Refresh token expired or revoked"));
   }
 }

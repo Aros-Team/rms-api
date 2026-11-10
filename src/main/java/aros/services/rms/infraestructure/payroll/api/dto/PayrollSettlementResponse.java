@@ -3,8 +3,8 @@
 package aros.services.rms.infraestructure.payroll.api.dto;
 
 import aros.services.rms.core.payroll.domain.PayrollSettlement;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -17,7 +17,7 @@ public record PayrollSettlementResponse(
     @Schema(description = "Settlement type", example = "MONTHLY") String settlementType,
     @Schema(description = "Period start", example = "2026-08-01") LocalDate periodStart,
     @Schema(description = "Period end", example = "2026-08-31") LocalDate periodEnd,
-    @Schema(description = "Amount", example = "2500000") BigDecimal amount,
+    @Schema(description = "Amount") MoneyDto amount,
     @Schema(description = "Optional notes") String notes,
     @Schema(description = "Settlement timestamp", example = "2026-08-31T10:30:00Z")
         Instant settledAt,
@@ -35,7 +35,7 @@ public record PayrollSettlementResponse(
         settlement.settlementType() != null ? settlement.settlementType().name() : null,
         settlement.periodStart(),
         settlement.periodEnd(),
-        settlement.amount(),
+        MoneyDto.of(settlement.amount()),
         settlement.notes(),
         settlement.settledAt(),
         settlement.settledBy());

@@ -196,9 +196,9 @@ class WorkerControllerTest {
     mockMvc
         .perform(get(WORKERS_URL).header("Authorization", "Bearer token"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].name").value("Worker One"))
-        .andExpect(jsonPath("$[1].name").value("Worker Two"));
+        .andExpect(jsonPath("$.data.length()").value(2))
+        .andExpect(jsonPath("$.data[0].name").value("Worker One"))
+        .andExpect(jsonPath("$.data[1].name").value("Worker Two"));
   }
 
   // ---------------------------------------------------------------------------
@@ -214,7 +214,7 @@ class WorkerControllerTest {
     mockMvc
         .perform(get(WORKERS_URL).header("Authorization", "Bearer token"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isEmpty());
+        .andExpect(jsonPath("$.data").isEmpty());
   }
 
   // ---------------------------------------------------------------------------
@@ -232,9 +232,9 @@ class WorkerControllerTest {
     mockMvc
         .perform(get(WORKERS_URL).param("search", "Doe").header("Authorization", "Bearer token"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].name").value("John Doe"))
-        .andExpect(jsonPath("$[1].name").value("Jane Doe"));
+        .andExpect(jsonPath("$.data.length()").value(2))
+        .andExpect(jsonPath("$.data[0].name").value("John Doe"))
+        .andExpect(jsonPath("$.data[1].name").value("Jane Doe"));
   }
 
   // ---------------------------------------------------------------------------
@@ -251,8 +251,8 @@ class WorkerControllerTest {
     mockMvc
         .perform(get(WORKERS_URL).param("search", "1234").header("Authorization", "Bearer token"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].name").value("John Doe"));
+        .andExpect(jsonPath("$.data.length()").value(1))
+        .andExpect(jsonPath("$.data[0].name").value("John Doe"));
   }
 
   // ---------------------------------------------------------------------------
@@ -269,7 +269,7 @@ class WorkerControllerTest {
         .perform(
             get(WORKERS_URL).param("search", "nonexistent").header("Authorization", "Bearer token"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$").isEmpty());
+        .andExpect(jsonPath("$.data").isEmpty());
   }
 
   // ---------------------------------------------------------------------------
@@ -287,7 +287,7 @@ class WorkerControllerTest {
     mockMvc
         .perform(get(WORKERS_URL).param("search", "").header("Authorization", "Bearer token"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2));
+        .andExpect(jsonPath("$.data.length()").value(2));
   }
 
   // ---------------------------------------------------------------------------
@@ -309,8 +309,8 @@ class WorkerControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(VALID_CREATE_BODY))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").value(1L))
-        .andExpect(jsonPath("$.name").value("New Worker"));
+        .andExpect(jsonPath("$.data.id").value(1L))
+        .andExpect(jsonPath("$.data.name").value("New Worker"));
   }
 
   // ---------------------------------------------------------------------------
@@ -368,7 +368,7 @@ class WorkerControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(VALID_UPDATE_BODY))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.name").value("Updated Worker"));
+        .andExpect(jsonPath("$.data.name").value("Updated Worker"));
   }
 
   // ---------------------------------------------------------------------------
@@ -441,9 +441,9 @@ class WorkerControllerTest {
     mockMvc
         .perform(get(SALARY_HISTORY_URL, 1L).header("Authorization", "Bearer token"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].oldSalary").value(2500000))
-        .andExpect(jsonPath("$[0].newSalary").value(3000000))
-        .andExpect(jsonPath("$[1].oldSalary").doesNotExist());
+        .andExpect(jsonPath("$.data[0].oldSalary.amount").value("2500000.00"))
+        .andExpect(jsonPath("$.data[0].newSalary.amount").value("3000000.00"))
+        .andExpect(jsonPath("$.data[1].oldSalary").doesNotExist());
   }
 
   // ---------------------------------------------------------------------------

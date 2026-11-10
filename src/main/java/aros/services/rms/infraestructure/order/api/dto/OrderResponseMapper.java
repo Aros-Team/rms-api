@@ -11,10 +11,12 @@ import aros.services.rms.core.specialselection.domain.SpecialSelectionAddition;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionQuestion;
 import aros.services.rms.core.specialselection.port.output.SpecialSelectionRepositoryPort;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import aros.services.rms.infraestructure.order.api.dto.OrderResponse.ClarificationResponse;
 import aros.services.rms.infraestructure.order.api.dto.OrderResponse.OrderDetailResponse;
 import aros.services.rms.infraestructure.order.api.dto.OrderResponse.SelectedAdditionResponse;
 import aros.services.rms.infraestructure.order.api.dto.OrderResponse.SelectedProductResponse;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +60,7 @@ public class OrderResponseMapper {
         order.getPartySize(),
         order.getOpenTime(),
         order.getCloseTime(),
+        OrderResponse.calculateTotal(order.getDetails()),
         details);
   }
 
@@ -76,8 +79,8 @@ public class OrderResponseMapper {
         detail.getId(),
         detail.getProduct() != null ? detail.getProduct().getId() : null,
         detail.getProduct() != null ? detail.getProduct().getName() : null,
-        detail.getUnitPrice() != null ? detail.getUnitPrice().amount().doubleValue() : null,
-        detail.getExtraCharge() != null ? detail.getExtraCharge().amount().doubleValue() : null,
+        detail.getUnitPrice() != null ? MoneyDto.of(detail.getUnitPrice()) : null,
+        detail.getExtraCharge() != null ? MoneyDto.of(detail.getExtraCharge()) : null,
         detail.getInstructions(),
         detail.getSelectedOptions() != null
             ? detail.getSelectedOptions().stream()
@@ -146,9 +149,7 @@ public class OrderResponseMapper {
               return new SelectedProductResponse(
                   product.getId(),
                   product.getName(),
-                  product.getBasePrice() != null
-                      ? product.getBasePrice().amount().doubleValue()
-                      : null);
+                  product.getBasePrice() != null ? MoneyDto.of(product.getBasePrice()) : null);
             })
         .collect(Collectors.toList());
   }
@@ -166,7 +167,13 @@ public class OrderResponseMapper {
                 return new SelectedAdditionResponse(id, null, null);
               }
               return new SelectedAdditionResponse(
-                  addition.getId(), addition.getName(), addition.getExtraPrice());
+                  addition.getId(),
+                  addition.getName(),
+                  addition.getExtraPrice() != null
+                      ? MoneyDto.of(
+                          BigDecimal.valueOf(addition.getExtraPrice())
+                              .setScale(2, java.math.RoundingMode.HALF_UP))
+                      : null);
             })
         .collect(Collectors.toList());
   }

@@ -85,6 +85,20 @@ Never `System.out.println`. Never `LoggerFactory.getLogger()` outside `infrastru
 - Document failure modes with `@ApiResponse`.
 - Swagger UI: <http://localhost:8080/swagger-ui/index.html>.
 
+### Response contract (see `docs/contracts/api-envelope.md`)
+
+- **2xx JSON**: always the single envelope `{ "data": <payload>, "meta": <optional> }`.
+  Applied once by `ApiEnvelopeAdvice`; controllers return their DTOs, not the envelope.
+- **4xx/5xx**: RFC 7807 `application/problem+json` (`ProblemDetail`) with `type`, `title`,
+  `status`, `detail`, and `instance`. Errors are never enveloped. Filter-level 401/403 use the same
+  shape (401 keeps `WWW-Authenticate`).
+- **204 / binary / `/.well-known/jwks.json`**: not enveloped.
+- **Money**: only `MoneyDto` — `{ "amount": "123.45", "currency": "COP" }`, `amount` always a
+  decimal **string**. Percentages/ratios/quantities stay numeric.
+- OpenAPI is adjusted by `ApiEnvelopeOpenApiCustomizer` (including `*/*` media types);
+  `ApiDocsEnvelopeIntegrationTest` fails if any 2xx operation is published flat. Never wrap a body
+  manually.
+
 ## Build & run
 
 | Activity | Command |

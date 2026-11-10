@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -142,10 +143,11 @@ class PayrollControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.id").value(1))
-        .andExpect(jsonPath("$.userId").value(1))
-        .andExpect(jsonPath("$.status").value("PENDING"))
-        .andExpect(jsonPath("$.netAmount").value(2550000.0));
+        .andExpect(jsonPath("$.data.id").value(1))
+        .andExpect(jsonPath("$.data.userId").value(1))
+        .andExpect(jsonPath("$.data.status").value("PENDING"))
+        .andExpect(jsonPath("$.data.netAmount.amount").value("2550000.00"))
+        .andExpect(jsonPath("$.data.netAmount.currency").value("COP"));
   }
 
   // ---------------------------------------------------------------------------
@@ -169,7 +171,8 @@ class PayrollControllerTest {
                 .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(invalidRequestJson))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
   }
 
   // ---------------------------------------------------------------------------
@@ -186,9 +189,9 @@ class PayrollControllerTest {
     mockMvc
         .perform(get("/api/v1/payroll/worker/1/2026/7").with(jwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(1))
-        .andExpect(jsonPath("$.userId").value(1))
-        .andExpect(jsonPath("$.status").value("PENDING"));
+        .andExpect(jsonPath("$.data.id").value(1))
+        .andExpect(jsonPath("$.data.userId").value(1))
+        .andExpect(jsonPath("$.data.status").value("PENDING"));
   }
 
   // ---------------------------------------------------------------------------
@@ -205,9 +208,9 @@ class PayrollControllerTest {
     mockMvc
         .perform(get("/api/v1/payroll").with(jwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].id").value(1))
-        .andExpect(jsonPath("$[1].id").value(2));
+        .andExpect(jsonPath("$.data.length()").value(2))
+        .andExpect(jsonPath("$.data[0].id").value(1))
+        .andExpect(jsonPath("$.data[1].id").value(2));
   }
 
   // ---------------------------------------------------------------------------
