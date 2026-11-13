@@ -5,6 +5,7 @@ package aros.services.rms.infraestructure.systemconfig.persistence;
 import aros.services.rms.core.systemconfig.domain.SystemConfiguration;
 import aros.services.rms.core.systemconfig.domain.SystemConfigurationGroup;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
 /** Mapper for SystemConfiguration persistence operations. */
@@ -20,6 +21,12 @@ public abstract class SystemConfigurationMapper {
   /** Converts a SystemConfigurationGroupEntity to a SystemConfigurationGroup domain object. */
   public abstract SystemConfigurationGroup toDomainGroup(SystemConfigurationGroupEntity entity);
 
-  /** Converts a SystemConfigurationGroup domain object to a SystemConfigurationGroupEntity. */
+  /**
+   * Converts a SystemConfigurationGroup domain object to a SystemConfigurationGroupEntity.
+   *
+   * <p>The {@code createdAt} timestamp is owned by the entity lifecycle callback
+   * ({@code @PrePersist}), not by the mapper, so it is ignored here.
+   */
+  @Mapping(target = "createdAt", ignore = true)
   public abstract SystemConfigurationGroupEntity toEntityGroup(SystemConfigurationGroup domain);
 }

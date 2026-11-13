@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.Instant;
 
@@ -28,8 +29,14 @@ public class SystemConfigurationGroupEntity {
   @Column(name = "sort_order", nullable = false)
   private Integer sortOrder;
 
-  @Column(name = "created_at", nullable = false)
+  @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
+
+  /** Sets the creation timestamp before persisting. */
+  @PrePersist
+  protected void onCreate() {
+    createdAt = Instant.now();
+  }
 
   public Long getId() {
     return id;

@@ -739,3 +739,22 @@ FE TypeScript enum/union types and switch statements must be updated.
 **Note:** a dev server may still be running an older build on `:8080`; restart it to serve the corrected spec.
 
 **Commit:** pending
+
+---
+
+## 2026-11-12 — Activity: fix-systemconfig-group-createdat
+
+**Outcome:** harness 8/8 `[OK]`, MapStruct warning gone, full test suite green.
+
+**Problem:** `compileJava` warned `Unmapped target property: "createdAt"` on `SystemConfigurationMapper.toEntityGroup(SystemConfigurationGroup)`. `SystemConfigurationGroupEntity.createdAt` was `@Column(nullable = false)` with nothing populating it, so any JPA insert of a group would send `NULL` and violate the NOT NULL constraint (the `DEFAULT CURRENT_TIMESTAMP` in `V48__create_system_configuration_groups.sql` is bypassed by an explicit NULL). Dormant only because the adapter currently reads groups, never writes them.
+
+**Change (server-managed timestamp, mirrors `PayrollEventEntity`):**
+- `SystemConfigurationGroupEntity`: added `@PrePersist protected void onCreate() { createdAt = Instant.now(); }`, column now `nullable = false, updatable = false`.
+- `SystemConfigurationMapper.toEntityGroup`: `@Mapping(target = "createdAt", ignore = true)` + Javadoc explaining the entity lifecycle callback owns the field.
+- New `SystemConfigurationMapperTest` (2 tests): field-by-field mapping with `createdAt` still null; `onCreate()` sets a timestamp inside a captured `Instant.now()` range.
+
+**Verification:** `./gradlew compileJava --rerun-tasks` → no warnings at all; `./gradlew test` green; `./harness/harness.sh` all sections `[OK]`.
+
+**Files:** 2 modified sources + 1 new test. No migrations, no domain change (domain still has no `createdAt`).
+
+**Task breakdown:** t1-entity-timestamp (implementer).
