@@ -1,5 +1,20 @@
 # Changelog
 
+## [v2.3.0](https://github.com/Aros-Team/rms-api/releases/tag/v2.3.0)
+
+### Features
+
+- **supplies**: paginate supply variants get-all endpoint
+- **product**: add PUT /api/v1/products/{id}/enable endpoint
+- **manage**: add ?search= query param to 10 manage list endpoints
+- **options**: cost projection + selection modes + substitution/REMOVE
+- **option-group**: Product-OptionGroup M:N association with required flag
+
+### Bug Fixes
+
+- **supplies**: return unitCost in supply variant GET response
+- **products**: resolve primary image URL in findAll via batch query
+
 ## [v2.2.0](https://github.com/Aros-Team/rms-api/releases/tag/v2.2.0)
 
 ### Features
