@@ -38,8 +38,7 @@ public record UpdateUserRequest(
         @Email(message = "Enter a valid email address")
         @Size(max = 100, message = "Email must have at most 100 characters")
         String email,
-    @Schema(description = "Address", example = "123 Main Street")
-        @NotBlank(message = "Required field")
+    @Schema(description = "Address (optional, max 200 chars)", example = "123 Main Street")
         @Size(max = 200, message = "Address must have at most 200 characters")
         String address,
     @Schema(description = "Phone number (10 digits)", example = "3001234567")

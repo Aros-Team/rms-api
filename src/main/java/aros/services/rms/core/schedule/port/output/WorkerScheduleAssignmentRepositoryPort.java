@@ -24,6 +24,9 @@ public interface WorkerScheduleAssignmentRepositoryPort {
   /** Deletes an assignment by its id. */
   void delete(WorkerScheduleAssignmentId id);
 
+  /** Deletes the assignment that links the given worker to the given schedule. */
+  void deleteByWorkerIdAndScheduleId(UserId workerId, ScheduleId scheduleId);
+
   /** Checks whether any assignment exists for the given schedule. */
   boolean existsByScheduleId(ScheduleId scheduleId);
 }

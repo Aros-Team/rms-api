@@ -44,7 +44,6 @@ public class CreateSpecialSelectionService implements CreateSpecialSelectionUseC
   public SpecialSelectionConfiguration execute(
       SpecialSelectionConfiguration config, String createdBy) {
     config.setSelectionType(SelectionType.SPECIAL_SELECTION);
-    config.setActive(true);
 
     validator.validateConfiguration(config);
 

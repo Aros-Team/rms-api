@@ -447,6 +447,40 @@ class WorkerControllerTest {
   }
 
   // ---------------------------------------------------------------------------
+  // CT-S02: shouldReturn200_whenWorkerReadsOwnSalaryHistory
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn200_whenWorkerReadsOwnSalaryHistory() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createJwt("access", "WORKER", "wk1@test.com"));
+
+    User worker = createWorker(1L, "Worker One", "wk1@test.com");
+    when(userRepositoryPort.findByEmail("wk1@test.com")).thenReturn(java.util.Optional.of(worker));
+    when(getSalaryHistoryUseCase.getSalaryHistory(1L)).thenReturn(List.of());
+
+    mockMvc
+        .perform(get(SALARY_HISTORY_URL, 1L).header("Authorization", "Bearer token"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data").isEmpty());
+  }
+
+  // ---------------------------------------------------------------------------
+  // SEC-03: shouldReturn403_whenWorkerReadsAnotherWorkersSalaryHistory
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn403_whenWorkerReadsAnotherWorkersSalaryHistory() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createJwt("access", "WORKER", "wk2@test.com"));
+
+    User other = createWorker(2L, "Worker Two", "wk2@test.com");
+    when(userRepositoryPort.findByEmail("wk2@test.com")).thenReturn(java.util.Optional.of(other));
+
+    mockMvc
+        .perform(get(SALARY_HISTORY_URL, 1L).header("Authorization", "Bearer token"))
+        .andExpect(status().isForbidden());
+  }
+
+  // ---------------------------------------------------------------------------
   // SEC-01: shouldReturn403_whenWorkerUser
   // ---------------------------------------------------------------------------
 

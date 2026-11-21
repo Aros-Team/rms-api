@@ -21,8 +21,23 @@ public record SpecialSelectionUpdateEvent(
    */
   public static SpecialSelectionUpdateEvent of(
       String changeType, SpecialSelectionResponse selection) {
+    return of(changeType, selection != null ? selection.productId() : null, selection);
+  }
+
+  /**
+   * Builds an event envelope for a change without a selection payload.
+   *
+   * <p>DELETE events carry no selection, so the affected product must be passed explicitly;
+   * otherwise subscribers cannot evict the right cache entry.
+   *
+   * @param changeType the type of change as a string
+   * @param productId the affected product identifier
+   * @param selection the updated selection (null for DELETE events)
+   * @return the event envelope
+   */
+  public static SpecialSelectionUpdateEvent of(
+      String changeType, Long productId, SpecialSelectionResponse selection) {
     boolean active = selection != null && selection.active();
-    return new SpecialSelectionUpdateEvent(
-        changeType, selection != null ? selection.productId() : null, active, selection);
+    return new SpecialSelectionUpdateEvent(changeType, productId, active, selection);
   }
 }

@@ -1,5 +1,6 @@
 package aros.services.rms.infraestructure.schedule.api;
 
+import aros.services.rms.core.schedule.application.exception.ScheduleNotFoundException;
 import aros.services.rms.core.schedule.domain.Schedule;
 import aros.services.rms.core.schedule.domain.ScheduleId;
 import aros.services.rms.core.schedule.port.input.CreateScheduleUseCase;
@@ -105,7 +106,7 @@ public class ScheduleController {
     return scheduleRepository
         .findById(new ScheduleId(id))
         .map(s -> ResponseEntity.ok(ScheduleResponse.fromDomain(s)))
-        .orElse(ResponseEntity.notFound().build());
+        .orElseThrow(() -> new ScheduleNotFoundException("Schedule not found with id: " + id));
   }
 
   /** Updates an existing schedule. */

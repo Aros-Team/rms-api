@@ -5,14 +5,20 @@ package aros.services.rms.infraestructure.payroll.api;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.payroll.domain.Payroll;
 import aros.services.rms.core.payroll.domain.PayrollStatus;
+import aros.services.rms.core.payroll.domain.exception.PayrollNotFoundException;
 import aros.services.rms.core.payroll.domain.port.input.DeletePayrollUseCase;
 import aros.services.rms.core.payroll.domain.port.input.GetPayrollUseCase;
 import aros.services.rms.core.payroll.domain.port.input.ListPayrollsUseCase;
 import aros.services.rms.core.payroll.domain.port.input.RegisterPayrollUseCase;
 import aros.services.rms.core.payroll.domain.port.input.UpdatePayrollUseCase;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
+import aros.services.rms.core.user.application.exception.UserNotFoundException;
+import aros.services.rms.core.user.domain.User;
+import aros.services.rms.core.user.domain.UserId;
+import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollRequest;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollResponse;
+import aros.services.rms.infraestructure.payroll.api.dto.PayrollUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -20,10 +26,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -46,11 +53,13 @@ public class PayrollController {
   private final GetPayrollUseCase getPayrollUseCase;
   private final ListPayrollsUseCase listPayrollsUseCase;
   private final DeletePayrollUseCase deletePayrollUseCase;
+  private final UserRepositoryPort userRepositoryPort;
 
   /**
    * Creates a new payroll record.
    *
    * @param request the payroll request
+   * @param jwt the authenticated admin, stored as the payroll registrar
    * @return the created payroll
    */
   @Operation(
@@ -69,7 +78,8 @@ public class PayrollController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
-  public ResponseEntity<PayrollResponse> create(@Valid @RequestBody PayrollRequest request) {
+  public ResponseEntity<PayrollResponse> create(
+      @Valid @RequestBody PayrollRequest request, @AuthenticationPrincipal Jwt jwt) {
     RegisterPayrollUseCase.RegisterPayrollCommand command =
         new RegisterPayrollUseCase.RegisterPayrollCommand(
             request.userId(),
@@ -86,7 +96,7 @@ public class PayrollController {
                 currencyProvider.getCurrency()),
             request.hoursWorked(),
             request.notes(),
-            null);
+            currentUserId(jwt));
 
     Payroll created = registerPayrollUseCase.register(command);
     return new ResponseEntity<>(PayrollResponse.fromDomain(created), HttpStatus.CREATED);
@@ -188,10 +198,19 @@ public class PayrollController {
           int year,
       @Parameter(description = "Period month (1-12)", example = "7", required = true) @PathVariable
           int month) {
-    Optional<Payroll> payroll = getPayrollUseCase.findByUserAndPeriod(userId, year, month);
-    return payroll
-        .map(p -> ResponseEntity.ok(PayrollResponse.fromDomain(p)))
-        .orElse(ResponseEntity.notFound().build());
+    Payroll payroll =
+        getPayrollUseCase
+            .findByUserAndPeriod(userId, year, month)
+            .orElseThrow(
+                () ->
+                    new PayrollNotFoundException(
+                        "Payroll not found for user "
+                            + userId
+                            + " in period "
+                            + year
+                            + "-"
+                            + month));
+    return ResponseEntity.ok(PayrollResponse.fromDomain(payroll));
   }
 
   /**
@@ -218,7 +237,7 @@ public class PayrollController {
   @PatchMapping("/{id}")
   public ResponseEntity<PayrollResponse> update(
       @Parameter(description = "Payroll ID", example = "1", required = true) @PathVariable Long id,
-      @Valid @RequestBody PayrollRequest request) {
+      @Valid @RequestBody PayrollUpdateRequest request) {
     PayrollStatus status = null;
     if (request.status() != null) {
       status = PayrollStatus.valueOf(request.status());
@@ -269,5 +288,21 @@ public class PayrollController {
           Long id) {
     deletePayrollUseCase.delete(id);
     return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Resolves the authenticated user's id from the JWT subject (the e-mail).
+   *
+   * @param jwt the authenticated principal
+   * @return the user id stored as `registeredBy`
+   * @throws UserNotFoundException if the subject does not match a user
+   */
+  private Long currentUserId(Jwt jwt) {
+    return userRepositoryPort
+        .findByEmail(jwt.getSubject())
+        .map(User::getId)
+        .map(UserId::value)
+        .orElseThrow(
+            () -> new UserNotFoundException("Authenticated user not found: " + jwt.getSubject()));
   }
 }

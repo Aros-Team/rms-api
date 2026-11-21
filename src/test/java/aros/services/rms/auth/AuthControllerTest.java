@@ -175,6 +175,24 @@ class AuthControllerTest {
   }
 
   // ---------------------------------------------------------------------------
+  // CT-03b: shouldReturn401_whenUserInactive
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn401_whenUserInactive() throws Exception {
+    when(loginUseCase.authenticate(any(Credentials.class)))
+        .thenThrow(new aros.services.rms.core.auth.application.exception.UserInactiveException());
+
+    mockMvc
+        .perform(post(LOGIN_URL).contentType(MediaType.APPLICATION_JSON).content(VALID_LOGIN_BODY))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.status").value(401))
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Usuario inactivo. Contacte al administrador para activar su cuenta"));
+  }
+
+  // ---------------------------------------------------------------------------
   // CT-04: shouldReturn400_whenEmailInvalid
   // ---------------------------------------------------------------------------
 
@@ -263,11 +281,11 @@ class AuthControllerTest {
   }
 
   // ---------------------------------------------------------------------------
-  // EH-03: shouldReturn400_whenUserNotFoundOnForgotPassword
+  // EH-03: shouldReturn404_whenUserNotFoundOnForgotPassword
   // ---------------------------------------------------------------------------
 
   @Test
-  void shouldReturn400_whenUserNotFoundOnForgotPassword() throws Exception {
+  void shouldReturn404_whenUserNotFoundOnForgotPassword() throws Exception {
     doThrow(new UserNotFoundException("User not found"))
         .when(passwordResetUseCase)
         .requestPasswordReset(any());
@@ -284,8 +302,62 @@ class AuthControllerTest {
             post("/api/auth/forgot-password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(forgotBody))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.status").value(404))
         .andExpect(jsonPath("$.detail").value("User not found"));
+  }
+
+  // ---------------------------------------------------------------------------
+  // EH-04: shouldReturn400_whenResetTokenInvalid
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn400_whenResetTokenInvalid() throws Exception {
+    doThrow(
+            new aros.services.rms.core.auth.application.exception
+                .PasswordResetTokenInvalidException("El token de recuperación no es válido"))
+        .when(passwordResetUseCase)
+        .resetPassword(any(), any());
+
+    String body =
+        """
+        {
+          "token": "bogus",
+          "newPassword": "NewPass@123"
+        }
+        """;
+
+    mockMvc
+        .perform(
+            post("/api/auth/reset-password").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("El token de recuperación no es válido"));
+  }
+
+  // ---------------------------------------------------------------------------
+  // EH-05: shouldReturn400_whenSetupTokenInvalid
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn400_whenSetupTokenInvalid() throws Exception {
+    doThrow(
+            new aros.services.rms.core.auth.application.exception.AccountSetupTokenInvalidException(
+                "Token de configuración no válido"))
+        .when(accountSetupUseCase)
+        .setupPassword(any(), any(), any(), any());
+
+    String body =
+        """
+        {
+          "token": "bogus",
+          "newPassword": "NewPass@123"
+        }
+        """;
+
+    mockMvc
+        .perform(
+            post("/api/auth/setup-password").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("Token de configuración no válido"));
   }
 }

@@ -6,10 +6,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.util.List;
 
-/** Request DTO for creating or updating a product. */
+/**
+ * Request DTO for creating or updating a product.
+ *
+ * <p>{@code basePrice} accepts zero so the product-creation wizard can persist a draft (needed to
+ * attach recipe, options and images) before the sale price is defined in its final step.
+ */
 @Schema(
     description = "Request DTO for creating or updating a product",
     example =
@@ -25,7 +30,7 @@ public record ProductRequest(
         String description,
     @Schema(description = "Product base price", example = "12.50")
         @NotNull(message = "Base price is required")
-        @Positive(message = "Base price must be positive")
+        @PositiveOrZero(message = "Base price must be zero or positive")
         Double basePrice,
     @Schema(description = "Category ID the product belongs to", example = "1")
         @NotNull(message = "Category ID is required")

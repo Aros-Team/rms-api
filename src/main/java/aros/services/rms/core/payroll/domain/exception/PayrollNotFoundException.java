@@ -13,4 +13,13 @@ public class PayrollNotFoundException extends RuntimeException {
   public PayrollNotFoundException(Long id) {
     super("Payroll not found with id: " + id);
   }
+
+  /**
+   * Creates the exception with a custom message.
+   *
+   * @param message the detail message
+   */
+  public PayrollNotFoundException(String message) {
+    super(message);
+  }
 }

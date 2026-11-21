@@ -408,6 +408,7 @@ public class SupplyCatalogController {
                 .supply(supply)
                 .unit(unit)
                 .quantity(request.quantity())
+                .unitCost(request.unitCost())
                 .build());
 
     // Initialize stock to zero in Bodega and Cocina

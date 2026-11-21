@@ -1,9 +1,10 @@
 package aros.services.rms.core.schedule.application.service;
 
 import aros.services.rms.core.common.logger.Logger;
-import aros.services.rms.core.schedule.domain.WorkerScheduleAssignmentId;
+import aros.services.rms.core.schedule.domain.ScheduleId;
 import aros.services.rms.core.schedule.port.input.RemoveScheduleFromWorkerUseCase;
 import aros.services.rms.core.schedule.port.output.WorkerScheduleAssignmentRepositoryPort;
+import aros.services.rms.core.user.domain.UserId;
 
 /** Service for removing a schedule assignment from a worker. */
 public class RemoveScheduleFromWorkerService implements RemoveScheduleFromWorkerUseCase {
@@ -23,13 +24,17 @@ public class RemoveScheduleFromWorkerService implements RemoveScheduleFromWorker
   }
 
   /**
-   * Removes the schedule assignment identified by the given ID.
+   * Removes the assignment of the given schedule from the given worker.
    *
-   * @param assignmentId the assignment ID to remove
+   * @param workerId the worker whose assignment is removed
+   * @param scheduleId the schedule to unassign
    */
   @Override
-  public void remove(WorkerScheduleAssignmentId assignmentId) {
-    assignmentRepository.delete(assignmentId);
-    logger.info("Schedule assignment removed: id={}", assignmentId.value());
+  public void remove(UserId workerId, ScheduleId scheduleId) {
+    assignmentRepository.deleteByWorkerIdAndScheduleId(workerId, scheduleId);
+    logger.info(
+        "Schedule assignment removed: workerId={}, scheduleId={}",
+        workerId.value(),
+        scheduleId.value());
   }
 }

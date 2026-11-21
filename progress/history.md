@@ -758,3 +758,22 @@ FE TypeScript enum/union types and switch statements must be updated.
 **Files:** 2 modified sources + 1 new test. No migrations, no domain change (domain still has no `createdAt`).
 
 **Task breakdown:** t1-entity-timestamp (implementer).
+
+---
+
+## 2026-11-21 — Activities 41-45: API/frontend contract alignment
+
+**Outcome:** clean `spotlessApply` + `checkstyleMain/Test` + full test suite green; API restarted and smoke-tested live.
+
+Changes on the API side:
+
+- **Errors** — new RFC 7807 handlers: password-reset/setup token invalid/expired (400), inactive/deleted user (401), schedule/payroll 404s, supply/supplier/purchase order/invalid purchase item (400/404/409), special selection not-found/invalid (404/400) and missing supply-variant unit cost (422 with `missingVariants`). Forgot-password for an unknown email now returns the documented 404.
+- **Users** — worker address is optional on update (matches create); salary history is readable by admins (any worker) and by the owning worker only.
+- **Payroll** — `POST /payroll` resolves `registeredBy` from the JWT (was null → DB constraint 500); new `PayrollUpdateRequest` makes `PATCH /payroll/{id}` genuinely partial; period lookups throw typed 404s.
+- **Schedules** — assignment deletion is keyed by `(workerId, scheduleId)` so the client cannot target another worker's row.
+- **Inventory** — `CreateSupplyVariantRequest` accepts and persists `unitCost`.
+- **Special selections** — persistence now saves name/description/basePrice/active, nulls child ids before re-inserting (no more optimistic-locking 500s), links new groups to their products positionally, carries `productId` on DELETE events, and honours `active` on create.
+- **System configuration** — `PUT /api/v1/config` upserts by key instead of inserting a duplicate: existing entries keep group/sort/description, new ones append to the first group. The documented `[{key,value}]` body now returns 200.
+- `basePrice` allows 0 so draft products can be created before pricing; time-log schema doc corrected to `IN`.
+
+**Verification:** `./gradlew clean spotlessApply checkstyleMain checkstyleTest test` → BUILD SUCCESSFUL. Live checks: config PUT (existing + new key), payroll create/patch, `registeredBy=1007`, 404 problem documents, reset-password invalid token 400.

@@ -1,6 +1,7 @@
 package aros.services.rms.infraestructure.schedule.api;
 
 import aros.services.rms.core.schedule.port.input.GetWorkerShiftsUseCase;
+import aros.services.rms.core.user.application.exception.UserNotFoundException;
 import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import aros.services.rms.infraestructure.schedule.api.dto.WorkerScheduleResponse;
@@ -42,7 +43,7 @@ public class WorkerScheduleController {
     var user =
         userRepositoryPort
             .findByEmail(userEmail.value())
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new UserNotFoundException("User not found: " + userEmail.value()));
     var shifts = getWorkerShiftsUseCase.getShifts(user.getId());
     return ResponseEntity.ok(WorkerScheduleResponse.fromShiftMap(shifts));
   }

@@ -91,6 +91,23 @@ class SpecialSelectionNotificationServiceTest {
   }
 
   @Test
+  void should_include_product_id_in_payloadless_delete_event() throws Exception {
+    service.notifySpecialSelectionUpdated(ChangeType.DELETE, 9L, null);
+
+    ArgumentCaptor<SpecialSelectionUpdateEvent> captor =
+        ArgumentCaptor.forClass(SpecialSelectionUpdateEvent.class);
+    verify(notificationPort)
+        .notify(
+            eq(SpecialSelectionNotificationService.TOPIC_SPECIAL_SELECTIONS_UPDATED),
+            captor.capture());
+    SpecialSelectionUpdateEvent sent = captor.getValue();
+    assert sent.changeType().equals("DELETE");
+    assert sent.productId().equals(9L);
+    assert !sent.active();
+    assert sent.selection() == null;
+  }
+
+  @Test
   void should_not_propagate_exception_when_notification_fails() {
     SpecialSelectionResponse response = buildResponse(1L, true);
     doThrow(new RuntimeException("connection refused")).when(notificationPort).notify(any(), any());

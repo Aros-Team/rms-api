@@ -1,6 +1,6 @@
 package aros.services.rms.infraestructure.schedule.api;
 
-import aros.services.rms.core.schedule.domain.WorkerScheduleAssignmentId;
+import aros.services.rms.core.schedule.domain.ScheduleId;
 import aros.services.rms.core.schedule.port.input.AssignScheduleToWorkerUseCase;
 import aros.services.rms.core.schedule.port.input.RemoveScheduleFromWorkerUseCase;
 import aros.services.rms.core.schedule.port.output.WorkerScheduleAssignmentRepositoryPort;
@@ -82,21 +82,24 @@ public class WorkerScheduleAssignmentController {
   }
 
   /** Removes a schedule assignment from a worker. */
-  @DeleteMapping("/{assignmentId}")
+  @DeleteMapping("/{scheduleId}")
   @JustAdminUser
   @Operation(
       tags = {"Workers"},
       summary = "Remove schedule assignment",
-      description = "Removes a schedule assignment from a worker.")
+      description =
+          "Removes the assignment that links a worker to a schedule. The path carries the schedule"
+              + " ID; assignment IDs are not exposed by this API.")
   @ApiResponse(responseCode = "204", description = "Assignment removed")
   @ApiResponse(responseCode = "401", description = "Unauthorized")
   @ApiResponse(responseCode = "403", description = "Forbidden")
-  @ApiResponse(responseCode = "404", description = "Assignment not found")
   @ApiResponse(responseCode = "500", description = "Internal server error")
   public ResponseEntity<Void> remove(
-      @Parameter(description = "Assignment ID", example = "1", required = true) @PathVariable
-          Long assignmentId) {
-    removeScheduleUseCase.remove(WorkerScheduleAssignmentId.of(assignmentId));
+      @Parameter(description = "Worker ID", example = "1", required = true) @PathVariable
+          Long workerId,
+      @Parameter(description = "Schedule ID", example = "1", required = true) @PathVariable
+          Long scheduleId) {
+    removeScheduleUseCase.remove(UserId.of(workerId), ScheduleId.of(scheduleId));
     return ResponseEntity.noContent().build();
   }
 }

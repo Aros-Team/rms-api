@@ -25,6 +25,7 @@ import aros.services.rms.core.schedule.port.input.CreateScheduleUseCase;
 import aros.services.rms.core.schedule.port.input.DeleteScheduleUseCase;
 import aros.services.rms.core.schedule.port.input.UpdateScheduleUseCase;
 import aros.services.rms.core.schedule.port.output.ScheduleRepositoryPort;
+import aros.services.rms.infraestructure.common.exception.GlobalExceptionHandler;
 import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
 import aros.services.rms.infraestructure.schedule.api.ScheduleController;
 import java.time.Instant;
@@ -78,7 +79,7 @@ import org.springframework.test.web.servlet.MockMvc;
         @ComponentScan.Filter(
             type = FilterType.ASSIGNABLE_TYPE,
             classes = LocalResourceConfig.class))
-@Import(ScheduleControllerTest.TestSecurityConfig.class)
+@Import({ScheduleControllerTest.TestSecurityConfig.class, GlobalExceptionHandler.class})
 class ScheduleControllerTest {
 
   @Autowired private MockMvc mockMvc;

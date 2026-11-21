@@ -1,6 +1,7 @@
 package aros.services.rms.infraestructure.specialselection.api;
 
 import aros.services.rms.core.schedule.domain.DayOfWeek;
+import aros.services.rms.core.specialselection.application.exception.SpecialSelectionNotFoundException;
 import aros.services.rms.core.specialselection.domain.ChangeType;
 import aros.services.rms.core.specialselection.domain.QuestionType;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionAddition;
@@ -205,7 +206,7 @@ public class SpecialSelectionAdminController {
       description = "Soft delete — sets active=false and records a DELETE history entry")
   public ResponseEntity<Void> delete(@PathVariable Long productId) {
     deleteUseCase.execute(productId, currentUser());
-    notificationService.notifySpecialSelectionUpdated(ChangeType.DELETE, null);
+    notificationService.notifySpecialSelectionUpdated(ChangeType.DELETE, productId, null);
     return ResponseEntity.ok().build();
   }
 
@@ -223,7 +224,7 @@ public class SpecialSelectionAdminController {
     SpecialSelectionConfiguration config =
         getUseCase
             .findById(productId)
-            .orElseThrow(() -> new RuntimeException("Special selection not found: " + productId));
+            .orElseThrow(() -> new SpecialSelectionNotFoundException(productId));
     return ResponseEntity.ok(SpecialSelectionResponse.fromDomain(config));
   }
 
@@ -362,6 +363,7 @@ public class SpecialSelectionAdminController {
         .name(request.name())
         .description(request.description())
         .basePrice(request.basePrice())
+        .active(request.active() == null || request.active())
         .baseRecipeEnabled(request.baseRecipeEnabled())
         .schedulingRequired(request.schedulingRequired())
         .groups(groups)

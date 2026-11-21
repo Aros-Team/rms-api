@@ -16,9 +16,11 @@ import aros.services.rms.infraestructure.specialselection.persistence.SpecialSel
 import aros.services.rms.infraestructure.specialselection.persistence.SpecialSelectionHistoryEntity;
 import aros.services.rms.infraestructure.specialselection.persistence.SpecialSelectionQuestionEntity;
 import aros.services.rms.infraestructure.specialselection.persistence.SpecialSelectionScheduleEntity;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -168,29 +170,41 @@ public class SpecialSelectionMapper {
         .collect(Collectors.toList());
   }
 
-  /** Converts domain group-product associations to JPA link entities. */
+  /**
+   * Converts domain group-product associations to JPA link entities.
+   *
+   * <p>The groups are replaced on every save, so the links are matched positionally against the
+   * freshly saved group ids: the ids sent by the client belong to rows that were just deleted.
+   *
+   * @param productId the product identifier
+   * @param groups the domain groups (same order as {@code savedGroupIds})
+   * @param savedGroupIds the ids of the newly saved groups
+   * @return the link entities to persist
+   */
   public List<GroupProductEntity> toGroupProductLinks(
-      Long productId, List<SpecialSelectionGroup> groups, Map<Long, Long> groupIdMapping) {
+      Long productId, List<SpecialSelectionGroup> groups, List<Long> savedGroupIds) {
     if (groups == null) {
       return Collections.emptyList();
     }
-    return groups.stream()
-        .flatMap(
-            g -> {
-              Long savedGroupId =
-                  g.getId() != null ? groupIdMapping.getOrDefault(g.getId(), g.getId()) : null;
-              if (savedGroupId == null || g.getProductIds() == null) {
-                return java.util.stream.Stream.empty();
-              }
-              return g.getProductIds().stream()
-                  .map(
-                      prodId ->
-                          GroupProductEntity.builder()
-                              .groupId(savedGroupId)
-                              .productId(prodId)
-                              .build());
-            })
-        .collect(Collectors.toList());
+    List<GroupProductEntity> links = new ArrayList<>();
+    for (int i = 0; i < groups.size() && i < savedGroupIds.size(); i++) {
+      Long savedGroupId = savedGroupIds.get(i);
+      List<Long> productIds = groups.get(i).getProductIds();
+      if (savedGroupId == null || productIds == null) {
+        continue;
+      }
+      productIds.stream()
+          .filter(Objects::nonNull)
+          .distinct()
+          .forEach(
+              groupProductId ->
+                  links.add(
+                      GroupProductEntity.builder()
+                          .groupId(savedGroupId)
+                          .productId(groupProductId)
+                          .build()));
+    }
+    return links;
   }
 
   /** Converts domain additions to JPA entities for persisting. */

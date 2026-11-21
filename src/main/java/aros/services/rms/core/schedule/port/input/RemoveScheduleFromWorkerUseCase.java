@@ -1,13 +1,15 @@
 package aros.services.rms.core.schedule.port.input;
 
-import aros.services.rms.core.schedule.domain.WorkerScheduleAssignmentId;
+import aros.services.rms.core.schedule.domain.ScheduleId;
+import aros.services.rms.core.user.domain.UserId;
 
 /** Use case for removing a schedule assignment from a worker. */
 public interface RemoveScheduleFromWorkerUseCase {
   /**
-   * Removes the schedule assignment identified by the given id.
+   * Removes the assignment of the given schedule from the given worker.
    *
-   * @param assignmentId the identifier of the assignment to remove
+   * @param workerId the worker whose assignment is removed
+   * @param scheduleId the schedule to unassign
    */
-  void remove(WorkerScheduleAssignmentId assignmentId);
+  void remove(UserId workerId, ScheduleId scheduleId);
 }

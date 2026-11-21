@@ -15,6 +15,7 @@ import aros.services.rms.core.user.port.input.GetSalaryHistoryUseCase;
 import aros.services.rms.core.user.port.input.UpdateUserUseCase;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import aros.services.rms.infraestructure.share.security.JustAdminUser;
+import aros.services.rms.infraestructure.share.security.JustWorkerOrAdmin;
 import aros.services.rms.infraestructure.user.api.dto.SalaryHistoryResponse;
 import aros.services.rms.infraestructure.user.api.dto.UpdateUserRequest;
 import aros.services.rms.infraestructure.user.api.dto.UserRegisterRequest;
@@ -30,6 +31,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -231,26 +235,50 @@ public class WorkerController {
 
   /** Retrieves the salary history for a worker. */
   @GetMapping("/{id}/salary-history")
-  @JustAdminUser
+  @JustWorkerOrAdmin
   @Operation(
       tags = {"Workers"},
       summary = "Get worker salary history",
-      description = "Returns the salary change history for a worker. Admin access only.",
+      description =
+          "Returns the salary change history for a worker. Admins can read any worker; "
+              + "a worker can only read their own history.",
       responses = {
         @ApiResponse(responseCode = "200", description = "Salary history retrieved successfully"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Admin access required"),
+        @ApiResponse(responseCode = "403", description = "Not allowed to read this salary history"),
         @ApiResponse(responseCode = "404", description = "Worker not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   public ResponseEntity<List<SalaryHistoryResponse>> getSalaryHistory(
-      @Parameter(description = "Worker ID", example = "1", required = true) @PathVariable Long id) {
-    log.info("Admin retrieving salary history for worker: id={}", id);
+      @Parameter(description = "Worker ID", example = "1", required = true) @PathVariable Long id,
+      @AuthenticationPrincipal Jwt jwt) {
+    log.info("Retrieving salary history for worker: id={}", id);
+    assertCanReadSalaryHistory(id, jwt);
     List<SalaryHistoryResponse> history =
         getSalaryHistoryUseCase.getSalaryHistory(id).stream()
             .map(SalaryHistoryResponse::fromDomain)
             .toList();
     log.info("Salary history retrieved for worker: id={}, count={}", id, history.size());
     return ResponseEntity.ok(history);
+  }
+
+  /**
+   * Rejects a non-admin caller reading someone else's salary history.
+   *
+   * @param id the worker whose history is requested
+   * @param jwt the authenticated principal
+   */
+  private void assertCanReadSalaryHistory(Long id, Jwt jwt) {
+    if ("ADMIN".equals(jwt.getClaimAsString("role"))) {
+      return;
+    }
+    User self =
+        userRepositoryPort
+            .findByEmail(jwt.getSubject())
+            .orElseThrow(
+                () -> new AuthorizationDeniedException("Worker not found for the current session"));
+    if (!self.getId().value().equals(id)) {
+      throw new AuthorizationDeniedException("Workers can only read their own salary history");
+    }
   }
 }

@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -18,6 +19,12 @@ import aros.services.rms.core.payroll.domain.port.input.GetPayrollUseCase;
 import aros.services.rms.core.payroll.domain.port.input.ListPayrollsUseCase;
 import aros.services.rms.core.payroll.domain.port.input.RegisterPayrollUseCase;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
+import aros.services.rms.core.user.domain.User;
+import aros.services.rms.core.user.domain.UserEmail;
+import aros.services.rms.core.user.domain.UserId;
+import aros.services.rms.core.user.domain.UserRole;
+import aros.services.rms.core.user.domain.UserStatus;
+import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import aros.services.rms.infraestructure.common.exception.GlobalExceptionHandler;
 import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
 import java.math.BigDecimal;
@@ -90,6 +97,7 @@ class PayrollControllerTest {
       deletePayrollUseCase;
 
   @MockitoBean private CurrencyProvider currencyProvider;
+  @MockitoBean private UserRepositoryPort userRepositoryPort;
   @MockitoBean private JwtDecoder jwtDecoder;
 
   @org.springframework.boot.test.context.TestConfiguration
@@ -113,6 +121,20 @@ class PayrollControllerTest {
   @BeforeEach
   void setUp() {
     when(currencyProvider.getCurrency()).thenReturn(COP);
+    User admin =
+        new User(
+            UserId.of(10L),
+            "ADM-1",
+            "Admin",
+            new UserEmail("admin@rms.local"),
+            "secret",
+            "Calle 1",
+            "3000000000",
+            UserRole.ADMIN,
+            UserStatus.ACTIVE,
+            List.of());
+    when(userRepositoryPort.findByEmail(org.mockito.ArgumentMatchers.anyString()))
+        .thenReturn(java.util.Optional.of(admin));
   }
 
   @Test
@@ -195,9 +217,27 @@ class PayrollControllerTest {
   }
 
   // ---------------------------------------------------------------------------
-  // UC-04: listPayrolls_returns200
+  // UC-04: updatePayroll_acceptsPartialBody
   // ---------------------------------------------------------------------------
 
+  @Test
+  void updatePayroll_acceptsPartialBody() throws Exception {
+    Payroll updated = buildPayroll(1L, PayrollStatus.ACCRUED, new BigDecimal("2550000"));
+    when(updatePayrollUseCase.update(any(), any())).thenReturn(updated);
+
+    mockMvc
+        .perform(
+            patch("/api/v1/payroll/1")
+                .with(jwt())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"status\":\"ACCRUED\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.status").value("ACCRUED"));
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-05: listPayrolls_returns200
+  // ---------------------------------------------------------------------------
   @Test
   void listPayrolls_returns200() throws Exception {
     Payroll p1 = buildPayroll(1L, PayrollStatus.PENDING, new BigDecimal("2550000"));

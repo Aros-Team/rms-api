@@ -179,7 +179,8 @@ class SupplyCatalogServiceTest {
     when(inventoryStockRepository.save(any(InventoryStockEntity.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
-    CreateSupplyVariantRequest request = new CreateSupplyVariantRequest(3L, 2L, quantity);
+    CreateSupplyVariantRequest request =
+        new CreateSupplyVariantRequest(3L, 2L, quantity, new BigDecimal("12000.00"));
 
     // Act
     ResponseEntity<?> response = controller.createVariant(request);
@@ -187,7 +188,10 @@ class SupplyCatalogServiceTest {
     // Assert
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
     assertNotNull(response.getBody());
-    verify(supplyVariantRepository, times(1)).save(any(SupplyVariantEntity.class));
+    ArgumentCaptor<SupplyVariantEntity> variantCaptor =
+        ArgumentCaptor.forClass(SupplyVariantEntity.class);
+    verify(supplyVariantRepository, times(1)).save(variantCaptor.capture());
+    assertEquals(new BigDecimal("12000.00"), variantCaptor.getValue().getUnitCost());
     // Stock inicializado en Bodega y Cocina
     verify(inventoryStockRepository, times(2)).save(any(InventoryStockEntity.class));
   }
@@ -213,7 +217,7 @@ class SupplyCatalogServiceTest {
     when(supplyVariantRepository.findBySupplyIdAndUnitIdAndQuantity(3L, 2L, quantity))
         .thenReturn(Optional.of(existing));
 
-    CreateSupplyVariantRequest request = new CreateSupplyVariantRequest(3L, 2L, quantity);
+    CreateSupplyVariantRequest request = new CreateSupplyVariantRequest(3L, 2L, quantity, null);
 
     // Act & Assert
     assertThrows(
@@ -250,7 +254,7 @@ class SupplyCatalogServiceTest {
     when(inventoryStockRepository.save(any(InventoryStockEntity.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
-    CreateSupplyVariantRequest request = new CreateSupplyVariantRequest(3L, 2L, quantity);
+    CreateSupplyVariantRequest request = new CreateSupplyVariantRequest(3L, 2L, quantity, null);
 
     // Act
     controller.createVariant(request);

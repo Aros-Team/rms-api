@@ -14,6 +14,7 @@ import aros.services.rms.core.inventory.application.exception.InsufficientStockE
 import aros.services.rms.core.inventory.application.exception.StorageLocationNotFoundException;
 import aros.services.rms.core.inventory.application.exception.SupplyAlreadyExistsException;
 import aros.services.rms.core.inventory.application.exception.SupplyCategoryAlreadyExistsException;
+import aros.services.rms.core.inventory.application.exception.SupplyNotFoundException;
 import aros.services.rms.core.inventory.application.exception.SupplyVariantAlreadyExistsException;
 import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFoundException;
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
@@ -26,15 +27,25 @@ import aros.services.rms.core.payroll.domain.exception.PayrollImmutableException
 import aros.services.rms.core.payroll.domain.exception.PayrollNotFoundException;
 import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
+import aros.services.rms.core.purchase.application.exception.InvalidPurchaseItemException;
+import aros.services.rms.core.purchase.application.exception.PurchaseOrderNotFoundException;
+import aros.services.rms.core.purchase.application.exception.SupplierInactiveException;
+import aros.services.rms.core.purchase.application.exception.SupplierNotFoundException;
 import aros.services.rms.core.schedule.application.exception.ScheduleAlreadyExistsException;
 import aros.services.rms.core.schedule.application.exception.ScheduleHasAssignmentsException;
 import aros.services.rms.core.schedule.application.exception.ScheduleNotFoundException;
 import aros.services.rms.core.schedule.application.exception.ShiftOverlapException;
 import aros.services.rms.core.schedule.application.exception.WorkerNotInShiftException;
 import aros.services.rms.core.schedule.application.exception.WorkerScheduleAssignmentNotFoundException;
+import aros.services.rms.core.specialselection.application.exception.InvalidSpecialSelectionException;
+import aros.services.rms.core.specialselection.application.exception.InvalidSpecialSelectionHistoryException;
+import aros.services.rms.core.specialselection.application.exception.InvalidSpecialSelectionScheduleException;
 import aros.services.rms.core.specialselection.application.exception.SpecialSelectionNotAvailableException;
+import aros.services.rms.core.specialselection.application.exception.SpecialSelectionNotFoundException;
+import aros.services.rms.core.specialselection.application.exception.SupplyVariantUnitCostMissingException;
 import aros.services.rms.core.table.application.exception.InvalidTableStatusException;
 import aros.services.rms.core.user.application.exception.InvalidSalaryException;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
@@ -73,6 +84,22 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(status).contentType(MediaType.APPLICATION_PROBLEM_JSON).body(body);
   }
 
+  /**
+   * Builds a problem response carrying extra RFC 7807 extension properties.
+   *
+   * @param status the HTTP status
+   * @param detail human-readable explanation
+   * @param properties extension members added to the problem body
+   * @return a {@code application/problem+json} response
+   */
+  private static ResponseEntity<ProblemDetail> problem(
+      HttpStatus status, String detail, Map<String, Object> properties) {
+    ProblemDetail body = ProblemDetail.forStatusAndDetail(status, detail);
+    body.setTitle(status.getReasonPhrase());
+    properties.forEach(body::setProperty);
+    return ResponseEntity.status(status).contentType(MediaType.APPLICATION_PROBLEM_JSON).body(body);
+  }
+
   // --- Auth exceptions ---
 
   /** Handles InvalidCredentialsException. */
@@ -81,10 +108,24 @@ public class GlobalExceptionHandler {
     return problem(HttpStatus.UNAUTHORIZED, e.getMessage());
   }
 
+  /** Handles UserInactiveException (an inactive account cannot authenticate). */
+  @ExceptionHandler(aros.services.rms.core.auth.application.exception.UserInactiveException.class)
+  public ResponseEntity<ProblemDetail> handleUserInactive(
+      aros.services.rms.core.auth.application.exception.UserInactiveException e) {
+    return problem(HttpStatus.UNAUTHORIZED, e.getMessage());
+  }
+
+  /** Handles UserDeletedException (a soft-deleted account cannot authenticate). */
+  @ExceptionHandler(aros.services.rms.core.user.application.exception.UserDeletedException.class)
+  public ResponseEntity<ProblemDetail> handleUserDeleted(
+      aros.services.rms.core.user.application.exception.UserDeletedException e) {
+    return problem(HttpStatus.UNAUTHORIZED, e.getMessage());
+  }
+
   /** Handles UserNotFoundException. */
   @ExceptionHandler(UserNotFoundException.class)
   public ResponseEntity<ProblemDetail> handleUserNotFound(UserNotFoundException e) {
-    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   /** Handles UserNotFoundException (user domain). */
@@ -92,6 +133,38 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ProblemDetail> handleUserNotFound(
       aros.services.rms.core.user.application.exception.UserNotFoundException e) {
     return problem(HttpStatus.NOT_FOUND, e.getMessage());
+  }
+
+  /** Handles PasswordResetTokenInvalidException. */
+  @ExceptionHandler(
+      aros.services.rms.core.auth.application.exception.PasswordResetTokenInvalidException.class)
+  public ResponseEntity<ProblemDetail> handlePasswordResetTokenInvalid(
+      aros.services.rms.core.auth.application.exception.PasswordResetTokenInvalidException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
+  }
+
+  /** Handles PasswordResetTokenExpiredException. */
+  @ExceptionHandler(
+      aros.services.rms.core.auth.application.exception.PasswordResetTokenExpiredException.class)
+  public ResponseEntity<ProblemDetail> handlePasswordResetTokenExpired(
+      aros.services.rms.core.auth.application.exception.PasswordResetTokenExpiredException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
+  }
+
+  /** Handles AccountSetupTokenInvalidException. */
+  @ExceptionHandler(
+      aros.services.rms.core.auth.application.exception.AccountSetupTokenInvalidException.class)
+  public ResponseEntity<ProblemDetail> handleAccountSetupTokenInvalid(
+      aros.services.rms.core.auth.application.exception.AccountSetupTokenInvalidException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
+  }
+
+  /** Handles AccountSetupTokenExpiredException. */
+  @ExceptionHandler(
+      aros.services.rms.core.auth.application.exception.AccountSetupTokenExpiredException.class)
+  public ResponseEntity<ProblemDetail> handleAccountSetupTokenExpired(
+      aros.services.rms.core.auth.application.exception.AccountSetupTokenExpiredException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   /** Handles InvalidRefreshTokenException. */
@@ -148,6 +221,44 @@ public class GlobalExceptionHandler {
     return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 
+  /** Handles SpecialSelectionNotFoundException. */
+  @ExceptionHandler(SpecialSelectionNotFoundException.class)
+  public ResponseEntity<ProblemDetail> handleSpecialSelectionNotFound(
+      SpecialSelectionNotFoundException e) {
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
+  }
+
+  /** Handles InvalidSpecialSelectionException with the individual validation errors. */
+  @ExceptionHandler(InvalidSpecialSelectionException.class)
+  public ResponseEntity<ProblemDetail> handleInvalidSpecialSelection(
+      InvalidSpecialSelectionException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage(), Map.of("errors", e.getErrors()));
+  }
+
+  /** Handles InvalidSpecialSelectionHistoryException. */
+  @ExceptionHandler(InvalidSpecialSelectionHistoryException.class)
+  public ResponseEntity<ProblemDetail> handleInvalidSpecialSelectionHistory(
+      InvalidSpecialSelectionHistoryException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
+  }
+
+  /** Handles InvalidSpecialSelectionScheduleException. */
+  @ExceptionHandler(InvalidSpecialSelectionScheduleException.class)
+  public ResponseEntity<ProblemDetail> handleInvalidSpecialSelectionSchedule(
+      InvalidSpecialSelectionScheduleException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
+  }
+
+  /** Handles SupplyVariantUnitCostMissingException, exposing the offending variant ids. */
+  @ExceptionHandler(SupplyVariantUnitCostMissingException.class)
+  public ResponseEntity<ProblemDetail> handleSupplyVariantUnitCostMissing(
+      SupplyVariantUnitCostMissingException e) {
+    return problem(
+        HttpStatus.UNPROCESSABLE_ENTITY,
+        e.getMessage(),
+        Map.of("missingVariants", e.getVariantIds()));
+  }
+
   /** Handles InsufficientStockException. */
   @ExceptionHandler(InsufficientStockException.class)
   public ResponseEntity<ProblemDetail> handleInsufficientStock(InsufficientStockException e) {
@@ -184,6 +295,39 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ProblemDetail> handleSupplyCategoryAlreadyExists(
       SupplyCategoryAlreadyExistsException e) {
     return problem(HttpStatus.CONFLICT, e.getMessage());
+  }
+
+  /** Handles SupplyNotFoundException. */
+  @ExceptionHandler(SupplyNotFoundException.class)
+  public ResponseEntity<ProblemDetail> handleSupplyNotFound(SupplyNotFoundException e) {
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
+  }
+
+  // --- Purchase exceptions ---
+
+  /** Handles SupplierNotFoundException. */
+  @ExceptionHandler(SupplierNotFoundException.class)
+  public ResponseEntity<ProblemDetail> handleSupplierNotFound(SupplierNotFoundException e) {
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
+  }
+
+  /** Handles SupplierInactiveException. */
+  @ExceptionHandler(SupplierInactiveException.class)
+  public ResponseEntity<ProblemDetail> handleSupplierInactive(SupplierInactiveException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
+  }
+
+  /** Handles PurchaseOrderNotFoundException. */
+  @ExceptionHandler(PurchaseOrderNotFoundException.class)
+  public ResponseEntity<ProblemDetail> handlePurchaseOrderNotFound(
+      PurchaseOrderNotFoundException e) {
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
+  }
+
+  /** Handles InvalidPurchaseItemException. */
+  @ExceptionHandler(InvalidPurchaseItemException.class)
+  public ResponseEntity<ProblemDetail> handleInvalidPurchaseItem(InvalidPurchaseItemException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   /** Handles AccountSetupTokenAlreadyUsedException. */

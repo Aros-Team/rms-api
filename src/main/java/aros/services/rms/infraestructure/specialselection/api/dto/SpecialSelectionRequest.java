@@ -16,6 +16,10 @@ public record SpecialSelectionRequest(
     @Schema(description = "Base price", example = "12.99") @NotNull Double basePrice,
     @Schema(description = "Base recipe cost enabled", example = "false") boolean baseRecipeEnabled,
     @Schema(description = "Schedule required", example = "true") boolean schedulingRequired,
+    @Schema(
+            description = "Whether the combo is active after the save (defaults to true)",
+            example = "true")
+        Boolean active,
     @Schema(description = "Option groups") @Valid List<SpecialSelectionGroupDto> groups,
     @Schema(description = "Paid additions") @Valid List<SpecialSelectionAdditionDto> additions,
     @Schema(description = "Clarification questions") @Valid

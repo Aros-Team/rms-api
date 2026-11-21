@@ -42,8 +42,4 @@ public record PayrollRequest(
         @NotNull(message = "Hours worked is required")
         @Positive(message = "Hours worked must be positive")
         BigDecimal hoursWorked,
-    @Schema(
-            description = "Payroll status (PENDING, ACCRUED, PAID) — only for PATCH",
-            example = "PAID")
-        String status,
     @Schema(description = "Optional notes", example = "Overtime included") String notes) {}

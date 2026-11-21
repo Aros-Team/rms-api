@@ -6,8 +6,9 @@ import static org.mockito.Mockito.verify;
 
 import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.core.schedule.application.service.RemoveScheduleFromWorkerService;
-import aros.services.rms.core.schedule.domain.WorkerScheduleAssignmentId;
+import aros.services.rms.core.schedule.domain.ScheduleId;
 import aros.services.rms.core.schedule.port.output.WorkerScheduleAssignmentRepositoryPort;
+import aros.services.rms.core.user.domain.UserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,10 +49,11 @@ class RemoveScheduleFromWorkerServiceTest {
 
   @Test
   void shouldRemoveAssignmentSuccessfully() {
-    var assignmentId = WorkerScheduleAssignmentId.of(1L);
+    var workerId = UserId.of(1L);
+    var scheduleId = ScheduleId.of(2L);
 
-    service.remove(assignmentId);
+    service.remove(workerId, scheduleId);
 
-    verify(assignmentRepository).delete(assignmentId);
+    verify(assignmentRepository).deleteByWorkerIdAndScheduleId(workerId, scheduleId);
   }
 }

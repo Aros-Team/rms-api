@@ -135,10 +135,10 @@ class WorkerScheduleAssignmentControllerTest {
   @Test
   void shouldRemoveAssignment() throws Exception {
     when(jwtDecoder.decode(anyString())).thenReturn(createAdminJwt());
-    doNothing().when(removeScheduleUseCase).remove(any());
+    doNothing().when(removeScheduleUseCase).remove(any(), any());
 
     mockMvc
-        .perform(delete(URL + "/10").header("Authorization", "Bearer token"))
+        .perform(delete(URL + "/1").header("Authorization", "Bearer token"))
         .andExpect(status().isNoContent());
   }
 }

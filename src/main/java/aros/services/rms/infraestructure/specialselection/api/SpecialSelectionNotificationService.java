@@ -26,7 +26,20 @@ public class SpecialSelectionNotificationService {
    */
   public void notifySpecialSelectionUpdated(
       ChangeType changeType, SpecialSelectionResponse config) {
-    SpecialSelectionUpdateEvent event = SpecialSelectionUpdateEvent.of(changeType.name(), config);
+    notifySpecialSelectionUpdated(changeType, config != null ? config.productId() : null, config);
+  }
+
+  /**
+   * Sends a notification to subscribers, including the affected product for payload-less changes.
+   *
+   * @param changeType the type of change that occurred
+   * @param productId the affected product identifier (required for DELETE events)
+   * @param config the updated special selection payload (null for DELETE events)
+   */
+  public void notifySpecialSelectionUpdated(
+      ChangeType changeType, Long productId, SpecialSelectionResponse config) {
+    SpecialSelectionUpdateEvent event =
+        SpecialSelectionUpdateEvent.of(changeType.name(), productId, config);
     try {
       notificationPort.notify(TOPIC_SPECIAL_SELECTIONS_UPDATED, event);
       log.info(

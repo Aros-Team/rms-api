@@ -56,6 +56,12 @@ public class WorkerScheduleAssignmentRepositoryAdapter
 
   /** {@inheritDoc} */
   @Override
+  public void deleteByWorkerIdAndScheduleId(UserId workerId, ScheduleId scheduleId) {
+    internal.deleteByWorkerIdAndScheduleId(workerId.value(), scheduleId.value());
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public boolean existsByScheduleId(ScheduleId scheduleId) {
     return internal.existsByScheduleId(scheduleId.value());
   }

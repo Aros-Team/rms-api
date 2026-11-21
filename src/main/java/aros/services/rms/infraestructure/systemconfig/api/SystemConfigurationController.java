@@ -127,7 +127,14 @@ public class SystemConfigurationController {
       @Valid @RequestBody List<ConfigEntryRequest> requests) {
     List<SystemConfiguration> configs =
         requests.stream()
-            .map(req -> SystemConfiguration.builder().key(req.key()).value(req.value()).build())
+            .map(
+                req ->
+                    SystemConfiguration.builder()
+                        .key(req.key())
+                        .value(req.value())
+                        .groupId(req.groupId())
+                        .sortOrder(req.sortOrder())
+                        .build())
             .toList();
 
     List<SystemConfiguration> saved = updateSystemConfigurationUseCase.saveAll(configs);

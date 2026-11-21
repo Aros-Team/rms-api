@@ -179,17 +179,17 @@ class PayrollEventControllerTest {
   }
 
   // ---------------------------------------------------------------------------
-  // UC-03: calculate_invalidEventType_returns500
+  // UC-03: calculate_unknownUser_returns404
   // ---------------------------------------------------------------------------
 
   @Test
-  void calculate_invalidEventType_returns500() throws Exception {
-    // Mock returns null by default for unstubbed calls; controller NPEs → 500
+  void calculate_unknownUser_returns404() throws Exception {
+    // The use case returns null when the worker does not exist.
     String requestJson =
         """
         {
-          "userId": 1,
-          "eventType": "INVALID_TYPE",
+          "userId": 999,
+          "eventType": "OVERTIME",
           "quantity": 1
         }
         """;
@@ -200,7 +200,7 @@ class PayrollEventControllerTest {
                 .with(jwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
-        .andExpect(status().isInternalServerError());
+        .andExpect(status().isNotFound());
   }
 
   // ---------------------------------------------------------------------------

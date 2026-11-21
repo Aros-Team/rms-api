@@ -11,7 +11,6 @@ import aros.services.rms.infraestructure.specialselection.persistence.SpecialSel
 import aros.services.rms.infraestructure.specialselection.persistence.SpecialSelectionQuestionEntity;
 import aros.services.rms.infraestructure.specialselection.persistence.SpecialSelectionScheduleEntity;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,6 +43,17 @@ public class SpecialSelectionPersistenceAdapter implements SpecialSelectionRepos
             .findById(productId)
             .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
 
+    // The combo owns the product's master data: the wizard edits name, description and price in
+    // the same form, and the dedicated price endpoint must update the product as well.
+    if (config.getName() != null) {
+      productEntity.setName(config.getName());
+    }
+    if (config.getDescription() != null) {
+      productEntity.setDescription(config.getDescription());
+    }
+    if (config.getBasePrice() != null) {
+      productEntity.setBasePrice(config.getBasePrice());
+    }
     productEntity.setSelectionType(
         config.getSelectionType() != null ? config.getSelectionType().name() : "SPECIAL_SELECTION");
     productEntity.setSelectionBaseRecipeEnabled(config.isBaseRecipeEnabled());
@@ -53,32 +63,40 @@ public class SpecialSelectionPersistenceAdapter implements SpecialSelectionRepos
 
     deleteChildEntities(productId);
 
+    // Child rows are fully replaced on every save. Clear the client-echoed ids: reusing the id of a
+    // row deleted in this transaction makes Hibernate report a stale object, and the rows no longer
+    // exist anyway.
     List<SpecialSelectionGroupEntity> groups =
         mapper.toGroupEntities(productId, config.getGroups());
+    groups.forEach(group -> group.setId(null));
     List<SpecialSelectionGroupEntity> savedGroups = groupRepository.saveAll(groups);
 
-    Map<Long, Long> groupIdMapping = buildGroupIdMapping(config.getGroups(), savedGroups);
+    List<Long> savedGroupIds =
+        savedGroups.stream().map(SpecialSelectionGroupEntity::getId).collect(Collectors.toList());
 
     List<GroupProductEntity> productLinks =
-        mapper.toGroupProductLinks(productId, config.getGroups(), groupIdMapping);
+        mapper.toGroupProductLinks(productId, config.getGroups(), savedGroupIds);
     if (!productLinks.isEmpty()) {
       groupProductRepository.saveAll(productLinks);
     }
 
     List<SpecialSelectionAdditionEntity> additions =
         mapper.toAdditionEntities(productId, config.getAdditions());
+    additions.forEach(addition -> addition.setId(null));
     if (!additions.isEmpty()) {
       additionRepository.saveAll(additions);
     }
 
     List<SpecialSelectionQuestionEntity> questions =
         mapper.toQuestionEntities(productId, config.getQuestions());
+    questions.forEach(question -> question.setId(null));
     if (!questions.isEmpty()) {
       questionRepository.saveAll(questions);
     }
 
     List<SpecialSelectionScheduleEntity> schedule =
         mapper.toScheduleEntities(productId, config.getSchedule());
+    schedule.forEach(entry -> entry.setId(null));
     if (!schedule.isEmpty()) {
       scheduleRepository.saveAll(schedule);
     }
@@ -179,19 +197,5 @@ public class SpecialSelectionPersistenceAdapter implements SpecialSelectionRepos
             Collectors.groupingBy(
                 GroupProductEntity::getGroupId,
                 Collectors.mapping(GroupProductEntity::getProductId, Collectors.toList())));
-  }
-
-  private Map<Long, Long> buildGroupIdMapping(
-      List<aros.services.rms.core.specialselection.domain.SpecialSelectionGroup> domainGroups,
-      List<SpecialSelectionGroupEntity> savedEntities) {
-    Map<Long, Long> mapping = new HashMap<>();
-    for (int i = 0; i < Math.min(domainGroups.size(), savedEntities.size()); i++) {
-      Long domainId = domainGroups.get(i).getId();
-      Long savedId = savedEntities.get(i).getId();
-      if (domainId != null) {
-        mapping.put(domainId, savedId);
-      }
-    }
-    return mapping;
   }
 }

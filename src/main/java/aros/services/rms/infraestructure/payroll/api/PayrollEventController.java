@@ -9,6 +9,7 @@ import aros.services.rms.core.payroll.domain.port.input.CalculatePayrollEventUse
 import aros.services.rms.core.payroll.domain.port.input.DeletePayrollEventUseCase;
 import aros.services.rms.core.payroll.domain.port.input.ListPayrollEventsUseCase;
 import aros.services.rms.core.payroll.domain.port.input.RegisterPayrollEventUseCase;
+import aros.services.rms.core.user.application.exception.UserNotFoundException;
 import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollCalculateRequest;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollCalculateResponse;
@@ -155,6 +156,9 @@ public class PayrollEventController {
       @Valid @RequestBody PayrollCalculateRequest request) {
     PayrollCalculationResult result =
         calculateEvent.calculate(request.userId(), request.eventType(), request.quantity());
+    if (result == null) {
+      throw new UserNotFoundException("Worker not found with id: " + request.userId());
+    }
 
     return ResponseEntity.ok(
         new PayrollCalculateResponse(
