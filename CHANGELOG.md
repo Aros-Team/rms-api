@@ -1,5 +1,19 @@
 # Changelog
 
+## [v2.4.0](https://github.com/Aros-Team/rms-api/releases/tag/v2.4.0)
+
+### Features
+
+- **payroll**: payroll table, system_configuration, AreaLaborCostPort, and labor cost stabilization
+- **payroll**: events, settlements & aggregation + labor cost stabilization
+
+### Bug Fixes
+
+- **data.sql**: correct payroll seed column name registered_by
+- **data.sql**: delete payroll before users to satisfy FK constraint
+- **system-config**: manage group createdAt in entity lifecycle
+- **contract**: align API responses with the frontend contract
+
 ## [v2.3.0](https://github.com/Aros-Team/rms-api/releases/tag/v2.3.0)
 
 ### Features
