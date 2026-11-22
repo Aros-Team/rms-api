@@ -4,6 +4,7 @@ package aros.services.rms.order;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -13,8 +14,10 @@ import aros.services.rms.core.image.port.output.StoragePort;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.domain.MovementType;
 import aros.services.rms.core.order.application.dto.TakeOrderCommand;
+import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
+import aros.services.rms.core.order.port.input.OrderQueryUseCase;
 import aros.services.rms.core.order.port.input.TakeOrderUseCase;
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
@@ -78,6 +81,7 @@ class OrderControllerTest extends AbstractJwtIntegrationTest {
   @Autowired private WebApplicationContext context;
 
   @MockitoBean private TakeOrderUseCase takeOrderUseCase;
+  @MockitoBean private OrderQueryUseCase orderQueryUseCase;
   @MockitoBean private StoragePort storagePort;
 
   private MockMvc mockMvc;
@@ -141,6 +145,38 @@ class OrderControllerTest extends AbstractJwtIntegrationTest {
         .andExpect(jsonPath("$.data.id").value(42))
         .andExpect(jsonPath("$.data.status").value("QUEUE"))
         .andExpect(jsonPath("$.data.tableId").value(1));
+  }
+
+  @Test
+  void shouldReturn200_whenOrderIsFoundById() throws Exception {
+    Table table = Table.builder().id(1L).status(TableStatus.OCCUPIED).build();
+    Order order =
+        Order.builder()
+            .id(900029L)
+            .date(LocalDateTime.now())
+            .status(OrderStatus.DELIVERED)
+            .table(table)
+            .details(List.of())
+            .build();
+
+    when(orderQueryUseCase.findById(900029L)).thenReturn(order);
+
+    mockMvc
+        .perform(get("/api/v1/orders/900029"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.id").value(900029))
+        .andExpect(jsonPath("$.data.status").value("DELIVERED"));
+  }
+
+  @Test
+  void shouldReturn404_whenOrderIsNotFoundById() throws Exception {
+    when(orderQueryUseCase.findById(999L)).thenThrow(new OrderNotFoundException(999L));
+
+    mockMvc
+        .perform(get("/api/v1/orders/999"))
+        .andExpect(status().isNotFound())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+        .andExpect(jsonPath("$.detail").value("Order not found: 999"));
   }
 
   // ---------------------------------------------------------------------------

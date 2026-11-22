@@ -320,6 +320,26 @@ public class OrderController {
    */
   @Operation(
       tags = {"Orders"},
+      summary = "Get order by id",
+      description = "Retrieves a single order with its details, options and totals.",
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Order retrieved successfully",
+            content = @Content(schema = @Schema(implementation = OrderResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Order not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @GetMapping("/{id}")
+  @JustOperationsStaff
+  public ResponseEntity<OrderResponse> findById(@PathVariable Long id) {
+    return ResponseEntity.ok(orderResponseMapper.toResponse(orderQueryUseCase.findById(id)));
+  }
+
+  @Operation(
+      tags = {"Orders"},
       summary = "Query orders",
       description =
           "Retrieves orders with optional filters by status, product/option name, and date range, "
