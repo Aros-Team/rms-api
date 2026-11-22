@@ -74,7 +74,6 @@ public class PendingOrderPersistenceAdapter implements PendingOrderQueryPort {
             : order.getDetails().stream()
                 .map(OrderDetail::getUnitPrice)
                 .filter(Objects::nonNull)
-                .map(BigDecimal::valueOf)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     return new PendingOrder(
         order.getId(),

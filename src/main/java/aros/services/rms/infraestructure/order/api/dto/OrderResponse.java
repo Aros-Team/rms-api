@@ -48,6 +48,18 @@ public record OrderResponse(
       @Schema(description = "Detail ID", example = "1") Long id,
       @Schema(description = "Product ID", example = "1") Long productId,
       @Schema(description = "Product name", example = "Classic Burger") String productName,
+      @JsonInclude(JsonInclude.Include.NON_NULL)
+          @Schema(
+              description = "Preparation area (station) ID derived from the product",
+              nullable = true,
+              example = "1")
+          Long areaId,
+      @JsonInclude(JsonInclude.Include.NON_NULL)
+          @Schema(
+              description = "Preparation area (station) name derived from the product",
+              nullable = true,
+              example = "Cocina")
+          String areaName,
       @Schema(description = "Unit price") MoneyDto unitPrice,
       @JsonInclude(JsonInclude.Include.NON_NULL)
           @Schema(
@@ -64,6 +76,14 @@ public record OrderResponse(
       @Schema(description = "Selected addition IDs", example = "[5, 6]") List<Long> additionIds,
       @Schema(description = "Resolved selected additions")
           List<SelectedAdditionResponse> selectedAdditions,
+      @Schema(
+              description = "Whether this line is ready at its preparation station",
+              example = "false")
+          boolean ready,
+      @JsonInclude(JsonInclude.Include.NON_NULL)
+          @JsonFormat(shape = JsonFormat.Shape.STRING)
+          @Schema(description = "Time when the line was marked ready", nullable = true)
+          LocalDateTime readyAt,
       @Schema(description = "Clarification answers") List<ClarificationResponse> clarifications) {}
 
   /** Selected product option. */
@@ -164,6 +184,8 @@ public record OrderResponse(
         detail.getId(),
         detail.getProduct() != null ? detail.getProduct().getId() : null,
         detail.getProduct() != null ? detail.getProduct().getName() : null,
+        detail.getProduct() != null ? detail.getProduct().getPreparationAreaId() : null,
+        detail.getProduct() != null ? detail.getProduct().getPreparationAreaName() : null,
         detail.getUnitPrice() != null ? MoneyDto.of(detail.getUnitPrice()) : null,
         detail.getExtraCharge() != null ? MoneyDto.of(detail.getExtraCharge()) : null,
         detail.getInstructions(),
@@ -176,6 +198,8 @@ public record OrderResponse(
         null,
         detail.getAdditionIds(),
         null,
+        detail.isReady(),
+        detail.getReadyAt(),
         detail.getClarifications() != null
             ? detail.getClarifications().stream()
                 .map(ca -> new ClarificationResponse(ca.getQuestionId(), null, ca.getAnswer()))

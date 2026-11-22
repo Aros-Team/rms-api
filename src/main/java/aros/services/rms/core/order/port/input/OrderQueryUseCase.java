@@ -27,6 +27,7 @@ public interface OrderQueryUseCase {
    * @param statuses lista de estados de orden (opcional, vacío = sin filtro)
    * @param startDate fecha inicio (opcional)
    * @param endDate fecha fin (opcional)
+   * @param areaId área de preparación / estación (opcional)
    * @param page número de página (0-based)
    * @param size tamaño de página
    * @param sort campo y dirección de ordenamiento (ej. "date,desc")
@@ -36,6 +37,7 @@ public interface OrderQueryUseCase {
       List<OrderStatus> statuses,
       LocalDateTime startDate,
       LocalDateTime endDate,
+      Long areaId,
       int page,
       int size,
       String sort);
@@ -47,6 +49,7 @@ public interface OrderQueryUseCase {
    * @param search fragmento del nombre de producto u opción (opcional)
    * @param startDate fecha inicio (opcional)
    * @param endDate fecha fin (opcional)
+   * @param areaId área de preparación / estación (opcional)
    * @param page número de página (0-based)
    * @param size tamaño de página
    * @param sort campo y dirección de ordenamiento (ej. "date,desc")
@@ -57,6 +60,7 @@ public interface OrderQueryUseCase {
       String search,
       LocalDateTime startDate,
       LocalDateTime endDate,
+      Long areaId,
       int page,
       int size,
       String sort);

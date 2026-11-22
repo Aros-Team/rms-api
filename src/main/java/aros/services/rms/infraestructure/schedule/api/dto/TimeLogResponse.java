@@ -11,7 +11,7 @@ public record TimeLogResponse(
     @Schema(description = "Worker ID", example = "1") Long workerId,
     @Schema(description = "Timestamp of the event", example = "2026-07-13T08:00:00Z")
         Instant timestamp,
-    @Schema(description = "Type of event (currently always IN)", example = "IN") String type,
+    @Schema(description = "Type of event (IN or OUT)", example = "IN") String type,
     @Schema(description = "Whether the event falls within an assigned shift", example = "true")
         boolean withinShift,
     @Schema(

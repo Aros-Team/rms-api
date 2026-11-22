@@ -6,12 +6,18 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.order.application.exception.OrderDetailNotFoundException;
+import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderQueryResult;
 import aros.services.rms.core.order.domain.OrderStatus;
@@ -100,6 +106,12 @@ class OrderQueryControllerWebMvcTest {
         new OrderResponse(
             1L, LocalDateTime.now(), "QUEUE", null, null, null, null, null, List.of());
     when(orderResponseMapper.toResponse(any())).thenReturn(dummyResponse);
+    when(orderResponseMapper.toResponses(anyList()))
+        .thenAnswer(
+            invocation -> {
+              List<?> orders = invocation.getArgument(0);
+              return orders.stream().map(order -> dummyResponse).toList();
+            });
   }
 
   @org.springframework.boot.test.context.TestConfiguration
@@ -126,7 +138,8 @@ class OrderQueryControllerWebMvcTest {
         Order.builder().id(1L).status(OrderStatus.QUEUE).date(LocalDateTime.now()).build();
     OrderQueryResult result = new OrderQueryResult(List.of(order), 1L, 0, 20);
 
-    when(orderQueryUseCase.findOrdersPage(anyList(), any(), any(), anyInt(), anyInt(), anyString()))
+    when(orderQueryUseCase.findOrdersPage(
+            anyList(), any(), any(), any(), anyInt(), anyInt(), anyString()))
         .thenReturn(result);
 
     mockMvc
@@ -149,7 +162,8 @@ class OrderQueryControllerWebMvcTest {
         Order.builder().id(2L).status(OrderStatus.QUEUE).date(LocalDateTime.now()).build();
     OrderQueryResult result = new OrderQueryResult(List.of(order), 1L, 0, 20);
 
-    when(orderQueryUseCase.findOrdersPage(anyList(), any(), any(), anyInt(), anyInt(), anyString()))
+    when(orderQueryUseCase.findOrdersPage(
+            anyList(), any(), any(), any(), anyInt(), anyInt(), anyString()))
         .thenReturn(result);
 
     mockMvc
@@ -167,7 +181,8 @@ class OrderQueryControllerWebMvcTest {
   void shouldReturn200_whenFilteringByMultipleStatuses() throws Exception {
     OrderQueryResult result = new OrderQueryResult(List.of(), 0L, 0, 20);
 
-    when(orderQueryUseCase.findOrdersPage(anyList(), any(), any(), anyInt(), anyInt(), anyString()))
+    when(orderQueryUseCase.findOrdersPage(
+            anyList(), any(), any(), any(), anyInt(), anyInt(), anyString()))
         .thenReturn(result);
 
     mockMvc
@@ -186,7 +201,8 @@ class OrderQueryControllerWebMvcTest {
         Order.builder().id(3L).status(OrderStatus.DELIVERED).date(LocalDateTime.now()).build();
     OrderQueryResult result = new OrderQueryResult(List.of(order), 50L, 2, 10);
 
-    when(orderQueryUseCase.findOrdersPage(anyList(), any(), any(), anyInt(), anyInt(), anyString()))
+    when(orderQueryUseCase.findOrdersPage(
+            anyList(), any(), any(), any(), anyInt(), anyInt(), anyString()))
         .thenReturn(result);
 
     mockMvc
@@ -205,7 +221,7 @@ class OrderQueryControllerWebMvcTest {
     OrderQueryResult result = new OrderQueryResult(List.of(order), 1L, 0, 20);
 
     when(orderQueryUseCase.findOrdersPage(
-            anyList(), anyString(), any(), any(), anyInt(), anyInt(), anyString()))
+            anyList(), anyString(), any(), any(), any(), anyInt(), anyInt(), anyString()))
         .thenReturn(result);
 
     mockMvc
@@ -218,7 +234,7 @@ class OrderQueryControllerWebMvcTest {
   @Test
   void shouldReturn200_whenSearchHasNoResults() throws Exception {
     when(orderQueryUseCase.findOrdersPage(
-            anyList(), anyString(), any(), any(), anyInt(), anyInt(), anyString()))
+            anyList(), anyString(), any(), any(), any(), anyInt(), anyInt(), anyString()))
         .thenReturn(new OrderQueryResult(List.of(), 0L, 0, 20));
 
     mockMvc
@@ -231,7 +247,7 @@ class OrderQueryControllerWebMvcTest {
   @Test
   void shouldReturn200_whenCombiningSearchWithStatusAndDateRange() throws Exception {
     when(orderQueryUseCase.findOrdersPage(
-            anyList(), anyString(), any(), any(), anyInt(), anyInt(), anyString()))
+            anyList(), anyString(), any(), any(), any(), anyInt(), anyInt(), anyString()))
         .thenReturn(new OrderQueryResult(List.of(), 0L, 0, 20));
 
     mockMvc
@@ -249,7 +265,8 @@ class OrderQueryControllerWebMvcTest {
   @Test
   void shouldPreserveCurrentBehavior_whenSearchIsBlank() throws Exception {
     OrderQueryResult result = new OrderQueryResult(List.of(), 0L, 0, 20);
-    when(orderQueryUseCase.findOrdersPage(anyList(), any(), any(), anyInt(), anyInt(), anyString()))
+    when(orderQueryUseCase.findOrdersPage(
+            anyList(), any(), any(), any(), anyInt(), anyInt(), anyString()))
         .thenReturn(result);
 
     mockMvc
@@ -257,6 +274,142 @@ class OrderQueryControllerWebMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.items").isEmpty())
         .andExpect(jsonPath("$.data.total").value(0));
+  }
+
+  // ---------------------------------------------------------------------------
+  // 200: station (preparation area) filter
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn200_whenFilteringByStationArea() throws Exception {
+    Order order =
+        Order.builder().id(5L).status(OrderStatus.QUEUE).date(LocalDateTime.now()).build();
+    OrderQueryResult result = new OrderQueryResult(List.of(order), 1L, 0, 20);
+
+    when(orderQueryUseCase.findOrdersPage(
+            anyList(), any(), any(), eq(1L), anyInt(), anyInt(), anyString()))
+        .thenReturn(result);
+
+    mockMvc
+        .perform(get(URL).param("areaId", "1").with(adminJwt()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.total").value(1));
+
+    verify(orderQueryUseCase)
+        .findOrdersPage(anyList(), any(), any(), eq(1L), anyInt(), anyInt(), anyString());
+  }
+
+  @Test
+  void shouldCombineStationAreaWithSearch() throws Exception {
+    when(orderQueryUseCase.findOrdersPage(
+            anyList(), anyString(), any(), any(), eq(3L), anyInt(), anyInt(), anyString()))
+        .thenReturn(new OrderQueryResult(List.of(), 0L, 0, 20));
+
+    mockMvc
+        .perform(get(URL).param("areaId", "3").param("search", "burger").with(adminJwt()))
+        .andExpect(status().isOk());
+
+    verify(orderQueryUseCase)
+        .findOrdersPage(
+            anyList(), anyString(), any(), any(), eq(3L), anyInt(), anyInt(), anyString());
+  }
+
+  // ---------------------------------------------------------------------------
+  // prepare a specific order
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn200_whenPreparingSpecificOrder() throws Exception {
+    Order order =
+        Order.builder().id(7L).status(OrderStatus.PREPARING).date(LocalDateTime.now()).build();
+    when(preparationUseCase.prepareOrder(7L)).thenReturn(order);
+
+    mockMvc
+        .perform(put(URL + "/7/prepare").with(kitchenJwt()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.id").value(1));
+
+    verify(preparationUseCase).prepareOrder(7L);
+    verify(orderNotificationService).notifyOrderPreparing(any());
+  }
+
+  @Test
+  void shouldReturn404_whenPreparingUnknownOrder() throws Exception {
+    when(preparationUseCase.prepareOrder(999L)).thenThrow(new OrderNotFoundException(999L));
+
+    mockMvc
+        .perform(put(URL + "/999/prepare").with(kitchenJwt()))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.detail").value("Order not found: 999"));
+  }
+
+  @Test
+  void shouldReturn409_whenOrderIsNotInQueue() throws Exception {
+    when(preparationUseCase.prepareOrder(8L))
+        .thenThrow(new IllegalStateException("Order can only be prepared when in QUEUE status"));
+
+    mockMvc
+        .perform(put(URL + "/8/prepare").with(kitchenJwt()))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.detail").value("Order can only be prepared when in QUEUE status"));
+  }
+
+  @Test
+  void shouldReturn403_whenWaiterPreparesSpecificOrder() throws Exception {
+    mockMvc.perform(put(URL + "/7/prepare").with(waiterJwt())).andExpect(status().isForbidden());
+  }
+
+  // ---------------------------------------------------------------------------
+  // item-level readiness
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturn200_whenMarkingDetailReady() throws Exception {
+    Order order =
+        Order.builder().id(7L).status(OrderStatus.PREPARING).date(LocalDateTime.now()).build();
+    when(markAsReadyUseCase.markDetailAsReady(7L, 10L)).thenReturn(order);
+
+    mockMvc
+        .perform(put(URL + "/7/details/10/ready").with(kitchenJwt()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.id").value(1));
+
+    verify(markAsReadyUseCase).markDetailAsReady(7L, 10L);
+    verify(orderNotificationService, never()).notifyOrderReady(any());
+  }
+
+  @Test
+  void shouldNotifyOrderReady_whenLastDetailCompletesOrder() throws Exception {
+    Order order =
+        Order.builder().id(7L).status(OrderStatus.READY).date(LocalDateTime.now()).build();
+    when(markAsReadyUseCase.markDetailAsReady(7L, 10L)).thenReturn(order);
+
+    mockMvc.perform(put(URL + "/7/details/10/ready").with(kitchenJwt())).andExpect(status().isOk());
+
+    verify(orderNotificationService).notifyOrderReady(any());
+  }
+
+  @Test
+  void shouldReturn404_whenMarkingUnknownDetailReady() throws Exception {
+    when(markAsReadyUseCase.markDetailAsReady(7L, 404L))
+        .thenThrow(new OrderDetailNotFoundException(7L, 404L));
+
+    mockMvc
+        .perform(put(URL + "/7/details/404/ready").with(kitchenJwt()))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.detail").value("Order detail not found: 404 in order 7"));
+  }
+
+  @Test
+  void shouldReturn409_whenOrderDoesNotAllowDetailReadiness() throws Exception {
+    when(markAsReadyUseCase.markDetailAsReady(9L, 10L))
+        .thenThrow(
+            new IllegalStateException(
+                "Order details can only be marked as ready when in PREPARING status"));
+
+    mockMvc
+        .perform(put(URL + "/9/details/10/ready").with(kitchenJwt()))
+        .andExpect(status().isConflict());
   }
 
   // ---------------------------------------------------------------------------
@@ -285,5 +438,27 @@ class OrderQueryControllerWebMvcTest {
     return jwt()
         .jwt(builder -> builder.subject("admin@test.com").claim("role", "ADMIN"))
         .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
+  }
+
+  private static SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor kitchenJwt() {
+    return jwt()
+        .jwt(
+            builder ->
+                builder
+                    .subject("cook@test.com")
+                    .claim("role", "WORKER")
+                    .claim("areaTypes", List.of("KITCHEN")))
+        .authorities(new SimpleGrantedAuthority("ROLE_USER"));
+  }
+
+  private static SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor waiterJwt() {
+    return jwt()
+        .jwt(
+            builder ->
+                builder
+                    .subject("waiter@test.com")
+                    .claim("role", "WORKER")
+                    .claim("areaTypes", List.of("SERVICE")))
+        .authorities(new SimpleGrantedAuthority("ROLE_USER"));
   }
 }

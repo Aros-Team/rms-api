@@ -17,17 +17,27 @@ import aros.services.rms.infraestructure.order.api.dto.OrderResponse.OrderDetail
 import aros.services.rms.infraestructure.order.api.dto.OrderResponse.SelectedAdditionResponse;
 import aros.services.rms.infraestructure.order.api.dto.OrderResponse.SelectedProductResponse;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
  * Mapper that builds a fully-resolved {@link OrderResponse} from a domain {@link Order}. Resolves
- * selected products, additions and clarification question texts via repository ports.
+ * selected products, additions, clarification question texts and each line's preparation area via
+ * repository ports.
+ *
+ * <p>Products (and therefore their preparation area) are batch-loaded once per {@link
+ * #toResponses(List) call}, so an order page with many lines does not issue one product query per
+ * detail. The batch lookup is keyed by product id and also covers the products selected inside
+ * combo lines.
  */
 @Component
 @RequiredArgsConstructor
@@ -40,16 +50,49 @@ public class OrderResponseMapper {
    * Converts a domain order into a fully-resolved response DTO.
    *
    * @param order the domain order
-   * @return the response with combo data resolved
+   * @return the response with combo data and per-line preparation areas resolved
    */
   public OrderResponse toResponse(Order order) {
+    if (order == null) {
+      return null;
+    }
+    List<OrderResponse> responses = toResponses(List.of(order));
+    return responses.isEmpty() ? null : responses.get(0);
+  }
+
+  /**
+   * Converts a list of domain orders into response DTOs, batch-loading every referenced product
+   * (order lines and combo selections) in a single call.
+   *
+   * @param orders the domain orders
+   * @return the responses in the same order as the input
+   */
+  public List<OrderResponse> toResponses(List<Order> orders) {
+    if (orders == null) {
+      return null;
+    }
+
+    Map<Long, Product> productMap = batchLoadProducts(orders);
+    Map<Long, Optional<SpecialSelectionConfiguration>> configCache = new HashMap<>();
+
+    return orders.stream()
+        .map(order -> mapOrder(order, productMap, configCache))
+        .collect(Collectors.toList());
+  }
+
+  private OrderResponse mapOrder(
+      Order order,
+      Map<Long, Product> productMap,
+      Map<Long, Optional<SpecialSelectionConfiguration>> configCache) {
     if (order == null) {
       return null;
     }
 
     List<OrderDetailResponse> details =
         order.getDetails() != null
-            ? order.getDetails().stream().map(this::toDetailResponse).collect(Collectors.toList())
+            ? order.getDetails().stream()
+                .map(detail -> toDetailResponse(detail, productMap, configCache))
+                .collect(Collectors.toList())
             : null;
 
     return new OrderResponse(
@@ -64,21 +107,64 @@ public class OrderResponseMapper {
         details);
   }
 
-  private OrderDetailResponse toDetailResponse(OrderDetail detail) {
+  /**
+   * Loads every product referenced by the given orders (line products plus combo selections) in a
+   * single repository call.
+   */
+  private Map<Long, Product> batchLoadProducts(List<Order> orders) {
+    Set<Long> productIds = new LinkedHashSet<>();
+    for (Order order : orders) {
+      if (order == null || order.getDetails() == null) {
+        continue;
+      }
+      for (OrderDetail detail : order.getDetails()) {
+        if (detail == null) {
+          continue;
+        }
+        if (detail.getProduct() != null && detail.getProduct().getId() != null) {
+          productIds.add(detail.getProduct().getId());
+        }
+        if (detail.getSelectedProductIds() != null) {
+          detail.getSelectedProductIds().stream().filter(id -> id != null).forEach(productIds::add);
+        }
+      }
+    }
+
+    if (productIds.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    return productRepositoryPort.findAllById(new ArrayList<>(productIds)).stream()
+        .filter(product -> product != null && product.getId() != null)
+        .collect(Collectors.toMap(Product::getId, product -> product, (first, second) -> first));
+  }
+
+  private OrderDetailResponse toDetailResponse(
+      OrderDetail detail,
+      Map<Long, Product> productMap,
+      Map<Long, Optional<SpecialSelectionConfiguration>> configCache) {
     if (detail == null) {
       return null;
     }
 
-    Map<Long, Product> productMap = resolveProducts(detail.getSelectedProductIds());
-    SpecialSelectionConfiguration config = resolveSpecialSelectionConfig(detail);
+    Product product = detail.getProduct();
+    Long productId = product != null ? product.getId() : null;
+    Product resolvedProduct = productId != null ? productMap.get(productId) : null;
+    SpecialSelectionConfiguration config = resolveSpecialSelectionConfig(productId, configCache);
 
     Map<Long, SpecialSelectionAddition> additionMap = resolveAdditions(config);
     Map<Long, SpecialSelectionQuestion> questionMap = resolveQuestions(config);
 
     return new OrderDetailResponse(
         detail.getId(),
-        detail.getProduct() != null ? detail.getProduct().getId() : null,
-        detail.getProduct() != null ? detail.getProduct().getName() : null,
+        productId,
+        product != null ? product.getName() : null,
+        resolvedProduct != null
+            ? resolvedProduct.getPreparationAreaId()
+            : (product != null ? product.getPreparationAreaId() : null),
+        resolvedProduct != null
+            ? resolvedProduct.getPreparationAreaName()
+            : (product != null ? product.getPreparationAreaName() : null),
         detail.getUnitPrice() != null ? MoneyDto.of(detail.getUnitPrice()) : null,
         detail.getExtraCharge() != null ? MoneyDto.of(detail.getExtraCharge()) : null,
         detail.getInstructions(),
@@ -96,24 +182,19 @@ public class OrderResponseMapper {
         toSelectedProducts(detail.getSelectedProductIds(), productMap),
         detail.getAdditionIds(),
         toSelectedAdditions(detail.getAdditionIds(), additionMap),
+        detail.isReady(),
+        detail.getReadyAt(),
         toClarifications(detail.getClarifications(), questionMap));
   }
 
-  private Map<Long, Product> resolveProducts(List<Long> selectedProductIds) {
-    if (selectedProductIds == null || selectedProductIds.isEmpty()) {
-      return Collections.emptyMap();
-    }
-    List<Product> products = productRepositoryPort.findAllById(selectedProductIds);
-    return products.stream().collect(Collectors.toMap(Product::getId, p -> p));
-  }
-
-  private SpecialSelectionConfiguration resolveSpecialSelectionConfig(OrderDetail detail) {
-    if (detail.getProduct() == null) {
+  private SpecialSelectionConfiguration resolveSpecialSelectionConfig(
+      Long productId, Map<Long, Optional<SpecialSelectionConfiguration>> configCache) {
+    if (productId == null) {
       return null;
     }
-    Optional<SpecialSelectionConfiguration> configOpt =
-        specialSelectionRepositoryPort.findById(detail.getProduct().getId());
-    return configOpt.orElse(null);
+    Optional<SpecialSelectionConfiguration> config =
+        configCache.computeIfAbsent(productId, specialSelectionRepositoryPort::findById);
+    return config != null ? config.orElse(null) : null;
   }
 
   private Map<Long, SpecialSelectionAddition> resolveAdditions(

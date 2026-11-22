@@ -279,8 +279,11 @@ class AuthorizationMatrixTest {
             .build();
     when(takeOrderUseCase.execute(any())).thenReturn(order);
     when(markAsReadyUseCase.markAsReady(anyLong())).thenReturn(order);
+    when(markAsReadyUseCase.markDetailAsReady(anyLong(), anyLong())).thenReturn(order);
+    when(preparationUseCase.prepareOrder(anyLong())).thenReturn(order);
     when(deliveryUseCase.markAsDelivered(anyLong())).thenReturn(order);
-    when(orderQueryUseCase.findOrdersPage(anyList(), any(), any(), anyInt(), anyInt(), anyString()))
+    when(orderQueryUseCase.findOrdersPage(
+            anyList(), any(), any(), any(), anyInt(), anyInt(), anyString()))
         .thenReturn(new OrderQueryResult(List.of(), 0L, 0, 20));
     OrderResponse orderResponse =
         new OrderResponse(
@@ -434,6 +437,26 @@ class AuthorizationMatrixTest {
               worker("KITCHEN"),
               200),
           arg("order ready / waiter denied", put(ORDERS_URL + "/1/ready"), worker("SERVICE"), 403),
+          arg(
+              "order prepare by id / kitchen allowed",
+              put(ORDERS_URL + "/1/prepare"),
+              worker("KITCHEN"),
+              200),
+          arg(
+              "order prepare by id / waiter denied",
+              put(ORDERS_URL + "/1/prepare"),
+              worker("SERVICE"),
+              403),
+          arg(
+              "order detail ready / kitchen allowed",
+              put(ORDERS_URL + "/1/details/10/ready"),
+              worker("KITCHEN"),
+              200),
+          arg(
+              "order detail ready / waiter denied",
+              put(ORDERS_URL + "/1/details/10/ready"),
+              worker("SERVICE"),
+              403),
           arg(
               "order deliver / cashier allowed",
               put(ORDERS_URL + "/1/deliver"),

@@ -6,9 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -92,6 +90,8 @@ class OrderResponseMapperTest {
             .id(10L)
             .name("Burger")
             .basePrice(new Money(BigDecimal.valueOf(12.5), Currency.getInstance("COP")))
+            .preparationAreaId(1L)
+            .preparationAreaName("Cocina")
             .build();
     Product fries =
         Product.builder()
@@ -158,6 +158,8 @@ class OrderResponseMapperTest {
     OrderResponse.OrderDetailResponse dr = response.details().get(0);
     assertEquals(10L, dr.productId());
     assertEquals("Burger", dr.productName());
+    assertEquals(1L, dr.areaId());
+    assertEquals("Cocina", dr.areaName());
     assertEquals("12.50", dr.unitPrice().getAmount());
     assertEquals("COP", dr.unitPrice().getCurrency());
     assertEquals("No onions", dr.instructions());
@@ -259,8 +261,10 @@ class OrderResponseMapperTest {
     assertTrue(dr.selectedProducts().isEmpty());
     assertTrue(dr.selectedAdditions().isEmpty());
     assertTrue(dr.clarifications().isEmpty());
+    assertNull(dr.areaId());
+    assertNull(dr.areaName());
 
-    verify(productRepositoryPort, never()).findAllById(anyList());
+    verify(productRepositoryPort).findAllById(List.of(1L));
   }
 
   @Test
@@ -301,5 +305,100 @@ class OrderResponseMapperTest {
     assertEquals(1, dr.selectedProducts().size());
     assertNull(dr.selectedProducts().get(0).name());
     assertNull(dr.selectedProducts().get(0).basePrice());
+  }
+
+  @Test
+  void should_batchLoadProductsOnce_when_mappingOrderPage() {
+    // Arrange
+    Product pizza =
+        Product.builder()
+            .id(1L)
+            .name("Pizza")
+            .preparationAreaId(1L)
+            .preparationAreaName("Cocina")
+            .basePrice(new Money(BigDecimal.valueOf(15.0), Currency.getInstance("COP")))
+            .build();
+    Product soda =
+        Product.builder()
+            .id(2L)
+            .name("Soda")
+            .preparationAreaId(3L)
+            .preparationAreaName("Bar")
+            .basePrice(new Money(BigDecimal.valueOf(3.0), Currency.getInstance("COP")))
+            .build();
+    Order first =
+        Order.builder()
+            .id(1L)
+            .date(LocalDateTime.now())
+            .status(OrderStatus.QUEUE)
+            .details(
+                List.of(
+                    OrderDetail.builder()
+                        .id(1L)
+                        .product(Product.builder().id(1L).build())
+                        .unitPrice(new Money(BigDecimal.valueOf(15.0), Currency.getInstance("COP")))
+                        .build()))
+            .build();
+    Order second =
+        Order.builder()
+            .id(2L)
+            .date(LocalDateTime.now())
+            .status(OrderStatus.QUEUE)
+            .details(
+                List.of(
+                    OrderDetail.builder()
+                        .id(2L)
+                        .product(Product.builder().id(2L).build())
+                        .unitPrice(new Money(BigDecimal.valueOf(3.0), Currency.getInstance("COP")))
+                        .build()))
+            .build();
+
+    when(productRepositoryPort.findAllById(List.of(1L, 2L))).thenReturn(List.of(pizza, soda));
+    when(specialSelectionRepositoryPort.findById(anyLong())).thenReturn(Optional.empty());
+
+    // Act
+    List<OrderResponse> responses = orderResponseMapper.toResponses(List.of(first, second));
+
+    // Assert
+    assertEquals(2, responses.size());
+    assertEquals(1L, responses.get(0).details().get(0).areaId());
+    assertEquals("Cocina", responses.get(0).details().get(0).areaName());
+    assertEquals(3L, responses.get(1).details().get(0).areaId());
+    assertEquals("Bar", responses.get(1).details().get(0).areaName());
+    verify(productRepositoryPort).findAllById(List.of(1L, 2L));
+  }
+
+  @Test
+  void should_keepNullArea_when_productHasNoPreparationArea() {
+    // Arrange
+    Product unassigned =
+        Product.builder()
+            .id(5L)
+            .name("Unassigned")
+            .basePrice(new Money(BigDecimal.valueOf(4.0), Currency.getInstance("COP")))
+            .build();
+    Order order =
+        Order.builder()
+            .id(3L)
+            .date(LocalDateTime.now())
+            .status(OrderStatus.QUEUE)
+            .details(
+                List.of(
+                    OrderDetail.builder()
+                        .id(3L)
+                        .product(Product.builder().id(5L).build())
+                        .unitPrice(new Money(BigDecimal.valueOf(4.0), Currency.getInstance("COP")))
+                        .build()))
+            .build();
+
+    when(productRepositoryPort.findAllById(List.of(5L))).thenReturn(List.of(unassigned));
+    when(specialSelectionRepositoryPort.findById(5L)).thenReturn(Optional.empty());
+
+    // Act
+    OrderResponse response = orderResponseMapper.toResponse(order);
+
+    // Assert
+    assertNull(response.details().get(0).areaId());
+    assertNull(response.details().get(0).areaName());
   }
 }

@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.order.persistence;
 
 import aros.services.rms.infraestructure.product.persistence.Product;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -13,6 +14,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -48,9 +51,16 @@ public class OrderDetail {
   @JoinColumn(name = "product_id")
   private Product product;
 
-  private Double unitPrice;
+  @Column(precision = 10, scale = 2)
+  private BigDecimal unitPrice;
 
   private String instructions;
+
+  /** Item-level readiness (V59). A line can be ready before the whole ticket is. */
+  @Builder.Default private boolean ready = false;
+
+  @jakarta.persistence.Column(name = "ready_at")
+  private LocalDateTime readyAt;
 
   /**
    * Selected option rows. Each row pairs an {@link

@@ -17,4 +17,14 @@ public interface PreparationUseCase {
    * @throws IllegalStateException si no hay órdenes en cola
    */
   Order processNextOrder();
+
+  /**
+   * Pasa a preparación una orden concreta que esté en cola (QUEUE -> PREPARING).
+   *
+   * @param id identificador de la orden
+   * @return la orden que pasó a preparación
+   * @throws aros.services.rms.core.order.application.exception.OrderNotFoundException si no existe
+   * @throws IllegalStateException si la orden no está en estado QUEUE
+   */
+  Order prepareOrder(Long id);
 }

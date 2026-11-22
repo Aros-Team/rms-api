@@ -3,6 +3,7 @@
 package aros.services.rms.core.purchase.application.service;
 
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.application.exception.StorageLocationNotFoundException;
 import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFoundException;
 import aros.services.rms.core.inventory.application.service.InventoryMovementService;
@@ -16,10 +17,13 @@ import aros.services.rms.core.purchase.application.exception.SupplierInactiveExc
 import aros.services.rms.core.purchase.application.exception.SupplierNotFoundException;
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
 import aros.services.rms.core.purchase.domain.PurchaseOrderItem;
+import aros.services.rms.core.purchase.domain.PurchaseStatus;
 import aros.services.rms.core.purchase.port.input.RegisterPurchaseOrderUseCase;
 import aros.services.rms.core.purchase.port.output.PurchaseOrderRepositoryPort;
 import aros.services.rms.core.purchase.port.output.SupplierRepositoryPort;
 import java.math.BigDecimal;
+import java.util.Currency;
+import java.util.List;
 
 /**
  * Pure business logic for registering a purchase order.
@@ -34,6 +38,7 @@ import java.math.BigDecimal;
  *   <li>Validate supplier exists and is active.
  *   <li>Validate each item's supply variant exists.
  *   <li>Validate quantityReceived <= quantityOrdered per item.
+ *   <li>Derive the status (RECEIVED when any line arrived) and the total from the line items.
  *   <li>Persist the purchase order (cascade saves items).
  *   <li>For each item with quantityReceived > 0: upsert stock in Bodega + register ENTRY movement.
  * </ol>
@@ -124,23 +129,28 @@ public class RegisterPurchaseOrderService implements RegisterPurchaseOrderUseCas
       }
     }
 
-    // 3. Persist the purchase order (cascade saves items via JPA)
+    // 3. Derive the authoritative status and total from the lines (never trust client totals)
+    order.setStatus(deriveStatus(order.getItems()));
+    order.setTotalAmount(computeTotal(order));
+
+    // 4. Persist the purchase order (cascade saves items via JPA)
     var savedOrder = purchaseOrderRepositoryPort.save(order);
     logger.info(
-        "Purchase registered: id={}, supplier={}, total={}, registeredBy={}",
+        "Purchase registered: id={}, supplier={}, status={}, total={}, registeredBy={}",
         savedOrder.getId(),
         savedOrder.getSupplierId(),
+        savedOrder.getStatus(),
         savedOrder.getTotalAmount(),
         savedOrder.getRegisteredById());
 
-    // 4. Resolve Bodega storage location id
+    // 5. Resolve Bodega storage location id
     var bodegaId =
         storageLocationRepositoryPort
             .findByName("Bodega")
             .orElseThrow(() -> new StorageLocationNotFoundException("Bodega"))
             .getId();
 
-    // 5. Integrate each item with inventory (only items with quantity received > 0)
+    // 6. Integrate each item with inventory (only items with quantity received > 0)
     for (PurchaseOrderItem item : savedOrder.getItems()) {
       if (item.getQuantityReceived().compareTo(BigDecimal.ZERO) <= 0) {
         continue;
@@ -168,5 +178,49 @@ public class RegisterPurchaseOrderService implements RegisterPurchaseOrderUseCas
     }
 
     return savedOrder;
+  }
+
+  /**
+   * Derives the purchase status from the received quantities: any line with a received quantity
+   * means the order has arrived, otherwise it is still pending confirmation.
+   *
+   * @param items the purchase lines
+   * @return {@link PurchaseStatus#RECEIVED} when at least one line arrived, else {@link
+   *     PurchaseStatus#CONFIRMED}
+   */
+  private PurchaseStatus deriveStatus(List<PurchaseOrderItem> items) {
+    if (items == null) {
+      return PurchaseStatus.CONFIRMED;
+    }
+    for (PurchaseOrderItem item : items) {
+      if (item.getQuantityReceived() != null
+          && item.getQuantityReceived().compareTo(BigDecimal.ZERO) > 0) {
+        return PurchaseStatus.RECEIVED;
+      }
+    }
+    return PurchaseStatus.CONFIRMED;
+  }
+
+  /**
+   * Computes the purchase total server-side as the sum of {@code quantityOrdered * unitPrice} for
+   * every line. The client-supplied total is never used as the source of truth.
+   *
+   * @param order the purchase order with items and a currency in its total amount
+   * @return the authoritative total in the order currency
+   */
+  private Money computeTotal(PurchaseOrder order) {
+    Currency currency =
+        order.getTotalAmount() != null
+            ? order.getTotalAmount().currency()
+            : Money.zeroDefault().currency();
+    Money total = Money.zero(currency);
+    if (order.getItems() == null) {
+      return total;
+    }
+    for (PurchaseOrderItem item : order.getItems()) {
+      Money unitPrice = item.getUnitPrice() != null ? item.getUnitPrice() : Money.zero(currency);
+      total = total.plus(unitPrice.times(item.getQuantityOrdered()));
+    }
+    return total;
   }
 }

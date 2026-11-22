@@ -90,8 +90,10 @@ public class OrderMapper {
             .id(domain.getId())
             .order(orderEntity)
             .product(productMapper.toProductEntity(domain.getProduct()))
-            .unitPrice(domain.getUnitPrice().amount().doubleValue())
+            .unitPrice(domain.getUnitPrice().amount())
             .instructions(domain.getInstructions())
+            .ready(domain.isReady())
+            .readyAt(domain.getReadyAt())
             .build();
 
     entity.setSelectedOptions(toOrderDetailOptionEntities(domain, entity));
@@ -118,7 +120,7 @@ public class OrderMapper {
         continue;
       }
       Money surcharge = extraPrices.get(option.getId());
-      double extra = surcharge == null ? 0.0 : surcharge.amount().doubleValue();
+      BigDecimal extra = surcharge == null ? BigDecimal.ZERO : surcharge.amount();
       rows.add(
           OrderDetailOption.builder()
               .orderDetail(orderDetailEntity)
@@ -190,18 +192,17 @@ public class OrderMapper {
     var currency = currencyProvider.getCurrency();
     Money unitPrice =
         entity.getUnitPrice() != null
-            ? new Money(BigDecimal.valueOf(entity.getUnitPrice()), currency)
+            ? new Money(entity.getUnitPrice(), currency)
             : Money.zero(currency);
 
     Money extraCharge = Money.zero(currency);
     Map<Long, Money> optionExtraPrices = new HashMap<>();
     for (OrderDetailOption row : rows) {
-      Double rowExtra = row.getExtraPrice();
-      double value = rowExtra == null ? 0.0 : rowExtra;
-      extraCharge = extraCharge.plus(new Money(BigDecimal.valueOf(value), currency));
+      BigDecimal rowExtra = row.getExtraPrice();
+      BigDecimal value = rowExtra == null ? BigDecimal.ZERO : rowExtra;
+      extraCharge = extraCharge.plus(new Money(value, currency));
       if (row.getOption() != null && row.getOption().getId() != null) {
-        optionExtraPrices.put(
-            row.getOption().getId(), new Money(BigDecimal.valueOf(value), currency));
+        optionExtraPrices.put(row.getOption().getId(), new Money(value, currency));
       }
     }
 
@@ -213,6 +214,8 @@ public class OrderMapper {
         .optionExtraPrices(optionExtraPrices)
         .instructions(entity.getInstructions())
         .selectedOptions(selectedOptions)
+        .ready(entity.isReady())
+        .readyAt(entity.getReadyAt())
         .build();
   }
 }

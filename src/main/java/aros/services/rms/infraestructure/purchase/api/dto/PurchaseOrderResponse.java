@@ -3,6 +3,7 @@
 package aros.services.rms.infraestructure.purchase.api.dto;
 
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
+import aros.services.rms.core.purchase.domain.PurchaseStatus;
 import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
@@ -19,7 +20,13 @@ public record PurchaseOrderResponse(
         Long registeredById,
     @Schema(description = "Date and time the purchase occurred") LocalDateTime purchasedAt,
     @Schema(description = "Total amount paid to the supplier") MoneyDto totalAmount,
-    @Schema(description = "Optional notes") String notes,
+    @Schema(
+            description = "Purchase lifecycle status",
+            example = "RECEIVED",
+            allowableValues = {"CONFIRMED", "RECEIVED"})
+        PurchaseStatus status,
+    @Schema(description = "Optional notes (kept for compatibility; may repeat the status token)")
+        String notes,
     @Schema(description = "Timestamp when the record was created") LocalDateTime createdAt,
     @Schema(description = "Line items of the purchase order")
         List<PurchaseOrderItemResponse> items) {
@@ -41,6 +48,7 @@ public record PurchaseOrderResponse(
         order.getRegisteredById(),
         order.getPurchasedAt(),
         order.getTotalAmount() != null ? MoneyDto.of(order.getTotalAmount()) : null,
+        order.getStatus(),
         order.getNotes(),
         order.getCreatedAt(),
         items);

@@ -4,6 +4,7 @@ package aros.services.rms.schedule;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -21,6 +22,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
@@ -116,5 +118,19 @@ class TimeLogControllerTest {
     mockMvc
         .perform(get(URL + "?workerId=1").header("Authorization", "Bearer token"))
         .andExpect(status().isOk());
+  }
+
+  @Test
+  void shouldForwardWithinShiftFilter() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createAdminJwt());
+    when(getTimeLogHistoryUseCase.getHistory(any(TimeLogFilter.class))).thenReturn(List.of());
+
+    mockMvc
+        .perform(get(URL + "?withinShift=true").header("Authorization", "Bearer token"))
+        .andExpect(status().isOk());
+
+    ArgumentCaptor<TimeLogFilter> captor = ArgumentCaptor.forClass(TimeLogFilter.class);
+    verify(getTimeLogHistoryUseCase).getHistory(captor.capture());
+    org.junit.jupiter.api.Assertions.assertEquals(Boolean.TRUE, captor.getValue().withinShift());
   }
 }

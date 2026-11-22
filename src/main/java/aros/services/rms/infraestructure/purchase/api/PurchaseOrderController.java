@@ -57,6 +57,7 @@ public class PurchaseOrderController {
       description =
           "Registers a new purchase order and automatically updates Warehouse stock. "
               + "The received quantity of each item enters the inventory as an ENTRY movement. "
+              + "The status (CONFIRMED/RECEIVED) and the total are derived from the items. "
               + "The entire operation is atomic — if any step fails, nothing is persisted.",
       responses = {
         @ApiResponse(responseCode = "201", description = "Purchase order registered successfully"),
