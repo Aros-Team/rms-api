@@ -2,12 +2,17 @@
 
 package aros.services.rms.core.payroll.domain;
 
+import aros.services.rms.core.common.money.domain.Money;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
 /**
  * A payroll event representing a single bonus, deduction, or hours-based entry for a user.
+ *
+ * <p>The event is an earning unless its type is a deduction ({@code ABSENCE} or {@code DEDUCTION}).
+ * The aggregation uses {@link #earningAmount()} and {@link #deductionAmount()} so a deduction never
+ * increases the payable amount even when the stored amount is negative.
  *
  * @param id unique identifier
  * @param userId the user this event belongs to
@@ -26,8 +31,8 @@ public record PayrollEvent(
     LocalDate eventDate,
     PayrollEventType eventType,
     BigDecimal quantity,
-    BigDecimal unitRate,
-    BigDecimal amount,
+    Money unitRate,
+    Money amount,
     String notes,
     Instant createdAt,
     String createdBy) {
@@ -49,11 +54,37 @@ public record PayrollEvent(
       LocalDate eventDate,
       PayrollEventType eventType,
       BigDecimal quantity,
-      BigDecimal unitRate,
+      Money unitRate,
       String notes,
       String createdBy) {
-    BigDecimal amount = quantity.multiply(unitRate);
+    Money amount = unitRate.times(quantity);
     return new PayrollEvent(
         null, userId, eventDate, eventType, quantity, unitRate, amount, notes, null, createdBy);
+  }
+
+  /**
+   * Returns the amount this event contributes to payroll bonuses.
+   *
+   * <p>Overtime, night surcharges and both bonus types are earnings; deductions contribute zero.
+   *
+   * @return the bonus contribution, zero for deduction types
+   */
+  public Money earningAmount() {
+    if (eventType.isDeduction()) {
+      return Money.zero(amount.currency());
+    }
+    return amount.abs();
+  }
+
+  /**
+   * Returns the amount this event contributes to payroll deductions.
+   *
+   * @return the deduction contribution, zero for earning types
+   */
+  public Money deductionAmount() {
+    if (eventType.isDeduction()) {
+      return amount.abs();
+    }
+    return Money.zero(amount.currency());
   }
 }

@@ -6,7 +6,6 @@ import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.payroll.domain.Payroll;
 import aros.services.rms.core.payroll.domain.PayrollStatus;
-import aros.services.rms.core.payroll.domain.exception.InvalidPayrollPeriodException;
 import aros.services.rms.core.payroll.domain.exception.PayrollImmutableException;
 import aros.services.rms.core.payroll.domain.exception.PayrollNotFoundException;
 import aros.services.rms.core.payroll.domain.port.input.UpdatePayrollUseCase;
@@ -15,11 +14,17 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 
-/** Service implementation for updating an existing payroll record. */
+/**
+ * Service implementation for updating an existing payroll record.
+ *
+ * <p>Manual bonuses and deductions are the non-event component. After a partial update the payroll
+ * is re-aggregated so the persisted event totals remain part of the final bonuses/deductions.
+ */
 @RequiredArgsConstructor
 public class UpdatePayrollService implements UpdatePayrollUseCase {
 
   private final PayrollRepositoryPort payrollRepositoryPort;
+  private final PayrollAggregationService aggregationService;
   private final Logger logger;
 
   @Override
@@ -27,53 +32,31 @@ public class UpdatePayrollService implements UpdatePayrollUseCase {
     Payroll existing =
         payrollRepositoryPort.findById(id).orElseThrow(() -> new PayrollNotFoundException(id));
 
-    // Only PENDING records can be modified
-    if (!existing.isPending()) {
+    if (existing.isImmutable()) {
       throw new PayrollImmutableException(id, existing.status().name());
     }
 
-    // If status is changing, validate the transition
     if (cmd.status() != null && cmd.status() != existing.status()) {
       if (!existing.status().canTransitionTo(cmd.status())) {
         throw new PayrollImmutableException(id, existing.status().name());
       }
     }
 
-    // Use provided values or keep existing
     Money baseSalary = cmd.baseSalary() != null ? cmd.baseSalary() : existing.baseSalary();
-    Money bonuses = cmd.bonuses() != null ? cmd.bonuses() : existing.bonuses();
-    Money deductions = cmd.deductions() != null ? cmd.deductions() : existing.deductions();
+    Money manualBonuses = cmd.bonuses() != null ? cmd.bonuses() : existing.manualBonuses();
+    Money manualDeductions =
+        cmd.deductions() != null ? cmd.deductions() : existing.manualDeductions();
     BigDecimal hoursWorked = cmd.hoursWorked() != null ? cmd.hoursWorked() : existing.hoursWorked();
     PayrollStatus status = cmd.status() != null ? cmd.status() : existing.status();
     String notes = cmd.notes() != null ? cmd.notes() : existing.notes();
 
-    // Recalculate netAmount
-    Money netAmount = baseSalary.plus(bonuses).minus(deductions);
-    if (netAmount.isNegative()) {
-      throw new InvalidPayrollPeriodException("netAmount must not be negative");
-    }
+    Payroll candidate =
+        existing.withManualTotals(
+            baseSalary, manualBonuses, manualDeductions, hoursWorked, status, notes, Instant.now());
 
-    Payroll updated =
-        new Payroll(
-            existing.id(),
-            existing.userId(),
-            existing.period(),
-            existing.periodStart(),
-            existing.periodEnd(),
-            baseSalary,
-            bonuses,
-            deductions,
-            netAmount,
-            existing.paidAmount(),
-            hoursWorked,
-            status,
-            notes,
-            existing.registeredBy(),
-            existing.createdAt(),
-            Instant.now());
-
-    Payroll saved = payrollRepositoryPort.save(updated);
-    logger.info("Updated payroll {} to status {}, netAmount={}", id, status, netAmount);
+    Payroll saved = aggregationService.recompute(candidate);
+    logger.info(
+        "Updated payroll {} to status {}, netAmount={}", id, saved.status(), saved.netAmount());
     return saved;
   }
 }

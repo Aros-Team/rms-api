@@ -9,12 +9,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.payroll.domain.PayrollEvent;
 import aros.services.rms.core.payroll.domain.PayrollEventType;
 import aros.services.rms.core.payroll.domain.port.output.PayrollEventRepositoryPort;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Currency;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /** Unit tests for {@link ListPayrollEventsService}. */
 @ExtendWith(MockitoExtension.class)
 class ListPayrollEventsServiceTest {
+
+  private static final Currency COP = Currency.getInstance("COP");
 
   @Mock private PayrollEventRepositoryPort eventRepository;
   @Mock private Logger logger;
@@ -52,8 +56,8 @@ class ListPayrollEventsServiceTest {
             LocalDate.of(2026, 8, 5),
             PayrollEventType.OVERTIME,
             new BigDecimal("2.5"),
-            new BigDecimal("23437.50"),
-            new BigDecimal("58593.75"),
+            new Money(new BigDecimal("23437.50"), COP),
+            new Money(new BigDecimal("58593.75"), COP),
             null,
             Instant.now(),
             "admin");
@@ -65,8 +69,8 @@ class ListPayrollEventsServiceTest {
             LocalDate.of(2026, 8, 20),
             PayrollEventType.BONUS_ATTENDANCE,
             new BigDecimal("1"),
-            new BigDecimal("7812.50"),
-            new BigDecimal("7812.50"),
+            new Money(new BigDecimal("7812.50"), COP),
+            new Money(new BigDecimal("7812.50"), COP),
             "Attendance bonus",
             Instant.now(),
             "admin");

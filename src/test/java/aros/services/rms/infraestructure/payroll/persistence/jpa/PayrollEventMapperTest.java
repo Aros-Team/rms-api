@@ -6,17 +6,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.payroll.domain.PayrollEvent;
 import aros.services.rms.core.payroll.domain.PayrollEventType;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Currency;
 import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link PayrollEventMapper}. */
 class PayrollEventMapperTest {
 
-  private final PayrollEventMapper mapper = new PayrollEventMapper();
+  private static final Currency COP = Currency.getInstance("COP");
+  private final PayrollEventMapper mapper = new PayrollEventMapper(() -> COP);
 
   // ---------------------------------------------------------------------------
   // UC-01: should_map_entity_to_domain
@@ -46,8 +49,9 @@ class PayrollEventMapperTest {
     assertEquals(LocalDate.of(2026, 8, 1), domain.eventDate());
     assertEquals(PayrollEventType.OVERTIME, domain.eventType());
     assertEquals(0, new BigDecimal("2.5").compareTo(domain.quantity()));
-    assertEquals(0, new BigDecimal("23437.50").compareTo(domain.unitRate()));
-    assertEquals(0, new BigDecimal("58593.75").compareTo(domain.amount()));
+    assertEquals(0, new BigDecimal("23437.50").compareTo(domain.unitRate().amount()));
+    assertEquals(COP, domain.unitRate().currency());
+    assertEquals(0, new BigDecimal("58593.75").compareTo(domain.amount().amount()));
     assertEquals("Weekend extra", domain.notes());
     assertEquals(Instant.parse("2026-08-01T10:00:00Z"), domain.createdAt());
     assertEquals("admin", domain.createdBy());
@@ -66,8 +70,8 @@ class PayrollEventMapperTest {
             LocalDate.of(2026, 8, 15),
             PayrollEventType.DEDUCTION,
             new BigDecimal("1"),
-            new BigDecimal("50000"),
-            new BigDecimal("-50000"),
+            money("50000"),
+            money("-50000"),
             "Missing uniform",
             Instant.parse("2026-08-15T14:30:00Z"),
             "manager");
@@ -117,8 +121,8 @@ class PayrollEventMapperTest {
             LocalDate.of(2026, 9, 10),
             PayrollEventType.BONUS_ATTENDANCE,
             new BigDecimal("1"),
-            new BigDecimal("7812.50"),
-            new BigDecimal("7812.50"),
+            money("7812.50"),
+            money("7812.50"),
             "Perfect attendance",
             Instant.parse("2026-09-10T09:00:00Z"),
             "hr");
@@ -132,10 +136,9 @@ class PayrollEventMapperTest {
     assertEquals(original.eventDate(), roundtripped.eventDate());
     assertEquals(original.eventType(), roundtripped.eventType());
     assertEquals(0, original.quantity().compareTo(roundtripped.quantity()));
-    assertEquals(0, original.unitRate().compareTo(roundtripped.unitRate()));
-    assertEquals(0, original.amount().compareTo(roundtripped.amount()));
+    assertEquals(0, original.unitRate().amount().compareTo(roundtripped.unitRate().amount()));
+    assertEquals(0, original.amount().amount().compareTo(roundtripped.amount().amount()));
     assertEquals(original.notes(), roundtripped.notes());
-    // createdAt is set by @PrePersist on entity, not by mapper — skip that field
     assertEquals(original.createdBy(), roundtripped.createdBy());
   }
 
@@ -162,5 +165,9 @@ class PayrollEventMapperTest {
 
     assertNotNull(domain);
     assertNull(domain.notes());
+  }
+
+  private Money money(String amount) {
+    return new Money(new BigDecimal(amount), COP);
   }
 }

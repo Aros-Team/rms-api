@@ -2,13 +2,19 @@
 
 package aros.services.rms.infraestructure.payroll.persistence.jpa;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.payroll.domain.PayrollSettlement;
 import aros.services.rms.core.payroll.domain.SettlementType;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /** Mapper for PayrollSettlement persistence operations. */
 @Component
+@RequiredArgsConstructor
 public class PayrollSettlementMapper {
+
+  private final CurrencyProvider currencyProvider;
 
   /**
    * Converts a PayrollSettlementEntity to a PayrollSettlement domain object.
@@ -27,7 +33,7 @@ public class PayrollSettlementMapper {
         SettlementType.valueOf(entity.getSettlementType()),
         entity.getPeriodStart(),
         entity.getPeriodEnd(),
-        entity.getAmount(),
+        new Money(entity.getAmount(), currencyProvider.getCurrency()),
         entity.getNotes(),
         entity.getSettledAt(),
         entity.getSettledBy());
@@ -50,7 +56,7 @@ public class PayrollSettlementMapper {
         .settlementType(domain.settlementType().name())
         .periodStart(domain.periodStart())
         .periodEnd(domain.periodEnd())
-        .amount(domain.amount())
+        .amount(domain.amount().amount())
         .notes(domain.notes())
         .settledBy(domain.settledBy())
         .build();

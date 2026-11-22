@@ -67,6 +67,8 @@ public class RegisterPayrollService implements RegisterPayrollUseCase {
             cmd.baseSalary(),
             cmd.bonuses(),
             cmd.deductions(),
+            cmd.bonuses(),
+            cmd.deductions(),
             netAmount,
             Money.zero(cmd.baseSalary().currency()),
             cmd.hoursWorked(),

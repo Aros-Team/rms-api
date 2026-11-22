@@ -80,10 +80,10 @@ class CalculatePayrollEventServiceTest {
     PayrollCalculationResult result = service.calculate(USER_ID, "OVERTIME", new BigDecimal("2.5"));
 
     assertNotNull(result);
-    assertEquals(0, HOURLY_RATE.compareTo(result.hourlyRate()));
+    assertEquals(0, HOURLY_RATE.compareTo(result.hourlyRate().amount()));
     assertEquals(0, new BigDecimal("1.5").compareTo(result.multiplier()));
-    assertEquals(0, new BigDecimal("23437.50").compareTo(result.suggestedUnitRate()));
-    assertEquals(0, new BigDecimal("58593.75").compareTo(result.suggestedAmount()));
+    assertEquals(0, new BigDecimal("23437.50").compareTo(result.suggestedUnitRate().amount()));
+    assertEquals(0, new BigDecimal("58593.75").compareTo(result.suggestedAmount().amount()));
   }
 
   // ---------------------------------------------------------------------------
@@ -99,10 +99,10 @@ class CalculatePayrollEventServiceTest {
         service.calculate(USER_ID, "NIGHT_SURCHARGE", new BigDecimal("1"));
 
     assertNotNull(result);
-    assertEquals(0, HOURLY_RATE.compareTo(result.hourlyRate()));
+    assertEquals(0, HOURLY_RATE.compareTo(result.hourlyRate().amount()));
     assertEquals(0, new BigDecimal("1.75").compareTo(result.multiplier()));
-    assertEquals(0, new BigDecimal("27343.75").compareTo(result.suggestedUnitRate()));
-    assertEquals(0, new BigDecimal("27343.75").compareTo(result.suggestedAmount()));
+    assertEquals(0, new BigDecimal("27343.75").compareTo(result.suggestedUnitRate().amount()));
+    assertEquals(0, new BigDecimal("27343.75").compareTo(result.suggestedAmount().amount()));
   }
 
   // ---------------------------------------------------------------------------
@@ -117,10 +117,10 @@ class CalculatePayrollEventServiceTest {
     PayrollCalculationResult result = service.calculate(USER_ID, "ABSENCE", new BigDecimal("8"));
 
     assertNotNull(result);
-    assertEquals(0, HOURLY_RATE.compareTo(result.hourlyRate()));
+    assertEquals(0, HOURLY_RATE.compareTo(result.hourlyRate().amount()));
     assertEquals(0, new BigDecimal("-1").compareTo(result.multiplier()));
-    assertEquals(0, new BigDecimal("-15625").compareTo(result.suggestedUnitRate()));
-    assertEquals(0, new BigDecimal("-125000").compareTo(result.suggestedAmount()));
+    assertEquals(0, new BigDecimal("-15625").compareTo(result.suggestedUnitRate().amount()));
+    assertEquals(0, new BigDecimal("-125000").compareTo(result.suggestedAmount().amount()));
   }
 
   // ---------------------------------------------------------------------------
@@ -136,10 +136,10 @@ class CalculatePayrollEventServiceTest {
         service.calculate(USER_ID, "BONUS_ATTENDANCE", new BigDecimal("1"));
 
     assertNotNull(result);
-    assertEquals(0, HOURLY_RATE.compareTo(result.hourlyRate()));
+    assertEquals(0, HOURLY_RATE.compareTo(result.hourlyRate().amount()));
     assertEquals(0, new BigDecimal("0.5").compareTo(result.multiplier()));
-    assertEquals(0, new BigDecimal("7812.50").compareTo(result.suggestedUnitRate()));
-    assertEquals(0, new BigDecimal("7812.50").compareTo(result.suggestedAmount()));
+    assertEquals(0, new BigDecimal("7812.50").compareTo(result.suggestedUnitRate().amount()));
+    assertEquals(0, new BigDecimal("7812.50").compareTo(result.suggestedAmount().amount()));
   }
 
   // ---------------------------------------------------------------------------
@@ -155,7 +155,7 @@ class CalculatePayrollEventServiceTest {
         service.calculate(USER_ID, "BONUS_PERFORMANCE", new BigDecimal("1"));
 
     assertNotNull(result);
-    assertEquals(0, HOURLY_RATE.compareTo(result.hourlyRate()));
+    assertEquals(0, HOURLY_RATE.compareTo(result.hourlyRate().amount()));
     assertNull(result.multiplier());
     assertNull(result.suggestedUnitRate());
     assertNull(result.suggestedAmount());
@@ -173,7 +173,7 @@ class CalculatePayrollEventServiceTest {
     PayrollCalculationResult result = service.calculate(USER_ID, "DEDUCTION", null);
 
     assertNotNull(result);
-    assertEquals(0, HOURLY_RATE.compareTo(result.hourlyRate()));
+    assertEquals(0, HOURLY_RATE.compareTo(result.hourlyRate().amount()));
     assertNull(result.multiplier());
     assertNull(result.suggestedUnitRate());
     assertNull(result.suggestedAmount());
@@ -204,9 +204,9 @@ class CalculatePayrollEventServiceTest {
     PayrollCalculationResult result = service.calculate(USER_ID, "OVERTIME", null);
 
     assertNotNull(result);
-    assertEquals(0, HOURLY_RATE.compareTo(result.hourlyRate()));
+    assertEquals(0, HOURLY_RATE.compareTo(result.hourlyRate().amount()));
     assertEquals(0, new BigDecimal("1.5").compareTo(result.multiplier()));
-    assertEquals(0, new BigDecimal("23437.50").compareTo(result.suggestedUnitRate()));
+    assertEquals(0, new BigDecimal("23437.50").compareTo(result.suggestedUnitRate().amount()));
     assertNull(result.suggestedAmount());
   }
 }

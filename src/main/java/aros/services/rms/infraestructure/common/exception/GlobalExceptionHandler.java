@@ -31,10 +31,13 @@ import aros.services.rms.core.payment.application.exception.OrderNotPayableExcep
 import aros.services.rms.core.payment.application.exception.PaymentAlreadyVoidedException;
 import aros.services.rms.core.payment.application.exception.PaymentNotFoundException;
 import aros.services.rms.core.payroll.domain.exception.InvalidPayrollPeriodException;
+import aros.services.rms.core.payroll.domain.exception.PayrollAggregationException;
 import aros.services.rms.core.payroll.domain.exception.PayrollAlreadyExistsException;
 import aros.services.rms.core.payroll.domain.exception.PayrollEventNotFoundException;
 import aros.services.rms.core.payroll.domain.exception.PayrollImmutableException;
 import aros.services.rms.core.payroll.domain.exception.PayrollNotFoundException;
+import aros.services.rms.core.payroll.domain.exception.PayrollSettlementException;
+import aros.services.rms.core.payroll.domain.exception.PayrollSettlementNotFoundException;
 import aros.services.rms.core.product.application.exception.InvalidProductOptionException;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.purchase.application.exception.InvalidPurchaseItemException;
@@ -541,6 +544,25 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(InvalidPayrollPeriodException.class)
   public ResponseEntity<ProblemDetail> handleInvalidPayrollPeriod(InvalidPayrollPeriodException e) {
     return problem(HttpStatus.BAD_REQUEST, e.getMessage());
+  }
+
+  /** Handles PayrollAggregationException. */
+  @ExceptionHandler(PayrollAggregationException.class)
+  public ResponseEntity<ProblemDetail> handlePayrollAggregation(PayrollAggregationException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
+  }
+
+  /** Handles PayrollSettlementException. */
+  @ExceptionHandler(PayrollSettlementException.class)
+  public ResponseEntity<ProblemDetail> handlePayrollSettlement(PayrollSettlementException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
+  }
+
+  /** Handles PayrollSettlementNotFoundException. */
+  @ExceptionHandler(PayrollSettlementNotFoundException.class)
+  public ResponseEntity<ProblemDetail> handlePayrollSettlementNotFound(
+      PayrollSettlementNotFoundException e) {
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   // --- Analytics exceptions ---
