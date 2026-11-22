@@ -4,13 +4,19 @@ package aros.services.rms.infraestructure.order.persistence.jpa;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.order.domain.Order;
+import aros.services.rms.core.order.domain.OrderDetail;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.order.persistence.OrderStatus;
 import aros.services.rms.infraestructure.product.persistence.jpa.ProductMapper;
 import aros.services.rms.infraestructure.table.persistence.jpa.TableMapper;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Currency;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -144,5 +150,35 @@ class OrderMapperTest {
     assertNull(roundTripped.getPartySize());
     assertNull(roundTripped.getOpenTime());
     assertNull(roundTripped.getCloseTime());
+  }
+
+  // ---------------------------------------------------------------------------
+  // N-05: item-level readiness survives the entity round-trip (V59)
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void roundTrip_should_preserveItemReadiness() {
+    LocalDateTime readyAt = LocalDateTime.of(2026, 7, 17, 12, 30);
+    when(currencyProvider.getCurrency()).thenReturn(Currency.getInstance("COP"));
+
+    OrderDetail domain =
+        OrderDetail.builder()
+            .id(3L)
+            .unitPrice(new Money(BigDecimal.TEN, Currency.getInstance("COP")))
+            .instructions("no onions")
+            .ready(true)
+            .readyAt(readyAt)
+            .build();
+
+    aros.services.rms.infraestructure.order.persistence.OrderDetail entity =
+        orderMapper.toOrderDetailEntity(domain, null);
+
+    assertTrue(entity.isReady());
+    assertEquals(readyAt, entity.getReadyAt());
+
+    OrderDetail back = orderMapper.toOrderDetailDomain(entity);
+
+    assertTrue(back.isReady());
+    assertEquals(readyAt, back.getReadyAt());
   }
 }

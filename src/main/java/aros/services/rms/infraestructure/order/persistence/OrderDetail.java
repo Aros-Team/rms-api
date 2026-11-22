@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -51,6 +52,12 @@ public class OrderDetail {
   private Double unitPrice;
 
   private String instructions;
+
+  /** Item-level readiness (V59). A line can be ready before the whole ticket is. */
+  @Builder.Default private boolean ready = false;
+
+  @jakarta.persistence.Column(name = "ready_at")
+  private LocalDateTime readyAt;
 
   /**
    * Selected option rows. Each row pairs an {@link

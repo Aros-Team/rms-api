@@ -235,6 +235,40 @@ public class OrderController {
   }
 
   /**
+   * Starts preparation of a specific order.
+   *
+   * @param id the order ID
+   * @return the order moved to PREPARING
+   */
+  @Operation(
+      tags = {"Orders"},
+      summary = "Prepare a specific order",
+      description =
+          "Moves a specific QUEUE order to PREPARING. Unlike the global FIFO endpoint, this lets"
+              + " a station start the ticket it is actually working on.",
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Order moved to preparation",
+            content = @Content(schema = @Schema(implementation = OrderResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Order not found"),
+        @ApiResponse(responseCode = "409", description = "Order is not in QUEUE status"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @PutMapping("/{id}/prepare")
+  @JustKitchenOrAdmin
+  public ResponseEntity<OrderResponse> prepareOrder(
+      @Parameter(description = "Order ID", example = "1", required = true) @PathVariable Long id) {
+    Order order = preparationUseCase.prepareOrder(id);
+    OrderResponse response = orderResponseMapper.toResponse(order);
+    orderNotificationService.notifyOrderPreparing(response);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
    * Marks an order as ready.
    *
    * @param id the order ID
@@ -265,6 +299,48 @@ public class OrderController {
     Order order = markAsReadyUseCase.markAsReady(id);
     OrderResponse response = orderResponseMapper.toResponse(order);
     orderNotificationService.notifyOrderReady(response);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Marks a single order line as ready at its station.
+   *
+   * @param id the order ID
+   * @param detailId the order detail ID
+   * @return the updated order, already READY when every line is ready
+   */
+  @Operation(
+      tags = {"Orders"},
+      summary = "Mark an order line as ready",
+      description =
+          "Marks one line of a PREPARING order as ready at its station. When every line is ready"
+              + " the order moves to READY. Repeating the call for an already ready line is a"
+              + " no-op.",
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Line marked as ready",
+            content = @Content(schema = @Schema(implementation = OrderResponse.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Order or order line not found"),
+        @ApiResponse(
+            responseCode = "409",
+            description = "Order is not in PREPARING (or READY for an already-ready line) status"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @PutMapping("/{id}/details/{detailId}/ready")
+  @JustKitchenOrAdmin
+  public ResponseEntity<OrderResponse> markOrderDetailAsReady(
+      @Parameter(description = "Order ID", example = "1", required = true) @PathVariable Long id,
+      @Parameter(description = "Order detail ID", example = "10", required = true) @PathVariable
+          Long detailId) {
+    Order order = markAsReadyUseCase.markDetailAsReady(id, detailId);
+    OrderResponse response = orderResponseMapper.toResponse(order);
+    if (order.getStatus() == OrderStatus.READY) {
+      orderNotificationService.notifyOrderReady(response);
+    }
     return ResponseEntity.ok(response);
   }
 
@@ -337,6 +413,7 @@ public class OrderController {
    * @param status the single order status filter (backward compat)
    * @param statuses comma-separated order statuses filter
    * @param search optional product/option name filter (partial, case-insensitive)
+   * @param areaId optional preparation area (station) filter
    * @param startDate the start date filter
    * @param endDate the end date filter
    * @param page the page number (0-based)
@@ -384,6 +461,13 @@ public class OrderController {
           @RequestParam(required = false)
           String search,
       @Parameter(
+              description =
+                  "Optional preparation area (station) filter. Returns orders with at least one"
+                      + " line prepared in that area.",
+              example = "1")
+          @RequestParam(required = false)
+          Long areaId,
+      @Parameter(
               description = "Start date for filtering (ISO DateTime)",
               example = "2026-01-01T00:00:00")
           @RequestParam(required = false)
@@ -416,14 +500,14 @@ public class OrderController {
     if (search != null && !search.isBlank()) {
       result =
           orderQueryUseCase.findOrdersPage(
-              orderStatuses, search, startDate, endDate, page, size, sort);
+              orderStatuses, search, startDate, endDate, areaId, page, size, sort);
     } else {
       result =
-          orderQueryUseCase.findOrdersPage(orderStatuses, startDate, endDate, page, size, sort);
+          orderQueryUseCase.findOrdersPage(
+              orderStatuses, startDate, endDate, areaId, page, size, sort);
     }
 
-    List<OrderResponse> responses =
-        result.items().stream().map(orderResponseMapper::toResponse).collect(Collectors.toList());
+    List<OrderResponse> responses = orderResponseMapper.toResponses(result.items());
     return ResponseEntity.ok(
         PageResponse.of(responses, result.total(), result.page(), result.size()));
   }

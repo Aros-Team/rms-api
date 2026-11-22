@@ -212,6 +212,14 @@ public class GlobalExceptionHandler {
     return problem(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
+  /** Handles OrderDetailNotFoundException. */
+  @ExceptionHandler(
+      aros.services.rms.core.order.application.exception.OrderDetailNotFoundException.class)
+  public ResponseEntity<ProblemDetail> handleOrderDetailNotFound(
+      aros.services.rms.core.order.application.exception.OrderDetailNotFoundException e) {
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
+  }
+
   /** Handles ProductNotFoundException in order context. */
   @ExceptionHandler(
       aros.services.rms.core.order.application.exception.ProductNotFoundException.class)

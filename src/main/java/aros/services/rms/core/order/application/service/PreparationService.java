@@ -3,6 +3,7 @@
 package aros.services.rms.core.order.application.service;
 
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
+import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.input.PreparationUseCase;
@@ -49,6 +50,27 @@ public class PreparationService implements PreparationUseCase {
             .findFirstByStatusOrderByDateAsc(OrderStatus.QUEUE)
             .orElseThrow(() -> new IllegalStateException("No orders in queue"));
 
+    return startPreparation(order);
+  }
+
+  /** {@inheritDoc} Cambia a PREPARING la orden indicada, validando que siga en QUEUE. */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public Order prepareOrder(Long id) {
+    Order order =
+        orderRepositoryPort.findById(id).orElseThrow(() -> new OrderNotFoundException(id));
+
+    if (order.getStatus() != OrderStatus.QUEUE) {
+      throw new IllegalStateException("Order can only be prepared when in QUEUE status");
+    }
+
+    return startPreparation(order);
+  }
+
+  private Order startPreparation(Order order) {
     LocalDateTime preparationStartedAt = LocalDateTime.now();
     order.setStatus(OrderStatus.PREPARING);
     Order savedOrder = orderRepositoryPort.save(order);
@@ -69,6 +91,20 @@ public class PreparationService implements PreparationUseCase {
   @Recover
   public Order recoverProcessNextOrder(DataAccessException e) {
     log.warn("BD no disponible - fallback para processNextOrder: {}", e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  /**
+   * Recovery handler for prepareOrder operation when database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the order identifier
+   * @return never returns, always throws ServiceUnavailableException
+   * @throws ServiceUnavailableException when database is unavailable
+   */
+  @Recover
+  public Order recoverPrepareOrder(DataAccessException e, Long id) {
+    log.warn("BD no disponible - fallback para prepareOrder(id={}): {}", id, e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 }

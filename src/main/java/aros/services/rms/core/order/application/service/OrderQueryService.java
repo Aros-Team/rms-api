@@ -119,33 +119,7 @@ public class OrderQueryService implements OrderQueryUseCase {
       List<OrderStatus> statuses,
       LocalDateTime startDate,
       LocalDateTime endDate,
-      int page,
-      int size,
-      String sort) {
-    boolean hasDates = startDate != null && endDate != null;
-
-    if (hasDates && endDate.isAfter(LocalDateTime.now())) {
-      throw new IllegalArgumentException("End date cannot be in the future");
-    }
-
-    if (hasDates && startDate.isAfter(endDate)) {
-      throw new IllegalArgumentException("Start date cannot be after end date");
-    }
-
-    return orderRepositoryPort.findOrdersPage(statuses, startDate, endDate, page, size, sort);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  @Retryable(
-      retryFor = {DataAccessException.class},
-      maxAttempts = 3,
-      backoff = @Backoff(delay = 1000))
-  public OrderQueryResult findOrdersPage(
-      List<OrderStatus> statuses,
-      String search,
-      LocalDateTime startDate,
-      LocalDateTime endDate,
+      Long areaId,
       int page,
       int size,
       String sort) {
@@ -160,7 +134,36 @@ public class OrderQueryService implements OrderQueryUseCase {
     }
 
     return orderRepositoryPort.findOrdersPage(
-        statuses, search, startDate, endDate, page, size, sort);
+        statuses, startDate, endDate, areaId, page, size, sort);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public OrderQueryResult findOrdersPage(
+      List<OrderStatus> statuses,
+      String search,
+      LocalDateTime startDate,
+      LocalDateTime endDate,
+      Long areaId,
+      int page,
+      int size,
+      String sort) {
+    boolean hasDates = startDate != null && endDate != null;
+
+    if (hasDates && endDate.isAfter(LocalDateTime.now())) {
+      throw new IllegalArgumentException("End date cannot be in the future");
+    }
+
+    if (hasDates && startDate.isAfter(endDate)) {
+      throw new IllegalArgumentException("Start date cannot be after end date");
+    }
+
+    return orderRepositoryPort.findOrdersPage(
+        statuses, search, startDate, endDate, areaId, page, size, sort);
   }
 
   /**
@@ -170,6 +173,7 @@ public class OrderQueryService implements OrderQueryUseCase {
    * @param statuses the order statuses filter
    * @param startDate the start date filter
    * @param endDate the end date filter
+   * @param areaId the preparation area (station) filter
    * @param page the page number
    * @param size the page size
    * @param sort the sort specification
@@ -182,6 +186,7 @@ public class OrderQueryService implements OrderQueryUseCase {
       List<OrderStatus> statuses,
       LocalDateTime startDate,
       LocalDateTime endDate,
+      Long areaId,
       int page,
       int size,
       String sort) {
@@ -197,6 +202,7 @@ public class OrderQueryService implements OrderQueryUseCase {
    * @param search the product or option name filter
    * @param startDate the start date filter
    * @param endDate the end date filter
+   * @param areaId the preparation area (station) filter
    * @param page the page number
    * @param size the page size
    * @param sort the sort specification
@@ -210,6 +216,7 @@ public class OrderQueryService implements OrderQueryUseCase {
       String search,
       LocalDateTime startDate,
       LocalDateTime endDate,
+      Long areaId,
       int page,
       int size,
       String sort) {
