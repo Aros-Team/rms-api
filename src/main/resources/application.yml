@@ -8,6 +8,14 @@ spring:
   threads:
     virtual:
       enabled: true
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          # Single business timezone for LocalTime, LocalDateTime and Instant.
+          # Mixing a UTC session with Bogota wall-clock values shifts TIME
+          # columns (schedules, time logs) and 2FA expiry by five hours.
+          time_zone: America/Bogota
 
 app:
   version: "@project.version@"

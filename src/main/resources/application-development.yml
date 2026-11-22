@@ -19,6 +19,8 @@ spring:
       storage:
         enabled: false
   datasource:
+    # The session, Hibernate and the seed CLI all use the business timezone so
+    # TIME/DATETIME wall-clock values read back exactly as stored.
     url: jdbc:mysql://localhost:3306/${DB_NAME:rmsdb}?connectionTimeZone=America/Bogota&forceConnectionTimeZoneToSession=true&rewriteBatchedStatements=true
     username: root
     password: ${DB_PASSWORD:root}
