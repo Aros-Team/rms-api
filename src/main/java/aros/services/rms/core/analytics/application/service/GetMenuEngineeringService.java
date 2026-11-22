@@ -2,6 +2,7 @@
 
 package aros.services.rms.core.analytics.application.service;
 
+import aros.services.rms.core.analytics.domain.AnalyticsPeriods;
 import aros.services.rms.core.analytics.domain.MenuEngineeringReport;
 import aros.services.rms.core.analytics.domain.MenuEngineeringReport.CacheStatus;
 import aros.services.rms.core.analytics.domain.MenuEngineeringReport.MedianInfo;
@@ -128,64 +129,7 @@ public class GetMenuEngineeringService implements GetMenuEngineeringUseCase {
   }
 
   static List<String> generatePeriodKeys(String bucket, String from, String to) {
-    // Reuse same logic as GetPrimeCostService but simpler — just return the range
-    List<String> keys = new ArrayList<>();
-    switch (bucket) {
-      case "daily" -> {
-        var start = java.time.LocalDate.parse(from);
-        var end = java.time.LocalDate.parse(to);
-        while (!start.isAfter(end)) {
-          keys.add(start.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE));
-          start = start.plusDays(1);
-        }
-      }
-      case "weekly" -> {
-        var start =
-            java.time.LocalDate.parse(
-                from + "-1",
-                new java.time.format.DateTimeFormatterBuilder()
-                    .appendPattern("YYYY-'W'ww")
-                    .parseDefaulting(java.time.temporal.ChronoField.DAY_OF_WEEK, 1)
-                    .toFormatter());
-        var end =
-            java.time.LocalDate.parse(
-                to + "-7",
-                new java.time.format.DateTimeFormatterBuilder()
-                    .appendPattern("YYYY-'W'ww")
-                    .parseDefaulting(java.time.temporal.ChronoField.DAY_OF_WEEK, 7)
-                    .toFormatter());
-        while (!start.isAfter(end)) {
-          int y = start.get(java.time.temporal.IsoFields.WEEK_BASED_YEAR);
-          int w = start.get(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR);
-          keys.add(String.format("%04d-W%02d", y, w));
-          start = start.plusWeeks(1);
-        }
-      }
-      case "monthly" -> {
-        String[] fromParts = from.split("-");
-        String[] toParts = to.split("-");
-        int y = Integer.parseInt(fromParts[0]);
-        int m = Integer.parseInt(fromParts[1]);
-        int endY = Integer.parseInt(toParts[0]);
-        int endM = Integer.parseInt(toParts[1]);
-        while (y < endY || (y == endY && m <= endM)) {
-          keys.add(String.format("%04d-%02d", y, m));
-          m++;
-          if (m > 12) {
-            m = 1;
-            y++;
-          }
-        }
-      }
-      case "yearly" -> {
-        int fromY = Integer.parseInt(from);
-        int toY = Integer.parseInt(to);
-        for (int y = fromY; y <= toY; y++) {
-          keys.add(String.valueOf(y));
-        }
-      }
-      default -> throw new IllegalArgumentException("Unsupported bucket: " + bucket);
-    }
-    return keys;
+    // Single source of truth for bucket keys (daily/weekly/monthly/yearly).
+    return AnalyticsPeriods.validateAndGenerate(bucket, from, to);
   }
 }
