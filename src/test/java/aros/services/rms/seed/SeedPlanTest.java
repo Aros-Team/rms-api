@@ -7,7 +7,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InputStream;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -177,6 +179,47 @@ class SeedPlanTest {
     }
     assertThat(SeedConstants.RECEIVED_PURCHASE_ORDERS + SeedConstants.CONFIRMED_PURCHASE_ORDERS)
         .isEqualTo(SeedConstants.PURCHASE_ORDER_COUNT);
+  }
+
+  @Test
+  void todayAlwaysProducesFullDaysWithoutFutureOrders() {
+    LocalDate anchor = LocalDate.of(2026, 11, 22);
+
+    for (int hour : new int[] {9, 12, 15, 21}) {
+      LocalDateTime now = anchor.atTime(hour, 30);
+      SeedPlan plan = SeedPlan.complete(anchor, now);
+      long today = plan.operationalOrders().size();
+
+      assertThat(today).as("orders at %s", now).isGreaterThanOrEqualTo(80);
+      for (SeedPlan.Order order : plan.operationalOrders()) {
+        assertThat(order.openTime().toLocalDate()).isEqualTo(anchor);
+        assertThat(order.openTime()).as("not in the future at %s", now).isBeforeOrEqualTo(now);
+        if ("DELIVERED".equals(order.status())) {
+          assertThat(order.closeTime()).as("closed by %s", now).isBeforeOrEqualTo(now);
+        }
+        assertThat(order.status()).isIn("DELIVERED", "QUEUE", "PREPARING", "READY");
+      }
+    }
+  }
+
+  @Test
+  void todayPlanIsDeterministicForTheSameMoment() {
+    LocalDateTime now = LocalDate.of(2026, 11, 22).atTime(15, 30);
+
+    SeedPlan first = SeedPlan.complete(LocalDate.of(2026, 11, 22), now);
+    SeedPlan second = SeedPlan.complete(LocalDate.of(2026, 11, 22), now);
+
+    assertThat(first.operationalOrders()).hasSameSizeAs(second.operationalOrders());
+    assertThat(
+            first.operationalOrders().stream()
+                .mapToLong(
+                    order -> Duration.between(order.openTime(), order.closeTime()).toMinutes())
+                .sum())
+        .isEqualTo(
+            second.operationalOrders().stream()
+                .mapToLong(
+                    order -> Duration.between(order.openTime(), order.closeTime()).toMinutes())
+                .sum());
   }
 
   private JsonNode fixture() throws Exception {
