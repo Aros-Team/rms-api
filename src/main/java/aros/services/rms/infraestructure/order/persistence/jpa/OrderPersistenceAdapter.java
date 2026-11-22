@@ -187,15 +187,31 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
     return new OrderQueryResult(domains, result.getTotalElements(), page, size);
   }
 
+  /** Whitelisted sort fields; anything else is rejected with 400 instead of a 500. */
+  private static final java.util.Map<String, String> SORTABLE_FIELDS =
+      java.util.Map.of(
+          "id", "id",
+          "date", "date",
+          "status", "status",
+          "tableId", "table.id",
+          "partySize", "partySize",
+          "openTime", "openTime",
+          "closeTime", "closeTime");
+
   private static Sort parseSort(String sort) {
     if (sort == null || sort.isBlank()) {
       return Sort.by(Sort.Direction.DESC, "date");
     }
     String[] parts = sort.split(",");
-    String field = "date";
+    String requested = "date";
     Sort.Direction direction = Sort.Direction.DESC;
     if (parts.length >= 1 && !parts[0].isBlank()) {
-      field = parts[0].trim();
+      requested = parts[0].trim();
+    }
+    String field = SORTABLE_FIELDS.get(requested);
+    if (field == null) {
+      throw new IllegalArgumentException(
+          "Unsupported sort field '" + requested + "'. Allowed: " + SORTABLE_FIELDS.keySet());
     }
     if (parts.length >= 2 && !parts[1].isBlank()) {
       try {
