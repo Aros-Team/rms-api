@@ -11,6 +11,10 @@ spring:
   jpa:
     properties:
       hibernate:
+        # Batch lazy collection loading. Order lists, the pending-payments board and
+        # order detail mapping touch several lazy associations per row; batching caps
+        # the N+1 fan-out at ceil(N/50) queries per association instead of N.
+        default_batch_fetch_size: 50
         jdbc:
           # Single business timezone for LocalTime, LocalDateTime and Instant.
           # Mixing a UTC session with Bogota wall-clock values shifts TIME

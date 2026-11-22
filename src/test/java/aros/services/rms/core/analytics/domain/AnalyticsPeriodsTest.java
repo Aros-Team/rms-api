@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
  * <ul>
  *   <li>Daily, weekly, monthly and yearly keys are generated inclusively
  *   <li>A range resolves to a half-open date interval
- *   <li>Invalid formats, inverted ranges and oversized daily ranges are rejected
+ *   <li>Invalid formats, inverted ranges and oversized ranges are rejected for every bucket
  * </ul>
  *
  * <p><b>How this test works:</b>
@@ -74,6 +74,13 @@ class AnalyticsPeriodsTest {
     assertThrows(
         AnalyticsRangeTooLargeException.class,
         () -> AnalyticsPeriods.validateAndGenerate("daily", "2025-01-01", "2026-06-01"));
+  }
+
+  @Test
+  void should_reject_monthly_range_larger_than_maximum() {
+    assertThrows(
+        AnalyticsRangeTooLargeException.class,
+        () -> AnalyticsPeriods.validateAndGenerate("monthly", "2026-04", "2027-05"));
   }
 
   @Test

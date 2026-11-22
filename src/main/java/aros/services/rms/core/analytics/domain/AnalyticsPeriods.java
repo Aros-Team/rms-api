@@ -73,7 +73,9 @@ public final class AnalyticsPeriods {
           "Range produced no periods: from=" + from + " to=" + to);
     }
     long days = ChronoUnit.DAYS.between(start, endExclusive);
-    if ("daily".equals(bucket) && days > MAX_RANGE_DAYS) {
+    // Yearly ranges are inherently multi-year and stay a handful of points, so the
+    // day cap applies to daily/weekly/monthly payloads only.
+    if (!"yearly".equals(bucket) && days > MAX_RANGE_DAYS) {
       throw new AnalyticsRangeTooLargeException(
           "Range exceeds "
               + MAX_RANGE_DAYS

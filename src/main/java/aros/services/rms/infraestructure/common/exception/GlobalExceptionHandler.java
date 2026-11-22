@@ -768,7 +768,12 @@ public class GlobalExceptionHandler {
         HttpStatus.BAD_REQUEST, "Required parameter '" + e.getParameterName() + "' not found");
   }
 
-  /** Handles NoResourceFoundException - for requests to non-existent endpoints. */
+  /**
+   * Handles NoResourceFoundException - a request to a path with no handler.
+   *
+   * <p>An unknown endpoint is a missing resource, not bad input, so it maps to {@code 404} as the
+   * contract requires. Static assets return a body-less 404 to avoid noise in the browser console.
+   */
   @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
   public ResponseEntity<ProblemDetail> handleNoResourceFound(
       org.springframework.web.servlet.resource.NoResourceFoundException e) {
@@ -792,7 +797,51 @@ public class GlobalExceptionHandler {
       message = "Endpoint not found: " + path;
     }
     log.warn("Resource not found: {}", path);
-    return problem(HttpStatus.BAD_REQUEST, message);
+    return problem(HttpStatus.NOT_FOUND, message);
+  }
+
+  /**
+   * Handles a request whose path exists but does not support the HTTP method.
+   *
+   * <p>Previously this fell through to the catch-all and produced a 500, which makes a client bug
+   * look like a server outage. The contract requires {@code 405 Method Not Allowed}.
+   */
+  @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+  public ResponseEntity<ProblemDetail> handleMethodNotSupported(
+      org.springframework.web.HttpRequestMethodNotSupportedException e) {
+    log.warn("Method not allowed: {}", e.getMessage());
+    ResponseEntity.BodyBuilder builder =
+        ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+            .contentType(MediaType.APPLICATION_PROBLEM_JSON);
+    if (e.getSupportedHttpMethods() != null && !e.getSupportedHttpMethods().isEmpty()) {
+      String allow =
+          e.getSupportedHttpMethods().stream()
+              .map(org.springframework.http.HttpMethod::name)
+              .sorted()
+              .collect(java.util.stream.Collectors.joining(", "));
+      builder.header(org.springframework.http.HttpHeaders.ALLOW, allow);
+    }
+    ProblemDetail body =
+        ProblemDetail.forStatusAndDetail(
+            HttpStatus.METHOD_NOT_ALLOWED,
+            "Method "
+                + e.getMethod()
+                + " is not supported for this endpoint. Supported: "
+                + e.getSupportedHttpMethods());
+    body.setTitle(HttpStatus.METHOD_NOT_ALLOWED.getReasonPhrase());
+    return builder.body(body);
+  }
+
+  /**
+   * Handles HttpMessageNotReadableException - malformed or missing JSON request bodies.
+   *
+   * <p>Previously this surfaced as a 500; the contract classifies it as a client error.
+   */
+  @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+  public ResponseEntity<ProblemDetail> handleMessageNotReadable(
+      org.springframework.http.converter.HttpMessageNotReadableException e) {
+    log.warn("Malformed request body: {}", e.getMessage());
+    return problem(HttpStatus.BAD_REQUEST, "Malformed JSON request body");
   }
 
   /** Handles generic Exception. */

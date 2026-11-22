@@ -2,6 +2,7 @@
 
 package aros.services.rms.infraestructure.payment.api.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -23,7 +24,8 @@ import java.util.List;
  */
 public record RegisterPaymentRequest(
     @NotNull Long orderId,
-    @DecimalMin(value = "0.00") BigDecimal tipAmount,
+    @Schema(type = "string", format = "decimal", example = "5000.00") @DecimalMin(value = "0.00")
+        BigDecimal tipAmount,
     @Valid DiscountRequest discount,
     @NotEmpty @Valid List<TenderRequest> tenders) {
 
@@ -36,7 +38,14 @@ public record RegisterPaymentRequest(
    */
   public record DiscountRequest(
       @NotBlank String type,
-      @NotNull @DecimalMin(value = "0.01") BigDecimal value,
+      @Schema(
+              type = "string",
+              format = "decimal",
+              description = "Percentage (10.00) or amount (5000.00) as a decimal string",
+              example = "10.00")
+          @NotNull
+          @DecimalMin(value = "0.01")
+          BigDecimal value,
       @NotBlank @Size(max = 255) String reason) {}
 
   /**
@@ -48,6 +57,9 @@ public record RegisterPaymentRequest(
    */
   public record TenderRequest(
       @NotBlank String method,
-      @NotNull @DecimalMin(value = "0.01") BigDecimal amount,
+      @Schema(type = "string", format = "decimal", example = "58000.00")
+          @NotNull
+          @DecimalMin(value = "0.01")
+          BigDecimal amount,
       @Size(max = 100) String reference) {}
 }
