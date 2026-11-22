@@ -17,20 +17,27 @@ import aros.services.rms.core.systemconfig.domain.CurrencySettings;
 import aros.services.rms.core.systemconfig.domain.LaborCostMode;
 import aros.services.rms.core.systemconfig.domain.LaborSettings;
 import aros.services.rms.core.systemconfig.domain.NotificationSettings;
+import aros.services.rms.core.systemconfig.domain.OpeningHoursDay;
 import aros.services.rms.core.systemconfig.domain.exception.InvalidConfigurationException;
 import aros.services.rms.core.systemconfig.domain.port.input.GetBusinessProfileUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.GetCurrencySettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.GetLaborSettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.GetNotificationSettingsUseCase;
+import aros.services.rms.core.systemconfig.domain.port.input.GetOpeningHoursUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateBusinessProfileUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateCurrencySettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateLaborSettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateNotificationSettingsUseCase;
+import aros.services.rms.core.systemconfig.domain.port.input.UpdateOpeningHoursUseCase;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.common.exception.GlobalExceptionHandler;
 import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Currency;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,6 +99,8 @@ class SettingsControllerTest {
   @MockitoBean private UpdateLaborSettingsUseCase updateLaborSettingsUseCase;
   @MockitoBean private GetNotificationSettingsUseCase getNotificationSettingsUseCase;
   @MockitoBean private UpdateNotificationSettingsUseCase updateNotificationSettingsUseCase;
+  @MockitoBean private GetOpeningHoursUseCase getOpeningHoursUseCase;
+  @MockitoBean private UpdateOpeningHoursUseCase updateOpeningHoursUseCase;
   @MockitoBean private CurrencyProvider currencyProvider;
   @MockitoBean private JwtDecoder jwtDecoder;
 
@@ -216,6 +225,59 @@ class SettingsControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
         .andExpect(jsonPath("$.detail").value("Invalid IANA timezone: Mars/Olympus"));
+  }
+
+  @Test
+  void should_return_opening_hours_in_envelope() throws Exception {
+    when(getOpeningHoursUseCase.get()).thenReturn(openingWeek());
+
+    mockMvc
+        .perform(get("/api/v1/settings/opening-hours").with(adminJwt()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.days.length()").value(7))
+        .andExpect(jsonPath("$.data.days[0].dayOfWeek").value("MONDAY"))
+        .andExpect(jsonPath("$.data.days[0].closed").value(true))
+        .andExpect(jsonPath("$.data.days[1].openTime").value("08:00"))
+        .andExpect(jsonPath("$.data.days[1].closeTime").value("22:00"));
+  }
+
+  @Test
+  void should_reject_an_incomplete_opening_week() throws Exception {
+    String body =
+        """
+        {"days":[
+          {"dayOfWeek":"MONDAY","closed":true},
+          {"dayOfWeek":"TUESDAY","closed":false,"openTime":"08:00","closeTime":"22:00"},
+          {"dayOfWeek":"WEDNESDAY","closed":false,"openTime":"08:00","closeTime":"22:00"},
+          {"dayOfWeek":"THURSDAY","closed":false,"openTime":"08:00","closeTime":"22:00"},
+          {"dayOfWeek":"FRIDAY","closed":false,"openTime":"08:00","closeTime":"22:00"},
+          {"dayOfWeek":"SATURDAY","closed":false,"openTime":"08:00","closeTime":"17:00"}
+        ]}
+        """;
+
+    mockMvc
+        .perform(
+            put("/api/v1/settings/opening-hours")
+                .with(adminJwt())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isBadRequest());
+  }
+
+  private static List<OpeningHoursDay> openingWeek() {
+    List<OpeningHoursDay> days = new ArrayList<>();
+    for (DayOfWeek day : DayOfWeek.values()) {
+      boolean closed = day == DayOfWeek.MONDAY;
+      boolean weekend = day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY;
+      days.add(
+          OpeningHoursDay.builder()
+              .dayOfWeek(day)
+              .closed(closed)
+              .openTime(closed ? null : LocalTime.of(8, 0))
+              .closeTime(closed ? null : LocalTime.of(weekend ? 17 : 22, 0))
+              .build());
+    }
+    return days;
   }
 
   @Test

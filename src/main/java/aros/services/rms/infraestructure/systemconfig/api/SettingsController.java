@@ -8,10 +8,12 @@ import aros.services.rms.core.systemconfig.domain.port.input.GetBusinessProfileU
 import aros.services.rms.core.systemconfig.domain.port.input.GetCurrencySettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.GetLaborSettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.GetNotificationSettingsUseCase;
+import aros.services.rms.core.systemconfig.domain.port.input.GetOpeningHoursUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateBusinessProfileUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateCurrencySettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateLaborSettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateNotificationSettingsUseCase;
+import aros.services.rms.core.systemconfig.domain.port.input.UpdateOpeningHoursUseCase;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.share.security.JustAdminUser;
 import aros.services.rms.infraestructure.systemconfig.api.dto.BusinessProfileRequest;
@@ -21,6 +23,8 @@ import aros.services.rms.infraestructure.systemconfig.api.dto.CurrencySettingsRe
 import aros.services.rms.infraestructure.systemconfig.api.dto.LaborSettingsRequest;
 import aros.services.rms.infraestructure.systemconfig.api.dto.LaborSettingsResponse;
 import aros.services.rms.infraestructure.systemconfig.api.dto.NotificationSettingsRequest;
+import aros.services.rms.infraestructure.systemconfig.api.dto.OpeningHoursRequest;
+import aros.services.rms.infraestructure.systemconfig.api.dto.OpeningHoursResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -49,6 +53,8 @@ public class SettingsController {
   private final UpdateLaborSettingsUseCase updateLaborSettingsUseCase;
   private final GetNotificationSettingsUseCase getNotificationSettingsUseCase;
   private final UpdateNotificationSettingsUseCase updateNotificationSettingsUseCase;
+  private final GetOpeningHoursUseCase getOpeningHoursUseCase;
+  private final UpdateOpeningHoursUseCase updateOpeningHoursUseCase;
   private final CurrencyProvider currencyProvider;
 
   /**
@@ -221,5 +227,49 @@ public class SettingsController {
     return ResponseEntity.ok(
         NotificationSettingsRequest.fromDomain(
             updateNotificationSettingsUseCase.update(request.toDomain())));
+  }
+
+  /**
+   * Returns the weekly opening hours.
+   *
+   * @return the seven weekday windows
+   */
+  @Operation(
+      summary = "Get opening hours",
+      description =
+          "Returns the opening window for each weekday. The dashboard and the schedule "
+              + "coverage use it to bound the service day and detect staffing gaps.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Opening hours retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Admin access required")
+      })
+  @GetMapping("/opening-hours")
+  public ResponseEntity<OpeningHoursResponse> getOpeningHours() {
+    return ResponseEntity.ok(OpeningHoursResponse.fromDomain(getOpeningHoursUseCase.get()));
+  }
+
+  /**
+   * Replaces the weekly opening hours.
+   *
+   * @param request the seven weekday windows
+   * @return the persisted windows
+   */
+  @Operation(
+      summary = "Update opening hours",
+      description =
+          "Replaces all seven windows. Open days require an opening and closing time with the "
+              + "close after the open; closed days ignore both times.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Opening hours updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid opening hours"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Admin access required")
+      })
+  @PutMapping("/opening-hours")
+  public ResponseEntity<OpeningHoursResponse> updateOpeningHours(
+      @Valid @RequestBody OpeningHoursRequest request) {
+    return ResponseEntity.ok(
+        OpeningHoursResponse.fromDomain(updateOpeningHoursUseCase.update(request.toDomain())));
   }
 }

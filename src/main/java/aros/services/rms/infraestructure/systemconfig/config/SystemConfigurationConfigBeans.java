@@ -8,21 +8,25 @@ import aros.services.rms.core.systemconfig.application.service.GetSystemConfigur
 import aros.services.rms.core.systemconfig.application.service.LaborSettingsService;
 import aros.services.rms.core.systemconfig.application.service.ManageConfigurationService;
 import aros.services.rms.core.systemconfig.application.service.NotificationSettingsService;
+import aros.services.rms.core.systemconfig.application.service.OpeningHoursService;
 import aros.services.rms.core.systemconfig.application.service.UpdateSystemConfigurationService;
 import aros.services.rms.core.systemconfig.domain.port.input.GetBusinessProfileUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.GetCurrencySettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.GetLaborSettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.GetNotificationSettingsUseCase;
+import aros.services.rms.core.systemconfig.domain.port.input.GetOpeningHoursUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.GetSystemConfigurationUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.ManageConfigurationUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateBusinessProfileUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateCurrencySettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateLaborSettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateNotificationSettingsUseCase;
+import aros.services.rms.core.systemconfig.domain.port.input.UpdateOpeningHoursUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateSystemConfigurationUseCase;
 import aros.services.rms.core.systemconfig.domain.port.output.BusinessProfilePort;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.systemconfig.domain.port.output.NotificationPreferencesPort;
+import aros.services.rms.core.systemconfig.domain.port.output.OpeningHoursPort;
 import aros.services.rms.core.systemconfig.domain.port.output.SystemConfigurationPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -217,5 +221,40 @@ public class SystemConfigurationConfigBeans {
       SystemConfigurationPort port,
       UpdateSystemConfigurationUseCase updateSystemConfigurationUseCase) {
     return new ManageConfigurationService(port, updateSystemConfigurationUseCase);
+  }
+
+  /**
+   * Creates the opening-hours service.
+   *
+   * @param port the opening-hours persistence port
+   * @return the service
+   */
+  @Bean
+  public OpeningHoursService openingHoursService(OpeningHoursPort port) {
+    return new OpeningHoursService(port);
+  }
+
+  /**
+   * Exposes the opening-hours read use case.
+   *
+   * @param service the opening-hours service
+   * @return the read use case
+   */
+  @Bean
+  public GetOpeningHoursUseCase getOpeningHoursUseCase(
+      @Qualifier("openingHoursService") OpeningHoursService service) {
+    return service;
+  }
+
+  /**
+   * Exposes the opening-hours write use case.
+   *
+   * @param service the opening-hours service
+   * @return the write use case
+   */
+  @Bean
+  public UpdateOpeningHoursUseCase updateOpeningHoursUseCase(
+      @Qualifier("openingHoursService") OpeningHoursService service) {
+    return service;
   }
 }
