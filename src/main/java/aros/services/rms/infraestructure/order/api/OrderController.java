@@ -306,17 +306,10 @@ public class OrderController {
   }
 
   /**
-   * Queries orders with optional filters and pagination.
+   * Returns a single order with its details.
    *
-   * @param status the single order status filter (backward compat)
-   * @param statuses comma-separated order statuses filter
-   * @param search optional product/option name filter (partial, case-insensitive)
-   * @param startDate the start date filter
-   * @param endDate the end date filter
-   * @param page the page number (0-based)
-   * @param size the page size
-   * @param sort the sort field and direction
-   * @return the paginated list of orders
+   * @param id the order id
+   * @return the order response
    */
   @Operation(
       tags = {"Orders"},
@@ -338,6 +331,19 @@ public class OrderController {
     return ResponseEntity.ok(orderResponseMapper.toResponse(orderQueryUseCase.findById(id)));
   }
 
+  /**
+   * Queries orders with optional filters and pagination.
+   *
+   * @param status the single order status filter (backward compat)
+   * @param statuses comma-separated order statuses filter
+   * @param search optional product/option name filter (partial, case-insensitive)
+   * @param startDate the start date filter
+   * @param endDate the end date filter
+   * @param page the page number (0-based)
+   * @param size the page size
+   * @param sort the sort field and direction
+   * @return the paginated list of orders
+   */
   @Operation(
       tags = {"Orders"},
       summary = "Query orders",

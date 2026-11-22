@@ -24,6 +24,7 @@ import aros.services.rms.core.specialselection.application.service.SpecialSelect
 import aros.services.rms.core.specialselection.domain.SelectionType;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
 import aros.services.rms.core.specialselection.port.output.SpecialSelectionRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
@@ -31,7 +32,6 @@ import aros.services.rms.infraestructure.common.exception.ServiceUnavailableExce
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.LoggerFactory;
@@ -58,6 +58,7 @@ public class UpdateOrderService implements UpdateOrderUseCase {
   private final SpecialSelectionValidator specialSelectionValidator;
   private final SpecialSelectionPricingService specialSelectionPricingService;
   private final SpecialSelectionAvailabilityService specialSelectionAvailabilityService;
+  private final CurrencyProvider currencyProvider;
 
   /**
    * Creates a new update order service.
@@ -73,6 +74,7 @@ public class UpdateOrderService implements UpdateOrderUseCase {
    * @param specialSelectionValidator the special selection validator
    * @param specialSelectionPricingService the special selection pricing service
    * @param specialSelectionAvailabilityService the special selection availability service
+   * @param currencyProvider the configured system currency
    */
   public UpdateOrderService(
       OrderRepositoryPort orderRepositoryPort,
@@ -85,7 +87,8 @@ public class UpdateOrderService implements UpdateOrderUseCase {
       SpecialSelectionRepositoryPort specialSelectionRepositoryPort,
       SpecialSelectionValidator specialSelectionValidator,
       SpecialSelectionPricingService specialSelectionPricingService,
-      SpecialSelectionAvailabilityService specialSelectionAvailabilityService) {
+      SpecialSelectionAvailabilityService specialSelectionAvailabilityService,
+      CurrencyProvider currencyProvider) {
     this.orderRepositoryPort = orderRepositoryPort;
     this.tableRepositoryPort = tableRepositoryPort;
     this.productRepositoryPort = productRepositoryPort;
@@ -97,6 +100,7 @@ public class UpdateOrderService implements UpdateOrderUseCase {
     this.specialSelectionValidator = specialSelectionValidator;
     this.specialSelectionPricingService = specialSelectionPricingService;
     this.specialSelectionAvailabilityService = specialSelectionAvailabilityService;
+    this.currencyProvider = currencyProvider;
   }
 
   @Override
@@ -179,7 +183,7 @@ public class UpdateOrderService implements UpdateOrderUseCase {
           Double computedPrice =
               specialSelectionPricingService.computeUnitPrice(
                   config, detailCommand.getAdditionIds());
-          unitPrice = new Money(BigDecimal.valueOf(computedPrice), Currency.getInstance("COP"));
+          unitPrice = new Money(BigDecimal.valueOf(computedPrice), currencyProvider.getCurrency());
         }
       }
 

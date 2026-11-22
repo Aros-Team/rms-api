@@ -2,6 +2,7 @@
 
 package aros.services.rms.infraestructure.common.dto;
 
+import aros.services.rms.core.common.money.domain.CurrencyContext;
 import aros.services.rms.core.common.money.domain.Money;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
@@ -26,8 +27,8 @@ import lombok.NoArgsConstructor;
 @Schema(description = "Monetary amount with currency")
 public class MoneyDto {
 
-  /** Default currency used when a raw amount is converted without an explicit ISO code. */
-  public static final String DEFAULT_CURRENCY = "COP";
+  /** Bootstrap currency used before the persisted setting is installed. */
+  public static final String DEFAULT_CURRENCY = CurrencyContext.BOOTSTRAP_CURRENCY_CODE;
 
   @Schema(description = "Monetary amount as decimal string", example = "125000000.00")
   private String amount;
@@ -63,12 +64,12 @@ public class MoneyDto {
   }
 
   /**
-   * Creates a wire DTO from a raw amount using the default currency ({@value #DEFAULT_CURRENCY}).
+   * Creates a wire DTO from a raw amount using the configured system currency.
    *
    * @param amount the raw amount (may be null)
    * @return the DTO, or {@code null} when {@code amount} is null
    */
   public static MoneyDto of(BigDecimal amount) {
-    return of(amount, DEFAULT_CURRENCY);
+    return of(amount, CurrencyContext.get().getCurrencyCode());
   }
 }

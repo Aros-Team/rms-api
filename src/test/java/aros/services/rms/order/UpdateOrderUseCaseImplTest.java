@@ -34,6 +34,7 @@ import aros.services.rms.core.specialselection.application.service.SpecialSelect
 import aros.services.rms.core.specialselection.domain.SelectionType;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
 import aros.services.rms.core.specialselection.port.output.SpecialSelectionRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
@@ -98,11 +99,14 @@ class UpdateOrderUseCaseImplTest {
 
   @Mock private BusinessMetricsPort metricsPort;
 
+  @Mock private CurrencyProvider currencyProvider;
+
   private UpdateOrderService updateOrderUseCase;
 
   @BeforeEach
   void setUp() {
     when(inventoryStockUseCase.isAvailable(any(), any())).thenReturn(true);
+    when(currencyProvider.getCurrency()).thenReturn(Currency.getInstance("COP"));
 
     updateOrderUseCase =
         new UpdateOrderService(
@@ -116,7 +120,8 @@ class UpdateOrderUseCaseImplTest {
             specialSelectionRepositoryPort,
             specialSelectionValidator,
             specialSelectionPricingService,
-            specialSelectionAvailabilityService);
+            specialSelectionAvailabilityService,
+            currencyProvider);
   }
 
   // ==================== CANCEL TESTS ====================

@@ -23,6 +23,7 @@ import aros.services.rms.core.specialselection.application.service.SpecialSelect
 import aros.services.rms.core.specialselection.application.service.SpecialSelectionPricingService;
 import aros.services.rms.core.specialselection.application.service.SpecialSelectionValidator;
 import aros.services.rms.core.specialselection.port.output.SpecialSelectionRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,7 +49,8 @@ public class OrderConfigBeans {
       SpecialSelectionRepositoryPort specialSelectionRepositoryPort,
       SpecialSelectionValidator specialSelectionValidator,
       SpecialSelectionPricingService specialSelectionPricingService,
-      SpecialSelectionAvailabilityService specialSelectionAvailabilityService) {
+      SpecialSelectionAvailabilityService specialSelectionAvailabilityService,
+      CurrencyProvider currencyProvider) {
     return new TakeOrderService(
         orderRepositoryPort,
         tableRepositoryPort,
@@ -60,7 +62,8 @@ public class OrderConfigBeans {
         specialSelectionRepositoryPort,
         specialSelectionValidator,
         specialSelectionPricingService,
-        specialSelectionAvailabilityService);
+        specialSelectionAvailabilityService,
+        currencyProvider);
   }
 
   /**
@@ -80,7 +83,8 @@ public class OrderConfigBeans {
       SpecialSelectionRepositoryPort specialSelectionRepositoryPort,
       SpecialSelectionValidator specialSelectionValidator,
       SpecialSelectionPricingService specialSelectionPricingService,
-      SpecialSelectionAvailabilityService specialSelectionAvailabilityService) {
+      SpecialSelectionAvailabilityService specialSelectionAvailabilityService,
+      CurrencyProvider currencyProvider) {
     return new UpdateOrderService(
         orderRepositoryPort,
         tableRepositoryPort,
@@ -92,7 +96,8 @@ public class OrderConfigBeans {
         specialSelectionRepositoryPort,
         specialSelectionValidator,
         specialSelectionPricingService,
-        specialSelectionAvailabilityService);
+        specialSelectionAvailabilityService,
+        currencyProvider);
   }
 
   /**

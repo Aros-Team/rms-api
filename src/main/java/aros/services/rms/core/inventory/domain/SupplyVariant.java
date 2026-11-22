@@ -4,7 +4,6 @@ package aros.services.rms.core.inventory.domain;
 
 import aros.services.rms.core.common.money.domain.Money;
 import java.math.BigDecimal;
-import java.util.Currency;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,5 +20,5 @@ public class SupplyVariant {
   private Long supplyId;
   private Long unitId;
   private BigDecimal quantity;
-  @Builder.Default private Money unitCost = Money.zero(Currency.getInstance("COP"));
+  @Builder.Default private Money unitCost = Money.zeroDefault();
 }

@@ -3,6 +3,7 @@
 package aros.services.rms.infraestructure.systemconfig.persistence;
 
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -17,4 +18,12 @@ public interface SystemConfigurationGroupJpaRepository
    * @return list of all groups
    */
   List<SystemConfigurationGroupEntity> findAllByOrderBySortOrder();
+
+  /**
+   * Finds a configuration group by its unique name.
+   *
+   * @param name the group name
+   * @return the group when found
+   */
+  Optional<SystemConfigurationGroupEntity> findByName(String name);
 }
