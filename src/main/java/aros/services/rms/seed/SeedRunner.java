@@ -521,8 +521,9 @@ final class SeedRunner {
     }
     String payrollSql =
         "INSERT INTO payroll (user_id, period_year, period_month, period_start, period_end, "
-            + "base_salary, bonuses, deductions, net_amount, paid_amount, hours_worked, status, "
-            + "notes, registered_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            + "base_salary, bonuses, manual_bonuses, deductions, manual_deductions, net_amount, "
+            + "paid_amount, hours_worked, status, notes, registered_by) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     String eventSql =
         "INSERT INTO payroll_events (user_id, event_date, event_type, quantity, unit_rate, amount, "
             + "notes, created_by) VALUES (?,?,?,?,?,?,?,?)";
@@ -539,27 +540,36 @@ final class SeedRunner {
         String status = back >= 2 ? "PAID" : (back == 1 ? "APPROVED" : "PENDING");
         int index = 0;
         for (SeedConstants.WorkerSpec worker : SeedConstants.WORKERS) {
+          boolean attendanceBonus = index < 6;
           BigDecimal base = BigDecimal.valueOf(worker.salary());
           BigDecimal bonus = BigDecimal.valueOf(worker.bonus());
           BigDecimal deduction = BigDecimal.valueOf(worker.deduction());
-          BigDecimal net = base.add(bonus).subtract(deduction);
+          // The seed also writes an event row per payroll; the stored totals must
+          // already include it so aggregation (manual + events) equals the totals.
+          BigDecimal eventBonus = attendanceBonus ? BigDecimal.valueOf(50_000) : BigDecimal.ZERO;
+          BigDecimal eventDeduction =
+              attendanceBonus ? BigDecimal.ZERO : BigDecimal.valueOf(50_000);
+          BigDecimal bonusTotal = bonus.add(eventBonus);
+          BigDecimal deductionTotal = deduction.add(eventDeduction);
+          BigDecimal net = base.add(bonusTotal).subtract(deductionTotal);
           payroll.setLong(1, worker.id());
           payroll.setInt(2, month.getYear());
           payroll.setInt(3, month.getMonthValue());
           payroll.setDate(4, Date.valueOf(periodStart));
           payroll.setDate(5, Date.valueOf(periodEnd));
           payroll.setBigDecimal(6, base);
-          payroll.setBigDecimal(7, bonus);
-          payroll.setBigDecimal(8, deduction);
-          payroll.setBigDecimal(9, net);
-          payroll.setBigDecimal(10, "PAID".equals(status) ? net : BigDecimal.ZERO);
-          payroll.setBigDecimal(11, hours);
-          payroll.setString(12, status);
-          payroll.setString(13, "Nómina " + month + " (seed v1)");
-          payroll.setLong(14, SeedConstants.ADMIN_ID);
+          payroll.setBigDecimal(7, bonusTotal);
+          payroll.setBigDecimal(8, bonus);
+          payroll.setBigDecimal(9, deductionTotal);
+          payroll.setBigDecimal(10, deduction);
+          payroll.setBigDecimal(11, net);
+          payroll.setBigDecimal(12, "PAID".equals(status) ? net : BigDecimal.ZERO);
+          payroll.setBigDecimal(13, hours);
+          payroll.setString(14, status);
+          payroll.setString(15, "Nómina " + month + " (seed v1)");
+          payroll.setLong(16, SeedConstants.ADMIN_ID);
           payroll.addBatch();
 
-          boolean attendanceBonus = index < 6;
           event.setLong(1, worker.id());
           event.setDate(2, Date.valueOf(periodEnd));
           event.setString(3, attendanceBonus ? "BONUS_ATTENDANCE" : "DEDUCTION");
