@@ -2,6 +2,7 @@
 
 package aros.services.rms.infraestructure.cashshift.api.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -14,4 +15,8 @@ import java.math.BigDecimal;
  * @param notes optional close notes
  */
 public record CloseCashShiftRequest(
-    @NotNull @DecimalMin(value = "0.00") BigDecimal countedCash, @Size(max = 500) String notes) {}
+    @Schema(type = "string", format = "decimal", example = "250000.00")
+        @NotNull
+        @DecimalMin(value = "0.00")
+        BigDecimal countedCash,
+    @Size(max = 500) String notes) {}

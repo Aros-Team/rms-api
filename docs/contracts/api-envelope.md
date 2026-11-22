@@ -25,6 +25,7 @@ Rules:
 
 - `data` always holds the **original** response body. A list endpoint returns
   `{ "data": [ ... ] }`; a paged endpoint returns `{ "data": { "content": [ ... ], ... } }`.
+  The paged shape is defined in `docs/contracts/pagination.md`.
 - `204 No Content` remains body-less. No envelope.
 - Binary/image responses are not wrapped.
 - `GET /.well-known/jwks.json` (`application/jwk-set+json`) is **not** wrapped; it must remain a

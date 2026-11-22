@@ -244,14 +244,14 @@ class AuthControllerTest {
   }
 
   // ---------------------------------------------------------------------------
-  // CT-07: shouldReturn500_whenMalformedJson
+  // CT-07: shouldReturn400_whenMalformedJson
   // ---------------------------------------------------------------------------
 
   @Test
-  void shouldReturn500_whenMalformedJson() throws Exception {
+  void shouldReturn400_whenMalformedJson() throws Exception {
     mockMvc
         .perform(post(LOGIN_URL).contentType(MediaType.APPLICATION_JSON).content("{malformed json"))
-        .andExpect(status().isInternalServerError());
+        .andExpect(status().isBadRequest());
   }
 
   // ---------------------------------------------------------------------------
