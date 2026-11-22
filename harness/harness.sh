@@ -238,6 +238,8 @@ echo "── 6b. BigDecimal in domain check ────────────
 # Monetary amounts must be expressed via the Money value object.
 # Legitimate non-monetary BigDecimal (quantities, percentages, factory methods) is
 # allowed in the excluded paths listed below.
+# Analytics report fields are rates/percentages, not money, so OperationsReport,
+# CohortReport and SystemAlert are explicitly excluded.
 if [ -d "$DOMAIN_DIR" ]; then
   VIOLATIONS=$(find "$DOMAIN_DIR" -type d -name 'domain' 2>/dev/null \
     | while read -r d; do
@@ -247,6 +249,9 @@ if [ -d "$DOMAIN_DIR" ]; then
     | grep -v '/analytics/domain/AnalyticsConfig' \
     | grep -v '/analytics/domain/MonthlyFinancialSummary' \
     | grep -v '/analytics/domain/PrimeCostReport' \
+    | grep -v '/analytics/domain/OperationsReport' \
+    | grep -v '/analytics/domain/CohortReport' \
+    | grep -v '/analytics/domain/SystemAlert' \
     | grep -v '/analytics/domain/port/in/UpdateAnalyticsConfigUseCase' \
     | grep -v '/purchase/domain/PurchaseOrderItem' \
     | grep -v '/inventory/domain/SupplyVariant' \

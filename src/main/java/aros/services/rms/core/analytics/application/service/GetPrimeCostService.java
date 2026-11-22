@@ -2,6 +2,7 @@
 
 package aros.services.rms.core.analytics.application.service;
 
+import aros.services.rms.core.analytics.domain.AnalyticsPeriods;
 import aros.services.rms.core.analytics.domain.MonthlyFinancialSummary;
 import aros.services.rms.core.analytics.domain.PrimeCostReport;
 import aros.services.rms.core.analytics.domain.PrimeCostReport.CogsBreakdown;
@@ -46,10 +47,8 @@ public class GetPrimeCostService implements GetPrimeCostUseCase {
   /** {@inheritDoc} */
   @Override
   public PrimeCostReport execute(String bucket, String from, String to) {
-    validateBucket(bucket);
-    validateRange(bucket, from, to);
+    List<String> expectedKeys = AnalyticsPeriods.validateAndGenerate(bucket, from, to);
 
-    List<String> expectedKeys = generatePeriodKeys(bucket, from, to);
     List<MonthlyFinancialSummary> persisted =
         summaryRepo.findByBucketAndPeriodKeyBetween(bucket, from, to);
 

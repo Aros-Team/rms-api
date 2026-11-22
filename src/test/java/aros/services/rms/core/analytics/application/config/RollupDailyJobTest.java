@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.analytics.domain.MonthlyFinancialSummary;
 import aros.services.rms.core.analytics.domain.port.in.RefreshPrimeCostUseCase;
+import aros.services.rms.core.analytics.domain.port.in.RollupPrimeCostUseCase;
 import aros.services.rms.core.common.money.domain.Money;
 import java.time.LocalDate;
 import java.util.Currency;
@@ -19,16 +20,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Unit tests for {@link RollupDailyJob}. Verifies the scheduled job calls refreshForDate with
- * yesterday's date.
+ * yesterday's date and then rolls the day up.
  */
 @ExtendWith(MockitoExtension.class)
 class RollupDailyJobTest {
 
   @Mock private RefreshPrimeCostUseCase refreshPrimeCost;
+  @Mock private RollupPrimeCostUseCase rollupPrimeCost;
 
   @Test
   void should_refresh_yesterday_data() {
-    RollupDailyJob job = new RollupDailyJob(refreshPrimeCost);
+    RollupDailyJob job = new RollupDailyJob(refreshPrimeCost, rollupPrimeCost);
     LocalDate today = LocalDate.now();
     LocalDate expectedYesterday = today.minusDays(1);
 

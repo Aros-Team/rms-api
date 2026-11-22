@@ -61,6 +61,9 @@ public class DeliveryService implements DeliveryUseCase {
     }
 
     order.setStatus(OrderStatus.DELIVERED);
+    if (order.getCloseTime() == null) {
+      order.setCloseTime(java.time.LocalDateTime.now());
+    }
     Order savedOrder = orderRepositoryPort.save(order);
 
     releaseTableIfNeeded(savedOrder);

@@ -1,5 +1,8 @@
 app:
   env: development
+  analytics:
+    # Rebuild empty derived tables (menu cache, alerts) once at startup in local demo.
+    backfill-on-boot: ${ANALYTICS_BACKFILL_ON_BOOT:true}
   admin:
     dummy-email: ${DUMMY_EMAIL:admin@local.dev}
   storage:

@@ -167,6 +167,37 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/AlertNotFound' }
 
+  /api/v1/analytics/refresh:
+    post:
+      tags: [Analytics]
+      operationId: refreshAnalytics
+      summary: Recompute derived analytics state on demand
+      description: |
+        Rebuilds the menu-engineering cache for the trailing months, weeks and
+        days, rolls daily prime cost rows up into weekly/monthly/yearly buckets,
+        and re-evaluates the variance alert rules. Safe to call repeatedly.
+      parameters:
+        - in: query
+          name: months
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 24, default: 13 }
+      responses:
+        '200':
+          description: Refresh summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  monthlyPeriods: { type: integer }
+                  weeklyPeriods:  { type: integer }
+                  dailyPeriods:   { type: integer }
+                  rollupRows:     { type: integer }
+                  alertsInserted: { type: integer }
+                  refreshedAt:    { type: string, format: date-time }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
 components:
 
   securitySchemes:
@@ -413,7 +444,18 @@ components:
                   turns:  { type: number, format: double }
                   covers: { type: integer }
                   tables: { type: integer }
+        labor:
+          type: object
+          description: Labor cost and share of net sales, read from the daily rollups.
+          properties:
+            totalCost: { $ref: '#/components/schemas/Money' }
+            sharePct:  { type: number, format: double, description: "0..100" }
+        covers: { type: integer, description: Total covers in the range }
+        orders: { type: integer, description: Total delivered orders in the range }
         avgOccupancyMinutes: { type: number, format: double, example: 47.3 }
+        totalOccupiedSeatMinutes:
+          type: integer
+          description: Debug value; occupied minutes × covers.
         dataCompleteness:    { $ref: '#/components/schemas/DataCompleteness' }
         notes:
           type: array
@@ -433,6 +475,22 @@ components:
         fingerprintStrategy:
           type: string
           enum: [PHONE, PHONE_OR_TABLE, TABLE_ONLY]
+        cohortWindowDays:
+          type: integer
+          example: 90
+          description: Look-back window used to classify a visit as recurring.
+        cohorts:
+          type: array
+          description: One row per bucket key so the UI can render a retention table.
+          items:
+            type: object
+            required: [key, newClients, recurringClients, totalOrders, recurringRatePct]
+            properties:
+              key:                 { type: string, example: "2026-11" }
+              newClients:          { type: integer }
+              recurringClients:    { type: integer }
+              totalOrders:         { type: integer }
+              recurringRatePct:    { type: number, format: double }
         dataCompleteness: { $ref: '#/components/schemas/DataCompleteness' }
         notes:
           type: array
@@ -468,6 +526,7 @@ components:
         current:      { $ref: '#/components/schemas/MetricValue' }
         deviationPct: { type: number, format: double }
         period:       { type: string, example: "2026-07" }
+        bucket:       { type: string, enum: [daily, weekly, monthly, yearly] }
         detectedAt:   { type: string, format: date-time }
         status:       { $ref: '#/components/schemas/AlertStatus' }
 

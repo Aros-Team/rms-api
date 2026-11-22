@@ -142,30 +142,6 @@ public class AreaController {
   }
 
   /**
-   * Gets an area by ID.
-   *
-   * @param id the area ID
-   * @return the area
-   */
-  @Operation(
-      tags = {"Areas"},
-      summary = "Get area by ID",
-      description = "Returns a specific preparation area by its identifier.",
-      responses = {
-        @ApiResponse(responseCode = "200", description = "Area retrieved successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Forbidden"),
-        @ApiResponse(responseCode = "404", description = "Area not found"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")
-      })
-  @GetMapping("/{id}")
-  public ResponseEntity<AreaResponse> findById(
-      @Parameter(description = "Area ID", example = "1", required = true) @PathVariable Long id) {
-    Area area = areaUseCase.findById(id);
-    return ResponseEntity.ok(AreaResponse.fromDomain(area));
-  }
-
-  /**
    * Toggles area enabled status.
    *
    * @param id the area ID

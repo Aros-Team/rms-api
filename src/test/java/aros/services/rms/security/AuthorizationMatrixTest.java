@@ -185,6 +185,10 @@ class AuthorizationMatrixTest {
   @MockitoBean private StoragePort storagePort;
   @MockitoBean private OptionGroupUseCase optionGroupUseCase;
 
+  @MockitoBean
+  private aros.services.rms.core.analytics.domain.port.in.GetTopSellingProductsUseCase
+      getTopSellingProductsUseCase;
+
   @MockitoBean private TableUseCase tableUseCase;
   @MockitoBean private TableNotificationService tableNotificationService;
 

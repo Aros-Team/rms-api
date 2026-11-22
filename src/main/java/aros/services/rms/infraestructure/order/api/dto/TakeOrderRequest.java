@@ -3,6 +3,8 @@ package aros.services.rms.infraestructure.order.api.dto;
 import aros.services.rms.core.order.domain.ClarificationAnswer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -16,6 +18,10 @@ import java.util.List;
 public record TakeOrderRequest(
     @Schema(description = "Table ID", example = "1") @NotNull(message = "Table ID is required")
         Long tableId,
+    @Schema(description = "Number of guests (covers)", example = "4")
+        @Min(value = 1, message = "Party size must be at least 1")
+        @Max(value = 20, message = "Party size must be at most 20")
+        Integer partySize,
     @Schema(description = "List of ordered products")
         @NotEmpty(message = "Order details cannot be empty")
         @Valid

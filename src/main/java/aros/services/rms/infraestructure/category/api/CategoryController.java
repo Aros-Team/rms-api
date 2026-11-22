@@ -135,31 +135,6 @@ public class CategoryController {
   }
 
   /**
-   * Gets a category by ID.
-   *
-   * @param id the category ID
-   * @return the category
-   */
-  @Operation(
-      tags = {"Categories"},
-      summary = "Get category by ID",
-      description = "Returns a specific product category given its identifier.",
-      responses = {
-        @ApiResponse(responseCode = "200", description = "Category retrieved successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Forbidden"),
-        @ApiResponse(responseCode = "404", description = "Category not found"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")
-      })
-  @GetMapping("/{id}")
-  public ResponseEntity<CategoryResponse> findById(
-      @Parameter(description = "Category ID", example = "1", required = true) @PathVariable
-          Long id) {
-    Category category = categoryUseCase.findById(id);
-    return ResponseEntity.ok(CategoryResponse.fromDomain(category));
-  }
-
-  /**
    * Toggles category enabled status.
    *
    * @param id the category ID

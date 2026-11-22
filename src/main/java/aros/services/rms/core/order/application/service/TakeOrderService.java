@@ -121,8 +121,15 @@ public class TakeOrderService implements TakeOrderUseCase {
     tableRepositoryPort.save(table);
 
     try {
+      LocalDateTime openedAt = LocalDateTime.now();
       Order order =
-          Order.builder().table(table).date(LocalDateTime.now()).details(new ArrayList<>()).build();
+          Order.builder()
+              .table(table)
+              .date(openedAt)
+              .openTime(openedAt)
+              .partySize(command.getPartySize())
+              .details(new ArrayList<>())
+              .build();
 
       for (TakeOrderCommand.OrderDetailCommand detailCommand : command.getDetails()) {
         Product product =
