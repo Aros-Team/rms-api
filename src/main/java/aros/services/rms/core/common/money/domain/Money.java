@@ -205,6 +205,27 @@ public record Money(BigDecimal amount, Currency currency) {
   }
 
   /**
+   * Calculates a percentage of this amount expressed in basis points.
+   *
+   * <p>One basis point is one hundredth of a percent ({@code 10000} = 100%).
+   *
+   * @param basisPoints the percentage in basis points
+   * @return the computed percentage amount
+   * @throws IllegalArgumentException if {@code basisPoints} is negative
+   */
+  public Money percentBasisPoints(int basisPoints) {
+    if (basisPoints < 0) {
+      throw new IllegalArgumentException("basisPoints must not be negative, was: " + basisPoints);
+    }
+    BigDecimal fraction = BigDecimal.valueOf(basisPoints).movePointLeft(4);
+    BigDecimal result =
+        amount
+            .multiply(fraction)
+            .setScale(currency.getDefaultFractionDigits(), RoundingMode.HALF_UP);
+    return new Money(result, currency);
+  }
+
+  /**
    * Applies a margin percentage over this amount (this + percent).
    *
    * @param marginPct the margin percentage
