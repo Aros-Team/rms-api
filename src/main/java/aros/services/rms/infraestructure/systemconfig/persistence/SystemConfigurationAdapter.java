@@ -58,6 +58,51 @@ public class SystemConfigurationAdapter implements SystemConfigurationPort {
     return saved;
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public Optional<SystemConfigurationGroup> findGroupById(Long id) {
+    return groupRepo.findById(id).map(mapper::toDomainGroup);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Optional<SystemConfigurationGroup> findGroupByName(String name) {
+    return groupRepo.findByName(name).map(mapper::toDomainGroup);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public SystemConfigurationGroup saveGroup(SystemConfigurationGroup group) {
+    SystemConfigurationGroupEntity entity;
+    if (group.getId() != null) {
+      entity = groupRepo.findById(group.getId()).orElseGet(SystemConfigurationGroupEntity::new);
+    } else {
+      entity = new SystemConfigurationGroupEntity();
+    }
+    entity.setName(group.getName());
+    entity.setDescription(group.getDescription());
+    entity.setSortOrder(group.getSortOrder() != null ? group.getSortOrder() : 0);
+    return mapper.toDomainGroup(groupRepo.save(entity));
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void deleteGroup(Long id) {
+    groupRepo.deleteById(id);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public int countEntriesInGroup(Long groupId) {
+    return (int) configurationRepo.countByGroupId(groupId);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void deleteByKey(String key) {
+    configurationRepo.findByKey(key).ifPresent(configurationRepo::delete);
+  }
+
   /**
    * Inserts or updates one entry by key.
    *

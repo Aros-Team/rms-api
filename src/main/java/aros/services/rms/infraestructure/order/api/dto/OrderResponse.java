@@ -2,6 +2,7 @@
 
 package aros.services.rms.infraestructure.order.api.dto;
 
+import aros.services.rms.core.common.money.domain.CurrencyContext;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
@@ -125,14 +126,14 @@ public record OrderResponse(
   /**
    * Computes the order total as the sum of every non-null line {@code unitPrice}. The unit price
    * already includes the line's {@code extraCharge}, so surcharges are not added again. When there
-   * are no priced details the total is zero in {@code COP}; the currency is taken from the first
-   * non-null unit price, falling back to {@code COP}.
+   * are no priced details the total is zero in the configured system currency; the currency is
+   * taken from the first non-null unit price.
    *
    * @param details the order details (may be null)
    * @return the computed total as a wire DTO
    */
   public static MoneyDto calculateTotal(List<OrderDetail> details) {
-    Currency fallbackCurrency = Currency.getInstance(MoneyDto.DEFAULT_CURRENCY);
+    Currency fallbackCurrency = CurrencyContext.get();
 
     if (details == null || details.isEmpty()) {
       return MoneyDto.of(Money.zero(fallbackCurrency));

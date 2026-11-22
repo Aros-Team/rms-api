@@ -53,6 +53,7 @@ import aros.services.rms.core.specialselection.application.exception.InvalidSpec
 import aros.services.rms.core.specialselection.application.exception.SpecialSelectionNotAvailableException;
 import aros.services.rms.core.specialselection.application.exception.SpecialSelectionNotFoundException;
 import aros.services.rms.core.specialselection.application.exception.SupplyVariantUnitCostMissingException;
+import aros.services.rms.core.systemconfig.domain.exception.SettingsException;
 import aros.services.rms.core.table.application.exception.InvalidTableStatusException;
 import aros.services.rms.core.user.application.exception.InvalidSalaryException;
 import java.util.Map;
@@ -108,6 +109,23 @@ public class GlobalExceptionHandler {
     body.setTitle(status.getReasonPhrase());
     properties.forEach(body::setProperty);
     return ResponseEntity.status(status).contentType(MediaType.APPLICATION_PROBLEM_JSON).body(body);
+  }
+
+  /**
+   * Handles settings failures, mapping the domain category to an RFC 7807 response.
+   *
+   * @param e the settings exception
+   * @return a problem response with 400, 404 or 409 status
+   */
+  @ExceptionHandler(SettingsException.class)
+  public ResponseEntity<ProblemDetail> handleSettings(SettingsException e) {
+    HttpStatus status =
+        switch (e.getErrorType()) {
+          case NOT_FOUND -> HttpStatus.NOT_FOUND;
+          case CONFLICT -> HttpStatus.CONFLICT;
+          case INVALID -> HttpStatus.BAD_REQUEST;
+        };
+    return problem(status, e.getMessage());
   }
 
   // --- Auth exceptions ---

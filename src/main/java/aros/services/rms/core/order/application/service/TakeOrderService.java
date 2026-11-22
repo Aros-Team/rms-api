@@ -27,6 +27,7 @@ import aros.services.rms.core.specialselection.application.service.SpecialSelect
 import aros.services.rms.core.specialselection.domain.SelectionType;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
 import aros.services.rms.core.specialselection.port.output.SpecialSelectionRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
@@ -64,6 +65,7 @@ public class TakeOrderService implements TakeOrderUseCase {
   private final SpecialSelectionValidator specialSelectionValidator;
   private final SpecialSelectionPricingService specialSelectionPricingService;
   private final SpecialSelectionAvailabilityService specialSelectionAvailabilityService;
+  private final CurrencyProvider currencyProvider;
 
   /**
    * Creates a new take order service.
@@ -79,6 +81,7 @@ public class TakeOrderService implements TakeOrderUseCase {
    * @param specialSelectionValidator the special selection validator
    * @param specialSelectionPricingService the special selection pricing service
    * @param specialSelectionAvailabilityService the special selection availability service
+   * @param currencyProvider the configured system currency
    */
   public TakeOrderService(
       OrderRepositoryPort orderRepositoryPort,
@@ -91,7 +94,8 @@ public class TakeOrderService implements TakeOrderUseCase {
       SpecialSelectionRepositoryPort specialSelectionRepositoryPort,
       SpecialSelectionValidator specialSelectionValidator,
       SpecialSelectionPricingService specialSelectionPricingService,
-      SpecialSelectionAvailabilityService specialSelectionAvailabilityService) {
+      SpecialSelectionAvailabilityService specialSelectionAvailabilityService,
+      CurrencyProvider currencyProvider) {
     this.orderRepositoryPort = orderRepositoryPort;
     this.tableRepositoryPort = tableRepositoryPort;
     this.productRepositoryPort = productRepositoryPort;
@@ -103,6 +107,7 @@ public class TakeOrderService implements TakeOrderUseCase {
     this.specialSelectionValidator = specialSelectionValidator;
     this.specialSelectionPricingService = specialSelectionPricingService;
     this.specialSelectionAvailabilityService = specialSelectionAvailabilityService;
+    this.currencyProvider = currencyProvider;
   }
 
   @Override
@@ -178,7 +183,8 @@ public class TakeOrderService implements TakeOrderUseCase {
             Double computedPrice =
                 specialSelectionPricingService.computeUnitPrice(
                     config, detailCommand.getAdditionIds());
-            unitPrice = new Money(BigDecimal.valueOf(computedPrice), Currency.getInstance("COP"));
+            unitPrice =
+                new Money(BigDecimal.valueOf(computedPrice), currencyProvider.getCurrency());
           }
         } else if (hasSelectedOptions) {
           // Phase C: STANDARD products charge extra_price of EXTRA selections on top of the
@@ -290,7 +296,7 @@ public class TakeOrderService implements TakeOrderUseCase {
     if (options == null || options.isEmpty()) {
       return Map.of();
     }
-    Currency cop = Currency.getInstance("COP");
+    Currency cop = currencyProvider.getCurrency();
     Map<Long, Money> result = new HashMap<>();
     try {
       List<ProductOptionCostProfile> profiles =

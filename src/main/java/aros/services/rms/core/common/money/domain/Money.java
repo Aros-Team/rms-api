@@ -44,6 +44,15 @@ public record Money(BigDecimal amount, Currency currency) {
   }
 
   /**
+   * Creates a zero amount in the configured system currency.
+   *
+   * @return a Money representing zero in the currency installed by the application
+   */
+  public static Money zeroDefault() {
+    return zero(CurrencyContext.get());
+  }
+
+  /**
    * Creates a Money from a string amount and currency.
    *
    * @param amount the amount as a string (e.g. "10.50")

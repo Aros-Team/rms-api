@@ -48,4 +48,50 @@ public interface SystemConfigurationPort {
    * @return the saved configurations
    */
   List<SystemConfiguration> saveAll(List<SystemConfiguration> configs);
+
+  /**
+   * Finds a configuration group by id.
+   *
+   * @param id the group id
+   * @return the group when found
+   */
+  Optional<SystemConfigurationGroup> findGroupById(Long id);
+
+  /**
+   * Finds a configuration group by its unique name.
+   *
+   * @param name the group name
+   * @return the group when found
+   */
+  Optional<SystemConfigurationGroup> findGroupByName(String name);
+
+  /**
+   * Creates or updates a configuration group.
+   *
+   * @param group the group to save
+   * @return the saved group
+   */
+  SystemConfigurationGroup saveGroup(SystemConfigurationGroup group);
+
+  /**
+   * Deletes a configuration group.
+   *
+   * @param id the group id
+   */
+  void deleteGroup(Long id);
+
+  /**
+   * Counts the configuration entries assigned to a group.
+   *
+   * @param groupId the group id
+   * @return the number of entries
+   */
+  int countEntriesInGroup(Long groupId);
+
+  /**
+   * Deletes a configuration entry by key.
+   *
+   * @param key the configuration key
+   */
+  void deleteByKey(String key);
 }

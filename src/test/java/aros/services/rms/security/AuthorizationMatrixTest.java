@@ -52,6 +52,7 @@ import aros.services.rms.core.specialselection.port.input.UpdateSpecialSelection
 import aros.services.rms.core.specialselection.port.input.UpdateSpecialSelectionScheduleUseCase;
 import aros.services.rms.core.specialselection.port.input.UpdateSpecialSelectionUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.GetSystemConfigurationUseCase;
+import aros.services.rms.core.systemconfig.domain.port.input.ManageConfigurationUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateSystemConfigurationUseCase;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.table.domain.Table;
@@ -177,6 +178,7 @@ class AuthorizationMatrixTest {
 
   @MockitoBean private GetSystemConfigurationUseCase getSystemConfigurationUseCase;
   @MockitoBean private UpdateSystemConfigurationUseCase updateSystemConfigurationUseCase;
+  @MockitoBean private ManageConfigurationUseCase manageConfigurationUseCase;
 
   @MockitoBean private ProductUseCase productUseCase;
   @MockitoBean private CalculateProductCostUseCase calculateProductCostUseCase;

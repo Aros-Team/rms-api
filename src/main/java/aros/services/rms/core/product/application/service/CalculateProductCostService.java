@@ -114,7 +114,7 @@ public class CalculateProductCostService implements CalculateProductCostUseCase 
                       + hours.setScale(2, RoundingMode.HALF_UP)
                       + "h (area "
                       + product.getPreparationAreaId()
-                      + ", mode: "
+                      + ", "
                       + effectivePeriod
                       + ")",
                   laborCost.setScale(COST_SCALE, RoundingMode.HALF_UP),

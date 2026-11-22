@@ -33,6 +33,14 @@ public interface SystemConfigurationJpaRepository
   List<SystemConfigurationEntity> findByGroupId(@Param("groupId") Long groupId);
 
   /**
+   * Counts configuration entries assigned to a group.
+   *
+   * @param groupId the group id
+   * @return the number of entries
+   */
+  long countByGroupId(@Param("groupId") Long groupId);
+
+  /**
    * Returns all configuration entries ordered by group and sort order.
    *
    * @return list of all configurations

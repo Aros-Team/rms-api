@@ -137,6 +137,15 @@ public class User {
     this.status = UserStatus.INACTIVE;
   }
 
+  /**
+   * Changes the user's role.
+   *
+   * @param newRole the new role
+   */
+  public void changeRole(UserRole newRole) {
+    this.role = newRole;
+  }
+
   /** Assign a new area to user. */
   public void assignArea(AreaId areaId) {
     this.assignedAreas.add(areaId);

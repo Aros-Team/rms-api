@@ -306,10 +306,10 @@ public class OrderController {
   }
 
   /**
-   * Retrieves one order by id.
+   * Returns a single order with its details, options and totals.
    *
-   * @param id order id
-   * @return the order with its details, options and totals
+   * @param id the order id
+   * @return the order response
    */
   @Operation(
       tags = {"Orders"},
