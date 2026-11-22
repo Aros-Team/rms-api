@@ -90,14 +90,14 @@ class OrderMapperOptionPersistenceTest {
                     .order(orderEntity)
                     .build())
             .option(optionEntity)
-            .extraPrice(2.5)
+            .extraPrice(new BigDecimal("2.5"))
             .build();
     aros.services.rms.infraestructure.order.persistence.OrderDetail detailEntity =
         aros.services.rms.infraestructure.order.persistence.OrderDetail.builder()
             .id(ORDER_DETAIL_ID)
             .order(orderEntity)
             .product(productEntity)
-            .unitPrice(12.5)
+            .unitPrice(new BigDecimal("12.5"))
             .instructions(null)
             .selectedOptions(List.of(row))
             .build();
@@ -159,14 +159,14 @@ class OrderMapperOptionPersistenceTest {
                     .order(orderEntity)
                     .build())
             .option(optionEntity)
-            .extraPrice(7.25)
+            .extraPrice(new BigDecimal("7.25"))
             .build();
     aros.services.rms.infraestructure.order.persistence.OrderDetail detailEntity =
         aros.services.rms.infraestructure.order.persistence.OrderDetail.builder()
             .id(ORDER_DETAIL_ID)
             .order(orderEntity)
             .product(productEntity)
-            .unitPrice(17.25)
+            .unitPrice(new BigDecimal("17.25"))
             .selectedOptions(List.of(row))
             .build();
     orderEntity.setDetails(List.of(detailEntity));
@@ -196,7 +196,7 @@ class OrderMapperOptionPersistenceTest {
         roundTrippedEntity.getDetails().get(0);
     assertEquals(1, roundTrippedDetail.getSelectedOptions().size());
     OrderDetailOption roundTrippedRow = roundTrippedDetail.getSelectedOptions().get(0);
-    assertEquals(7.25, roundTrippedRow.getExtraPrice(), 0.001);
+    assertEquals(new BigDecimal("7.25"), roundTrippedRow.getExtraPrice());
     assertEquals(OPTION_ID, roundTrippedRow.getOption().getId());
   }
 

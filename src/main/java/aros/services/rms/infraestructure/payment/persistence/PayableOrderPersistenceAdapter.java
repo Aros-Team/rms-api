@@ -49,7 +49,6 @@ public class PayableOrderPersistenceAdapter implements PayableOrderPort {
             : order.getDetails().stream()
                 .map(OrderDetail::getUnitPrice)
                 .filter(Objects::nonNull)
-                .map(BigDecimal::valueOf)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     return new Money(total, currencyProvider.getCurrency());
   }

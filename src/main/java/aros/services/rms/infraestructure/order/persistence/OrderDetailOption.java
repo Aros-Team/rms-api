@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -52,9 +53,9 @@ public class OrderDetailOption {
   private ProductOption option;
 
   /** Per-selection surcharge (V38+). Defaults to 0; populated for EXTRA selections. */
-  @Column(name = "extra_price", nullable = false)
+  @Column(name = "extra_price", nullable = false, precision = 10, scale = 2)
   @Builder.Default
-  private Double extraPrice = 0.0;
+  private BigDecimal extraPrice = BigDecimal.ZERO;
 
   /** Composite PK for {@link OrderDetailOption}: {@code (order_detail_id, option_id)}. */
   @Embeddable

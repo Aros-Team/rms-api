@@ -1522,13 +1522,13 @@ final class SeedRunner {
      * <p>Two main suppliers deliver roughly weekly; the nine specialty vendors deliver once in the
      * window. Every received order records a {@code PURCHASE} movement in Bodega on the same day
      * and references the purchase order, so stock is never counted twice. The only order dated on
-     * the anchor day stays {@code CONFIRMADA} with zero received quantity and therefore has no
-     * movement.
+     * the anchor day stays {@code CONFIRMED} (notes token {@code CONFIRMADA}) with zero received
+     * quantity and therefore has no movement.
      */
     private void writePurchases(List<PurchasePlan> plans) throws SQLException {
       String orderSql =
           "INSERT INTO purchase_orders (id, supplier_id, registered_by, purchased_at, "
-              + "total_amount, notes, created_at) VALUES (?,?,?,?,?,?,?)";
+              + "total_amount, status, notes, created_at) VALUES (?,?,?,?,?,?,?,?)";
       try (PreparedStatement order = connection.prepareStatement(orderSql);
           PreparedStatement item =
               connection.prepareStatement(
@@ -1548,8 +1548,13 @@ final class SeedRunner {
           order.setLong(3, SeedConstants.ADMIN_ID);
           order.setString(4, SeedMath.timestamp(purchasedAt));
           order.setBigDecimal(5, total);
-          order.setString(6, purchaseNotes(plan, receivedAt));
-          order.setString(7, SeedMath.timestamp(purchasedAt));
+          order.setString(
+              6,
+              plan.received()
+                  ? SeedConstants.PURCHASE_ORDER_STATUS_RECEIVED
+                  : SeedConstants.PURCHASE_ORDER_STATUS_CONFIRMED);
+          order.setString(7, purchaseNotes(plan, receivedAt));
+          order.setString(8, SeedMath.timestamp(purchasedAt));
           order.executeUpdate();
           for (PurchaseLine line : plan.lines()) {
             item.setLong(1, purchaseItemId++);
@@ -1582,14 +1587,14 @@ final class SeedRunner {
       if (plan.received()) {
         String cadence =
             mainSupplier(plan.supplierId()) ? "Compra semanal" : "Compra de reposición";
-        return SeedConstants.PURCHASE_STATUS_RECEIVED
+        return SeedConstants.PURCHASE_NOTES_RECEIVED
             + " · "
             + cadence
             + " · recibida "
             + SeedMath.timestamp(receivedAt);
       }
       LocalDateTime expected = anchor.atTime(16, 0);
-      return SeedConstants.PURCHASE_STATUS_CONFIRMED
+      return SeedConstants.PURCHASE_NOTES_CONFIRMED
           + " · Compra programada · entrega prevista "
           + SeedMath.timestamp(expected);
     }
