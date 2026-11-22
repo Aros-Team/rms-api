@@ -111,40 +111,28 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
       List<OrderStatus> statuses,
       LocalDateTime startDate,
       LocalDateTime endDate,
+      Long areaId,
       int page,
       int size,
       String sort) {
     Sort springSort = parseSort(sort);
     PageRequest pageable = PageRequest.of(page, size, springSort);
 
-    boolean hasStatuses = statuses != null && !statuses.isEmpty();
-    boolean hasDates = startDate != null && endDate != null;
+    List<aros.services.rms.infraestructure.order.persistence.OrderStatus> infraStatuses =
+        statuses == null || statuses.isEmpty()
+            ? null
+            : statuses.stream()
+                .map(
+                    s ->
+                        aros.services.rms.infraestructure.order.persistence.OrderStatus.valueOf(
+                            s.name()))
+                .collect(Collectors.toList());
+    LocalDateTime normalizedStartDate = startDate != null && endDate != null ? startDate : null;
+    LocalDateTime normalizedEndDate = startDate != null && endDate != null ? endDate : null;
 
-    Page<aros.services.rms.infraestructure.order.persistence.Order> result;
-    if (hasStatuses && hasDates) {
-      List<aros.services.rms.infraestructure.order.persistence.OrderStatus> infraStatuses =
-          statuses.stream()
-              .map(
-                  s ->
-                      aros.services.rms.infraestructure.order.persistence.OrderStatus.valueOf(
-                          s.name()))
-              .collect(Collectors.toList());
-      result =
-          orderRepository.findByStatusInAndDateBetween(infraStatuses, startDate, endDate, pageable);
-    } else if (hasStatuses) {
-      List<aros.services.rms.infraestructure.order.persistence.OrderStatus> infraStatuses =
-          statuses.stream()
-              .map(
-                  s ->
-                      aros.services.rms.infraestructure.order.persistence.OrderStatus.valueOf(
-                          s.name()))
-              .collect(Collectors.toList());
-      result = orderRepository.findByStatusIn(infraStatuses, pageable);
-    } else if (hasDates) {
-      result = orderRepository.findByDateBetween(startDate, endDate, pageable);
-    } else {
-      result = orderRepository.findAll(pageable);
-    }
+    Page<aros.services.rms.infraestructure.order.persistence.Order> result =
+        orderRepository.findByFilters(
+            infraStatuses, null, normalizedStartDate, normalizedEndDate, areaId, pageable);
 
     List<Order> domains =
         result.getContent().stream().map(orderMapper::toDomain).collect(Collectors.toList());
@@ -158,6 +146,7 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
       String search,
       LocalDateTime startDate,
       LocalDateTime endDate,
+      Long areaId,
       int page,
       int size,
       String sort) {
@@ -179,7 +168,12 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
 
     Page<aros.services.rms.infraestructure.order.persistence.Order> result =
         orderRepository.findByFilters(
-            infraStatuses, normalizedSearch, normalizedStartDate, normalizedEndDate, pageable);
+            infraStatuses,
+            normalizedSearch,
+            normalizedStartDate,
+            normalizedEndDate,
+            areaId,
+            pageable);
 
     List<Order> domains =
         result.getContent().stream().map(orderMapper::toDomain).collect(Collectors.toList());

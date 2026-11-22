@@ -6,11 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
+import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.application.service.PreparationService;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderStatus;
@@ -101,5 +103,46 @@ class PreparationUseCaseImplTest {
     assertNotNull(result);
     assertEquals(1L, result.getId());
     assertEquals(OrderStatus.PREPARING, result.getStatus());
+  }
+
+  @Test
+  void shouldPrepareSpecificOrder_whenOrderIsInQueue() {
+    Order order = Order.builder().id(5L).status(OrderStatus.QUEUE).build();
+
+    when(orderRepositoryPort.findById(5L)).thenReturn(Optional.of(order));
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    Order result = preparationUseCase.prepareOrder(5L);
+
+    assertNotNull(result);
+    assertEquals(5L, result.getId());
+    assertEquals(OrderStatus.PREPARING, result.getStatus());
+    verify(orderRepositoryPort, times(1)).findById(5L);
+    verify(orderRepositoryPort, never()).findFirstByStatusOrderByDateAsc(any());
+  }
+
+  @Test
+  void shouldThrowOrderNotFound_whenPreparingUnknownOrder() {
+    when(orderRepositoryPort.findById(99L)).thenReturn(Optional.empty());
+
+    OrderNotFoundException exception =
+        assertThrows(OrderNotFoundException.class, () -> preparationUseCase.prepareOrder(99L));
+
+    assertEquals("Order not found: 99", exception.getMessage());
+    verify(orderRepositoryPort, times(0)).save(any(Order.class));
+  }
+
+  @Test
+  void shouldRejectPreparation_whenOrderIsNotInQueue() {
+    Order order = Order.builder().id(6L).status(OrderStatus.PREPARING).build();
+
+    when(orderRepositoryPort.findById(6L)).thenReturn(Optional.of(order));
+
+    IllegalStateException exception =
+        assertThrows(IllegalStateException.class, () -> preparationUseCase.prepareOrder(6L));
+
+    assertEquals("Order can only be prepared when in QUEUE status", exception.getMessage());
+    verify(orderRepositoryPort, times(0)).save(any(Order.class));
   }
 }

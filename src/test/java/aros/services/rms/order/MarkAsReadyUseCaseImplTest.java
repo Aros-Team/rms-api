@@ -3,19 +3,29 @@
 package aros.services.rms.order;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
+import aros.services.rms.core.order.application.exception.OrderDetailNotFoundException;
+import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.application.service.MarkAsReadyService;
 import aros.services.rms.core.order.domain.Order;
+import aros.services.rms.core.order.domain.OrderDetail;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -139,5 +149,149 @@ class MarkAsReadyUseCaseImplTest {
 
     assertEquals(
         "Order can only be marked as ready when in PREPARING status", exception.getMessage());
+  }
+
+  // ---------------------------------------------------------------------------
+  // item-level readiness
+  // ---------------------------------------------------------------------------
+
+  private static OrderDetail detail(long id, boolean ready) {
+    return OrderDetail.builder().id(id).ready(ready).build();
+  }
+
+  @Test
+  void shouldMarkDetailReady_andKeepOrderPreparing_whenOtherDetailsPending() {
+    Order order =
+        Order.builder()
+            .id(1L)
+            .status(OrderStatus.PREPARING)
+            .details(new ArrayList<>(List.of(detail(10L, false), detail(11L, false))))
+            .build();
+
+    when(orderRepositoryPort.findById(1L)).thenReturn(Optional.of(order));
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    Order result = markAsReadyUseCase.markDetailAsReady(1L, 10L);
+
+    assertEquals(OrderStatus.PREPARING, result.getStatus());
+    assertTrue(result.getDetails().get(0).isReady());
+    assertNotNull(result.getDetails().get(0).getReadyAt());
+    assertFalse(result.getDetails().get(1).isReady());
+    assertNull(result.getDetails().get(1).getReadyAt());
+    verify(orderRepositoryPort, times(1)).save(order);
+    verifyNoInteractions(metricsPort);
+  }
+
+  @Test
+  void shouldMarkOrderReady_whenLastDetailBecomesReady() {
+    Order order =
+        Order.builder()
+            .id(1L)
+            .status(OrderStatus.PREPARING)
+            .date(java.time.LocalDateTime.now())
+            .details(new ArrayList<>(List.of(detail(10L, true), detail(11L, false))))
+            .build();
+
+    when(orderRepositoryPort.findById(1L)).thenReturn(Optional.of(order));
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    Order result = markAsReadyUseCase.markDetailAsReady(1L, 11L);
+
+    assertEquals(OrderStatus.READY, result.getStatus());
+    assertTrue(result.getDetails().stream().allMatch(OrderDetail::isReady));
+    verify(metricsPort, times(1)).recordOrderStatusTransition("PREPARING", "READY");
+  }
+
+  @Test
+  void shouldBeIdempotent_whenDetailIsAlreadyReady() {
+    Order order =
+        Order.builder()
+            .id(1L)
+            .status(OrderStatus.PREPARING)
+            .details(new ArrayList<>(List.of(detail(10L, true), detail(11L, false))))
+            .build();
+
+    when(orderRepositoryPort.findById(1L)).thenReturn(Optional.of(order));
+
+    Order result = markAsReadyUseCase.markDetailAsReady(1L, 10L);
+
+    assertEquals(OrderStatus.PREPARING, result.getStatus());
+    verify(orderRepositoryPort, never()).save(any(Order.class));
+    verifyNoInteractions(metricsPort);
+  }
+
+  @Test
+  void shouldThrowOrderNotFound_whenMarkingDetailOfUnknownOrder() {
+    when(orderRepositoryPort.findById(99L)).thenReturn(Optional.empty());
+
+    OrderNotFoundException exception =
+        assertThrows(
+            OrderNotFoundException.class, () -> markAsReadyUseCase.markDetailAsReady(99L, 1L));
+
+    assertEquals("Order not found: 99", exception.getMessage());
+    verify(orderRepositoryPort, never()).save(any(Order.class));
+  }
+
+  @Test
+  void shouldThrowDetailNotFound_whenDetailDoesNotBelongToOrder() {
+    Order order =
+        Order.builder()
+            .id(1L)
+            .status(OrderStatus.PREPARING)
+            .details(new ArrayList<>(List.of(detail(10L, false))))
+            .build();
+
+    when(orderRepositoryPort.findById(1L)).thenReturn(Optional.of(order));
+
+    OrderDetailNotFoundException exception =
+        assertThrows(
+            OrderDetailNotFoundException.class,
+            () -> markAsReadyUseCase.markDetailAsReady(1L, 404L));
+
+    assertEquals("Order detail not found: 404 in order 1", exception.getMessage());
+    verify(orderRepositoryPort, never()).save(any(Order.class));
+  }
+
+  @Test
+  void shouldRejectDetailReadiness_whenOrderIsQueue() {
+    Order order =
+        Order.builder()
+            .id(1L)
+            .status(OrderStatus.QUEUE)
+            .details(new ArrayList<>(List.of(detail(10L, false))))
+            .build();
+
+    when(orderRepositoryPort.findById(1L)).thenReturn(Optional.of(order));
+
+    IllegalStateException exception =
+        assertThrows(
+            IllegalStateException.class, () -> markAsReadyUseCase.markDetailAsReady(1L, 10L));
+
+    assertEquals(
+        "Order details can only be marked as ready when in PREPARING status",
+        exception.getMessage());
+    verify(orderRepositoryPort, never()).save(any(Order.class));
+  }
+
+  @Test
+  void shouldMarkEveryDetailReady_whenOrderLevelReady() {
+    Order order =
+        Order.builder()
+            .id(1L)
+            .status(OrderStatus.PREPARING)
+            .details(new ArrayList<>(List.of(detail(10L, false), detail(11L, false))))
+            .build();
+
+    when(orderRepositoryPort.findById(1L)).thenReturn(Optional.of(order));
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    Order result = markAsReadyUseCase.markAsReady(1L);
+
+    assertEquals(OrderStatus.READY, result.getStatus());
+    assertTrue(result.getDetails().stream().allMatch(OrderDetail::isReady));
+    assertTrue(result.getDetails().stream().allMatch(d -> d.getReadyAt() != null));
   }
 }

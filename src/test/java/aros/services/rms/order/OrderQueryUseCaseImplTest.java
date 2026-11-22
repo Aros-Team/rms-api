@@ -194,18 +194,19 @@ class OrderQueryUseCaseImplTest {
         new OrderQueryResult(
             List.of(Order.builder().id(1L).build(), Order.builder().id(2L).build()), 2L, 0, 20);
 
-    when(orderRepositoryPort.findOrdersPage(List.of(), null, null, 0, 20, "date,desc"))
+    when(orderRepositoryPort.findOrdersPage(List.of(), null, null, null, 0, 20, "date,desc"))
         .thenReturn(expected);
 
     OrderQueryResult result =
-        orderQueryUseCase.findOrdersPage(List.of(), null, null, 0, 20, "date,desc");
+        orderQueryUseCase.findOrdersPage(List.of(), null, null, null, 0, 20, "date,desc");
 
     assertNotNull(result);
     assertEquals(2, result.items().size());
     assertEquals(2L, result.total());
     assertEquals(0, result.page());
     assertEquals(20, result.size());
-    verify(orderRepositoryPort, times(1)).findOrdersPage(List.of(), null, null, 0, 20, "date,desc");
+    verify(orderRepositoryPort, times(1))
+        .findOrdersPage(List.of(), null, null, null, 0, 20, "date,desc");
   }
 
   @Test
@@ -215,16 +216,17 @@ class OrderQueryUseCaseImplTest {
         new OrderQueryResult(
             List.of(Order.builder().id(1L).status(OrderStatus.QUEUE).build()), 1L, 0, 20);
 
-    when(orderRepositoryPort.findOrdersPage(statuses, null, null, 0, 20, "date,desc"))
+    when(orderRepositoryPort.findOrdersPage(statuses, null, null, null, 0, 20, "date,desc"))
         .thenReturn(expected);
 
     OrderQueryResult result =
-        orderQueryUseCase.findOrdersPage(statuses, null, null, 0, 20, "date,desc");
+        orderQueryUseCase.findOrdersPage(statuses, null, null, null, 0, 20, "date,desc");
 
     assertNotNull(result);
     assertEquals(1, result.items().size());
     assertEquals(1L, result.total());
-    verify(orderRepositoryPort, times(1)).findOrdersPage(statuses, null, null, 0, 20, "date,desc");
+    verify(orderRepositoryPort, times(1))
+        .findOrdersPage(statuses, null, null, null, 0, 20, "date,desc");
   }
 
   @Test
@@ -234,16 +236,17 @@ class OrderQueryUseCaseImplTest {
     OrderQueryResult expected =
         new OrderQueryResult(List.of(Order.builder().id(1L).build()), 1L, 0, 20);
 
-    when(orderRepositoryPort.findOrdersPage(List.of(), startDate, endDate, 0, 20, "date,desc"))
+    when(orderRepositoryPort.findOrdersPage(
+            List.of(), startDate, endDate, null, 0, 20, "date,desc"))
         .thenReturn(expected);
 
     OrderQueryResult result =
-        orderQueryUseCase.findOrdersPage(List.of(), startDate, endDate, 0, 20, "date,desc");
+        orderQueryUseCase.findOrdersPage(List.of(), startDate, endDate, null, 0, 20, "date,desc");
 
     assertNotNull(result);
     assertEquals(1, result.items().size());
     verify(orderRepositoryPort, times(1))
-        .findOrdersPage(List.of(), startDate, endDate, 0, 20, "date,desc");
+        .findOrdersPage(List.of(), startDate, endDate, null, 0, 20, "date,desc");
   }
 
   @Test
@@ -251,26 +254,30 @@ class OrderQueryUseCaseImplTest {
     OrderQueryResult expected =
         new OrderQueryResult(List.of(Order.builder().id(1L).build()), 1L, 0, 20);
 
-    when(orderRepositoryPort.findOrdersPage(List.of(), "burger", null, null, 0, 20, "date,desc"))
+    when(orderRepositoryPort.findOrdersPage(
+            List.of(), "burger", null, null, null, 0, 20, "date,desc"))
         .thenReturn(expected);
 
     OrderQueryResult result =
-        orderQueryUseCase.findOrdersPage(List.of(), "burger", null, null, 0, 20, "date,desc");
+        orderQueryUseCase.findOrdersPage(List.of(), "burger", null, null, null, 0, 20, "date,desc");
 
     assertEquals(1, result.items().size());
     assertEquals(1L, result.total());
-    verify(orderRepositoryPort).findOrdersPage(List.of(), "burger", null, null, 0, 20, "date,desc");
+    verify(orderRepositoryPort)
+        .findOrdersPage(List.of(), "burger", null, null, null, 0, 20, "date,desc");
   }
 
   @Test
   void shouldReturnEmptyPage_whenSearchHasNoMatches() {
     OrderQueryResult expected = new OrderQueryResult(List.of(), 0L, 0, 20);
 
-    when(orderRepositoryPort.findOrdersPage(List.of(), "unknown", null, null, 0, 20, "date,desc"))
+    when(orderRepositoryPort.findOrdersPage(
+            List.of(), "unknown", null, null, null, 0, 20, "date,desc"))
         .thenReturn(expected);
 
     OrderQueryResult result =
-        orderQueryUseCase.findOrdersPage(List.of(), "unknown", null, null, 0, 20, "date,desc");
+        orderQueryUseCase.findOrdersPage(
+            List.of(), "unknown", null, null, null, 0, 20, "date,desc");
 
     assertEquals(0, result.items().size());
     assertEquals(0L, result.total());
@@ -286,15 +293,46 @@ class OrderQueryUseCaseImplTest {
             List.of(Order.builder().id(1L).status(OrderStatus.READY).build()), 1L, 0, 20);
 
     when(orderRepositoryPort.findOrdersPage(
-            statuses, "cheese", startDate, endDate, 0, 20, "date,desc"))
+            statuses, "cheese", startDate, endDate, null, 0, 20, "date,desc"))
         .thenReturn(expected);
 
     OrderQueryResult result =
         orderQueryUseCase.findOrdersPage(
-            statuses, "cheese", startDate, endDate, 0, 20, "date,desc");
+            statuses, "cheese", startDate, endDate, null, 0, 20, "date,desc");
 
     assertEquals(1, result.items().size());
     assertEquals(OrderStatus.READY, result.items().get(0).getStatus());
+  }
+
+  @Test
+  void shouldPassStationAreaToRepository_whenAreaProvided() {
+    OrderQueryResult expected =
+        new OrderQueryResult(List.of(Order.builder().id(1L).build()), 1L, 0, 20);
+
+    when(orderRepositoryPort.findOrdersPage(List.of(), null, null, 1L, 0, 20, "date,desc"))
+        .thenReturn(expected);
+
+    OrderQueryResult result =
+        orderQueryUseCase.findOrdersPage(List.of(), null, null, 1L, 0, 20, "date,desc");
+
+    assertEquals(1, result.items().size());
+    verify(orderRepositoryPort, times(1))
+        .findOrdersPage(List.of(), null, null, 1L, 0, 20, "date,desc");
+  }
+
+  @Test
+  void shouldPassStationAreaToRepository_whenSearchingWithArea() {
+    OrderQueryResult expected =
+        new OrderQueryResult(List.of(Order.builder().id(1L).build()), 1L, 0, 20);
+
+    when(orderRepositoryPort.findOrdersPage(
+            List.of(), "burger", null, null, 3L, 0, 20, "date,desc"))
+        .thenReturn(expected);
+
+    OrderQueryResult result =
+        orderQueryUseCase.findOrdersPage(List.of(), "burger", null, null, 3L, 0, 20, "date,desc");
+
+    assertEquals(1, result.items().size());
   }
 
   @Test
@@ -307,11 +345,11 @@ class OrderQueryUseCaseImplTest {
             IllegalArgumentException.class,
             () ->
                 orderQueryUseCase.findOrdersPage(
-                    List.of(), startDate, endDate, 0, 20, "date,desc"));
+                    List.of(), startDate, endDate, null, 0, 20, "date,desc"));
 
     assertEquals("End date cannot be in the future", exception.getMessage());
     verify(orderRepositoryPort, times(0))
-        .findOrdersPage(any(), any(), any(), anyInt(), anyInt(), anyString());
+        .findOrdersPage(any(), any(), any(), any(), anyInt(), anyInt(), anyString());
   }
 
   @Test
@@ -324,10 +362,10 @@ class OrderQueryUseCaseImplTest {
             IllegalArgumentException.class,
             () ->
                 orderQueryUseCase.findOrdersPage(
-                    List.of(), startDate, endDate, 0, 20, "date,desc"));
+                    List.of(), startDate, endDate, null, 0, 20, "date,desc"));
 
     assertEquals("Start date cannot be after end date", exception.getMessage());
     verify(orderRepositoryPort, times(0))
-        .findOrdersPage(any(), any(), any(), anyInt(), anyInt(), anyString());
+        .findOrdersPage(any(), any(), any(), any(), anyInt(), anyInt(), anyString());
   }
 }

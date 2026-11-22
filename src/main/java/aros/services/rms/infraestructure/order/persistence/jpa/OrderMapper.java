@@ -92,6 +92,8 @@ public class OrderMapper {
             .product(productMapper.toProductEntity(domain.getProduct()))
             .unitPrice(domain.getUnitPrice().amount().doubleValue())
             .instructions(domain.getInstructions())
+            .ready(domain.isReady())
+            .readyAt(domain.getReadyAt())
             .build();
 
     entity.setSelectedOptions(toOrderDetailOptionEntities(domain, entity));
@@ -213,6 +215,8 @@ public class OrderMapper {
         .optionExtraPrices(optionExtraPrices)
         .instructions(entity.getInstructions())
         .selectedOptions(selectedOptions)
+        .ready(entity.isReady())
+        .readyAt(entity.getReadyAt())
         .build();
   }
 }

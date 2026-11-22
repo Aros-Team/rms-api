@@ -5,6 +5,7 @@ package aros.services.rms.core.order.domain;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,4 +50,13 @@ public class OrderDetail {
   private List<Long> selectedProductIds;
   private List<Long> additionIds;
   private List<ClarificationAnswer> clarifications;
+
+  /**
+   * Whether this line has been completed at its station. Persisted on {@code order_details.ready}
+   * (V59). The order moves to READY when every line is ready.
+   */
+  @Builder.Default private boolean ready = false;
+
+  /** When the line was marked ready, or null while it is still pending. */
+  private LocalDateTime readyAt;
 }

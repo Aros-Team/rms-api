@@ -13,10 +13,28 @@ public interface MarkAsReadyUseCase {
   /**
    * Marca una orden específica como READY. Solo puede usarse en órdenes en estado PREPARING.
    *
+   * <p>Todas las líneas de la orden quedan marcadas como listas para que la vista por ítem y la
+   * vista por orden coincidan.
+   *
    * @param id ID de la orden a marcar
    * @return Orden actualizada con estado READY
    * @throws IllegalArgumentException si no existe la orden
    * @throws IllegalStateException si la orden no está en PREPARING
    */
   Order markAsReady(Long id);
+
+  /**
+   * Marca una línea de la orden como lista en su estación. Cuando todas las líneas quedan listas,
+   * la orden pasa a READY. Es idempotente para una línea ya lista.
+   *
+   * @param orderId ID de la orden
+   * @param detailId ID de la línea
+   * @return Orden actualizada (con estado READY si todas las líneas quedaron listas)
+   * @throws aros.services.rms.core.order.application.exception.OrderNotFoundException si no existe
+   *     la orden
+   * @throws aros.services.rms.core.order.application.exception.OrderDetailNotFoundException si la
+   *     línea no pertenece a la orden
+   * @throws IllegalStateException si la orden no está en PREPARING o READY
+   */
+  Order markDetailAsReady(Long orderId, Long detailId);
 }
