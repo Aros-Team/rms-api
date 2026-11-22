@@ -145,11 +145,11 @@ class OrderQueryControllerWebMvcTest {
     mockMvc
         .perform(get(URL).with(adminJwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.items").isArray())
-        .andExpect(jsonPath("$.data.total").value(1))
-        .andExpect(jsonPath("$.data.page").value(0))
-        .andExpect(jsonPath("$.data.size").value(20))
-        .andExpect(jsonPath("$.data.total_pages").value(1));
+        .andExpect(jsonPath("$.data.content").isArray())
+        .andExpect(jsonPath("$.data.page.totalElements").value(1))
+        .andExpect(jsonPath("$.data.page.number").value(0))
+        .andExpect(jsonPath("$.data.page.size").value(20))
+        .andExpect(jsonPath("$.data.page.totalPages").value(1));
   }
 
   // ---------------------------------------------------------------------------
@@ -169,8 +169,8 @@ class OrderQueryControllerWebMvcTest {
     mockMvc
         .perform(get(URL).param("status", "QUEUE").with(adminJwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.items[0].status").value("QUEUE"))
-        .andExpect(jsonPath("$.data.total").value(1));
+        .andExpect(jsonPath("$.data.content[0].status").value("QUEUE"))
+        .andExpect(jsonPath("$.data.page.totalElements").value(1));
   }
 
   // ---------------------------------------------------------------------------
@@ -188,7 +188,7 @@ class OrderQueryControllerWebMvcTest {
     mockMvc
         .perform(get(URL).param("statuses", "QUEUE,READY").with(adminJwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.total").value(0));
+        .andExpect(jsonPath("$.data.page.totalElements").value(0));
   }
 
   // ---------------------------------------------------------------------------
@@ -208,10 +208,10 @@ class OrderQueryControllerWebMvcTest {
     mockMvc
         .perform(get(URL).param("page", "2").param("size", "10").with(adminJwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.page").value(2))
-        .andExpect(jsonPath("$.data.size").value(10))
-        .andExpect(jsonPath("$.data.total").value(50))
-        .andExpect(jsonPath("$.data.total_pages").value(5));
+        .andExpect(jsonPath("$.data.page.number").value(2))
+        .andExpect(jsonPath("$.data.page.size").value(10))
+        .andExpect(jsonPath("$.data.page.totalElements").value(50))
+        .andExpect(jsonPath("$.data.page.totalPages").value(5));
   }
 
   @Test
@@ -227,8 +227,8 @@ class OrderQueryControllerWebMvcTest {
     mockMvc
         .perform(get(URL).param("search", "burger").with(adminJwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.total").value(1))
-        .andExpect(jsonPath("$.data.items[0].status").value("QUEUE"));
+        .andExpect(jsonPath("$.data.page.totalElements").value(1))
+        .andExpect(jsonPath("$.data.content[0].status").value("QUEUE"));
   }
 
   @Test
@@ -240,8 +240,8 @@ class OrderQueryControllerWebMvcTest {
     mockMvc
         .perform(get(URL).param("search", "does-not-exist").with(adminJwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.items").isEmpty())
-        .andExpect(jsonPath("$.data.total").value(0));
+        .andExpect(jsonPath("$.data.content").isEmpty())
+        .andExpect(jsonPath("$.data.page.totalElements").value(0));
   }
 
   @Test
@@ -259,7 +259,7 @@ class OrderQueryControllerWebMvcTest {
                 .param("endDate", "2026-01-31T23:59:59")
                 .with(adminJwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.total").value(0));
+        .andExpect(jsonPath("$.data.page.totalElements").value(0));
   }
 
   @Test
@@ -272,8 +272,8 @@ class OrderQueryControllerWebMvcTest {
     mockMvc
         .perform(get(URL).param("search", "   ").with(adminJwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.items").isEmpty())
-        .andExpect(jsonPath("$.data.total").value(0));
+        .andExpect(jsonPath("$.data.content").isEmpty())
+        .andExpect(jsonPath("$.data.page.totalElements").value(0));
   }
 
   // ---------------------------------------------------------------------------
@@ -293,7 +293,7 @@ class OrderQueryControllerWebMvcTest {
     mockMvc
         .perform(get(URL).param("areaId", "1").with(adminJwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.total").value(1));
+        .andExpect(jsonPath("$.data.page.totalElements").value(1));
 
     verify(orderQueryUseCase)
         .findOrdersPage(anyList(), any(), any(), eq(1L), anyInt(), anyInt(), anyString());

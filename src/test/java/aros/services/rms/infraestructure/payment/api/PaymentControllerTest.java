@@ -216,10 +216,10 @@ class PaymentControllerTest extends AbstractJwtIntegrationTest {
     mockMvc
         .perform(get("/api/v1/payments/pending"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.items[0].orderId").value(201767))
-        .andExpect(jsonPath("$.data.items[0].paymentStatus").value("UNPAID"))
-        .andExpect(jsonPath("$.data.total").value(1))
-        .andExpect(jsonPath("$.data.total_pages").value(1));
+        .andExpect(jsonPath("$.data.content[0].orderId").value(201767))
+        .andExpect(jsonPath("$.data.content[0].paymentStatus").value("UNPAID"))
+        .andExpect(jsonPath("$.data.page.totalElements").value(1))
+        .andExpect(jsonPath("$.data.page.totalPages").value(1));
   }
 
   @Test
@@ -242,8 +242,8 @@ class PaymentControllerTest extends AbstractJwtIntegrationTest {
     mockMvc
         .perform(get("/api/v1/payments").param("status", "COMPLETED"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.data.items[0].id").value(9001))
-        .andExpect(jsonPath("$.data.total").value(1));
+        .andExpect(jsonPath("$.data.content[0].id").value(9001))
+        .andExpect(jsonPath("$.data.page.totalElements").value(1));
   }
 
   @Test

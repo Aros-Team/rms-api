@@ -212,6 +212,138 @@ class ApiDocsEnvelopeIntegrationTest {
     assertFalse(enveloped, "JWKS response must stay a raw JWK Set, not an envelope");
   }
 
+  @Test
+  void should_document_kitchen_clock_settings_and_purchase_status() throws Exception {
+    JsonNode document = fetchApiDocs();
+    JsonNode paths = document.path("paths");
+
+    List<String> requiredPaths =
+        List.of(
+            "/api/v1/orders/{id}/prepare",
+            "/api/v1/orders/{id}/details/{detailId}/ready",
+            "/api/v1/workers/me/clock-in",
+            "/api/v1/workers/me/clock-out",
+            "/api/v1/settings/business",
+            "/api/v1/settings/currency",
+            "/api/v1/settings/labor",
+            "/api/v1/settings/notifications",
+            "/api/v1/purchases",
+            "/api/v1/purchases/{id}");
+    List<String> missing = requiredPaths.stream().filter(path -> !paths.has(path)).toList();
+    assertTrue(missing.isEmpty(), "OpenAPI is missing hardened endpoints: " + missing);
+
+    JsonNode purchaseStatus =
+        document
+            .path("components")
+            .path("schemas")
+            .path("PurchaseOrderResponse")
+            .path("properties")
+            .path("status");
+    assertEquals("string", purchaseStatus.path("type").asText());
+    assertTrue(purchaseStatus.path("enum").isArray(), "purchase status must be a typed enum");
+
+    JsonNode order200 =
+        paths.path("/api/v1/orders").path("get").path("responses").path("200").path("content");
+    boolean envelopeDocumented =
+        order200.properties().stream()
+            .filter(media -> isJsonMediaType(media.getKey()))
+            .anyMatch(media -> media.getValue().path("schema").path("properties").has("data"));
+    assertTrue(envelopeDocumented, "GET /api/v1/orders 200 is not documented with the envelope");
+  }
+
+  @Test
+  void should_document_payment_response_money_as_money_dto() throws Exception {
+    JsonNode document = fetchApiDocs();
+    JsonNode schemas = document.path("components").path("schemas");
+
+    JsonNode money = schemas.path("MoneyDto");
+    assertEquals("string", money.path("properties").path("amount").path("type").asText());
+    assertEquals("string", money.path("properties").path("currency").path("type").asText());
+
+    JsonNode payment = schemas.path("PaymentResponse").path("properties");
+    assertMoneyRef(payment, "subtotal");
+    assertMoneyRef(payment, "discount");
+    assertMoneyRef(payment, "tip");
+    assertMoneyRef(payment, "total");
+    assertMoneyRef(payment, "tendered");
+    assertMoneyRef(payment, "change");
+    assertMoneyRef(schemas.path("TenderResponse").path("properties"), "amount");
+
+    JsonNode summary = schemas.path("PaymentSummaryResponse").path("properties");
+    assertMoneyRef(summary, "subtotal");
+    assertMoneyRef(summary, "discount");
+    assertMoneyRef(summary, "tip");
+    assertMoneyRef(summary, "total");
+
+    assertMoneyRef(schemas.path("PendingOrderResponse").path("properties"), "total");
+
+    JsonNode paths = document.path("paths");
+    assertEquals(
+        "#/components/schemas/PaymentResponse",
+        paths
+            .path("/api/v1/payments/{id}")
+            .path("get")
+            .path("responses")
+            .path("200")
+            .path("content")
+            .path("*/*")
+            .path("schema")
+            .path("properties")
+            .path("data")
+            .path("$ref")
+            .asText());
+    assertEquals(
+        "#/components/schemas/PaymentResponse",
+        paths
+            .path("/api/v1/payments")
+            .path("post")
+            .path("responses")
+            .path("201")
+            .path("content")
+            .path("*/*")
+            .path("schema")
+            .path("properties")
+            .path("data")
+            .path("$ref")
+            .asText());
+
+    // Request money stays a primitive input but the published scalar must match the client:
+    // decimal strings, coerced to BigDecimal by Jackson.
+    JsonNode request = schemas.path("RegisterPaymentRequest").path("properties");
+    assertEquals("string", request.path("tipAmount").path("type").asText());
+    assertEquals(
+        "string",
+        schemas.path("TenderRequest").path("properties").path("amount").path("type").asText());
+    assertEquals(
+        "string",
+        schemas.path("DiscountRequest").path("properties").path("value").path("type").asText());
+    assertEquals(
+        "string",
+        schemas
+            .path("OpenCashShiftRequest")
+            .path("properties")
+            .path("openingFloat")
+            .path("type")
+            .asText());
+    assertEquals(
+        "string",
+        schemas
+            .path("CloseCashShiftRequest")
+            .path("properties")
+            .path("countedCash")
+            .path("type")
+            .asText());
+  }
+
+  /** Asserts that a property, or a direct child of an items node, refs {@code MoneyDto}. */
+  private void assertMoneyRef(JsonNode node, String field) {
+    JsonNode target = field == null ? node : node.path(field);
+    assertEquals(
+        "#/components/schemas/MoneyDto",
+        target.path("$ref").asText(),
+        "payment money field is not a MoneyDto ref: " + field);
+  }
+
   private JsonNode fetchApiDocs() throws Exception {
     MvcResult result = mockMvc.perform(get("/v3/api-docs")).andExpect(status().isOk()).andReturn();
     return mapper.readTree(result.getResponse().getContentAsString());
