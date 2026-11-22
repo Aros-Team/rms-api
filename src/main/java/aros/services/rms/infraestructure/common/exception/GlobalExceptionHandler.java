@@ -44,10 +44,14 @@ import aros.services.rms.core.purchase.application.exception.InvalidPurchaseItem
 import aros.services.rms.core.purchase.application.exception.PurchaseOrderNotFoundException;
 import aros.services.rms.core.purchase.application.exception.SupplierInactiveException;
 import aros.services.rms.core.purchase.application.exception.SupplierNotFoundException;
+import aros.services.rms.core.schedule.application.exception.NoOpenSessionException;
+import aros.services.rms.core.schedule.application.exception.OpenSessionAlreadyExistsException;
+import aros.services.rms.core.schedule.application.exception.ScheduleAlreadyAssignedException;
 import aros.services.rms.core.schedule.application.exception.ScheduleAlreadyExistsException;
 import aros.services.rms.core.schedule.application.exception.ScheduleHasAssignmentsException;
 import aros.services.rms.core.schedule.application.exception.ScheduleNotFoundException;
 import aros.services.rms.core.schedule.application.exception.ShiftOverlapException;
+import aros.services.rms.core.schedule.application.exception.WeeklyHoursExceededException;
 import aros.services.rms.core.schedule.application.exception.WorkerNotInShiftException;
 import aros.services.rms.core.schedule.application.exception.WorkerScheduleAssignmentNotFoundException;
 import aros.services.rms.core.specialselection.application.exception.InvalidSpecialSelectionException;
@@ -491,6 +495,37 @@ public class GlobalExceptionHandler {
   /** Handles ShiftOverlapException. */
   @ExceptionHandler(ShiftOverlapException.class)
   public ResponseEntity<ProblemDetail> handleShiftOverlap(ShiftOverlapException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
+  }
+
+  /** Handles ScheduleAlreadyAssignedException (double booking). */
+  @ExceptionHandler(ScheduleAlreadyAssignedException.class)
+  public ResponseEntity<ProblemDetail> handleScheduleAlreadyAssigned(
+      ScheduleAlreadyAssignedException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
+  }
+
+  /** Handles WeeklyHoursExceededException, exposing the resulting hours and the cap. */
+  @ExceptionHandler(WeeklyHoursExceededException.class)
+  public ResponseEntity<ProblemDetail> handleWeeklyHoursExceeded(WeeklyHoursExceededException e) {
+    return problem(
+        HttpStatus.CONFLICT,
+        e.getMessage(),
+        Map.of(
+            "weeklyHours", e.getWeeklyHours(),
+            "hardWeeklyCapHours", e.getHardWeeklyCapHours()));
+  }
+
+  /** Handles OpenSessionAlreadyExistsException. */
+  @ExceptionHandler(OpenSessionAlreadyExistsException.class)
+  public ResponseEntity<ProblemDetail> handleOpenSessionAlreadyExists(
+      OpenSessionAlreadyExistsException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
+  }
+
+  /** Handles NoOpenSessionException. */
+  @ExceptionHandler(NoOpenSessionException.class)
+  public ResponseEntity<ProblemDetail> handleNoOpenSession(NoOpenSessionException e) {
     return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 

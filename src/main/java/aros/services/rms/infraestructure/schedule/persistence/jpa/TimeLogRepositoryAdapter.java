@@ -6,6 +6,7 @@ import aros.services.rms.core.user.domain.UserId;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -24,6 +25,14 @@ public class TimeLogRepositoryAdapter implements TimeLogRepositoryPort {
     TimeLogEntity entity = mapper.toEntity(timeLog);
     TimeLogEntity saved = internal.save(entity);
     return mapper.toDomain(saved);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Optional<TimeLog> findLatestByWorkerId(UserId workerId) {
+    return internal
+        .findTopByWorkerIdOrderByTimestampDescIdDesc(workerId.value())
+        .map(mapper::toDomain);
   }
 
   /** {@inheritDoc} */

@@ -1,81 +1,65 @@
+/* (C) 2026 */
+
 package aros.services.rms.core.schedule.application.service;
 
-import aros.services.rms.core.schedule.domain.DayOfWeek;
-import aros.services.rms.core.schedule.domain.Schedule;
 import aros.services.rms.core.schedule.domain.ScheduleShift;
 import aros.services.rms.core.schedule.domain.TimeLog;
+import aros.services.rms.core.schedule.domain.TimeLogSessions;
 import aros.services.rms.core.schedule.port.input.RecordTimeLogUseCase;
-import aros.services.rms.core.schedule.port.output.ScheduleRepositoryPort;
 import aros.services.rms.core.schedule.port.output.TimeLogRepositoryPort;
-import aros.services.rms.core.schedule.port.output.WorkerScheduleAssignmentRepositoryPort;
 import aros.services.rms.core.user.domain.UserId;
+import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneId;
+import java.util.Optional;
 
-/** Service for recording a time log entry when a worker clocks in during an active shift. */
+/**
+ * Records the implicit clock-in performed at login.
+ *
+ * <p>Login is treated as a clock-in only when the worker authenticates inside an assigned shift. An
+ * off-shift login is not persisted as attendance: doing so used to create an orphan entry that
+ * blocked the explicit clock-in and paired with the wrong clock-out. An on-shift login is still
+ * skipped when a session is already open, so repeated logins never double-count.
+ */
 public class RecordTimeLogService implements RecordTimeLogUseCase {
   private final TimeLogRepositoryPort timeLogRepository;
-  private final WorkerScheduleAssignmentRepositoryPort assignmentRepository;
-  private final ScheduleRepositoryPort scheduleRepository;
-  private final ZoneId zoneId;
+  private final WorkerShiftResolver shiftResolver;
+  private final Clock clock;
 
   /**
    * Constructs a new RecordTimeLogService.
    *
    * @param timeLogRepository the time log repository
-   * @param assignmentRepository the assignment repository
-   * @param scheduleRepository the schedule repository
-   * @param zoneId the time zone for determining the current day
+   * @param shiftResolver the resolver for the worker's assigned shifts
+   * @param clock the clock used to stamp entries
    */
   public RecordTimeLogService(
-      TimeLogRepositoryPort timeLogRepository,
-      WorkerScheduleAssignmentRepositoryPort assignmentRepository,
-      ScheduleRepositoryPort scheduleRepository,
-      ZoneId zoneId) {
+      TimeLogRepositoryPort timeLogRepository, WorkerShiftResolver shiftResolver, Clock clock) {
     this.timeLogRepository = timeLogRepository;
-    this.assignmentRepository = assignmentRepository;
-    this.scheduleRepository = scheduleRepository;
-    this.zoneId = zoneId;
+    this.shiftResolver = shiftResolver;
+    this.clock = clock;
   }
 
   /**
-   * Records a time log for the worker. If the worker has an active shift at this moment, the log is
-   * marked as successful; otherwise, it is recorded as a failed attempt.
+   * Records an implicit clock-in when the worker is inside a shift. The result still reports
+   * whether the login happened within a shift, which drives the restricted access token.
    *
    * @param workerId the worker's user ID
    * @return the result indicating success and the matched shift, if any
    */
   @Override
   public RecordTimeLogResult execute(UserId workerId) {
-    Instant now = Instant.now();
-    LocalDate localDate = now.atZone(zoneId).toLocalDate();
-    LocalTime localTime = now.atZone(zoneId).toLocalTime();
-    DayOfWeek today = DayOfWeek.valueOf(localDate.getDayOfWeek().name());
+    Instant now = clock.instant();
+    Optional<ScheduleShift> activeShift = shiftResolver.activeShift(workerId, now);
 
-    var assignments = assignmentRepository.findByWorkerId(workerId);
-
-    for (var assignment : assignments) {
-      Schedule schedule = scheduleRepository.findById(assignment.getScheduleId()).orElse(null);
-      if (schedule == null) {
-        continue;
-      }
-
-      for (ScheduleShift shift : schedule.getShifts()) {
-        if (shift.dayOfWeek() == today
-            && !localTime.isBefore(shift.startTime())
-            && localTime.isBefore(shift.endTime())) {
-
-          TimeLog log = new TimeLog(workerId, now, true, shift.id());
-          timeLogRepository.save(log);
-          return new RecordTimeLogResult(true, shift);
-        }
-      }
+    if (activeShift.isEmpty()) {
+      return new RecordTimeLogResult(false, null);
     }
 
-    TimeLog log = new TimeLog(workerId, now, false, null);
-    timeLogRepository.save(log);
-    return new RecordTimeLogResult(false, null);
+    boolean open =
+        TimeLogSessions.isOpen(timeLogRepository.findLatestByWorkerId(workerId).orElse(null), now);
+    if (!open) {
+      timeLogRepository.save(new TimeLog(workerId, now, true, activeShift.get().id()));
+    }
+    return new RecordTimeLogResult(true, activeShift.get());
   }
 }

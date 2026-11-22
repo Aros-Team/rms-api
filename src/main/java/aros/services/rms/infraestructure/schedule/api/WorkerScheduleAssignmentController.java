@@ -6,6 +6,7 @@ import aros.services.rms.core.schedule.port.input.RemoveScheduleFromWorkerUseCas
 import aros.services.rms.core.schedule.port.output.WorkerScheduleAssignmentRepositoryPort;
 import aros.services.rms.core.user.domain.UserId;
 import aros.services.rms.infraestructure.schedule.api.dto.AssignScheduleRequest;
+import aros.services.rms.infraestructure.schedule.api.dto.ScheduleAssignmentResponse;
 import aros.services.rms.infraestructure.share.security.JustAdminUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -42,21 +43,24 @@ public class WorkerScheduleAssignmentController {
       tags = {"Workers"},
       summary = "Assign schedule to worker",
       description = "Assigns a schedule to a worker. Admin access only.")
-  @ApiResponse(responseCode = "201", description = "Schedule assigned")
+  @ApiResponse(responseCode = "201", description = "Schedule assigned, with weekly hours")
   @ApiResponse(responseCode = "400", description = "Invalid input")
   @ApiResponse(responseCode = "401", description = "Unauthorized")
   @ApiResponse(responseCode = "403", description = "Forbidden")
   @ApiResponse(responseCode = "404", description = "Worker or schedule not found")
-  @ApiResponse(responseCode = "409", description = "Shift overlap detected")
+  @ApiResponse(
+      responseCode = "409",
+      description = "Duplicate assignment, shift overlap or weekly hours cap exceeded")
   @ApiResponse(responseCode = "500", description = "Internal server error")
-  public ResponseEntity<Void> assign(
+  public ResponseEntity<ScheduleAssignmentResponse> assign(
       @Parameter(description = "Worker ID", example = "1", required = true) @PathVariable
           Long workerId,
       @Valid @RequestBody AssignScheduleRequest request) {
     var info =
         new AssignScheduleToWorkerUseCase.AssignInfo(UserId.of(workerId), request.scheduleId());
-    assignScheduleUseCase.assign(info);
-    return ResponseEntity.status(HttpStatus.CREATED).build();
+    var result = assignScheduleUseCase.assign(info);
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(ScheduleAssignmentResponse.fromResult(result));
   }
 
   /** Lists all schedule assignments for a worker. */
