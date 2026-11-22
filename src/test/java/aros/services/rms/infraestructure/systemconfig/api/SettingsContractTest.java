@@ -18,12 +18,14 @@ import aros.services.rms.core.systemconfig.domain.port.input.GetBusinessProfileU
 import aros.services.rms.core.systemconfig.domain.port.input.GetCurrencySettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.GetLaborSettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.GetNotificationSettingsUseCase;
+import aros.services.rms.core.systemconfig.domain.port.input.GetOpeningHoursUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.GetSystemConfigurationUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.ManageConfigurationUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateBusinessProfileUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateCurrencySettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateLaborSettingsUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateNotificationSettingsUseCase;
+import aros.services.rms.core.systemconfig.domain.port.input.UpdateOpeningHoursUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateSystemConfigurationUseCase;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.common.exception.GlobalExceptionHandler;
@@ -91,6 +93,8 @@ class SettingsContractTest {
   @MockitoBean private UpdateLaborSettingsUseCase updateLaborSettingsUseCase;
   @MockitoBean private GetNotificationSettingsUseCase getNotificationSettingsUseCase;
   @MockitoBean private UpdateNotificationSettingsUseCase updateNotificationSettingsUseCase;
+  @MockitoBean private GetOpeningHoursUseCase getOpeningHoursUseCase;
+  @MockitoBean private UpdateOpeningHoursUseCase updateOpeningHoursUseCase;
   @MockitoBean private GetSystemConfigurationUseCase getSystemConfigurationUseCase;
   @MockitoBean private UpdateSystemConfigurationUseCase updateSystemConfigurationUseCase;
   @MockitoBean private ManageConfigurationUseCase manageConfigurationUseCase;
