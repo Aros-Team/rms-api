@@ -13,6 +13,10 @@ app:
   version: "@project.version@"
   timezone: America/Bogota
   default-currency: COP
+  # Development-only seed reset surface (POST /api/v1/dev/seed/reset).
+  # Disabled by default: enable explicitly in local/Playwright environments.
+  seed:
+    enabled: ${SEED_ENABLED:false}
   api:
     # Wrap every 2xx JSON controller response as { "data": ..., "meta": ... }.
     # Set to false to opt out (errors are always RFC 7807 and never wrapped).

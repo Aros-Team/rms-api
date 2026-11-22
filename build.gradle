@@ -148,6 +148,63 @@ bootRun {
     }
 }
 
+// ---------------------------------------------------------------------------
+// Deterministic seed v1 (explicit, never on boot)
+//   ./gradlew seedReset  [-Panchor=YYYY-MM-DD] [-PdbUrl=...]
+//   ./gradlew seedVerify [-Panchor=YYYY-MM-DD]
+//   ./gradlew seedStatus
+// ---------------------------------------------------------------------------
+def seedDefaultUrl = 'jdbc:mysql://localhost:3306/rmsdb?useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&connectionTimeZone=America/Bogota&forceConnectionTimeZoneToSession=true'
+def seedUrl = { project.findProperty('dbUrl') ?: System.getenv('SEED_DB_URL') ?: seedDefaultUrl }
+def seedUser = { project.findProperty('dbUser') ?: System.getenv('SEED_DB_USER') ?: 'root' }
+def seedPassword = { project.findProperty('dbPassword') ?: System.getenv('SEED_DB_PASSWORD') ?: 'root' }
+def seedArgs = { String command, boolean migrate ->
+    def result = [command]
+    def anchor = project.findProperty('anchor')
+    if (anchor) {
+        result << "--anchor=${anchor}"
+    }
+    result << "--url=${seedUrl()}"
+    result << "--user=${seedUser()}"
+    result << "--password=${seedPassword()}"
+    if (!migrate) {
+        result << '--skip-migrate'
+    }
+    return result
+}
+
+tasks.register('seedReset', JavaExec) {
+    group = 'seed'
+    description = 'Migrate, load the catalog and regenerate the deterministic 180-day dataset.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'aros.services.rms.seed.SeedCli'
+    args seedArgs('reset', true)
+}
+
+tasks.register('seedVerify', JavaExec) {
+    group = 'seed'
+    description = 'Run seed invariants and golden counts; exits non-zero on mismatch.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'aros.services.rms.seed.SeedCli'
+    args seedArgs('verify', false)
+}
+
+tasks.register('seedStatus', JavaExec) {
+    group = 'seed'
+    description = 'Print seed-owned row counts.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'aros.services.rms.seed.SeedCli'
+    args seedArgs('status', false)
+}
+
+tasks.register('seedMigrate', JavaExec) {
+    group = 'seed'
+    description = 'Run Flyway only, without loading data.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'aros.services.rms.seed.SeedCli'
+    args seedArgs('status', true)
+}
+
 // formater config
 
 spotless {
