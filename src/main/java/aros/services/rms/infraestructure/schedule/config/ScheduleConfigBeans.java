@@ -2,6 +2,7 @@ package aros.services.rms.infraestructure.schedule.config;
 
 import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.core.schedule.application.service.AssignScheduleToWorkerService;
+import aros.services.rms.core.schedule.application.service.ClockAttendanceService;
 import aros.services.rms.core.schedule.application.service.CreateScheduleService;
 import aros.services.rms.core.schedule.application.service.DeleteScheduleService;
 import aros.services.rms.core.schedule.application.service.GetTimeLogHistoryService;
@@ -9,7 +10,10 @@ import aros.services.rms.core.schedule.application.service.GetWorkerShiftsServic
 import aros.services.rms.core.schedule.application.service.RecordTimeLogService;
 import aros.services.rms.core.schedule.application.service.RemoveScheduleFromWorkerService;
 import aros.services.rms.core.schedule.application.service.UpdateScheduleService;
+import aros.services.rms.core.schedule.application.service.WorkerShiftResolver;
 import aros.services.rms.core.schedule.port.input.AssignScheduleToWorkerUseCase;
+import aros.services.rms.core.schedule.port.input.ClockInUseCase;
+import aros.services.rms.core.schedule.port.input.ClockOutUseCase;
 import aros.services.rms.core.schedule.port.input.CreateScheduleUseCase;
 import aros.services.rms.core.schedule.port.input.DeleteScheduleUseCase;
 import aros.services.rms.core.schedule.port.input.GetTimeLogHistoryUseCase;
@@ -21,6 +25,7 @@ import aros.services.rms.core.schedule.port.output.ScheduleRepositoryPort;
 import aros.services.rms.core.schedule.port.output.TimeLogRepositoryPort;
 import aros.services.rms.core.schedule.port.output.WorkerScheduleAssignmentRepositoryPort;
 import aros.services.rms.core.systemconfig.domain.port.output.BusinessTimeZoneProvider;
+import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -75,21 +80,47 @@ public class ScheduleConfigBeans {
     return new GetWorkerShiftsService(assignmentRepository, scheduleRepository);
   }
 
-  /** Creates the RecordTimeLogUseCase bean. */
+  /** Creates the WorkerShiftResolver bean. */
   @Bean
-  public RecordTimeLogUseCase recordTimeLogUseCase(
-      TimeLogRepositoryPort timeLogRepository,
+  public WorkerShiftResolver workerShiftResolver(
       WorkerScheduleAssignmentRepositoryPort assignmentRepository,
       ScheduleRepositoryPort scheduleRepository,
       BusinessTimeZoneProvider timeZoneProvider) {
-    return new RecordTimeLogService(
-        timeLogRepository, assignmentRepository, scheduleRepository, timeZoneProvider.getZoneId());
+    return new WorkerShiftResolver(
+        assignmentRepository, scheduleRepository, timeZoneProvider.getZoneId());
+  }
+
+  /** Creates the RecordTimeLogUseCase bean used by login. */
+  @Bean
+  public RecordTimeLogUseCase recordTimeLogUseCase(
+      TimeLogRepositoryPort timeLogRepository, WorkerShiftResolver workerShiftResolver) {
+    return new RecordTimeLogService(timeLogRepository, workerShiftResolver, Clock.systemUTC());
+  }
+
+  /** Creates the explicit clock-in service used by the worker attendance routes. */
+  @Bean
+  public ClockInUseCase clockInUseCase(
+      TimeLogRepositoryPort timeLogRepository,
+      WorkerShiftResolver workerShiftResolver,
+      Logger logger) {
+    return new ClockAttendanceService(
+        timeLogRepository, workerShiftResolver, logger, Clock.systemUTC());
+  }
+
+  /** Creates the explicit clock-out service used by the worker attendance routes. */
+  @Bean
+  public ClockOutUseCase clockOutUseCase(
+      TimeLogRepositoryPort timeLogRepository,
+      WorkerShiftResolver workerShiftResolver,
+      Logger logger) {
+    return new ClockAttendanceService(
+        timeLogRepository, workerShiftResolver, logger, Clock.systemUTC());
   }
 
   /** Creates the GetTimeLogHistoryUseCase bean. */
   @Bean
   public GetTimeLogHistoryUseCase getTimeLogHistoryUseCase(
-      TimeLogRepositoryPort timeLogRepository) {
-    return new GetTimeLogHistoryService(timeLogRepository);
+      TimeLogRepositoryPort timeLogRepository, WorkerShiftResolver workerShiftResolver) {
+    return new GetTimeLogHistoryService(timeLogRepository, workerShiftResolver);
   }
 }
