@@ -3,5 +3,8 @@ package aros.services.rms.core.schedule.domain;
 /** Enum representing the type of time log entry. */
 public enum LogType {
   /** Clock-in log entry. */
-  IN
+  IN,
+
+  /** Clock-out log entry. Sessions are paired IN/OUT by the attendance view. */
+  OUT
 }
