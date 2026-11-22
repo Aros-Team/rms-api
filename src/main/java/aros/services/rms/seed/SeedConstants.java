@@ -49,6 +49,9 @@ final class SeedConstants {
   /** Days of closed cash shifts / payments behind the anchor day (P3-BE-PAY-08). */
   static final int PAYMENT_HISTORY_DAYS = 30;
 
+  /** Minimum orders written for the anchor day, regardless of seed time. */
+  static final int MIN_TODAY_ORDERS = 80;
+
   /** Drawer float used by every seeded cash shift. */
   static final BigDecimal OPENING_FLOAT = new BigDecimal("200000.00");
 

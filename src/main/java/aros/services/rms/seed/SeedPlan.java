@@ -3,6 +3,7 @@
 package aros.services.rms.seed;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -168,10 +169,12 @@ final class SeedPlan {
     long detailId = SeedConstants.OPERATIONAL_DETAIL_ID_BASE;
     int d = SeedConstants.HISTORY_DAYS;
     int volume = SeedMath.dailyVolume(anchor, d);
+    int accepted = 0;
     for (int s = 0; s < volume; s++) {
       int part = SeedMath.part(d, s);
       LocalDateTime open = orderOpen(anchor, part, d, s);
       int duration = SeedMath.durationMinutes(d, s, part);
+      // Only orders that would already be closed at seeding time exist.
       if (open.plusMinutes(duration).isAfter(now) || open.isAfter(now)) {
         continue;
       }
@@ -179,6 +182,40 @@ final class SeedPlan {
       OrderDraft draft = draft(d, s, anchor, orderId, detailId);
       detailId += draft.lines().size();
       orders.add(draft.order());
+      accepted++;
+    }
+
+    // Guarantee a full demo day even when the app is seeded early: fill the
+    // remaining count with orders spread over the elapsed service window.
+    int minimum = Math.max(SeedConstants.MIN_TODAY_ORDERS, volume);
+    int missing = minimum - accepted;
+    if (missing > 0) {
+      LocalDateTime latest = now.minusMinutes(5);
+      LocalDateTime start = anchor.atTime(8, 0);
+      if (!start.isBefore(latest)) {
+        start = latest.minusMinutes(90);
+      }
+      if (start.isBefore(anchor.atStartOfDay())) {
+        start = anchor.atStartOfDay();
+      }
+      long span = Math.max(1, Duration.between(start, latest).toMinutes());
+      for (int i = 0; i < missing; i++) {
+        int s = volume + i;
+        int part = SeedMath.part(d, s);
+        int duration = SeedMath.durationMinutes(d, s, part);
+        long offset = missing == 1 ? 0 : span * i / (missing - 1);
+        LocalDateTime open = start.plusMinutes(offset);
+        if (open.plusMinutes(duration).isAfter(now)) {
+          open = now.minusMinutes(duration + 1L);
+        }
+        if (open.isBefore(anchor.atStartOfDay())) {
+          open = anchor.atStartOfDay();
+        }
+        orderId++;
+        OrderDraft draft = draftAt(d, s, anchor, orderId, detailId, open, duration);
+        detailId += draft.lines().size();
+        orders.add(draft.order());
+      }
     }
 
     String[] statuses = {"QUEUE", "QUEUE", "PREPARING", "PREPARING", "READY"};
@@ -220,6 +257,17 @@ final class SeedPlan {
     int part = SeedMath.part(d, s);
     LocalDateTime open = orderOpen(date, part, d, s);
     int duration = SeedMath.durationMinutes(d, s, part);
+    return draftAt(d, s, date, orderId, firstDetailId, open, duration);
+  }
+
+  private static OrderDraft draftAt(
+      int d,
+      int s,
+      LocalDate date,
+      long orderId,
+      long firstDetailId,
+      LocalDateTime open,
+      int duration) {
     int party = SeedMath.partySize(d, s);
     int table = SeedMath.tableNumber(d, s, party);
     int lineCount = SeedMath.lineCount(d, s);
