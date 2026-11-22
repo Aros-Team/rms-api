@@ -6,6 +6,8 @@ import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.category.port.input.CategoryUseCase;
 import aros.services.rms.infraestructure.category.api.dto.CategoryRequest;
 import aros.services.rms.infraestructure.category.api.dto.CategoryResponse;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
+import aros.services.rms.infraestructure.share.security.JustWorkerOrAdmin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(
     name = "Categories",
     description = "Operations for managing menu product categories and their enabled status")
+@JustWorkerOrAdmin
 public class CategoryController {
 
   private final CategoryUseCase categoryUseCase;
@@ -55,6 +58,7 @@ public class CategoryController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
+  @JustAdminUser
   public ResponseEntity<CategoryResponse> create(@Valid @RequestBody CategoryRequest request) {
     Category category =
         Category.builder().name(request.name()).description(request.description()).build();
@@ -83,6 +87,7 @@ public class CategoryController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
+  @JustAdminUser
   public ResponseEntity<CategoryResponse> update(
       @Parameter(description = "Category ID", example = "1", required = true) @PathVariable Long id,
       @Valid @RequestBody CategoryRequest request) {
@@ -130,31 +135,6 @@ public class CategoryController {
   }
 
   /**
-   * Gets a category by ID.
-   *
-   * @param id the category ID
-   * @return the category
-   */
-  @Operation(
-      tags = {"Categories"},
-      summary = "Get category by ID",
-      description = "Returns a specific product category given its identifier.",
-      responses = {
-        @ApiResponse(responseCode = "200", description = "Category retrieved successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Forbidden"),
-        @ApiResponse(responseCode = "404", description = "Category not found"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")
-      })
-  @GetMapping("/{id}")
-  public ResponseEntity<CategoryResponse> findById(
-      @Parameter(description = "Category ID", example = "1", required = true) @PathVariable
-          Long id) {
-    Category category = categoryUseCase.findById(id);
-    return ResponseEntity.ok(CategoryResponse.fromDomain(category));
-  }
-
-  /**
    * Toggles category enabled status.
    *
    * @param id the category ID
@@ -172,6 +152,7 @@ public class CategoryController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/toggle")
+  @JustAdminUser
   public ResponseEntity<CategoryResponse> toggleEnabled(
       @Parameter(description = "Category ID", example = "1", required = true) @PathVariable
           Long id) {

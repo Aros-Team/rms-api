@@ -7,6 +7,8 @@ import aros.services.rms.core.area.domain.AreaType;
 import aros.services.rms.core.area.port.input.AreaUseCase;
 import aros.services.rms.infraestructure.area.api.dto.AreaRequest;
 import aros.services.rms.infraestructure.area.api.dto.AreaResponse;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
+import aros.services.rms.infraestructure.share.security.JustWorkerOrAdmin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -33,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(
     name = "Areas",
     description = "Operations for managing restaurant preparation areas and their enabled status")
+@JustWorkerOrAdmin
 public class AreaController {
 
   private final AreaUseCase areaUseCase;
@@ -56,6 +59,7 @@ public class AreaController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
+  @JustAdminUser
   public ResponseEntity<AreaResponse> create(@Valid @RequestBody AreaRequest request) {
     Area area =
         Area.builder()
@@ -87,6 +91,7 @@ public class AreaController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
+  @JustAdminUser
   public ResponseEntity<AreaResponse> update(
       @Parameter(description = "Area ID", example = "1", required = true) @PathVariable Long id,
       @Valid @RequestBody AreaRequest request) {
@@ -137,30 +142,6 @@ public class AreaController {
   }
 
   /**
-   * Gets an area by ID.
-   *
-   * @param id the area ID
-   * @return the area
-   */
-  @Operation(
-      tags = {"Areas"},
-      summary = "Get area by ID",
-      description = "Returns a specific preparation area by its identifier.",
-      responses = {
-        @ApiResponse(responseCode = "200", description = "Area retrieved successfully"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Forbidden"),
-        @ApiResponse(responseCode = "404", description = "Area not found"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")
-      })
-  @GetMapping("/{id}")
-  public ResponseEntity<AreaResponse> findById(
-      @Parameter(description = "Area ID", example = "1", required = true) @PathVariable Long id) {
-    Area area = areaUseCase.findById(id);
-    return ResponseEntity.ok(AreaResponse.fromDomain(area));
-  }
-
-  /**
    * Toggles area enabled status.
    *
    * @param id the area ID
@@ -178,6 +159,7 @@ public class AreaController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/toggle")
+  @JustAdminUser
   public ResponseEntity<AreaResponse> toggleEnabled(
       @Parameter(description = "Area ID", example = "1", required = true) @PathVariable Long id) {
     Area area = areaUseCase.toggleEnabled(id);

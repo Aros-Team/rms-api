@@ -67,6 +67,13 @@ public class MenuPerformanceCacheRepositoryAdapter implements MenuEngineeringCac
     return jpaRepo.findLatestSourceVersion();
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public java.time.Instant findLatestUpdatedAt() {
+    java.time.LocalDateTime latest = jpaRepo.findLatestUpdatedAt();
+    return latest == null ? null : latest.atZone(java.time.ZoneId.systemDefault()).toInstant();
+  }
+
   private void merge(
       MenuPerformanceCacheEntity entity, MenuItemSummary item, String sourceVersion) {
     entity.setProductName(item.productName());

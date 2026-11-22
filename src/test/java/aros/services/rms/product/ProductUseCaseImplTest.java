@@ -222,6 +222,70 @@ class ProductUseCaseImplTest {
   }
 
   @Test
+  void shouldPreserveRecipeAndOptionsWhenTheUpdateOmitsThem() {
+    Product existing =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .description("old")
+            .estimatedPrepMinutes(5)
+            .active(true)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .build();
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(existing));
+    when(areaRepositoryPort.existsById(1L)).thenReturn(true);
+    when(categoryRepositoryPort.existsById(1L)).thenReturn(true);
+    when(productRepositoryPort.save(any(Product.class))).thenReturn(existing);
+
+    Product update =
+        Product.builder()
+            .name("Burger XL")
+            .description("new")
+            .estimatedPrepMinutes(9)
+            .basePrice(new Money(BigDecimal.valueOf(15.0), Currency.getInstance("COP")))
+            .category(Category.builder().id(1L).build())
+            .preparationAreaId(1L)
+            .build();
+
+    productUseCase.update(1L, update);
+
+    org.mockito.Mockito.verify(productOptionRepositoryPort, org.mockito.Mockito.never())
+        .removeAllOptionsFromProduct(org.mockito.ArgumentMatchers.anyLong());
+    org.mockito.Mockito.verify(productRecipeRepositoryPort, org.mockito.Mockito.never())
+        .deleteByProductId(org.mockito.ArgumentMatchers.anyLong());
+    assertEquals("new", existing.getDescription());
+    assertEquals(9, existing.getEstimatedPrepMinutes());
+  }
+
+  @Test
+  void shouldClearOptionsWhenTheUpdateSendsAnExplicitEmptyList() {
+    Product existing =
+        Product.builder()
+            .id(1L)
+            .name("Burger")
+            .active(true)
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .build();
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(existing));
+    when(areaRepositoryPort.existsById(1L)).thenReturn(true);
+    when(categoryRepositoryPort.existsById(1L)).thenReturn(true);
+    when(productRepositoryPort.save(any(Product.class))).thenReturn(existing);
+
+    Product update =
+        Product.builder()
+            .name("Burger XL")
+            .basePrice(new Money(BigDecimal.valueOf(15.0), Currency.getInstance("COP")))
+            .category(Category.builder().id(1L).build())
+            .preparationAreaId(1L)
+            .optionIds(List.of())
+            .build();
+
+    productUseCase.update(1L, update);
+
+    org.mockito.Mockito.verify(productOptionRepositoryPort).removeAllOptionsFromProduct(1L);
+  }
+
+  @Test
   void shouldThrowWhenAreaNotFoundOnCreate() {
     Product product =
         Product.builder()

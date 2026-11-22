@@ -150,34 +150,44 @@ public class ProductService implements ProductUseCase {
     validateCategoryExists(product.getCategory().getId());
 
     existing.setName(product.getName());
+    existing.setDescription(product.getDescription());
     existing.setBasePrice(product.getBasePrice());
     existing.setCategory(product.getCategory());
     existing.setPreparationAreaId(product.getPreparationAreaId());
+    existing.setEstimatedPrepMinutes(product.getEstimatedPrepMinutes());
 
     Product saved = productRepositoryPort.save(existing);
 
-    // Delete existing recipes and replace with new ones (or empty if null)
-    productRecipeRepositoryPort.deleteByProductId(id);
-
-    if (product.getRecipe() != null && !product.getRecipe().isEmpty()) {
-      validateSupplyVariantsExist(product.getRecipe());
-      List<ProductRecipe> recipesToSave =
-          product.getRecipe().stream()
-              .map(
-                  recipe ->
-                      ProductRecipe.builder()
-                          .productId(saved.getId())
-                          .supplyVariantId(recipe.getSupplyVariantId())
-                          .requiredQuantity(recipe.getRequiredQuantity())
-                          .build())
-              .toList();
-      productRecipeRepositoryPort.saveAll(recipesToSave);
+    // A null recipe means "preserve"; an explicit list (including empty) replaces it.
+    if (product.getRecipe() != null) {
+      productRecipeRepositoryPort.deleteByProductId(id);
+      if (!product.getRecipe().isEmpty()) {
+        validateSupplyVariantsExist(product.getRecipe());
+        List<ProductRecipe> recipesToSave =
+            product.getRecipe().stream()
+                .map(
+                    recipe ->
+                        ProductRecipe.builder()
+                            .productId(saved.getId())
+                            .supplyVariantId(recipe.getSupplyVariantId())
+                            .requiredQuantity(recipe.getRequiredQuantity())
+                            .build())
+                .toList();
+        productRecipeRepositoryPort.saveAll(recipesToSave);
+      }
     }
 
     logger.info("Product updated: id={}, name={}", saved.getId(), saved.getName());
 
-    productOptionRepositoryPort.removeAllOptionsFromProduct(id);
-    upsertOptionAssociations(saved.getId(), product);
+    // A null optionIds means "preserve existing associations"; an explicit list
+    // (including empty) replaces them. This prevents a plain edit from wiping
+    // the product's option configuration.
+    if (product.getOptionIds() != null) {
+      productOptionRepositoryPort.removeAllOptionsFromProduct(id);
+      upsertOptionAssociations(saved.getId(), product);
+    } else if (product.getOptionExtras() != null && !product.getOptionExtras().isEmpty()) {
+      upsertOptionAssociations(saved.getId(), product);
+    }
 
     // Publish events for cache invalidation (menu engineering)
     eventPublisher.publishEvent(new ProductUpdatedEvent(saved.getId(), Instant.now()));

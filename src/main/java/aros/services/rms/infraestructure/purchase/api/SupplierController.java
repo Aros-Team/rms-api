@@ -9,6 +9,7 @@ import aros.services.rms.core.purchase.port.input.UpdateSupplierUseCase;
 import aros.services.rms.infraestructure.purchase.api.dto.SupplierRequest;
 import aros.services.rms.infraestructure.purchase.api.dto.SupplierResponse;
 import aros.services.rms.infraestructure.purchase.api.dto.SupplierUpdateRequest;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(
     name = "Suppliers",
     description = "Operations for managing suppliers and distributors that provide inventory")
+@JustAdminUser
 public class SupplierController {
 
   @Qualifier("createSupplierUseCase")

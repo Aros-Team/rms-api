@@ -4,15 +4,24 @@ package aros.services.rms.infraestructure.systemconfig.api;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import aros.services.rms.core.systemconfig.domain.SystemConfiguration;
 import aros.services.rms.core.systemconfig.domain.SystemConfigurationGroup;
+import aros.services.rms.core.systemconfig.domain.exception.ConfigEntryNotFoundException;
+import aros.services.rms.core.systemconfig.domain.exception.ConfigGroupNotFoundException;
 import aros.services.rms.core.systemconfig.domain.port.input.GetSystemConfigurationUseCase;
+import aros.services.rms.core.systemconfig.domain.port.input.ManageConfigurationUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateSystemConfigurationUseCase;
 import aros.services.rms.infraestructure.common.exception.GlobalExceptionHandler;
 import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
@@ -71,6 +80,7 @@ class SystemConfigurationControllerTest {
 
   @MockitoBean private GetSystemConfigurationUseCase getSystemConfigurationUseCase;
   @MockitoBean private UpdateSystemConfigurationUseCase updateSystemConfigurationUseCase;
+  @MockitoBean private ManageConfigurationUseCase manageConfigurationUseCase;
   @MockitoBean private JwtDecoder jwtDecoder;
 
   @org.springframework.boot.test.context.TestConfiguration
@@ -198,5 +208,174 @@ class SystemConfigurationControllerTest {
     mockMvc
         .perform(get("/api/v1/config").accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isUnauthorized());
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-05: should_get_entries_by_group_name
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void should_get_entries_by_group_name() throws Exception {
+    SystemConfigurationGroup group =
+        SystemConfigurationGroup.builder().id(1L).name("General").sortOrder(1).build();
+    SystemConfiguration config =
+        SystemConfiguration.builder().id(1L).key("default_currency").value("COP").build();
+
+    when(getSystemConfigurationUseCase.findAllGroups()).thenReturn(List.of(group));
+    when(getSystemConfigurationUseCase.findByGroupId(1L)).thenReturn(List.of(config));
+
+    mockMvc
+        .perform(
+            get("/api/v1/config/general")
+                .header("Authorization", "Bearer test-token")
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].key").value("default_currency"));
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-06: should_return_not_found_when_group_name_is_unknown
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void should_return_not_found_when_group_name_is_unknown() throws Exception {
+    when(getSystemConfigurationUseCase.findAllGroups()).thenReturn(List.of());
+
+    mockMvc
+        .perform(
+            get("/api/v1/config/missing")
+                .header("Authorization", "Bearer test-token")
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isNotFound())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-07: should_create_group
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void should_create_group() throws Exception {
+    SystemConfigurationGroup created =
+        SystemConfigurationGroup.builder().id(4L).name("Notificaciones").sortOrder(4).build();
+    when(manageConfigurationUseCase.createGroup(any())).thenReturn(created);
+
+    mockMvc
+        .perform(
+            post("/api/v1/config/groups")
+                .header("Authorization", "Bearer test-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Notificaciones\",\"description\":\"Alertas\"}"))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.data.id").value(4))
+        .andExpect(jsonPath("$.data.name").value("Notificaciones"));
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-08: should_update_group
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void should_update_group() throws Exception {
+    SystemConfigurationGroup updated =
+        SystemConfigurationGroup.builder().id(1L).name("General").sortOrder(5).build();
+    when(manageConfigurationUseCase.updateGroup(any(), any())).thenReturn(updated);
+    when(getSystemConfigurationUseCase.findByGroupId(1L)).thenReturn(List.of());
+
+    mockMvc
+        .perform(
+            put("/api/v1/config/groups/1")
+                .header("Authorization", "Bearer test-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"General\",\"sortOrder\":5}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.sortOrder").value(5));
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-09: should_delete_group
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void should_delete_group() throws Exception {
+    mockMvc
+        .perform(delete("/api/v1/config/groups/4").header("Authorization", "Bearer test-token"))
+        .andExpect(status().isNoContent());
+
+    verify(manageConfigurationUseCase).deleteGroup(4L);
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-10: should_patch_entry
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void should_patch_entry() throws Exception {
+    SystemConfiguration saved =
+        SystemConfiguration.builder()
+            .id(2L)
+            .key("default_currency")
+            .value("USD")
+            .groupId(1L)
+            .sortOrder(2)
+            .build();
+    when(manageConfigurationUseCase.updateEntry(any(), any())).thenReturn(saved);
+
+    mockMvc
+        .perform(
+            patch("/api/v1/config/default_currency")
+                .header("Authorization", "Bearer test-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"value\":\"USD\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data.value").value("USD"));
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-11: should_delete_entry
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void should_delete_entry() throws Exception {
+    mockMvc
+        .perform(delete("/api/v1/config/legacy_key").header("Authorization", "Bearer test-token"))
+        .andExpect(status().isNoContent());
+
+    verify(manageConfigurationUseCase).deleteEntry("legacy_key");
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-12: should_map_missing_entry_to_not_found
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void should_map_missing_entry_to_not_found() throws Exception {
+    when(manageConfigurationUseCase.updateEntry(any(), any()))
+        .thenThrow(new ConfigEntryNotFoundException("missing"));
+
+    mockMvc
+        .perform(
+            patch("/api/v1/config/missing")
+                .header("Authorization", "Bearer test-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"value\":\"x\"}"))
+        .andExpect(status().isNotFound())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-13: should_map_missing_group_to_not_found
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void should_map_missing_group_to_not_found() throws Exception {
+    doThrow(new ConfigGroupNotFoundException("99"))
+        .when(manageConfigurationUseCase)
+        .deleteGroup(99L);
+
+    mockMvc
+        .perform(delete("/api/v1/config/groups/99").header("Authorization", "Bearer test-token"))
+        .andExpect(status().isNotFound())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
   }
 }

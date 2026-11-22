@@ -6,6 +6,7 @@ import aros.services.rms.core.product.domain.ProductCostBreakdown;
 import aros.services.rms.core.product.port.input.GetProductCostBreakdownUseCase;
 import aros.services.rms.infraestructure.product.api.dto.ProductCostBreakdownResponse;
 import aros.services.rms.infraestructure.product.api.mapper.ProductCostBreakdownResponseMapper;
+import aros.services.rms.infraestructure.share.security.JustWorkerOrAdmin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
 @Tag(name = "Products", description = "Product material-cost projection operations")
+@JustWorkerOrAdmin
 public class ProductCostBreakdownController {
 
   private final GetProductCostBreakdownUseCase getProductCostBreakdownUseCase;

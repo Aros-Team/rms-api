@@ -39,6 +39,7 @@ import aros.services.rms.core.specialselection.application.service.SpecialSelect
 import aros.services.rms.core.specialselection.domain.SelectionType;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
 import aros.services.rms.core.specialselection.port.output.SpecialSelectionRepositoryPort;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
@@ -104,11 +105,14 @@ class TakeOrderUseCaseImplTest {
 
   @Mock private BusinessMetricsPort metricsPort;
 
+  @Mock private CurrencyProvider currencyProvider;
+
   private TakeOrderService takeOrderUseCase;
 
   @BeforeEach
   void setUp() {
     when(inventoryStockUseCase.isAvailable(any(), any())).thenReturn(true);
+    when(currencyProvider.getCurrency()).thenReturn(Currency.getInstance("COP"));
 
     takeOrderUseCase =
         new TakeOrderService(
@@ -122,7 +126,8 @@ class TakeOrderUseCaseImplTest {
             specialSelectionRepositoryPort,
             specialSelectionValidator,
             specialSelectionPricingService,
-            specialSelectionAvailabilityService);
+            specialSelectionAvailabilityService,
+            currencyProvider);
   }
 
   @Test
@@ -163,6 +168,38 @@ class TakeOrderUseCaseImplTest {
     assertEquals(1, result.getDetails().get(0).getSelectedOptions().size());
     verify(tableRepositoryPort, times(1)).save(table);
     assertEquals(TableStatus.OCCUPIED, table.getStatus());
+  }
+
+  @Test
+  void shouldPersistPartySizeAndOpenTime_whenOrderIsCreated() {
+    Table table = Table.builder().id(2L).status(TableStatus.AVAILABLE).build();
+    Product product =
+        Product.builder()
+            .id(2L)
+            .name("Soup")
+            .basePrice(new Money(BigDecimal.valueOf(8.0), Currency.getInstance("COP")))
+            .category(Category.builder().id(2L).name("Starters").build())
+            .build();
+
+    when(tableRepositoryPort.findById(2L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(2L)).thenReturn(Optional.of(product));
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(2L)
+            .partySize(4)
+            .details(List.of(TakeOrderCommand.OrderDetailCommand.builder().productId(2L).build()))
+            .build();
+
+    Order result = takeOrderUseCase.execute(command);
+
+    assertNotNull(result);
+    assertEquals(4, result.getPartySize());
+    assertNotNull(result.getOpenTime());
+    assertEquals(result.getDate(), result.getOpenTime());
+    org.junit.jupiter.api.Assertions.assertNull(result.getCloseTime());
   }
 
   @Test

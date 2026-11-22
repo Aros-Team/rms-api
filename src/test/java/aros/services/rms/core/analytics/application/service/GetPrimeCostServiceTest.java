@@ -5,6 +5,7 @@ package aros.services.rms.core.analytics.application.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.analytics.domain.MonthlyFinancialSummary;
@@ -12,6 +13,7 @@ import aros.services.rms.core.analytics.domain.PrimeCostReport;
 import aros.services.rms.core.analytics.domain.PrimeCostReport.PrimeCostSeries;
 import aros.services.rms.core.analytics.domain.port.out.MonthlyFinancialSummaryRepositoryPort;
 import aros.services.rms.core.common.money.domain.Money;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.List;
@@ -30,9 +32,11 @@ class GetPrimeCostServiceTest {
   private static final Currency COP = Currency.getInstance("COP");
 
   @Mock private MonthlyFinancialSummaryRepositoryPort summaryRepo;
+  @Mock private CurrencyProvider currencyProvider;
 
   private GetPrimeCostService service() {
-    return new GetPrimeCostService(summaryRepo);
+    lenient().when(currencyProvider.getCurrency()).thenReturn(Currency.getInstance("COP"));
+    return new GetPrimeCostService(summaryRepo, currencyProvider);
   }
 
   // ---------------------------------------------------------------------------

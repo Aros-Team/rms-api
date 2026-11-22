@@ -172,12 +172,11 @@ Image
 | POST | `/api/v1/products` | Crear producto |
 | PUT | `/api/v1/products/{id}` | Actualizar producto |
 | GET | `/api/v1/products` | Listar productos (paginado, ?search=) |
-| GET | `/api/v1/products/top-selling` | Top ventas |
+| GET | `/api/v1/products/top-selling` | Top ventas (rango `from`/`to`, `limit`; unidades e ingresos) |
 | GET | `/api/v1/products/{id}` | Detalle de producto |
 | PUT | `/api/v1/products/{id}/enable` | Habilitar |
 | PUT | `/api/v1/products/{id}/disable` | Deshabilitar |
 | GET | `/api/v1/products/{id}/options` | Opciones por categoría |
-| GET | `/api/v1/products/{id}/option-groups` | Grupos de opciones |
 | GET | `/api/v1/products/{id}/cost` | Costo de producción |
 | GET | `/api/v1/products/{id}/cost-breakdown` | Desglose con proyecciones |
 

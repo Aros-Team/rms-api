@@ -1,0 +1,3 @@
+-- G5 — alerts golden fixture: 13 monthly periods 2026-01..2027-01.
+-- Requires the Analytics BE `system_alerts` migration (not in this branch).
+-- Expected: 4 OPEN alerts (RED 2, YELLOW 2); values in expected.json.

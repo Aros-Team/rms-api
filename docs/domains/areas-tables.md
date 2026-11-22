@@ -99,7 +99,6 @@ Table
 | POST | `/api/v1/areas` | Crear área |
 | PUT | `/api/v1/areas/{id}` | Actualizar área |
 | GET | `/api/v1/areas` | Listar áreas (?search=) |
-| GET | `/api/v1/areas/{id}` | Detalle de área |
 | DELETE | `/api/v1/areas/{id}` | Eliminar área |
 
 ### Tables

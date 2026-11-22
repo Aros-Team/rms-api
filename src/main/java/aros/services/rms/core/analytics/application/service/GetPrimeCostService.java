@@ -2,6 +2,7 @@
 
 package aros.services.rms.core.analytics.application.service;
 
+import aros.services.rms.core.analytics.domain.AnalyticsPeriods;
 import aros.services.rms.core.analytics.domain.MonthlyFinancialSummary;
 import aros.services.rms.core.analytics.domain.PrimeCostReport;
 import aros.services.rms.core.analytics.domain.PrimeCostReport.CogsBreakdown;
@@ -14,6 +15,7 @@ import aros.services.rms.core.analytics.domain.PrimeCostReport.PrimeCostSeries;
 import aros.services.rms.core.analytics.domain.port.in.GetPrimeCostUseCase;
 import aros.services.rms.core.analytics.domain.port.out.MonthlyFinancialSummaryRepositoryPort;
 import aros.services.rms.core.common.money.domain.Money;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -23,7 +25,6 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.IsoFields;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,18 +39,16 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class GetPrimeCostService implements GetPrimeCostUseCase {
 
-  private static final Currency COP = Currency.getInstance("COP");
   private static final long MAX_RANGE_DAYS = 366;
 
   private final MonthlyFinancialSummaryRepositoryPort summaryRepo;
+  private final CurrencyProvider currencyProvider;
 
   /** {@inheritDoc} */
   @Override
   public PrimeCostReport execute(String bucket, String from, String to) {
-    validateBucket(bucket);
-    validateRange(bucket, from, to);
+    List<String> expectedKeys = AnalyticsPeriods.validateAndGenerate(bucket, from, to);
 
-    List<String> expectedKeys = generatePeriodKeys(bucket, from, to);
     List<MonthlyFinancialSummary> persisted =
         summaryRepo.findByBucketAndPeriodKeyBetween(bucket, from, to);
 
@@ -137,7 +136,7 @@ public class GetPrimeCostService implements GetPrimeCostUseCase {
   }
 
   private PrimeCostSeries emptySeries(String key) {
-    Money zero = Money.zero(COP);
+    Money zero = Money.zero(currencyProvider.getCurrency());
     List<CogsCategory> cogsCats =
         List.of(
             new CogsCategory("FOOD", zero, BigDecimal.ZERO),

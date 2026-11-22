@@ -9,6 +9,8 @@ import aros.services.rms.core.product.port.input.ProductOptionUseCase;
 import aros.services.rms.infraestructure.category.api.dto.OptionGroupRequest;
 import aros.services.rms.infraestructure.category.api.dto.OptionGroupResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductOptionResponse;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
+import aros.services.rms.infraestructure.share.security.JustWorkerOrAdmin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -41,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
     description =
         "Operations for managing option groups used in product customization"
             + " (e.g. protein type, side dish)")
+@JustWorkerOrAdmin
 public class OptionGroupController {
 
   private final OptionGroupUseCase optionGroupUseCase;
@@ -66,6 +69,7 @@ public class OptionGroupController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
+  @JustAdminUser
   public ResponseEntity<OptionGroupResponse> create(
       @Valid @RequestBody OptionGroupRequest request) {
     OptionGroup optionGroup =
@@ -100,6 +104,7 @@ public class OptionGroupController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
+  @JustAdminUser
   public ResponseEntity<OptionGroupResponse> update(
       @Parameter(description = "Option group ID", example = "1", required = true) @PathVariable
           Long id,

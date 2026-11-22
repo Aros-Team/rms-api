@@ -52,6 +52,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(
     name = "Workers",
     description = "Operations for worker management: create, update, delete and view workers")
+@JustAdminUser
 public class WorkerController {
 
   private final CreateUserUseCase createUserUseCase;

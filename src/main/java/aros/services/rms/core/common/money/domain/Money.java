@@ -44,6 +44,15 @@ public record Money(BigDecimal amount, Currency currency) {
   }
 
   /**
+   * Creates a zero amount in the configured system currency.
+   *
+   * @return a Money representing zero in the currency installed by the application
+   */
+  public static Money zeroDefault() {
+    return zero(CurrencyContext.get());
+  }
+
+  /**
    * Creates a Money from a string amount and currency.
    *
    * @param amount the amount as a string (e.g. "10.50")
@@ -197,6 +206,27 @@ public record Money(BigDecimal amount, Currency currency) {
   public Money percent(BigDecimal pct) {
     Objects.requireNonNull(pct, "pct");
     BigDecimal fraction = pct.divide(new BigDecimal("100"), 8, RoundingMode.HALF_UP);
+    BigDecimal result =
+        amount
+            .multiply(fraction)
+            .setScale(currency.getDefaultFractionDigits(), RoundingMode.HALF_UP);
+    return new Money(result, currency);
+  }
+
+  /**
+   * Calculates a percentage of this amount expressed in basis points.
+   *
+   * <p>One basis point is one hundredth of a percent ({@code 10000} = 100%).
+   *
+   * @param basisPoints the percentage in basis points
+   * @return the computed percentage amount
+   * @throws IllegalArgumentException if {@code basisPoints} is negative
+   */
+  public Money percentBasisPoints(int basisPoints) {
+    if (basisPoints < 0) {
+      throw new IllegalArgumentException("basisPoints must not be negative, was: " + basisPoints);
+    }
+    BigDecimal fraction = BigDecimal.valueOf(basisPoints).movePointLeft(4);
     BigDecimal result =
         amount
             .multiply(fraction)

@@ -60,4 +60,13 @@ public interface OrderQueryUseCase {
       int page,
       int size,
       String sort);
+
+  /**
+   * Busca una orden por su identificador.
+   *
+   * @param id identificador de la orden
+   * @return la orden encontrada
+   * @throws aros.services.rms.core.order.application.exception.OrderNotFoundException si no existe
+   */
+  Order findById(Long id);
 }

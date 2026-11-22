@@ -81,6 +81,7 @@ class DeliveryUseCaseImplTest {
 
     assertNotNull(result);
     assertEquals(OrderStatus.DELIVERED, result.getStatus());
+    assertNotNull(result.getCloseTime());
     assertEquals(TableStatus.AVAILABLE, table.getStatus());
     verify(orderRepositoryPort, times(1)).findById(1L);
     verify(orderRepositoryPort, times(1)).save(order);

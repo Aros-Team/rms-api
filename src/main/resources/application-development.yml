@@ -1,5 +1,8 @@
 app:
   env: development
+  analytics:
+    # Rebuild empty derived tables (menu cache, alerts) once at startup in local demo.
+    backfill-on-boot: ${ANALYTICS_BACKFILL_ON_BOOT:true}
   admin:
     dummy-email: ${DUMMY_EMAIL:admin@local.dev}
   storage:
@@ -11,14 +14,17 @@ app:
 spring:
   sql:
     init:
-      mode: always
+      # Boot must never seed or wipe data. Use ./gradlew seedReset explicitly.
+      mode: never
   cloud:
     gcp:
       enabled: false
       storage:
         enabled: false
   datasource:
-    url: jdbc:mysql://localhost:3306/${DB_NAME:rmsdb}
+    # The session, Hibernate and the seed CLI all use the business timezone so
+    # TIME/DATETIME wall-clock values read back exactly as stored.
+    url: jdbc:mysql://localhost:3306/${DB_NAME:rmsdb}?connectionTimeZone=America/Bogota&forceConnectionTimeZoneToSession=true&rewriteBatchedStatements=true
     username: root
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -37,6 +43,7 @@ logging:
   level:
     root: WARN
     aros.services.rms: INFO
+    aros.services.rms.core.auth.application.service.LoginService: DEBUG
     org.springframework.web: WARN
     org.springframework.security: WARN
     org.hibernate: WARN

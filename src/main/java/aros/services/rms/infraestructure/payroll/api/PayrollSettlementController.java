@@ -8,6 +8,7 @@ import aros.services.rms.core.payroll.domain.port.input.ListSettlementsUseCase;
 import aros.services.rms.core.payroll.domain.port.input.RegisterSettlementUseCase;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollSettlementRequest;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollSettlementResponse;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/payroll")
 @RequiredArgsConstructor
 @Tag(name = "Payroll Settlements", description = "Manage payroll settlements")
+@JustAdminUser
 public class PayrollSettlementController {
 
   private final RegisterSettlementUseCase registerSettlement;

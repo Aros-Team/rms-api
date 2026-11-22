@@ -109,7 +109,7 @@ class ProductCostBreakdownControllerWebMvcTest {
     when(getProductCostBreakdownUseCase.execute(42L)).thenReturn(breakdown);
 
     mockMvc
-        .perform(get(URL).with(jwt()))
+        .perform(get(URL).with(workerJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.productId").value(42))
         .andExpect(jsonPath("$.data.name").value("Burger"))
@@ -128,11 +128,22 @@ class ProductCostBreakdownControllerWebMvcTest {
     when(getProductCostBreakdownUseCase.execute(42L)).thenThrow(new ProductNotFoundException(42L));
 
     mockMvc
-        .perform(get(URL).with(jwt()))
+        .perform(get(URL).with(workerJwt()))
         .andExpect(status().isNotFound())
         .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
         .andExpect(jsonPath("$.status").value(404))
         .andExpect(jsonPath("$.detail").value("Product not found: 42"));
+  }
+
+  private static org.springframework.test.web.servlet.request.RequestPostProcessor workerJwt() {
+    return jwt()
+        .jwt(
+            builder ->
+                builder
+                    .subject("worker@test.com")
+                    .claim("type", "access")
+                    .claim("role", "WORKER")
+                    .claim("areaTypes", List.of("SERVICE")));
   }
 
   private static Money money(String amount) {

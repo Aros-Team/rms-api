@@ -6,8 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-/** Annotation to require admin role. */
-@Target({ElementType.METHOD})
+/** Annotation to require the admin role. */
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @PreAuthorize("principal.claims['role'] == 'ADMIN'")
 public @interface JustAdminUser {}

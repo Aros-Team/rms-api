@@ -10,6 +10,7 @@ import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.purchase.api.dto.PurchaseOrderRequest;
 import aros.services.rms.infraestructure.purchase.api.dto.PurchaseOrderResponse;
 import aros.services.rms.infraestructure.purchase.config.RegisterPurchaseOrderService;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -37,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(
     name = "Purchases",
     description = "Operations for registering purchase orders and querying purchase history")
+@JustAdminUser
 public class PurchaseOrderController {
 
   private final RegisterPurchaseOrderService registerPurchaseOrderService;

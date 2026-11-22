@@ -19,6 +19,8 @@ import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollRequest;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollResponse;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollUpdateRequest;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
+import aros.services.rms.infraestructure.share.security.JustWorkerOrAdmin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,6 +31,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -45,6 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/payroll")
 @RequiredArgsConstructor
 @Tag(name = "Payroll", description = "Operations for managing employee payroll records")
+@JustAdminUser
 public class PayrollController {
 
   private final CurrencyProvider currencyProvider;
@@ -165,9 +169,12 @@ public class PayrollController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/worker/{userId}")
+  @JustWorkerOrAdmin
   public ResponseEntity<List<PayrollResponse>> findByUserId(
       @Parameter(description = "Worker user ID", example = "1", required = true) @PathVariable
-          Long userId) {
+          Long userId,
+      @AuthenticationPrincipal Jwt jwt) {
+    assertCanReadPayroll(userId, jwt);
     List<Payroll> payrolls = listPayrollsUseCase.findByUserId(userId);
     return ResponseEntity.ok(payrolls.stream().map(PayrollResponse::fromDomain).toList());
   }
@@ -191,13 +198,16 @@ public class PayrollController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/worker/{userId}/{year}/{month}")
+  @JustWorkerOrAdmin
   public ResponseEntity<PayrollResponse> findByUserAndPeriod(
       @Parameter(description = "Worker user ID", example = "1", required = true) @PathVariable
           Long userId,
       @Parameter(description = "Period year", example = "2026", required = true) @PathVariable
           int year,
       @Parameter(description = "Period month (1-12)", example = "7", required = true) @PathVariable
-          int month) {
+          int month,
+      @AuthenticationPrincipal Jwt jwt) {
+    assertCanReadPayroll(userId, jwt);
     Payroll payroll =
         getPayrollUseCase
             .findByUserAndPeriod(userId, year, month)
@@ -288,6 +298,26 @@ public class PayrollController {
           Long id) {
     deletePayrollUseCase.delete(id);
     return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Rejects a non-admin caller reading payroll of a different worker.
+   *
+   * @param userId the worker whose payroll is requested
+   * @param jwt the authenticated principal
+   */
+  private void assertCanReadPayroll(Long userId, Jwt jwt) {
+    if ("ADMIN".equals(jwt.getClaimAsString("role"))) {
+      return;
+    }
+    User self =
+        userRepositoryPort
+            .findByEmail(jwt.getSubject())
+            .orElseThrow(
+                () -> new AuthorizationDeniedException("Worker not found for the current session"));
+    if (!self.getId().value().equals(userId)) {
+      throw new AuthorizationDeniedException("Workers can only read their own payroll");
+    }
   }
 
   /**

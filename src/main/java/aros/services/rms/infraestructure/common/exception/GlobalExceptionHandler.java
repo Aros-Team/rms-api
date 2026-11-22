@@ -7,6 +7,11 @@ import aros.services.rms.core.analytics.domain.exception.InvalidAnalyticsConfigE
 import aros.services.rms.core.auth.application.exception.InvalidCredentialsException;
 import aros.services.rms.core.auth.application.exception.InvalidRefreshTokenException;
 import aros.services.rms.core.auth.application.exception.UserNotFoundException;
+import aros.services.rms.core.cashshift.application.exception.CashShiftNotFoundException;
+import aros.services.rms.core.cashshift.application.exception.InvalidCashShiftException;
+import aros.services.rms.core.cashshift.application.exception.ShiftAlreadyOpenException;
+import aros.services.rms.core.cashshift.application.exception.ShiftClosedException;
+import aros.services.rms.core.cashshift.application.exception.ShiftNotOpenException;
 import aros.services.rms.core.image.application.exception.ImageNotFoundException;
 import aros.services.rms.core.image.application.exception.ImageUploadException;
 import aros.services.rms.core.image.application.exception.InvalidImageException;
@@ -20,6 +25,11 @@ import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFo
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.application.exception.SingleChoiceOptionGroupLimitException;
 import aros.services.rms.core.order.application.exception.TableNotAvailableException;
+import aros.services.rms.core.payment.application.exception.InvalidPaymentException;
+import aros.services.rms.core.payment.application.exception.OrderAlreadyPaidException;
+import aros.services.rms.core.payment.application.exception.OrderNotPayableException;
+import aros.services.rms.core.payment.application.exception.PaymentAlreadyVoidedException;
+import aros.services.rms.core.payment.application.exception.PaymentNotFoundException;
 import aros.services.rms.core.payroll.domain.exception.InvalidPayrollPeriodException;
 import aros.services.rms.core.payroll.domain.exception.PayrollAlreadyExistsException;
 import aros.services.rms.core.payroll.domain.exception.PayrollEventNotFoundException;
@@ -43,6 +53,7 @@ import aros.services.rms.core.specialselection.application.exception.InvalidSpec
 import aros.services.rms.core.specialselection.application.exception.SpecialSelectionNotAvailableException;
 import aros.services.rms.core.specialselection.application.exception.SpecialSelectionNotFoundException;
 import aros.services.rms.core.specialselection.application.exception.SupplyVariantUnitCostMissingException;
+import aros.services.rms.core.systemconfig.domain.exception.SettingsException;
 import aros.services.rms.core.table.application.exception.InvalidTableStatusException;
 import aros.services.rms.core.user.application.exception.InvalidSalaryException;
 import java.util.Map;
@@ -98,6 +109,23 @@ public class GlobalExceptionHandler {
     body.setTitle(status.getReasonPhrase());
     properties.forEach(body::setProperty);
     return ResponseEntity.status(status).contentType(MediaType.APPLICATION_PROBLEM_JSON).body(body);
+  }
+
+  /**
+   * Handles settings failures, mapping the domain category to an RFC 7807 response.
+   *
+   * @param e the settings exception
+   * @return a problem response with 400, 404 or 409 status
+   */
+  @ExceptionHandler(SettingsException.class)
+  public ResponseEntity<ProblemDetail> handleSettings(SettingsException e) {
+    HttpStatus status =
+        switch (e.getErrorType()) {
+          case NOT_FOUND -> HttpStatus.NOT_FOUND;
+          case CONFLICT -> HttpStatus.CONFLICT;
+          case INVALID -> HttpStatus.BAD_REQUEST;
+        };
+    return problem(status, e.getMessage());
   }
 
   // --- Auth exceptions ---
@@ -209,6 +237,70 @@ public class GlobalExceptionHandler {
   /** Handles InvalidTableStatusException. */
   @ExceptionHandler(InvalidTableStatusException.class)
   public ResponseEntity<ProblemDetail> handleInvalidTableStatus(InvalidTableStatusException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
+  }
+
+  // --- Payment exceptions ---
+
+  /** Handles InvalidPaymentException. */
+  @ExceptionHandler(InvalidPaymentException.class)
+  public ResponseEntity<ProblemDetail> handleInvalidPayment(InvalidPaymentException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
+  }
+
+  /** Handles PaymentNotFoundException. */
+  @ExceptionHandler(PaymentNotFoundException.class)
+  public ResponseEntity<ProblemDetail> handlePaymentNotFound(PaymentNotFoundException e) {
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
+  }
+
+  /** Handles OrderNotPayableException. */
+  @ExceptionHandler(OrderNotPayableException.class)
+  public ResponseEntity<ProblemDetail> handleOrderNotPayable(OrderNotPayableException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
+  }
+
+  /** Handles OrderAlreadyPaidException, exposing the blocking payment id. */
+  @ExceptionHandler(OrderAlreadyPaidException.class)
+  public ResponseEntity<ProblemDetail> handleOrderAlreadyPaid(OrderAlreadyPaidException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage(), Map.of("paymentId", e.getPaymentId()));
+  }
+
+  /** Handles PaymentAlreadyVoidedException. */
+  @ExceptionHandler(PaymentAlreadyVoidedException.class)
+  public ResponseEntity<ProblemDetail> handlePaymentAlreadyVoided(PaymentAlreadyVoidedException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
+  }
+
+  // --- Cash shift exceptions ---
+
+  /** Handles InvalidCashShiftException. */
+  @ExceptionHandler(InvalidCashShiftException.class)
+  public ResponseEntity<ProblemDetail> handleInvalidCashShift(InvalidCashShiftException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
+  }
+
+  /** Handles CashShiftNotFoundException. */
+  @ExceptionHandler(CashShiftNotFoundException.class)
+  public ResponseEntity<ProblemDetail> handleCashShiftNotFound(CashShiftNotFoundException e) {
+    return problem(HttpStatus.NOT_FOUND, e.getMessage());
+  }
+
+  /** Handles ShiftAlreadyOpenException. */
+  @ExceptionHandler(ShiftAlreadyOpenException.class)
+  public ResponseEntity<ProblemDetail> handleShiftAlreadyOpen(ShiftAlreadyOpenException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
+  }
+
+  /** Handles ShiftNotOpenException. */
+  @ExceptionHandler(ShiftNotOpenException.class)
+  public ResponseEntity<ProblemDetail> handleShiftNotOpen(ShiftNotOpenException e) {
+    return problem(HttpStatus.CONFLICT, e.getMessage());
+  }
+
+  /** Handles ShiftClosedException. */
+  @ExceptionHandler(ShiftClosedException.class)
+  public ResponseEntity<ProblemDetail> handleShiftClosed(ShiftClosedException e) {
     return problem(HttpStatus.CONFLICT, e.getMessage());
   }
 

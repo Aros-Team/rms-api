@@ -25,7 +25,7 @@ public class TwoFactorCodeRepositoryAdapter implements TwoFactorCodeRepositoryPo
   @Override
   public Optional<TwoFactorCode> findValidCode(UserId userId, String codeHash) {
     return internal
-        .findByUserIdAndCodeHashAndUsedAtIsNullAndExpiresAtAfter(
+        .findFirstByUserIdAndCodeHashAndUsedAtIsNullAndExpiresAtAfterOrderByIdDesc(
             userId.value(), codeHash, Instant.now())
         .map(mapper::toDomain);
   }

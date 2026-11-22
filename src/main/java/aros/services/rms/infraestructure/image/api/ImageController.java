@@ -9,6 +9,8 @@ import aros.services.rms.core.image.port.input.DeleteImageUseCase;
 import aros.services.rms.core.image.port.input.GetImagesUseCase;
 import aros.services.rms.core.image.port.input.UploadImageUseCase;
 import aros.services.rms.infraestructure.image.api.dto.ImageResponse;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
+import aros.services.rms.infraestructure.share.security.JustWorkerOrAdmin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -61,6 +63,7 @@ public class ImageController {
   @PostMapping(
       value = "/api/v1/products/{productId}/images",
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @JustAdminUser
   public ResponseEntity<ImageResponse> uploadProductImage(
       @Parameter(description = "Product ID", example = "42", required = true) @PathVariable
           Long productId,
@@ -100,6 +103,7 @@ public class ImageController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/api/v1/products/{productId}/images")
+  @JustWorkerOrAdmin
   public ResponseEntity<List<ImageResponse>> getProductImages(
       @Parameter(description = "Product ID", example = "42", required = true) @PathVariable
           Long productId) {
@@ -132,6 +136,7 @@ public class ImageController {
   @PutMapping(
       value = "/api/v1/products/{productId}/images",
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @JustAdminUser
   public ResponseEntity<List<ImageResponse>> replaceProductImages(
       @Parameter(description = "Product ID", example = "42", required = true) @PathVariable
           Long productId,
@@ -182,6 +187,7 @@ public class ImageController {
   @PostMapping(
       value = "/api/v1/workers/{workerId}/images",
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @JustAdminUser
   public ResponseEntity<ImageResponse> uploadWorkerImage(
       @Parameter(description = "Worker ID", example = "1", required = true) @PathVariable
           Long workerId,
@@ -221,6 +227,7 @@ public class ImageController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/api/v1/workers/{workerId}/images")
+  @JustAdminUser
   public ResponseEntity<List<ImageResponse>> getWorkerImages(
       @Parameter(description = "Worker ID", example = "1", required = true) @PathVariable
           Long workerId) {
@@ -253,6 +260,7 @@ public class ImageController {
   @PutMapping(
       value = "/api/v1/workers/{workerId}/images",
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @JustAdminUser
   public ResponseEntity<List<ImageResponse>> replaceWorkerImages(
       @Parameter(description = "Worker ID", example = "1", required = true) @PathVariable
           Long workerId,
@@ -299,6 +307,7 @@ public class ImageController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @DeleteMapping("/api/v1/images/{imageId}")
+  @JustAdminUser
   public ResponseEntity<Void> deleteImage(
       @Parameter(description = "Image ID", example = "1", required = true) @PathVariable
           Long imageId) {

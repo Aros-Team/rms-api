@@ -17,11 +17,15 @@ import aros.services.rms.testsupport.AbstractJwtIntegrationTest;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -73,9 +77,24 @@ class InventoryTransferControllerTest extends AbstractJwtIntegrationTest {
 
   private MockMvc mockMvc;
 
+  @AfterEach
+  void clearSecurityContext() {
+    SecurityContextHolder.clearContext();
+  }
+
   @BeforeEach
   void setUp() {
     mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+
+    SecurityContextHolder.getContext()
+        .setAuthentication(
+            new JwtAuthenticationToken(
+                Jwt.withTokenValue("test-token")
+                    .header("alg", "none")
+                    .subject("test@test.com")
+                    .claim("type", "access")
+                    .claim("role", "ADMIN")
+                    .build()));
   }
 
   private static final String VALID_TRANSFER_BODY =

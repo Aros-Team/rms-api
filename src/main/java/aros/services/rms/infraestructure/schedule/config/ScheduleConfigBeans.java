@@ -20,8 +20,7 @@ import aros.services.rms.core.schedule.port.input.UpdateScheduleUseCase;
 import aros.services.rms.core.schedule.port.output.ScheduleRepositoryPort;
 import aros.services.rms.core.schedule.port.output.TimeLogRepositoryPort;
 import aros.services.rms.core.schedule.port.output.WorkerScheduleAssignmentRepositoryPort;
-import java.time.ZoneId;
-import org.springframework.beans.factory.annotation.Value;
+import aros.services.rms.core.systemconfig.domain.port.output.BusinessTimeZoneProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -82,9 +81,9 @@ public class ScheduleConfigBeans {
       TimeLogRepositoryPort timeLogRepository,
       WorkerScheduleAssignmentRepositoryPort assignmentRepository,
       ScheduleRepositoryPort scheduleRepository,
-      @Value("${app.timezone:America/Bogota}") String timezone) {
+      BusinessTimeZoneProvider timeZoneProvider) {
     return new RecordTimeLogService(
-        timeLogRepository, assignmentRepository, scheduleRepository, ZoneId.of(timezone));
+        timeLogRepository, assignmentRepository, scheduleRepository, timeZoneProvider.getZoneId());
   }
 
   /** Creates the GetTimeLogHistoryUseCase bean. */

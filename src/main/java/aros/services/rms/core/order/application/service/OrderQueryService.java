@@ -2,6 +2,7 @@
 
 package aros.services.rms.core.order.application.service;
 
+import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderQueryResult;
 import aros.services.rms.core.order.domain.OrderStatus;
@@ -82,6 +83,29 @@ public class OrderQueryService implements OrderQueryUseCase {
   public List<Order> recoverFindOrders(
       DataAccessException e, OrderStatus status, LocalDateTime startDate, LocalDateTime endDate) {
     log.warn("BD no disponible - fallback para findOrders: {}", e.getMessage());
+    throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public Order findById(Long id) {
+    return orderRepositoryPort.findById(id).orElseThrow(() -> new OrderNotFoundException(id));
+  }
+
+  /**
+   * Recovery handler for findById when the database is unavailable.
+   *
+   * @param e the data access exception
+   * @param id the requested order id
+   * @return never returns, always throws ServiceUnavailableException
+   */
+  @Recover
+  public Order recoverFindById(DataAccessException e, Long id) {
+    log.warn("BD no disponible - fallback para findById {}: {}", id, e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
   }
 

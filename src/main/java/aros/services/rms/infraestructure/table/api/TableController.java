@@ -5,6 +5,9 @@ package aros.services.rms.infraestructure.table.api;
 import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.input.TableUseCase;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
+import aros.services.rms.infraestructure.share.security.JustWaiterOrAdmin;
+import aros.services.rms.infraestructure.share.security.JustWaiterOrCashierOrAdmin;
 import aros.services.rms.infraestructure.table.api.dto.ChangeStatusRequest;
 import aros.services.rms.infraestructure.table.api.dto.TableRequest;
 import aros.services.rms.infraestructure.table.api.dto.TableResponse;
@@ -53,6 +56,7 @@ public class TableController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
+  @JustAdminUser
   public ResponseEntity<TableResponse> create(@Valid @RequestBody TableRequest request) {
     Table table =
         Table.builder().tableNumber(request.tableNumber()).capacity(request.capacity()).build();
@@ -75,6 +79,7 @@ public class TableController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
+  @JustAdminUser
   public ResponseEntity<TableResponse> update(
       @Parameter(description = "Table ID", example = "1", required = true) @PathVariable Long id,
       @Valid @RequestBody TableRequest request) {
@@ -104,6 +109,7 @@ public class TableController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
+  @JustWaiterOrCashierOrAdmin
   public ResponseEntity<List<TableResponse>> findAll(
       @Parameter(
               description = "Optional table number filter (partial, case-insensitive)",
@@ -134,6 +140,7 @@ public class TableController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/{id}")
+  @JustWaiterOrCashierOrAdmin
   public ResponseEntity<TableResponse> findById(
       @Parameter(description = "Table ID", example = "1", required = true) @PathVariable Long id) {
     Table table = tableUseCase.findById(id);
@@ -157,6 +164,7 @@ public class TableController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/status")
+  @JustWaiterOrAdmin
   public ResponseEntity<TableResponse> changeStatus(
       @Parameter(description = "Table ID", example = "1", required = true) @PathVariable Long id,
       @Valid @RequestBody ChangeStatusRequest request) {

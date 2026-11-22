@@ -1,6 +1,7 @@
 package aros.services.rms.infraestructure.specialselection.api;
 
 import aros.services.rms.core.specialselection.port.input.GetSpecialSelectionUseCase;
+import aros.services.rms.infraestructure.share.security.JustWorkerOrAdmin;
 import aros.services.rms.infraestructure.specialselection.api.dto.SpecialSelectionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -51,6 +52,7 @@ public class SpecialSelectionController {
    * @return the configuration wrapped in a 200 response, or 404 if not found
    */
   @GetMapping("/{productId}")
+  @JustWorkerOrAdmin
   @Operation(
       summary = "Get a special selection",
       description = "Returns a special selection configuration by product ID")

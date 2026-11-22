@@ -304,4 +304,14 @@ class MoneyTest {
   void nullAmountInOfStringThrows() {
     assertThrows(NullPointerException.class, () -> Money.of((String) null, COP));
   }
+
+  @Test
+  void percentBasisPointsCalculatesPercentage() {
+    Money subtotal = Money.of("58000.00", COP);
+
+    assertEquals(new BigDecimal("5800.00"), subtotal.percentBasisPoints(1000).amount());
+    assertEquals(new BigDecimal("145.00"), subtotal.percentBasisPoints(25).amount());
+    assertEquals(new BigDecimal("0.00"), subtotal.percentBasisPoints(0).amount());
+    assertThrows(IllegalArgumentException.class, () -> subtotal.percentBasisPoints(-1));
+  }
 }

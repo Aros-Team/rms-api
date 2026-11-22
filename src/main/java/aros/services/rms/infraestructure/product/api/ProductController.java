@@ -2,6 +2,8 @@
 
 package aros.services.rms.infraestructure.product.api;
 
+import aros.services.rms.core.analytics.domain.TopSellingProduct;
+import aros.services.rms.core.analytics.domain.port.in.GetTopSellingProductsUseCase;
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.category.domain.OptionGroup;
 import aros.services.rms.core.category.port.input.OptionGroupUseCase;
@@ -18,13 +20,16 @@ import aros.services.rms.core.product.port.input.CalculateProductCostUseCase;
 import aros.services.rms.core.product.port.input.GetProductCostBreakdownUseCase;
 import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
-import aros.services.rms.infraestructure.category.api.dto.OptionGroupResponse;
+import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import aros.services.rms.infraestructure.product.api.dto.OptionExtrasRequest;
 import aros.services.rms.infraestructure.product.api.dto.ProductCostResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductOptionResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductRequest;
 import aros.services.rms.infraestructure.product.api.dto.ProductResponse;
 import aros.services.rms.infraestructure.product.api.dto.RecipeItemRequest;
+import aros.services.rms.infraestructure.product.api.dto.TopSellingProductResponse;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
+import aros.services.rms.infraestructure.share.security.JustWorkerOrAdmin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,6 +37,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -62,6 +68,7 @@ import org.springframework.web.bind.annotation.RestController;
     name = "Products",
     description =
         "Operations for managing restaurant menu products, their recipes, options and lifecycle")
+@JustWorkerOrAdmin
 public class ProductController {
 
   private final ProductUseCase productUseCase;
@@ -70,6 +77,7 @@ public class ProductController {
   private final ImageRepositoryPort imageRepositoryPort;
   private final StoragePort storagePort;
   private final OptionGroupUseCase optionGroupUseCase;
+  private final GetTopSellingProductsUseCase getTopSellingProductsUseCase;
   private final CurrencyProvider currencyProvider;
 
   private static final Duration SIGNED_URL_EXPIRATION = Duration.ofMinutes(60);
@@ -96,6 +104,7 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
+  @JustAdminUser
   public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request) {
     List<ProductRecipe> recipe = mapRecipe(request.recipe());
     Product product =
@@ -136,6 +145,7 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
+  @JustAdminUser
   public ResponseEntity<ProductResponse> update(
       @Parameter(description = "Product ID", example = "1", required = true) @PathVariable Long id,
       @Valid @RequestBody ProductRequest request) {
@@ -301,24 +311,52 @@ public class ProductController {
   /**
    * Gets top selling products.
    *
-   * @return the list of top selling products
+   * @param from optional inclusive start date (defaults to 30 days before {@code to})
+   * @param to optional inclusive end date (defaults to today)
+   * @param limit maximum number of products (1..100)
+   * @return the ranked products
    */
   @Operation(
       tags = {"Products"},
       summary = "Get top selling products",
       description =
-          "Returns the top selling products of the restaurant. "
-              + "Currently returns an empty list — full analytics coming soon.",
+          "Returns the products ranked by units sold in the requested date range, with units and"
+              + " revenue. D-014: replaces the previous placeholder that always returned [].",
       responses = {
         @ApiResponse(responseCode = "200", description = "Products retrieved successfully"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "422", description = "Invalid date range"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping("/top-selling")
-  public ResponseEntity<List<ProductResponse>> getTopSelling() {
-    List<ProductResponse> responses = List.of();
+  @JustAdminUser
+  public ResponseEntity<List<TopSellingProductResponse>> getTopSelling(
+      @RequestParam(required = false)
+          @org.springframework.format.annotation.DateTimeFormat(
+              iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
+          LocalDate from,
+      @RequestParam(required = false)
+          @org.springframework.format.annotation.DateTimeFormat(
+              iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
+          LocalDate to,
+      @RequestParam(defaultValue = "10") int limit) {
+    LocalDate end = to != null ? to : LocalDate.now();
+    LocalDate start = from != null ? from : end.minusDays(29);
+    List<TopSellingProductResponse> responses =
+        getTopSellingProductsUseCase.execute(start, end, limit).stream()
+            .map(ProductController::toTopSellingResponse)
+            .toList();
     return ResponseEntity.ok(responses);
+  }
+
+  private static TopSellingProductResponse toTopSellingResponse(TopSellingProduct product) {
+    return new TopSellingProductResponse(
+        product.rank(),
+        product.productId(),
+        product.productName(),
+        product.unitsSold(),
+        MoneyDto.of(product.revenue()));
   }
 
   /**
@@ -368,6 +406,7 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/disable")
+  @JustAdminUser
   public ResponseEntity<ProductResponse> disable(
       @Parameter(description = "Product ID", example = "1", required = true) @PathVariable
           Long id) {
@@ -393,6 +432,7 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/enable")
+  @JustAdminUser
   public ResponseEntity<ProductResponse> enable(
       @Parameter(description = "Product ID", example = "1", required = true) @PathVariable
           Long id) {
@@ -424,35 +464,6 @@ public class ProductController {
     ProductCostBreakdown breakdown = getProductCostBreakdownUseCase.execute(id);
     List<ProductOptionResponse> responses =
         breakdown.options().stream().map(ProductOptionResponse::fromCostBreakdown).toList();
-    return ResponseEntity.ok(responses);
-  }
-
-  /**
-   * Gets option groups associated with a product.
-   *
-   * @param id the product ID
-   * @return the list of option groups with their options
-   */
-  @Operation(
-      tags = {"Products"},
-      summary = "Get product option groups",
-      description =
-          "Returns the option groups associated with a specific product, "
-              + "with selection type and required flag.")
-  @GetMapping("/{id}/option-groups")
-  public ResponseEntity<List<OptionGroupResponse>> findOptionGroupsByProductId(
-      @Parameter(description = "Product ID", example = "1", required = true) @PathVariable
-          Long id) {
-    List<OptionGroup> optionGroups = optionGroupUseCase.findByProductId(id);
-    Map<Long, String> selectionTypes =
-        optionGroupUseCase.loadSelectionTypesByIds(
-            optionGroups.stream().map(OptionGroup::getId).toList());
-    List<OptionGroupResponse> responses =
-        optionGroups.stream()
-            .map(
-                og ->
-                    OptionGroupResponse.fromDomain(og, selectionTypes.get(og.getId()), List.of(id)))
-            .toList();
     return ResponseEntity.ok(responses);
   }
 

@@ -140,6 +140,11 @@ prime_cost_pct  = prime_cost / net_sales
 **Performance**: pre-aggregated daily rollups → `monthly_financial_summary` table.
 `dataCompleteness` flags ranges where source data is missing.
 
+**Buckets**: `daily`, `weekly`, `monthly` and `yearly` are all served from the same table.
+`POST /api/v1/analytics/refresh` backfills the derived rows; the nightly job also rolls
+yesterday's daily row into its week, month and year buckets. The daily-to-higher rollup sums
+COGS, labor, discounts and comped from the daily rows and recomputes every percentage.
+
 ### 5.2 Menu Engineering (`GET /api/v1/analytics/menu-engineering`)
 
 **Math**:
@@ -199,126 +204,88 @@ Quadrant:
 
 ### 5.3 Operational Efficiency (`GET /api/v1/analytics/operations`)
 
-**Math**:
+**Definitions** (all over the requested period, `CANCELLED` orders excluded):
+
 ```
-For each order:
-  occupied_minutes = close_time − open_time
-Total:
-  total_occupied_seat_minutes   = Σ occupied_minutes × party_size
-  total_available_seat_minutes  = Σ seats_per_table × operating_minutes_per_table
-  total_available_seat_hours    = total_available_seat_minutes / 60
-RevPASH = total_net_sales / total_available_seat_hours
-Turns   = total_covers / number_of_tables
-Segment turns by day_part: LUNCH (11:00–15:00), DINNER (18:00–23:00), OTHER
-
-**Performance index** (range scan over `orders`):
-```sql
-CREATE INDEX idx_orders_open_close ON orders (open_time, close_time);
-```
-
-**Response shape** (`OperationsReport`):
-
-```jsonc
-{
-  "period": { "bucket": "monthly", "from": "2026-07", "to": "2026-07", "keys": ["2026-07"] },
-  "revPash": {
-    "value":                   { "amount": "18500.00", "currency": "COP" },
-    "totalNetSales":           { "amount": "125000000.00", "currency": "COP" },
-    "totalAvailableSeatHours": 6757.5
-  },
-  "tableTurnover": {
-    "overall": 4.8,
-    "byDayPart": [
-      { "dayPart": "LUNCH",  "turns": 2.1, "covers":  42, "tables": 20 },
-      { "dayPart": "DINNER", "turns": 2.7, "covers":  54, "tables": 20 }
-    ]
-  },
-  "avgOccupancyMinutes": 47.3,
-  "dataCompleteness": "PARTIAL",
-  "notes": [
-    "Operating hours taken from analytics_config.default (00:00-23:59); override pending."
-  ]
-}
+covers                    = Σ COALESCE(party_size, 1) over delivered orders
+occupied_minutes          = Σ (close_time − open_time) for orders with both timestamps
+occupied_seat_minutes     = Σ occupied_minutes × covers
+table_count               = COUNT(*) from tables
+seat_count                = Σ capacity from tables
+days                      = calendar days in [from, to]
+operating_minutes_per_day = default_close − default_open (analytics_config)
+available_seat_hours      = seat_count × operating_minutes_per_day × days / 60
+RevPASH                   = net_sales / available_seat_hours
+turns                     = covers / table_count             (overall and per day part)
+avg_occupancy_minutes     = occupied_minutes / orders_with_timestamps
+labor_share_pct           = labor_total / net_sales × 100    (daily rollups)
 ```
 
-**Assumption until schema migration**: if `orders.open_time`/`close_time` do not exist yet, duration is approximated from `created_at` → `updated_at` and flagged in `notes`.
+Day parts come from `analytics_config`: `LUNCH` = `[lunch_start, lunch_end)`, `DINNER` =
+`[dinner_start, dinner_end)`, everything else `OTHER`. `dataCompleteness` is `PARTIAL` when some
+orders lack `open_time`/`close_time`; those orders are excluded from occupancy metrics only.
+
+**Golden G3** (2027-01-15, 5 tables × 4 seats, 10 orders, 28 covers, 500 occupied minutes,
+1,390 seat-minutes, net sales 1,700,000): `availableSeatHours=240.00`,
+`revPash.value=7083.33`, `turns=5.60`, lunch turns `2.40`, dinner turns `3.20`,
+`avgOccupancyMinutes=50.00`.
 
 ### 5.4 Customer Cohort (`GET /api/v1/analytics/cohort`)
 
-**Re-framed per user**: there is **no `customers` table**; per the user's instruction *"a client is an order"*, we do **not** persist customers. Instead, this module treats each `orders.id` as the atomic unit of a "client visit" and computes:
+**Identity**: there is still no `customers` table. A visit is an order and its fingerprint is:
 
 ```
-new_in_period    = COUNT(orders.id WHERE created_at IN [from, to])
-recurring_in_period = COUNT(orders.id WHERE fingerprint appears ≥2 in last 90 days)
-                       # fingerprint = SHA256(phone_normalized ?? table_id ?? device_id)
-avg_ticket_per_order = Σ order_total / COUNT(orders.id)
-avg_ticket_per_cover  = Σ order_total / Σ party_size   (party_size defaults to 1 if column missing)
+fingerprint = customer_fingerprint                        # SHA-256 of the normalized phone
+            ?? SHA2(customer_phone, 256)                  # when only the phone is stored
+            ?? "table:<table_id>"                         # fallback, flagged PARTIAL
 ```
 
-**Response shape** (`CohortReport`):
+**Window**: `cohortWindowDays = 90`. An order is **recurring** when the same fingerprint was
+already seen in the 90 days before that visit; the remaining orders are **new**. The report also
+returns one `cohorts[]` row per bucket key so the UI can render a retention table.
 
-```jsonc
-{
-  "period": { "bucket": "monthly", "from": "2026-07", "to": "2026-07", "keys": ["2026-07"] },
-  "newClients":       1820,
-  "recurringClients":  943,
-  "totalOrders":      2763,
-  "recurringRatePct": 34.13,
-  "averageTicketPerOrder": { "amount": "45232.00", "currency": "COP" },
-  "averageTicketPerCover":  { "amount": "22616.00", "currency": "COP" },
-  "fingerprintStrategy": "PHONE_OR_TABLE",   // PHONE | PHONE_OR_TABLE | TABLE_ONLY
-  "dataCompleteness": "PARTIAL",
-  "notes": [
-    "Phone number captured on 62% of orders in range; remaining rows fingerprint by table_id."
-  ]
-}
-```
+`fingerprintStrategy` is `PHONE` when every order in range carries a phone, `TABLE_ONLY` when none
+does, and `PHONE_OR_TABLE` in between. `dataCompleteness` is `PARTIAL` when the table fallback is
+used, because the recurring rate is then an upper bound (the same table serves different parties).
 
-**Implementation hint for FE**: when `dataCompleteness` ≠ `FULL`, render the `notes[]` banner before charts.
+**Golden G4** (2027-01: 30 orders, 18 new fingerprints, 12 recurring, 60 covers, 20 phones):
+`newClients=18`, `recurringClients=12`, `recurringRatePct=40.00`,
+`averageTicketPerOrder=50000.00`, `averageTicketPerCover=25000.00`,
+`fingerprintStrategy=PHONE_OR_TABLE`, `dataCompleteness=PARTIAL`.
 
 ### 5.5 Variance Alerts (`GET /api/v1/analytics/alerts`)
 
-**Read list** with paging and filters. Plus a mark-read endpoint.
+Rules, thresholds and severity (thresholds come from `analytics_config`):
 
-```http
-GET    /api/v1/analytics/alerts?status=open&severity=RED&bucket=monthly&from=2026-01&to=2026-07&limit=50&offset=0
-PATCH  /api/v1/analytics/alerts/{id}/read
-```
+| Type | Rule | Threshold | Severity |
+|------|------|-----------|----------|
+| `FOOD_COST_DEVIATION` | food cost % − 12-month moving average | > `food_cost_deviation_pp` pp | RED |
+| `LABOR_COST_DEVIATION` | labor cost % − 12-month moving average | > `labor_cost_deviation_pp` pp | YELLOW |
+| `REVPASH_DROP` | current week RevPASH vs 4-week moving average | drop > 15% | RED |
+| `SALES_DROP_YOY` | orders vs same month last year | drop > `sales_drop_yoy_pct` | YELLOW |
+| `LOW_MARGIN_SKU_SPIKE` | DOG SKU units week over week | increase > 50% | YELLOW |
 
-**Response shape** (`AlertsPage`):
+Generation runs daily at 04:00 and on demand through `POST /api/v1/analytics/refresh`. Rows are
+deduplicated on `(type, metric, period_key)`, so repeated runs never duplicate an alert.
+`PATCH /alerts/{id}/read` is idempotent and returns `204`.
 
-```jsonc
-{
-  "items": [
-    {
-      "id": 17,
-      "severity": "RED",          // RED | YELLOW | INFO
-      "type": "FOOD_COST_DEVIATION", // see enum
-      "message": "Food cost is 4.2pp above 12-month MA",
-      "metric": "food_cost_pct",
-      "baseline":  { "amount": "28.50" },        // number-as-string
-      "current":   { "amount": "32.70" },
-      "deviationPct": 14.74,
-      "period": "2026-07",
-      "detectedAt": "2026-07-17T02:00:00Z",
-      "status": "OPEN"            // OPEN | READ | DISMISSED
-    }
-  ],
-  "page": { "limit": 50, "offset": 0, "total": 134 }
-}
-```
+**Golden G5**: 4 open alerts — RED `FOOD_COST_DEVIATION` (+9.00%), RED `REVPASH_DROP` (−25.00%),
+YELLOW `SALES_DROP_YOY` (−14.00%), YELLOW `LOW_MARGIN_SKU_SPIKE` (+60.00%).
 
-**Alert types** (enum):
+### 5.6 On-demand refresh (`POST /api/v1/analytics/refresh`)
 
-| `type` | Trigger |
-|--------|---------|
-| `FOOD_COST_DEVIATION` | food cost % deviates > 2 pp vs 12-month MA |
-| `LABOR_COST_DEVIATION` | labor cost % deviates > 3 pp vs 12-month MA |
-| `SALES_DROP_YOY` | sales drop > 10 % vs same weekday last year |
-| `LOW_MARGIN_SKU_SPIKE` | a DOG-quadrant SKU increases units > 50 % WoW |
-| `REVPASH_DROP` | RevPASH drops > 15 % vs 4-week MA |
+Rebuilds the menu engineering cache for the trailing months, weeks and days, rolls the daily prime
+cost rows up and re-evaluates the alert rules. The development profile also performs a boot-time
+backfill when the cache or alert table is empty (`app.analytics.backfill-on-boot=true`).
 
-`PATCH /alerts/{id}/read` returns `204 No Content`; idempotent.
+The menu engineering `cacheStatus.lastRefreshedAt` is the real `MAX(updated_at)` of
+`menu_performance_cache`; it is `null` only when the cache is empty.
+
+### 5.7 Top-selling products (`GET /api/v1/products/top-selling`)
+
+Admin-only dashboard endpoint (D-014). Query params: `from` and `to` (ISO dates, default last 30
+days) and `limit` (1..100, default 10). Returns products ranked by units sold with `unitsSold` and
+`revenue` as `Money`. `CANCELLED` orders are excluded.
 
 ## 6. Cross-cutting error model
 

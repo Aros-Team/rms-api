@@ -11,11 +11,14 @@ import aros.services.rms.core.user.application.service.CreateUserService;
 import aros.services.rms.core.user.application.service.GetAllUsersService;
 import aros.services.rms.core.user.application.service.GetAllWorkersService;
 import aros.services.rms.core.user.application.service.GetSalaryHistoryService;
+import aros.services.rms.core.user.application.service.UpdateUserAccessService;
 import aros.services.rms.core.user.port.input.ChangePasswordUseCase;
 import aros.services.rms.core.user.port.input.CreateUserUseCase;
 import aros.services.rms.core.user.port.input.GetAllUsersUseCase;
 import aros.services.rms.core.user.port.input.GetAllWorkersUseCase;
 import aros.services.rms.core.user.port.input.GetSalaryHistoryUseCase;
+import aros.services.rms.core.user.port.input.UpdateUserAccessUseCase;
+import aros.services.rms.core.user.port.output.AdminRepositoryPort;
 import aros.services.rms.core.user.port.output.SalaryHistoryRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import aros.services.rms.core.user.port.output.WorkerRepositoryPort;
@@ -105,5 +108,19 @@ public class UserBeanConfig {
   @Bean
   public GetAllWorkersUseCase getAllWorkersUseCase(WorkerRepositoryPort workerRepositoryPort) {
     return new GetAllWorkersService(workerRepositoryPort);
+  }
+
+  /**
+   * Creates the user access update use case.
+   *
+   * @param userPort user repository port
+   * @param areaPort area repository port
+   * @param adminPort admin repository port
+   * @return configured UpdateUserAccessUseCase
+   */
+  @Bean
+  public UpdateUserAccessUseCase updateUserAccessUseCase(
+      UserRepositoryPort userPort, AreaRepositoryPort areaPort, AdminRepositoryPort adminPort) {
+    return new UpdateUserAccessService(userPort, areaPort, adminPort);
   }
 }

@@ -25,9 +25,12 @@ import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Implementation of user login with optional two-factor authentication. */
 public class LoginService implements LoginUseCase {
+  private static final Logger log = LoggerFactory.getLogger(LoginService.class);
   private final PasswordEncoderPort passwordPort;
   private final UserRepositoryPort userPort;
   private final DeviceRepositoryPort devicePort;
@@ -128,6 +131,10 @@ public class LoginService implements LoginUseCase {
 
     tfaPort.save(tfaCode);
     emailPort.sendTwoFactorCode(user.getEmail(), code);
+    // Development aid: the local mail adapter cannot deliver to reserved
+    // domains such as .local, so enable DEBUG logging for this class to read
+    // the code. Production keeps INFO and never prints it.
+    log.debug("TFA code for {}: {}", user.getEmail().value(), code);
 
     return createRequireTfa(user);
   }

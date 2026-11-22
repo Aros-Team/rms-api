@@ -5,7 +5,6 @@ package aros.services.rms.core.order.domain;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductOption;
-import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,13 +29,13 @@ import lombok.NoArgsConstructor;
 public class OrderDetail {
   private Long id;
   private Product product;
-  @Builder.Default private Money unitPrice = Money.zero(Currency.getInstance("COP"));
+  @Builder.Default private Money unitPrice = Money.zeroDefault();
 
   /**
    * Surcharge attributed to {@code EXTRA}-category option selections. Persisted on the entity via
    * the {@code order_detail_options.extra_price} column (summed across rows at toDomain time).
    */
-  @Builder.Default private Money extraCharge = Money.zero(Currency.getInstance("COP"));
+  @Builder.Default private Money extraCharge = Money.zeroDefault();
 
   /**
    * Per-option surcharge map (option id → surcharge). Populated by the order-taking service so the
