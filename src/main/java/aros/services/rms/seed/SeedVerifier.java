@@ -173,6 +173,149 @@ final class SeedVerifier {
             "no zero-unit menu rows",
             0,
             scalar("SELECT COUNT(*) FROM menu_performance_cache WHERE units_sold < 0")));
+
+    // P2-SEED-13: deterministic customer identity for cohort realism.
+    checks.add(
+        check(
+            "historical phone orders",
+            expected.historicalPhoneOrders(),
+            scalar(
+                "SELECT COUNT(*) FROM orders WHERE date < '"
+                    + anchor
+                    + " 00:00:00' AND customer_phone IS NOT NULL")));
+    checks.add(
+        check(
+            "historical table-only orders",
+            expected.historicalOrdersCount() - expected.historicalPhoneOrders(),
+            scalar(
+                "SELECT COUNT(*) FROM orders WHERE date < '"
+                    + anchor
+                    + " 00:00:00' AND customer_phone IS NULL")));
+    checks.add(
+        check(
+            "phone fingerprints consistent",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM orders WHERE (customer_phone IS NOT NULL "
+                    + "AND (customer_fingerprint IS NULL "
+                    + "OR customer_fingerprint <> SHA2(customer_phone, 256))) "
+                    + "OR (customer_phone IS NULL AND customer_fingerprint IS NOT NULL)")));
+    checks.add(
+        check(
+            "cohort strategy phone or table",
+            3,
+            scalar(
+                "SELECT CASE WHEN SUM(customer_phone IS NOT NULL) = 0 THEN 1 "
+                    + "WHEN SUM(customer_phone IS NULL) = 0 THEN 2 ELSE 3 END "
+                    + "FROM orders WHERE date >= '"
+                    + anchor.minusDays(SeedConstants.PAYMENT_HISTORY_DAYS)
+                    + " 00:00:00' AND date < '"
+                    + anchor
+                    + " 00:00:00'")));
+
+    // P2-SEED-14: alerts must be present right after a reset.
+    checks.add(check("alerts present", 5, scalar("SELECT COUNT(*) FROM system_alerts")));
+    checks.add(
+        check(
+            "open alerts", 4, scalar("SELECT COUNT(*) FROM system_alerts WHERE status = 'OPEN'")));
+    checks.add(
+        check(
+            "read alerts", 1, scalar("SELECT COUNT(*) FROM system_alerts WHERE status = 'READ'")));
+    checks.add(
+        check(
+            "open alert types",
+            4,
+            scalar("SELECT COUNT(DISTINCT type) FROM system_alerts WHERE status = 'OPEN'")));
+
+    // P3-BE-PAY-08/09: payment demo data and reset safety.
+    checks.add(
+        check(
+            "payments",
+            expected
+                .historicalOrdersBetween(
+                    anchor.minusDays(SeedConstants.PAYMENT_HISTORY_DAYS), anchor)
+                .size(),
+            scalar("SELECT COUNT(*) FROM payments")));
+    checks.add(
+        check(
+            "closed cash shifts",
+            SeedConstants.PAYMENT_HISTORY_DAYS,
+            scalar("SELECT COUNT(*) FROM cash_shifts WHERE status = 'CLOSED'")));
+    checks.add(
+        check(
+            "open cash shifts",
+            1,
+            scalar("SELECT COUNT(*) FROM cash_shifts WHERE status = 'OPEN'")));
+    checks.add(
+        check(
+            "open shift float",
+            SeedConstants.OPENING_FLOAT.longValue(),
+            scalar(
+                "SELECT COALESCE(SUM(opening_float),0) FROM cash_shifts WHERE status = 'OPEN'")));
+    checks.add(
+        check(
+            "today orders unpaid",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM payments p JOIN orders o ON o.id = p.order_id "
+                    + "WHERE o.date >= '"
+                    + anchor
+                    + " 00:00:00'")));
+    checks.add(
+        check(
+            "no double active payments",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM (SELECT order_id FROM payments "
+                    + "WHERE status <> 'VOIDED' GROUP BY order_id HAVING COUNT(*) > 1) x")));
+    checks.add(
+        check(
+            "payment subtotal matches order",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM payments p WHERE p.status <> 'VOIDED' AND p.subtotal <> "
+                    + "(SELECT COALESCE(SUM(od.unit_price),0) FROM order_details od "
+                    + "WHERE od.order_id = p.order_id)")));
+    checks.add(
+        check(
+            "payment total arithmetic",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM payments WHERE total_amount <> "
+                    + "subtotal - discount_amount + tip_amount")));
+    checks.add(
+        check(
+            "tenders sum to tendered",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM payments p WHERE p.status <> 'VOIDED' AND "
+                    + "p.tendered_amount <> (SELECT COALESCE(SUM(t.amount),0) "
+                    + "FROM payment_tenders t WHERE t.payment_id = p.id)")));
+    checks.add(
+        check(
+            "payment change arithmetic",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM payments WHERE change_amount <> "
+                    + "tendered_amount - total_amount")));
+    checks.add(
+        check(
+            "shift expected cash",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM cash_shifts s WHERE s.status = 'CLOSED' AND "
+                    + "s.expected_cash <> s.opening_float + COALESCE((SELECT SUM(t.amount) "
+                    + "FROM payment_tenders t JOIN payments p ON p.id = t.payment_id "
+                    + "WHERE p.shift_id = s.id AND p.status <> 'VOIDED' "
+                    + "AND t.method = 'CASH'), 0) - COALESCE((SELECT SUM(p.change_amount) "
+                    + "FROM payments p WHERE p.shift_id = s.id AND p.status <> 'VOIDED'), 0)")));
+    checks.add(
+        check(
+            "shift difference arithmetic",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM cash_shifts WHERE status = 'CLOSED' AND "
+                    + "difference_amount <> counted_cash - expected_cash")));
     return checks;
   }
 

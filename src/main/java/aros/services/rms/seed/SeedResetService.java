@@ -84,7 +84,10 @@ public class SeedResetService {
       "monthly_financial_summary",
       "menu_performance_cache",
       "payroll",
-      "time_logs"
+      "time_logs",
+      "system_alerts",
+      "cash_shifts",
+      "payments"
     };
     try (Connection connection = dataSource.getConnection();
         Statement statement = connection.createStatement()) {

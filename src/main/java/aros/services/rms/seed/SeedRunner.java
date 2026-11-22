@@ -86,6 +86,8 @@ final class SeedRunner {
         seedSalaryHistory();
         seedSpecialSelectionHistory();
         new SeedSummaries(connection, plan, anchor).write();
+        seedAlerts();
+        seedCashAndPayments(plan);
         writeSeedMetadata(plan);
         try (Statement statement = connection.createStatement()) {
           statement.execute("SET foreign_key_checks = 1");
@@ -171,6 +173,11 @@ final class SeedRunner {
             "purchase_orders",
             "special_selection_history",
             "system_alerts",
+            // Payments reference orders and cash_shifts; children first.
+            "payment_tenders",
+            "payments",
+            "cash_movements",
+            "cash_shifts",
             "orders")) {
       try (Statement statement = connection.createStatement()) {
         statement.executeUpdate("DELETE FROM " + table);
@@ -582,6 +589,381 @@ final class SeedRunner {
     }
   }
 
+  /**
+   * Rebuilds the demo alert rows so the module is never empty after a reset (P2-SEED-14).
+   *
+   * <p>The four OPEN rows mirror the rule set and severities of golden G5 ({@code
+   * FOOD_COST_DEVIATION}, {@code REVPASH_DROP}, {@code SALES_DROP_YOY}, {@code
+   * LOW_MARGIN_SKU_SPIKE}); the fifth row stays {@code READ} so the read/dismissed edge case (E15)
+   * is covered. Period keys move with the anchor, so a rolling reset never leaves stale alerts.
+   */
+  private void seedAlerts() throws SQLException {
+    YearMonth anchorMonth = YearMonth.from(anchor);
+    String previousMonth = anchorMonth.minusMonths(1).toString();
+    String currentMonth = anchorMonth.toString();
+    String currentWeek = isoWeek(anchor.minusWeeks(1));
+    String previousWeek = isoWeek(anchor.minusWeeks(2));
+    String sql =
+        "INSERT INTO system_alerts (severity, type, metric, baseline, current, deviation_pct, "
+            + "period_key, period_bucket, message, detected_at, status, read_at) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+    try (PreparedStatement statement = connection.prepareStatement(sql)) {
+      bindAlert(
+          statement,
+          "RED",
+          "FOOD_COST_DEVIATION",
+          "food_cost_pct",
+          "30.00",
+          "32.70",
+          "9.00",
+          previousMonth,
+          "monthly",
+          "Food cost is 2.70 pp above the 12-month moving average",
+          anchor.minusDays(1).atTime(4, 0),
+          "OPEN",
+          null);
+      bindAlert(
+          statement,
+          "RED",
+          "REVPASH_DROP",
+          "revpash",
+          "12000.00",
+          "9000.00",
+          "-25.00",
+          currentWeek,
+          "weekly",
+          "RevPASH dropped 25.00% versus the 4-week moving average",
+          anchor.minusDays(2).atTime(4, 0),
+          "OPEN",
+          null);
+      bindAlert(
+          statement,
+          "YELLOW",
+          "SALES_DROP_YOY",
+          "sales_orders",
+          "100.00",
+          "86.00",
+          "-14.00",
+          currentMonth,
+          "monthly",
+          "Order volume is 14.00% below the same period last year",
+          anchor.minusDays(1).atTime(4, 0),
+          "OPEN",
+          null);
+      bindAlert(
+          statement,
+          "YELLOW",
+          "LOW_MARGIN_SKU_SPIKE",
+          "dog_units",
+          "50.00",
+          "80.00",
+          "60.00",
+          currentWeek,
+          "weekly",
+          "Low-margin SKU units grew 60.00% week over week",
+          anchor.minusDays(2).atTime(4, 0),
+          "OPEN",
+          null);
+      bindAlert(
+          statement,
+          "YELLOW",
+          "LOW_MARGIN_SKU_SPIKE",
+          "dog_units",
+          "40.00",
+          "60.00",
+          "50.00",
+          previousWeek,
+          "weekly",
+          "Low-margin SKU units grew 50.00% week over week",
+          anchor.minusDays(9).atTime(4, 0),
+          "READ",
+          anchor.minusDays(9).atTime(9, 15));
+      statement.executeBatch();
+    }
+  }
+
+  private void bindAlert(
+      PreparedStatement statement,
+      String severity,
+      String type,
+      String metric,
+      String baseline,
+      String current,
+      String deviationPct,
+      String periodKey,
+      String periodBucket,
+      String message,
+      LocalDateTime detectedAt,
+      String status,
+      LocalDateTime readAt)
+      throws SQLException {
+    statement.setString(1, severity);
+    statement.setString(2, type);
+    statement.setString(3, metric);
+    statement.setBigDecimal(4, new BigDecimal(baseline));
+    statement.setBigDecimal(5, new BigDecimal(current));
+    statement.setBigDecimal(6, new BigDecimal(deviationPct));
+    statement.setString(7, periodKey);
+    statement.setString(8, periodBucket);
+    statement.setString(9, message);
+    statement.setString(10, SeedMath.timestamp(detectedAt));
+    statement.setString(11, status);
+    if (readAt == null) {
+      statement.setNull(12, Types.TIMESTAMP);
+    } else {
+      statement.setString(12, SeedMath.timestamp(readAt));
+    }
+    statement.addBatch();
+  }
+
+  private static String isoWeek(LocalDate day) {
+    java.time.temporal.WeekFields fields = java.time.temporal.WeekFields.ISO;
+    return String.format(
+        Locale.ROOT,
+        "%d-W%02d",
+        day.get(fields.weekBasedYear()),
+        day.get(fields.weekOfWeekBasedYear()));
+  }
+
+  /**
+   * Seeds 30 days of closed cash shifts with payments plus one open shift (P3-BE-PAY-08).
+   *
+   * <p>Every historical order in the window is charged exactly once, older orders stay unpaid so
+   * the cashier pending board has work, and each shift snapshots {@code expected}, {@code counted}
+   * and {@code difference}. Tenders always sum to the payment total; only the last cash tender can
+   * overpay, and the change is stored on the payment header.
+   */
+  private void seedCashAndPayments(SeedPlan plan) throws SQLException {
+    LocalDate firstDay = anchor.minusDays(SeedConstants.PAYMENT_HISTORY_DAYS);
+    Map<LocalDate, List<PaymentPlan>> paymentsByDay = new TreeMap<>();
+    for (SeedPlan.Order order : plan.historicalOrdersBetween(firstDay, anchor)) {
+      paymentsByDay
+          .computeIfAbsent(order.openTime().toLocalDate(), ignored -> new ArrayList<>())
+          .add(planPayment(order));
+    }
+
+    String shiftSql =
+        "INSERT INTO cash_shifts (status, currency, opened_by, opened_at, closed_by, closed_at, "
+            + "opening_float, expected_cash, counted_cash, difference_amount, notes) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+    Map<LocalDate, Long> shiftIds = new LinkedHashMap<>();
+    try (PreparedStatement shift =
+        connection.prepareStatement(shiftSql, Statement.RETURN_GENERATED_KEYS)) {
+      for (LocalDate day = firstDay; day.isBefore(anchor); day = day.plusDays(1)) {
+        List<PaymentPlan> plans = paymentsByDay.getOrDefault(day, List.of());
+        BigDecimal expected = expectedCash(plans);
+        BigDecimal adjustment = shiftAdjustment(day);
+        BigDecimal counted = expected.add(adjustment);
+        long cashier = cashierFor(day);
+        shift.setString(1, "CLOSED");
+        shift.setString(2, "COP");
+        shift.setLong(3, cashier);
+        shift.setString(4, SeedMath.timestamp(day.atTime(10, 0)));
+        shift.setLong(5, cashier);
+        shift.setString(6, SeedMath.timestamp(day.plusDays(1).atTime(1, 0)));
+        shift.setBigDecimal(7, SeedConstants.OPENING_FLOAT);
+        shift.setBigDecimal(8, expected);
+        shift.setBigDecimal(9, counted);
+        shift.setBigDecimal(10, counted.subtract(expected));
+        shift.setString(11, "Turno cerrado del dataset determinista");
+        shift.executeUpdate();
+        try (ResultSet keys = shift.getGeneratedKeys()) {
+          keys.next();
+          shiftIds.put(day, keys.getLong(1));
+        }
+      }
+    }
+
+    String paymentSql =
+        "INSERT INTO payments (order_id, shift_id, status, currency, subtotal, discount_amount, "
+            + "tip_amount, total_amount, tendered_amount, change_amount, receipt_number, "
+            + "cashier_id, idempotency_key, created_at, completed_at) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    String tenderSql =
+        "INSERT INTO payment_tenders (payment_id, method, amount, sort_order) VALUES (?,?,?,?)";
+    try (PreparedStatement payment =
+            connection.prepareStatement(paymentSql, Statement.RETURN_GENERATED_KEYS);
+        PreparedStatement tender = connection.prepareStatement(tenderSql)) {
+      for (Map.Entry<LocalDate, List<PaymentPlan>> entry : paymentsByDay.entrySet()) {
+        LocalDate day = entry.getKey();
+        long shiftId = shiftIds.get(day);
+        for (PaymentPlan paymentPlan : entry.getValue()) {
+          payment.setLong(1, paymentPlan.orderId());
+          payment.setLong(2, shiftId);
+          payment.setString(3, "COMPLETED");
+          payment.setString(4, "COP");
+          payment.setBigDecimal(5, paymentPlan.subtotal());
+          payment.setBigDecimal(6, BigDecimal.ZERO);
+          payment.setBigDecimal(7, paymentPlan.tip());
+          payment.setBigDecimal(8, paymentPlan.total());
+          payment.setBigDecimal(9, paymentPlan.tendered());
+          payment.setBigDecimal(10, paymentPlan.change());
+          payment.setString(11, receiptNumber(paymentPlan.orderId(), day));
+          payment.setLong(12, cashierFor(day));
+          payment.setString(13, "seed-pay-" + paymentPlan.orderId());
+          payment.setString(14, SeedMath.timestamp(paymentPlan.completedAt()));
+          payment.setString(15, SeedMath.timestamp(paymentPlan.completedAt()));
+          payment.executeUpdate();
+          long paymentId;
+          try (ResultSet keys = payment.getGeneratedKeys()) {
+            keys.next();
+            paymentId = keys.getLong(1);
+          }
+          int sortOrder = 0;
+          for (TenderPlan tenderPlan : paymentPlan.tenders()) {
+            tender.setLong(1, paymentId);
+            tender.setString(2, tenderPlan.method());
+            tender.setBigDecimal(3, tenderPlan.amount());
+            tender.setInt(4, sortOrder++);
+            tender.addBatch();
+          }
+        }
+      }
+      tender.executeBatch();
+    }
+
+    try (PreparedStatement open = connection.prepareStatement(shiftSql)) {
+      LocalDateTime openedAt =
+          now.toLocalTime().isBefore(LocalTime.of(8, 0))
+              ? anchor.atStartOfDay()
+              : anchor.atTime(8, 0);
+      long cashier = cashierFor(anchor);
+      open.setString(1, "OPEN");
+      open.setString(2, "COP");
+      open.setLong(3, cashier);
+      open.setString(4, SeedMath.timestamp(openedAt));
+      open.setNull(5, Types.BIGINT);
+      open.setNull(6, Types.TIMESTAMP);
+      open.setBigDecimal(7, SeedConstants.OPENING_FLOAT);
+      open.setNull(8, Types.DECIMAL);
+      open.setNull(9, Types.DECIMAL);
+      open.setNull(10, Types.DECIMAL);
+      open.setString(11, "Turno abierto del dataset determinista");
+      open.executeUpdate();
+    }
+  }
+
+  private PaymentPlan planPayment(SeedPlan.Order order) {
+    BigDecimal subtotal =
+        order.lines().stream()
+            .map(line -> BigDecimal.valueOf(line.unitPrice()))
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    boolean withTip =
+        SeedMath.modulo(SeedMath.crc(SeedConstants.SEED_STRING + ":tip:" + order.id()), 100) < 30;
+    BigDecimal tip =
+        withTip
+            ? roundToHundred(subtotal.multiply(new BigDecimal("0.10")))
+            : BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+    BigDecimal total = subtotal.add(tip).setScale(2, RoundingMode.HALF_UP);
+    long bucket =
+        SeedMath.modulo(SeedMath.crc(SeedConstants.SEED_STRING + ":method:" + order.id()), 100);
+    List<TenderPlan> tenders = new ArrayList<>();
+    BigDecimal tendered;
+    BigDecimal change;
+    if (bucket < 45) {
+      tendered = roundUpToFiveThousand(total);
+      change = tendered.subtract(total);
+      tenders.add(new TenderPlan("CASH", tendered));
+    } else if (bucket < 80) {
+      tendered = total;
+      change = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+      tenders.add(new TenderPlan("CARD", total));
+    } else if (bucket < 90) {
+      tendered = total;
+      change = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+      tenders.add(new TenderPlan("TRANSFER", total));
+    } else {
+      BigDecimal cash = roundDownToThousand(total.multiply(new BigDecimal("0.40")));
+      if (cash.signum() <= 0 || cash.compareTo(total) >= 0) {
+        cash = total;
+      }
+      tenders.add(new TenderPlan("CASH", cash));
+      BigDecimal card = total.subtract(cash);
+      if (card.signum() > 0) {
+        tenders.add(new TenderPlan("CARD", card));
+      }
+      tendered = total;
+      change = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+    }
+    return new PaymentPlan(
+        order.id(),
+        subtotal.setScale(2, RoundingMode.HALF_UP),
+        tip,
+        total,
+        tendered,
+        change,
+        tenders,
+        order.closeTime());
+  }
+
+  private BigDecimal expectedCash(List<PaymentPlan> plans) {
+    BigDecimal cash = BigDecimal.ZERO;
+    BigDecimal change = BigDecimal.ZERO;
+    for (PaymentPlan plan : plans) {
+      for (TenderPlan tender : plan.tenders()) {
+        if ("CASH".equals(tender.method())) {
+          cash = cash.add(tender.amount());
+        }
+      }
+      change = change.add(plan.change());
+    }
+    return SeedConstants.OPENING_FLOAT.add(cash).subtract(change).setScale(2, RoundingMode.HALF_UP);
+  }
+
+  private BigDecimal shiftAdjustment(LocalDate day) {
+    long value = SeedMath.modulo(SeedMath.crc(SeedConstants.SEED_STRING + ":shift:" + day), 3);
+    return BigDecimal.valueOf((value - 1) * 1_000L).setScale(2, RoundingMode.HALF_UP);
+  }
+
+  private long cashierFor(LocalDate day) {
+    return SeedMath.modulo(SeedMath.crc(SeedConstants.SEED_STRING + ":cashier:" + day), 2) == 0
+        ? SeedConstants.CASHIER_ONE
+        : SeedConstants.CASHIER_TWO;
+  }
+
+  private static String receiptNumber(long orderId, LocalDate day) {
+    return "R-"
+        + java.time.format.DateTimeFormatter.BASIC_ISO_DATE.format(day)
+        + "-"
+        + String.format(Locale.ROOT, "%06d", orderId % 1_000_000L);
+  }
+
+  private static BigDecimal roundUpToFiveThousand(BigDecimal value) {
+    BigDecimal unit = new BigDecimal("5000");
+    return value
+        .divide(unit, 0, RoundingMode.CEILING)
+        .multiply(unit)
+        .setScale(2, RoundingMode.HALF_UP);
+  }
+
+  private static BigDecimal roundDownToThousand(BigDecimal value) {
+    BigDecimal unit = new BigDecimal("1000");
+    return value
+        .divide(unit, 0, RoundingMode.FLOOR)
+        .multiply(unit)
+        .setScale(2, RoundingMode.HALF_UP);
+  }
+
+  private static BigDecimal roundToHundred(BigDecimal value) {
+    BigDecimal unit = new BigDecimal("100");
+    return value
+        .divide(unit, 0, RoundingMode.HALF_UP)
+        .multiply(unit)
+        .setScale(2, RoundingMode.HALF_UP);
+  }
+
+  private record TenderPlan(String method, BigDecimal amount) {}
+
+  private record PaymentPlan(
+      long orderId,
+      BigDecimal subtotal,
+      BigDecimal tip,
+      BigDecimal total,
+      BigDecimal tendered,
+      BigDecimal change,
+      List<TenderPlan> tenders,
+      LocalDateTime completedAt) {}
+
   private void writeSeedMetadata(SeedPlan plan) throws SQLException {
     String sql =
         "INSERT INTO system_configuration (`key`, value) VALUES (?,?) "
@@ -699,8 +1081,8 @@ final class SeedRunner {
     private void prepareStatements() throws SQLException {
       orderStatement =
           connection.prepareStatement(
-              "INSERT INTO orders (id, date, status, table_id, party_size, open_time, close_time) "
-                  + "VALUES (?,?,?,?,?,?,?)");
+              "INSERT INTO orders (id, date, status, table_id, party_size, open_time, close_time, "
+                  + "customer_phone, customer_fingerprint) VALUES (?,?,?,?,?,?,?,?,?)");
       detailStatement =
           connection.prepareStatement(
               "INSERT INTO order_details (id, order_id, product_id, unit_price, instructions) "
@@ -746,6 +1128,14 @@ final class SeedRunner {
         orderStatement.setNull(7, Types.TIMESTAMP);
       } else {
         orderStatement.setString(7, SeedMath.timestamp(order.closeTime()));
+      }
+      String phone = SeedMath.customerPhone(order.id());
+      if (phone == null) {
+        orderStatement.setNull(8, Types.VARCHAR);
+        orderStatement.setNull(9, Types.VARCHAR);
+      } else {
+        orderStatement.setString(8, phone);
+        orderStatement.setString(9, SeedMath.customerFingerprint(phone));
       }
       orderStatement.addBatch();
       if (++orderPending >= BATCH_SIZE) {

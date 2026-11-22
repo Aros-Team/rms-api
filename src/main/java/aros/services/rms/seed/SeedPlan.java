@@ -92,6 +92,21 @@ final class SeedPlan {
     return historicalOrders.stream().filter(Order::combo).count();
   }
 
+  /** Orders that carry a deterministic customer phone (cohort strategy PHONE_OR_TABLE). */
+  long historicalPhoneOrders() {
+    return historicalOrders.stream()
+        .filter(order -> SeedMath.customerPhone(order.id()) != null)
+        .count();
+  }
+
+  /** Historical orders whose business date falls in {@code [fromInclusive, toExclusive)}. */
+  List<Order> historicalOrdersBetween(LocalDate fromInclusive, LocalDate toExclusive) {
+    return historicalOrders.stream()
+        .filter(order -> !order.openTime().toLocalDate().isBefore(fromInclusive))
+        .filter(order -> order.openTime().toLocalDate().isBefore(toExclusive))
+        .toList();
+  }
+
   Map<Integer, Integer> productUnits() {
     return productUnits;
   }

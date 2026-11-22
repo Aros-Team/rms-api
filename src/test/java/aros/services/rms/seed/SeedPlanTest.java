@@ -136,6 +136,27 @@ class SeedPlanTest {
     }
   }
 
+  @Test
+  void customerIdentityIsDeterministicAndMostlyPhoneBased() {
+    SeedPlan plan = SeedPlan.history(ANCHOR);
+    long phones = plan.historicalPhoneOrders();
+    double coverage = (double) phones / plan.historicalOrdersCount();
+
+    // G4 uses 20/30 (66.67%); the demo stays in the same band so cohort is PHONE_OR_TABLE.
+    assertThat(coverage).isBetween(0.60, 0.72);
+    assertThat(phones).isLessThan(plan.historicalOrdersCount());
+
+    SeedPlan second = SeedPlan.history(ANCHOR);
+    assertThat(second.historicalPhoneOrders()).isEqualTo(phones);
+    for (SeedPlan.Order order : plan.historicalOrders()) {
+      String phone = SeedMath.customerPhone(order.id());
+      if (phone != null) {
+        assertThat(phone).matches("3\\d{9}");
+        assertThat(SeedMath.customerFingerprint(phone)).hasSize(64);
+      }
+    }
+  }
+
   private JsonNode fixture() throws Exception {
     try (InputStream stream =
         getClass().getClassLoader().getResourceAsStream("seed/golden/expected.json")) {
