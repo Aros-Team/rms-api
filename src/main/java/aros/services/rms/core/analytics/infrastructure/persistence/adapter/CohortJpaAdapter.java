@@ -68,7 +68,7 @@ public class CohortJpaAdapter implements CohortQueryPort {
       result.add(
           new CohortOrderRow(
               ((Number) row[0]).longValue(),
-              ((java.sql.Timestamp) row[1]).toLocalDateTime(),
+              toLocalDateTime(row[1]),
               (String) row[2],
               ((Number) row[3]).intValue() == 1,
               ((Number) row[4]).longValue(),
@@ -82,5 +82,24 @@ public class CohortJpaAdapter implements CohortQueryPort {
       return BigDecimal.ZERO;
     }
     return value instanceof BigDecimal decimal ? decimal : new BigDecimal(value.toString());
+  }
+
+  /**
+   * Converts the native date column to {@link LocalDateTime}.
+   *
+   * <p>Hibernate 6 returns {@link LocalDateTime} for native datetime columns; older drivers return
+   * {@link java.sql.Timestamp}. Accept both instead of casting to one and failing in production.
+   */
+  private static LocalDateTime toLocalDateTime(Object value) {
+    if (value instanceof LocalDateTime dateTime) {
+      return dateTime;
+    }
+    if (value instanceof java.sql.Timestamp timestamp) {
+      return timestamp.toLocalDateTime();
+    }
+    if (value instanceof java.util.Date date) {
+      return LocalDateTime.ofInstant(date.toInstant(), java.time.ZoneId.systemDefault());
+    }
+    throw new IllegalArgumentException("Unsupported date column type: " + value);
   }
 }
