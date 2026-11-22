@@ -166,6 +166,38 @@ class TakeOrderUseCaseImplTest {
   }
 
   @Test
+  void shouldPersistPartySizeAndOpenTime_whenOrderIsCreated() {
+    Table table = Table.builder().id(2L).status(TableStatus.AVAILABLE).build();
+    Product product =
+        Product.builder()
+            .id(2L)
+            .name("Soup")
+            .basePrice(new Money(BigDecimal.valueOf(8.0), Currency.getInstance("COP")))
+            .category(Category.builder().id(2L).name("Starters").build())
+            .build();
+
+    when(tableRepositoryPort.findById(2L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(2L)).thenReturn(Optional.of(product));
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(2L)
+            .partySize(4)
+            .details(List.of(TakeOrderCommand.OrderDetailCommand.builder().productId(2L).build()))
+            .build();
+
+    Order result = takeOrderUseCase.execute(command);
+
+    assertNotNull(result);
+    assertEquals(4, result.getPartySize());
+    assertNotNull(result.getOpenTime());
+    assertEquals(result.getDate(), result.getOpenTime());
+    org.junit.jupiter.api.Assertions.assertNull(result.getCloseTime());
+  }
+
+  @Test
   void shouldTakeOrderSuccessfully_whenProductHasNoOptionsProvided() {
     Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
     Product product =

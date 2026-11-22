@@ -12,7 +12,6 @@ import aros.services.rms.core.analytics.domain.port.out.MenuEngineeringCacheRepo
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -103,7 +102,7 @@ public class GetMenuEngineeringService implements GetMenuEngineeringUseCase {
     if (sourceVersion == null) {
       sourceVersion = "unknown";
     }
-    return new CacheStatus(Instant.now(), sourceVersion, TTL_SECONDS);
+    return new CacheStatus(cacheRepo.findLatestUpdatedAt(), sourceVersion, TTL_SECONDS);
   }
 
   private MenuEngineeringReport emptyReport(String bucket, String from, String to, String note) {

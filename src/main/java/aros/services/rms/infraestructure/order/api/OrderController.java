@@ -93,6 +93,7 @@ public class OrderController {
     TakeOrderCommand command =
         TakeOrderCommand.builder()
             .tableId(request.tableId())
+            .partySize(request.partySize())
             .details(
                 request.details().stream()
                     .map(
@@ -183,6 +184,7 @@ public class OrderController {
     TakeOrderCommand command =
         TakeOrderCommand.builder()
             .tableId(request.tableId())
+            .partySize(request.partySize())
             .details(
                 request.details().stream()
                     .map(

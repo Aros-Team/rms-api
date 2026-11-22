@@ -44,4 +44,11 @@ public interface MenuEngineeringCacheRepositoryPort {
    * @return the source version string, or null
    */
   String findLatestSourceVersion();
+
+  /**
+   * Returns the most recent cache refresh timestamp, or null when the cache is empty.
+   *
+   * @return the last {@code updated_at} value, or null
+   */
+  java.time.Instant findLatestUpdatedAt();
 }

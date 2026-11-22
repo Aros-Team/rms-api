@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TakeOrderCommand {
   private Long tableId;
+  private Integer partySize;
   private List<OrderDetailCommand> details;
 
   /**

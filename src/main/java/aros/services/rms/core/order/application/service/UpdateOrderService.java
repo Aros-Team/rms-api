@@ -29,6 +29,7 @@ import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
 import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Currency;
 import java.util.List;
@@ -114,6 +115,7 @@ public class UpdateOrderService implements UpdateOrderUseCase {
     }
 
     order.setStatus(OrderStatus.CANCELLED);
+    order.setCloseTime(LocalDateTime.now());
     Order savedOrder = orderRepositoryPort.save(order);
 
     if (order.getTable() != null) {
@@ -220,6 +222,12 @@ public class UpdateOrderService implements UpdateOrderUseCase {
     }
 
     order.setDetails(newDetails);
+    if (command.getPartySize() != null) {
+      order.setPartySize(command.getPartySize());
+    }
+    if (order.getOpenTime() == null) {
+      order.setOpenTime(order.getDate());
+    }
     Order savedOrder = orderRepositoryPort.save(order);
 
     try {

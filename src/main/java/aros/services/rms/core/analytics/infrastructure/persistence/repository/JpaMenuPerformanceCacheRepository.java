@@ -76,4 +76,12 @@ public interface JpaMenuPerformanceCacheRepository
    */
   @Query("SELECT MAX(m.sourceVersion) FROM MenuPerformanceCacheEntity m")
   String findLatestSourceVersion();
+
+  /**
+   * Finds the maximum updated_at from the cache.
+   *
+   * @return the latest timestamp, or null if the cache is empty
+   */
+  @Query("SELECT MAX(m.updatedAt) FROM MenuPerformanceCacheEntity m")
+  java.time.LocalDateTime findLatestUpdatedAt();
 }
