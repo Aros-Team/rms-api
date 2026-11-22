@@ -1,0 +1,14 @@
+/* (C) 2026 */
+
+package aros.services.rms.infraestructure.cashshift.api.dto;
+
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
+
+/**
+ * Request body to open a shift.
+ *
+ * @param openingFloat the cash float in the drawer
+ */
+public record OpenCashShiftRequest(@NotNull @DecimalMin(value = "0.00") BigDecimal openingFloat) {}
