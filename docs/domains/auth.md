@@ -46,8 +46,23 @@ El sistema de auth gestiona:
 
 ### Access Token
 - Duración: 1 hora (configurable)
-- Contiene: `sub` (email), `role`, `exp`
+- Contains: `sub` (email), `role` (`ADMIN` | `WORKER`), `areaIds`, `areaTypes`, `restricted`, `type`, `exp`
 - Se envía en: `Authorization: Bearer <token>`
+
+`areaTypes` carries the semantic area names (`SERVICE`, `BAR`, `KITCHEN`, `GRILL`, `CASH`) resolved from the worker's assigned areas at login. It lets method-security rules match on the area type instead of on database identifiers. Tokens issued before this claim existed have no `areaTypes`; affected workers must log in again to obtain a token with the claim.
+
+### Authorization model
+
+| Principal | Allowed |
+|---|---|
+| `ADMIN` | Payroll, system configuration, analytics, worker administration, catalog/config/inventory writes, schedules and time logs, any salary history |
+| `WORKER` + `SERVICE`/`BAR` | Order create/update/cancel, table read/status, product and option reads, order delivery |
+| `WORKER` + `KITCHEN`/`GRILL` | Order queue read, prepare, ready, delivery |
+| `WORKER` + `CASH` | Order read/delivery, table read |
+| Any valid access token | `GET /api/auth`, own schedule, own salary history, own password change |
+| Public | `/api/auth/**` (login, refresh, password recovery, setup), `/.well-known/jwks.json`, `GET /api/v1/special-selections/available` |
+
+Forbidden requests are answered with `403 application/problem+json`; they never fall through to validation (`400`) or a generic error (`500`).
 
 ### Refresh Token
 - Duración: 7 días

@@ -172,6 +172,10 @@ POST /api/v1/admin/special-selections/50/revert/2
 ## 7. Endpoints
 
 ### Admin
+All routes below require `ADMIN`, with one documented exception: `GET /{productId}` also
+accepts any authenticated `WORKER` until the waiter combo screen migrates to the public detail
+route (finding F-006). No other admin route is open to workers.
+
 | Método | Ruta | Descripción |
 |--------|------|-------------|
 | POST | `/api/v1/admin/special-selections` | Crear configuración |
@@ -180,17 +184,17 @@ POST /api/v1/admin/special-selections/50/revert/2
 | PATCH | `/api/v1/admin/special-selections/{productId}/active` | Activar/desactivar |
 | PUT | `/api/v1/admin/special-selections/{productId}/schedule` | Actualizar horario |
 | DELETE | `/api/v1/admin/special-selections/{productId}` | Eliminar |
-| GET | `/api/v1/admin/special-selections/{productId}` | Detalle |
+| GET | `/api/v1/admin/special-selections/{productId}` | Detalle (ADMIN or authenticated WORKER, transitional) |
 | GET | `/api/v1/admin/special-selections` | Listar todas |
 | GET | `/api/v1/admin/special-selections/{productId}/history` | Historial |
 | POST | `/api/v1/admin/special-selections/{productId}/revert/{version}` | Revertir |
 | POST | `/api/v1/admin/special-selections/{productId}/suggest-price` | Sugerir precio |
 
-### Público
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| GET | `/api/v1/special-selections/available` | Disponibles ahora |
-| GET | `/api/v1/special-selections/{productId}` | Configuración para venta |
+### Sales
+| Método | Ruta | Audiencia | Descripción |
+|--------|------|-----------|-------------|
+| GET | `/api/v1/special-selections/available` | Public | Disponibles ahora |
+| GET | `/api/v1/special-selections/{productId}` | Authenticated | Configuración para venta; replacement for the worker read of the admin detail route |
 
 ---
 

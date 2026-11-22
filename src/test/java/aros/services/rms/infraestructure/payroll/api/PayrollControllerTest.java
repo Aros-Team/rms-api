@@ -161,7 +161,7 @@ class PayrollControllerTest {
     mockMvc
         .perform(
             post("/api/v1/payroll")
-                .with(jwt())
+                .with(adminJwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
         .andExpect(status().isCreated())
@@ -190,7 +190,7 @@ class PayrollControllerTest {
     mockMvc
         .perform(
             post("/api/v1/payroll")
-                .with(jwt())
+                .with(adminJwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(invalidRequestJson))
         .andExpect(status().isBadRequest())
@@ -209,7 +209,7 @@ class PayrollControllerTest {
         .thenReturn(java.util.Optional.of(payroll));
 
     mockMvc
-        .perform(get("/api/v1/payroll/worker/1/2026/7").with(jwt()))
+        .perform(get("/api/v1/payroll/worker/1/2026/7").with(adminJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.id").value(1))
         .andExpect(jsonPath("$.data.userId").value(1))
@@ -228,7 +228,7 @@ class PayrollControllerTest {
     mockMvc
         .perform(
             patch("/api/v1/payroll/1")
-                .with(jwt())
+                .with(adminJwt())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"status\":\"ACCRUED\"}"))
         .andExpect(status().isOk())
@@ -246,11 +246,15 @@ class PayrollControllerTest {
     when(listPayrollsUseCase.findAll()).thenReturn(List.of(p1, p2));
 
     mockMvc
-        .perform(get("/api/v1/payroll").with(jwt()))
+        .perform(get("/api/v1/payroll").with(adminJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.length()").value(2))
         .andExpect(jsonPath("$.data[0].id").value(1))
         .andExpect(jsonPath("$.data[1].id").value(2));
+  }
+
+  private static org.springframework.test.web.servlet.request.RequestPostProcessor adminJwt() {
+    return jwt().jwt(builder -> builder.subject("admin@test.com").claim("role", "ADMIN"));
   }
 
   // ---------------------------------------------------------------------------

@@ -16,6 +16,9 @@ import aros.services.rms.infraestructure.common.dto.PageResponse;
 import aros.services.rms.infraestructure.order.api.dto.OrderResponse;
 import aros.services.rms.infraestructure.order.api.dto.OrderResponseMapper;
 import aros.services.rms.infraestructure.order.api.dto.TakeOrderRequest;
+import aros.services.rms.infraestructure.share.security.JustKitchenOrAdmin;
+import aros.services.rms.infraestructure.share.security.JustOperationsStaff;
+import aros.services.rms.infraestructure.share.security.JustWaiterOrAdmin;
 import aros.services.rms.infraestructure.table.api.TableNotificationService;
 import aros.services.rms.infraestructure.table.api.dto.TableResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -85,6 +88,7 @@ public class OrderController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
+  @JustWaiterOrAdmin
   public ResponseEntity<OrderResponse> takeOrder(@Valid @RequestBody TakeOrderRequest request) {
     TakeOrderCommand command =
         TakeOrderCommand.builder()
@@ -136,6 +140,7 @@ public class OrderController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/cancel")
+  @JustWaiterOrAdmin
   public ResponseEntity<OrderResponse> cancelOrder(
       @Parameter(description = "Order ID", example = "1", required = true) @PathVariable Long id) {
     Order order = updateOrderUseCase.cancel(id);
@@ -171,6 +176,7 @@ public class OrderController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
+  @JustWaiterOrAdmin
   public ResponseEntity<OrderResponse> updateOrder(
       @Parameter(description = "Order ID", example = "1", required = true) @PathVariable Long id,
       @Valid @RequestBody TakeOrderRequest request) {
@@ -218,6 +224,7 @@ public class OrderController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/prepare")
+  @JustKitchenOrAdmin
   public ResponseEntity<OrderResponse> prepareNextOrder() {
     Order order = preparationUseCase.processNextOrder();
     OrderResponse response = orderResponseMapper.toResponse(order);
@@ -250,6 +257,7 @@ public class OrderController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/ready")
+  @JustKitchenOrAdmin
   public ResponseEntity<OrderResponse> markOrderAsReady(
       @Parameter(description = "Order ID", example = "1", required = true) @PathVariable Long id) {
     Order order = markAsReadyUseCase.markAsReady(id);
@@ -283,6 +291,7 @@ public class OrderController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/deliver")
+  @JustOperationsStaff
   public ResponseEntity<OrderResponse> deliverOrder(
       @Parameter(description = "Order ID", example = "1", required = true) @PathVariable Long id) {
     Order order = deliveryUseCase.markAsDelivered(id);
@@ -327,6 +336,7 @@ public class OrderController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @GetMapping
+  @JustOperationsStaff
   public ResponseEntity<PageResponse<OrderResponse>> getOrders(
       @Parameter(
               description = "Order status filter (QUEUE, PREPARING, READY, DELIVERED, CANCELLED)",

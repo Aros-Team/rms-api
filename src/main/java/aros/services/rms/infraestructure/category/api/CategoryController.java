@@ -6,6 +6,8 @@ import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.category.port.input.CategoryUseCase;
 import aros.services.rms.infraestructure.category.api.dto.CategoryRequest;
 import aros.services.rms.infraestructure.category.api.dto.CategoryResponse;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
+import aros.services.rms.infraestructure.share.security.JustWorkerOrAdmin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(
     name = "Categories",
     description = "Operations for managing menu product categories and their enabled status")
+@JustWorkerOrAdmin
 public class CategoryController {
 
   private final CategoryUseCase categoryUseCase;
@@ -55,6 +58,7 @@ public class CategoryController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
+  @JustAdminUser
   public ResponseEntity<CategoryResponse> create(@Valid @RequestBody CategoryRequest request) {
     Category category =
         Category.builder().name(request.name()).description(request.description()).build();
@@ -83,6 +87,7 @@ public class CategoryController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
+  @JustAdminUser
   public ResponseEntity<CategoryResponse> update(
       @Parameter(description = "Category ID", example = "1", required = true) @PathVariable Long id,
       @Valid @RequestBody CategoryRequest request) {
@@ -172,6 +177,7 @@ public class CategoryController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/toggle")
+  @JustAdminUser
   public ResponseEntity<CategoryResponse> toggleEnabled(
       @Parameter(description = "Category ID", example = "1", required = true) @PathVariable
           Long id) {

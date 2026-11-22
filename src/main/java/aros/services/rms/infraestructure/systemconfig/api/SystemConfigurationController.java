@@ -6,6 +6,7 @@ import aros.services.rms.core.systemconfig.domain.SystemConfiguration;
 import aros.services.rms.core.systemconfig.domain.SystemConfigurationGroup;
 import aros.services.rms.core.systemconfig.domain.port.input.GetSystemConfigurationUseCase;
 import aros.services.rms.core.systemconfig.domain.port.input.UpdateSystemConfigurationUseCase;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
 import aros.services.rms.infraestructure.systemconfig.api.dto.ConfigEntryRequest;
 import aros.services.rms.infraestructure.systemconfig.api.dto.ConfigEntryResponse;
 import aros.services.rms.infraestructure.systemconfig.api.dto.ConfigGroupResponse;
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(
     name = "System Configuration",
     description = "Operations for managing application configuration")
+@JustAdminUser
 public class SystemConfigurationController {
 
   private final GetSystemConfigurationUseCase getSystemConfigurationUseCase;

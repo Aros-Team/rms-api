@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 /** Security annotation for admin or worker access. */
-@Target({ElementType.METHOD})
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @PreAuthorize("principal.claims['role'] == 'ADMIN' or principal.claims['role'] == 'WORKER'")
 public @interface JustWorkerOrAdmin {}

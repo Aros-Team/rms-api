@@ -23,6 +23,7 @@ import aros.services.rms.infraestructure.inventory.persistence.jpa.SupplyCategor
 import aros.services.rms.infraestructure.inventory.persistence.jpa.SupplyRepository;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.SupplyVariantRepository;
 import aros.services.rms.infraestructure.inventory.persistence.jpa.UnitOfMeasureRepository;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -55,6 +56,7 @@ import org.springframework.web.bind.annotation.RestController;
     description =
         "Operations for managing the supply catalog: supplies, variants, categories,"
             + " and units of measure")
+@JustAdminUser
 public class SupplyCatalogController {
 
   private final SupplyRepository supplyRepository;

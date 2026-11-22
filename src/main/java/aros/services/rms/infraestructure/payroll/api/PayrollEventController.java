@@ -15,6 +15,7 @@ import aros.services.rms.infraestructure.payroll.api.dto.PayrollCalculateRequest
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollCalculateResponse;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollEventRequest;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollEventResponse;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -39,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/payroll/events")
 @RequiredArgsConstructor
 @Tag(name = "Payroll Events", description = "Manage payroll events (overtime, bonuses, deductions)")
+@JustAdminUser
 public class PayrollEventController {
 
   private final RegisterPayrollEventUseCase registerEvent;

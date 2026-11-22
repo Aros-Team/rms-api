@@ -7,6 +7,8 @@ import aros.services.rms.core.area.domain.AreaType;
 import aros.services.rms.core.area.port.input.AreaUseCase;
 import aros.services.rms.infraestructure.area.api.dto.AreaRequest;
 import aros.services.rms.infraestructure.area.api.dto.AreaResponse;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
+import aros.services.rms.infraestructure.share.security.JustWorkerOrAdmin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -33,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(
     name = "Areas",
     description = "Operations for managing restaurant preparation areas and their enabled status")
+@JustWorkerOrAdmin
 public class AreaController {
 
   private final AreaUseCase areaUseCase;
@@ -56,6 +59,7 @@ public class AreaController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
+  @JustAdminUser
   public ResponseEntity<AreaResponse> create(@Valid @RequestBody AreaRequest request) {
     Area area =
         Area.builder()
@@ -87,6 +91,7 @@ public class AreaController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
+  @JustAdminUser
   public ResponseEntity<AreaResponse> update(
       @Parameter(description = "Area ID", example = "1", required = true) @PathVariable Long id,
       @Valid @RequestBody AreaRequest request) {
@@ -178,6 +183,7 @@ public class AreaController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/toggle")
+  @JustAdminUser
   public ResponseEntity<AreaResponse> toggleEnabled(
       @Parameter(description = "Area ID", example = "1", required = true) @PathVariable Long id) {
     Area area = areaUseCase.toggleEnabled(id);

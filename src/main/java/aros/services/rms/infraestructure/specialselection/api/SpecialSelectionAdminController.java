@@ -20,6 +20,8 @@ import aros.services.rms.core.specialselection.port.input.UpdateSpecialSelection
 import aros.services.rms.core.specialselection.port.input.UpdateSpecialSelectionPriceUseCase;
 import aros.services.rms.core.specialselection.port.input.UpdateSpecialSelectionScheduleUseCase;
 import aros.services.rms.core.specialselection.port.input.UpdateSpecialSelectionUseCase;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
+import aros.services.rms.infraestructure.share.security.JustWorkerOrAdmin;
 import aros.services.rms.infraestructure.specialselection.api.dto.SpecialSelectionHistoryResponse;
 import aros.services.rms.infraestructure.specialselection.api.dto.SpecialSelectionPricePatchRequest;
 import aros.services.rms.infraestructure.specialselection.api.dto.SpecialSelectionRequest;
@@ -63,6 +65,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(
     name = "Special Selections (Admin)",
     description = "Admin operations for managing special selection combo configurations")
+@JustAdminUser
 public class SpecialSelectionAdminController {
 
   private final CreateSpecialSelectionUseCase createUseCase;
@@ -216,7 +219,11 @@ public class SpecialSelectionAdminController {
    * @param productId the product identifier
    * @return the configuration wrapped in a 200 response
    */
+  // TODO: F-006 - the waiter combo screen still reads this admin route. Keep the single
+  // detail read open to authenticated workers until the frontend switches to
+  // GET /api/v1/special-selections/{productId}. Do not open any other admin route.
   @GetMapping("/{productId}")
+  @JustWorkerOrAdmin
   @Operation(
       summary = "Get special selection configuration",
       description = "Returns the full configuration for a product")

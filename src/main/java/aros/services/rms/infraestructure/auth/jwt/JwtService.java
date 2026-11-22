@@ -14,11 +14,16 @@ public interface JwtService {
    * @param username the username
    * @param role the user role
    * @param areas the list of area IDs
+   * @param areaTypes the area type names assigned to the user (SERVICE, KITCHEN, ...)
    * @param restricted whether the user has restricted access (outside shift)
    * @return the access token
    */
   String generateAccessToken(
-      String username, UserRole role, List<AreaId> areas, boolean restricted);
+      String username,
+      UserRole role,
+      List<AreaId> areas,
+      List<String> areaTypes,
+      boolean restricted);
 
   /**
    * Generates a refresh token.

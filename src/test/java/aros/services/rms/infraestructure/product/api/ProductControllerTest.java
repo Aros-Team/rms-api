@@ -122,7 +122,7 @@ class ProductControllerTest {
         .thenReturn(new PageImpl<>(List.of(burger), pageable, 1));
 
     mockMvc
-        .perform(get("/api/v1/products").param("search", "burger").with(jwt()))
+        .perform(get("/api/v1/products").param("search", "burger").with(workerJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.content").isArray())
         .andExpect(jsonPath("$.data.content.length()").value(1))
@@ -148,7 +148,7 @@ class ProductControllerTest {
         .thenReturn(new PageImpl<>(List.of(soda), pageable, 1));
 
     mockMvc
-        .perform(get("/api/v1/products").param("search", "carbonatada").with(jwt()))
+        .perform(get("/api/v1/products").param("search", "carbonatada").with(workerJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.content[0].id").value(2))
         .andExpect(jsonPath("$.data.content[0].name").value("Gaseosa 350ml"))
@@ -171,7 +171,7 @@ class ProductControllerTest {
         .thenReturn(new PageImpl<>(List.of(burger), pageable, 1));
 
     mockMvc
-        .perform(get("/api/v1/products").param("search", "hamburguesas").with(jwt()))
+        .perform(get("/api/v1/products").param("search", "hamburguesas").with(workerJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.content[0].id").value(3))
         .andExpect(jsonPath("$.data.content[0].categoryName").value("Hamburguesas"))
@@ -193,7 +193,7 @@ class ProductControllerTest {
         .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
     mockMvc
-        .perform(get("/api/v1/products").param("search", "nonexistent").with(jwt()))
+        .perform(get("/api/v1/products").param("search", "nonexistent").with(workerJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.content").isArray())
         .andExpect(jsonPath("$.data.content").isEmpty())
@@ -216,7 +216,7 @@ class ProductControllerTest {
         .thenReturn(new PageImpl<>(List.of(burger, drink), pageable, 2));
 
     mockMvc
-        .perform(get("/api/v1/products").with(jwt()))
+        .perform(get("/api/v1/products").with(workerJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.content.length()").value(2))
         .andExpect(jsonPath("$.data.content[0].name").value("Burger"))
@@ -241,7 +241,10 @@ class ProductControllerTest {
 
     mockMvc
         .perform(
-            get("/api/v1/products").param("search", "burger").param("categories", "7").with(jwt()))
+            get("/api/v1/products")
+                .param("search", "burger")
+                .param("categories", "7")
+                .with(workerJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.content[0].id").value(4))
         .andExpect(jsonPath("$.data.page.totalElements").value(1));
@@ -267,7 +270,7 @@ class ProductControllerTest {
             get("/api/v1/products")
                 .param("search", "burger")
                 .param("includeInactive", "true")
-                .with(jwt()))
+                .with(workerJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.content[0].id").value(5))
         .andExpect(jsonPath("$.data.page.totalElements").value(1));
@@ -287,12 +290,23 @@ class ProductControllerTest {
         .thenReturn(new PageImpl<>(List.of(burger), pageable, 1));
 
     mockMvc
-        .perform(get("/api/v1/products").param("search", "").with(jwt()))
+        .perform(get("/api/v1/products").param("search", "").with(workerJwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.content.length()").value(1));
 
     verify(productUseCase).findAllActive(any(Pageable.class), eq(false));
     verify(productUseCase, never()).search(any(), any(), anyBoolean(), anyBoolean(), any());
+  }
+
+  private static org.springframework.test.web.servlet.request.RequestPostProcessor workerJwt() {
+    return jwt()
+        .jwt(
+            builder ->
+                builder
+                    .subject("worker@test.com")
+                    .claim("type", "access")
+                    .claim("role", "WORKER")
+                    .claim("areaTypes", List.of("SERVICE")));
   }
 
   private static Product product(Long id, String name, String description, String categoryName) {

@@ -5,6 +5,7 @@ package aros.services.rms.infraestructure.inventory.api;
 import aros.services.rms.core.inventory.port.input.TransferInventoryUseCase;
 import aros.services.rms.infraestructure.inventory.api.dto.TransferRequest;
 import aros.services.rms.infraestructure.inventory.api.dto.TransferResponse;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(
     name = "Inventory",
     description = "Operations for transferring supply stock between storage locations")
+@JustAdminUser
 public class InventoryTransferController {
 
   private final TransferInventoryUseCase transferInventoryUseCase;

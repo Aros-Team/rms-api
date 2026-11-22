@@ -190,6 +190,7 @@ public class SecurityConfig {
                           "/health",
                           "/metrics/**",
                           "/api/v1/images/local/**",
+                          "/api/v1/special-selections/available",
                           "/.well-known/jwks.json")
                       .permitAll()
                       .anyRequest()
@@ -216,6 +217,7 @@ public class SecurityConfig {
                           "/health/**",
                           "/health",
                           "/metrics/**",
+                          "/api/v1/special-selections/available",
                           "/.well-known/jwks.json")
                       .permitAll()
                       .anyRequest()

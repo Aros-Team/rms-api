@@ -25,6 +25,8 @@ import aros.services.rms.infraestructure.product.api.dto.ProductOptionResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductRequest;
 import aros.services.rms.infraestructure.product.api.dto.ProductResponse;
 import aros.services.rms.infraestructure.product.api.dto.RecipeItemRequest;
+import aros.services.rms.infraestructure.share.security.JustAdminUser;
+import aros.services.rms.infraestructure.share.security.JustWorkerOrAdmin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -62,6 +64,7 @@ import org.springframework.web.bind.annotation.RestController;
     name = "Products",
     description =
         "Operations for managing restaurant menu products, their recipes, options and lifecycle")
+@JustWorkerOrAdmin
 public class ProductController {
 
   private final ProductUseCase productUseCase;
@@ -96,6 +99,7 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PostMapping
+  @JustAdminUser
   public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request) {
     List<ProductRecipe> recipe = mapRecipe(request.recipe());
     Product product =
@@ -136,6 +140,7 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}")
+  @JustAdminUser
   public ResponseEntity<ProductResponse> update(
       @Parameter(description = "Product ID", example = "1", required = true) @PathVariable Long id,
       @Valid @RequestBody ProductRequest request) {
@@ -368,6 +373,7 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/disable")
+  @JustAdminUser
   public ResponseEntity<ProductResponse> disable(
       @Parameter(description = "Product ID", example = "1", required = true) @PathVariable
           Long id) {
@@ -393,6 +399,7 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/enable")
+  @JustAdminUser
   public ResponseEntity<ProductResponse> enable(
       @Parameter(description = "Product ID", example = "1", required = true) @PathVariable
           Long id) {
