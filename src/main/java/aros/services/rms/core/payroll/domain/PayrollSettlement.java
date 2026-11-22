@@ -2,7 +2,7 @@
 
 package aros.services.rms.core.payroll.domain;
 
-import java.math.BigDecimal;
+import aros.services.rms.core.common.money.domain.Money;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -27,7 +27,7 @@ public record PayrollSettlement(
     SettlementType settlementType,
     LocalDate periodStart,
     LocalDate periodEnd,
-    BigDecimal amount,
+    Money amount,
     String notes,
     Instant settledAt,
     String settledBy) {
@@ -51,7 +51,7 @@ public record PayrollSettlement(
       SettlementType settlementType,
       LocalDate periodStart,
       LocalDate periodEnd,
-      BigDecimal amount,
+      Money amount,
       String notes,
       String settledBy) {
     return new PayrollSettlement(
@@ -65,5 +65,40 @@ public record PayrollSettlement(
         notes,
         null,
         settledBy);
+  }
+
+  /**
+   * Returns whether this settlement is positive.
+   *
+   * @return true when the amount is greater than zero
+   */
+  public boolean isPositive() {
+    return amount.isPositive();
+  }
+
+  /**
+   * Returns whether the settlement dates fall inside the payroll period.
+   *
+   * @param payroll the payroll to compare against
+   * @return true when both dates are inside the payroll period and ordered correctly
+   */
+  public boolean fallsWithin(Payroll payroll) {
+    if (periodStart == null || periodEnd == null || periodEnd.isBefore(periodStart)) {
+      return false;
+    }
+    return !periodStart.isBefore(payroll.periodStart()) && !periodEnd.isAfter(payroll.periodEnd());
+  }
+
+  /**
+   * Returns whether this settlement period overlaps another settlement period.
+   *
+   * <p>Settlements of the same payroll may not overlap, which also makes a repeated identical
+   * payment for the same period a rejected duplicate instead of a double count.
+   *
+   * @param other the other settlement
+   * @return true when the two date ranges intersect
+   */
+  public boolean overlaps(PayrollSettlement other) {
+    return !periodEnd.isBefore(other.periodStart()) && !other.periodEnd().isBefore(periodStart);
   }
 }

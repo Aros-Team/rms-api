@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.payroll.domain.PayrollCalculationResult;
 import aros.services.rms.core.payroll.domain.PayrollEvent;
 import aros.services.rms.core.payroll.domain.PayrollEventType;
@@ -25,11 +26,13 @@ import aros.services.rms.core.payroll.domain.port.input.CalculatePayrollEventUse
 import aros.services.rms.core.payroll.domain.port.input.DeletePayrollEventUseCase;
 import aros.services.rms.core.payroll.domain.port.input.ListPayrollEventsUseCase;
 import aros.services.rms.core.payroll.domain.port.input.RegisterPayrollEventUseCase;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.common.exception.GlobalExceptionHandler;
 import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Currency;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,12 +80,15 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import({PayrollEventControllerTest.TestSecurityConfig.class, GlobalExceptionHandler.class})
 class PayrollEventControllerTest {
 
+  private static final Currency COP = Currency.getInstance("COP");
+
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private RegisterPayrollEventUseCase registerEvent;
   @MockitoBean private ListPayrollEventsUseCase listEvents;
   @MockitoBean private DeletePayrollEventUseCase deleteEvent;
   @MockitoBean private CalculatePayrollEventUseCase calculateEvent;
+  @MockitoBean private CurrencyProvider currencyProvider;
   @MockitoBean private JwtDecoder jwtDecoder;
 
   @org.springframework.boot.test.context.TestConfiguration
@@ -109,10 +115,10 @@ class PayrollEventControllerTest {
         new PayrollCalculationResult(
             1L,
             "OVERTIME",
-            new BigDecimal("15625"),
+            money("15625"),
             new BigDecimal("1.5"),
-            new BigDecimal("23437.50"),
-            new BigDecimal("58593.75"));
+            money("23437.50"),
+            money("58593.75"));
 
     when(calculateEvent.calculate(eq(1L), eq("OVERTIME"), any(BigDecimal.class)))
         .thenReturn(result);
@@ -135,7 +141,7 @@ class PayrollEventControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.userId").value(1))
         .andExpect(jsonPath("$.data.eventType").value("OVERTIME"))
-        .andExpect(jsonPath("$.data.hourlyRate.amount").value("15625"))
+        .andExpect(jsonPath("$.data.hourlyRate.amount").value("15625.00"))
         .andExpect(jsonPath("$.data.multiplier").value(1.5))
         .andExpect(jsonPath("$.data.suggestedUnitRate.amount").value("23437.50"))
         .andExpect(jsonPath("$.data.suggestedAmount.amount").value("58593.75"));
@@ -148,8 +154,7 @@ class PayrollEventControllerTest {
   @Test
   void calculate_bonusPerformance_returnsNullMultiplier() throws Exception {
     PayrollCalculationResult result =
-        new PayrollCalculationResult(
-            1L, "BONUS_PERFORMANCE", new BigDecimal("15625"), null, null, null);
+        new PayrollCalculationResult(1L, "BONUS_PERFORMANCE", money("15625"), null, null, null);
 
     when(calculateEvent.calculate(eq(1L), eq("BONUS_PERFORMANCE"), any(BigDecimal.class)))
         .thenReturn(result);
@@ -172,7 +177,7 @@ class PayrollEventControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.userId").value(1))
         .andExpect(jsonPath("$.data.eventType").value("BONUS_PERFORMANCE"))
-        .andExpect(jsonPath("$.data.hourlyRate.amount").value("15625"))
+        .andExpect(jsonPath("$.data.hourlyRate.amount").value("15625.00"))
         .andExpect(jsonPath("$.data.multiplier").doesNotExist())
         .andExpect(jsonPath("$.data.suggestedUnitRate").doesNotExist())
         .andExpect(jsonPath("$.data.suggestedAmount").doesNotExist());
@@ -238,13 +243,14 @@ class PayrollEventControllerTest {
             LocalDate.of(2026, 8, 1),
             PayrollEventType.OVERTIME,
             new BigDecimal("2.5"),
-            new BigDecimal("23437.50"),
-            new BigDecimal("58593.75"),
+            money("23437.50"),
+            money("58593.75"),
             "Weekend extra",
             Instant.parse("2026-08-01T10:00:00Z"),
             "system");
 
     when(registerEvent.execute(any())).thenReturn(saved);
+    when(currencyProvider.getCurrency()).thenReturn(COP);
 
     String requestJson =
         """
@@ -287,8 +293,8 @@ class PayrollEventControllerTest {
             LocalDate.of(2026, 8, 5),
             PayrollEventType.OVERTIME,
             new BigDecimal("2.5"),
-            new BigDecimal("23437.50"),
-            new BigDecimal("58593.75"),
+            money("23437.50"),
+            money("58593.75"),
             null,
             Instant.parse("2026-08-05T10:00:00Z"),
             "admin");
@@ -300,8 +306,8 @@ class PayrollEventControllerTest {
             LocalDate.of(2026, 8, 20),
             PayrollEventType.BONUS_ATTENDANCE,
             new BigDecimal("1"),
-            new BigDecimal("7812.50"),
-            new BigDecimal("7812.50"),
+            money("7812.50"),
+            money("7812.50"),
             "Perfect attendance",
             Instant.parse("2026-08-20T10:00:00Z"),
             "admin");
@@ -403,5 +409,75 @@ class PayrollEventControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.length()").value(0));
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-12: should_return_not_found_when_no_payroll_for_event
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void should_return_not_found_when_no_payroll_for_event() throws Exception {
+    when(currencyProvider.getCurrency()).thenReturn(COP);
+    when(registerEvent.execute(any()))
+        .thenThrow(
+            new aros.services.rms.core.payroll.domain.exception.PayrollNotFoundException(
+                "No payroll for user 1 in period 2026-08"));
+
+    String requestJson =
+        """
+        {
+          "userId": 1,
+          "eventDate": "2026-08-01",
+          "eventType": "OVERTIME",
+          "quantity": 2,
+          "unitRate": 10000
+        }
+        """;
+
+    mockMvc
+        .perform(
+            post("/api/v1/payroll/events")
+                .with(jwt())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson))
+        .andExpect(status().isNotFound())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-13: should_return_conflict_when_payroll_is_paid
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void should_return_conflict_when_payroll_is_paid() throws Exception {
+    when(currencyProvider.getCurrency()).thenReturn(COP);
+    when(registerEvent.execute(any()))
+        .thenThrow(
+            new aros.services.rms.core.payroll.domain.exception.PayrollImmutableException(
+                1L, "PAID"));
+
+    String requestJson =
+        """
+        {
+          "userId": 1,
+          "eventDate": "2026-08-01",
+          "eventType": "OVERTIME",
+          "quantity": 2,
+          "unitRate": 10000
+        }
+        """;
+
+    mockMvc
+        .perform(
+            post("/api/v1/payroll/events")
+                .with(jwt())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson))
+        .andExpect(status().isConflict())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+  }
+
+  private Money money(String amount) {
+    return new Money(new BigDecimal(amount), COP);
   }
 }

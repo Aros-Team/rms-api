@@ -2,13 +2,19 @@
 
 package aros.services.rms.infraestructure.payroll.persistence.jpa;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.payroll.domain.PayrollEvent;
 import aros.services.rms.core.payroll.domain.PayrollEventType;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /** Mapper for PayrollEvent persistence operations. */
 @Component
+@RequiredArgsConstructor
 public class PayrollEventMapper {
+
+  private final CurrencyProvider currencyProvider;
 
   /**
    * Converts a PayrollEventEntity to a PayrollEvent domain object.
@@ -26,8 +32,8 @@ public class PayrollEventMapper {
         entity.getEventDate(),
         PayrollEventType.valueOf(entity.getEventType()),
         entity.getQuantity(),
-        entity.getUnitRate(),
-        entity.getAmount(),
+        new Money(entity.getUnitRate(), currencyProvider.getCurrency()),
+        new Money(entity.getAmount(), currencyProvider.getCurrency()),
         entity.getNotes(),
         entity.getCreatedAt(),
         entity.getCreatedBy());
@@ -49,8 +55,8 @@ public class PayrollEventMapper {
         .eventDate(domain.eventDate())
         .eventType(domain.eventType().name())
         .quantity(domain.quantity())
-        .unitRate(domain.unitRate())
-        .amount(domain.amount())
+        .unitRate(domain.unitRate().amount())
+        .amount(domain.amount().amount())
         .notes(domain.notes())
         .createdBy(domain.createdBy())
         .build();

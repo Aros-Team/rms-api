@@ -271,6 +271,8 @@ class PayrollControllerTest {
         new Money(new BigDecimal("2500000"), COP),
         new Money(new BigDecimal("200000"), COP),
         new Money(new BigDecimal("150000"), COP),
+        new Money(new BigDecimal("200000"), COP),
+        new Money(new BigDecimal("150000"), COP),
         new Money(netAmount, COP),
         Money.zero(COP),
         new BigDecimal("192"),
