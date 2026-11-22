@@ -2,9 +2,14 @@
 
 package aros.services.rms.seed;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.zip.CRC32;
 
 /**
@@ -19,11 +24,14 @@ final class SeedMath {
     2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 6, 6, 6, 8
   };
 
+  /** Number of distinct phone identities in the deterministic customer pool. */
+  private static final long CUSTOMER_POOL = 45_000L;
+
   private SeedMath() {}
 
   static long crc(String value) {
     CRC32 crc = new CRC32();
-    crc.update(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    crc.update(value.getBytes(StandardCharsets.UTF_8));
     return crc.getValue();
   }
 
@@ -162,5 +170,37 @@ final class SeedMath {
 
   static boolean isWeekend(DayOfWeek dayOfWeek) {
     return dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY;
+  }
+
+  /**
+   * Deterministic phone number for an order, or {@code null} for a walk-in.
+   *
+   * <p>Roughly two thirds of the orders carry a phone number, matching the 20/30 coverage of the
+   * cohort golden fixture (G4). The remaining third falls back to the table fingerprint, which is
+   * what makes the cohort report return {@code PHONE_OR_TABLE}. Identities come from a fixed pool,
+   * so repeat visits are deterministic and the recurring rate stays realistic.
+   *
+   * @param orderId reserved deterministic order id
+   * @return a normalized 10-digit Colombian mobile number, or {@code null}
+   */
+  static String customerPhone(long orderId) {
+    if (modulo(crc(SeedConstants.SEED_STRING + ":phone:" + orderId), 100) >= 66) {
+      return null;
+    }
+    long index = crc(SeedConstants.SEED_STRING + ":customer:" + orderId) % CUSTOMER_POOL;
+    return String.format(Locale.ROOT, "3%09d", 100_000_000L + index);
+  }
+
+  /** SHA-256 hex of the normalized phone, identical to MySQL {@code SHA2(phone, 256)}. */
+  static String customerFingerprint(String phone) {
+    if (phone == null) {
+      return null;
+    }
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      return HexFormat.of().formatHex(digest.digest(phone.getBytes(StandardCharsets.UTF_8)));
+    } catch (NoSuchAlgorithmException exception) {
+      throw new IllegalStateException("SHA-256 is not available", exception);
+    }
   }
 }

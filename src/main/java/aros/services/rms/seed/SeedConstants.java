@@ -46,6 +46,15 @@ final class SeedConstants {
   static final BigDecimal FOH_LABOR = new BigDecimal("14400000.00");
   static final BigDecimal BOH_LABOR = new BigDecimal("19100000.00");
 
+  /** Days of closed cash shifts / payments behind the anchor day (P3-BE-PAY-08). */
+  static final int PAYMENT_HISTORY_DAYS = 30;
+
+  /** Drawer float used by every seeded cash shift. */
+  static final BigDecimal OPENING_FLOAT = new BigDecimal("200000.00");
+
+  static final long CASHIER_ONE = 1013L;
+  static final long CASHIER_TWO = 1014L;
+
   private static final int[] BASE_BY_DOW = {78, 74, 82, 92, 118, 132, 106};
   private static final int[] SEASON_BY_MONTH = {
     90, 92, 96, 100, 105, 102, 98, 95, 97, 104, 110, 115

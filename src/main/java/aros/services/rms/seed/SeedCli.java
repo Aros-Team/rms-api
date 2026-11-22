@@ -102,7 +102,11 @@ public final class SeedCli {
             "monthly_financial_summary",
             "menu_performance_cache",
             "payroll",
-            "time_logs")) {
+            "time_logs",
+            "system_alerts",
+            "cash_shifts",
+            "payments",
+            "payment_tenders")) {
       try (Statement statement = connection.createStatement();
           ResultSet rows = statement.executeQuery("SELECT COUNT(*) FROM " + table)) {
         rows.next();
