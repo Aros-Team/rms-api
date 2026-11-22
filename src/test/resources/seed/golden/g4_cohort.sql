@@ -1,0 +1,3 @@
+-- G4 — cohort golden fixture (2027-01): 30 orders, 18 new fingerprints, 12 recurring,
+-- 20 orders with phone (66.67%), 10 fingerprinted by table, sales 1,500,000, 60 covers.
+-- Expected response is in expected.json (fingerprintStrategy PHONE_OR_TABLE, PARTIAL).
