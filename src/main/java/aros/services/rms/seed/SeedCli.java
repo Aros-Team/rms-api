@@ -106,7 +106,10 @@ public final class SeedCli {
             "system_alerts",
             "cash_shifts",
             "payments",
-            "payment_tenders")) {
+            "payment_tenders",
+            "suppliers",
+            "purchase_orders",
+            "purchase_order_items")) {
       try (Statement statement = connection.createStatement();
           ResultSet rows = statement.executeQuery("SELECT COUNT(*) FROM " + table)) {
         rows.next();

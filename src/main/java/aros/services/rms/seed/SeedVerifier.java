@@ -316,6 +316,150 @@ final class SeedVerifier {
             scalar(
                 "SELECT COUNT(*) FROM cash_shifts WHERE status = 'CLOSED' AND "
                     + "difference_amount <> counted_cash - expected_cash")));
+
+    // P4-INV-06/07: deterministic suppliers, purchase orders and a reconciled stock ledger.
+    long activeSuppliers =
+        SeedConstants.SUPPLIERS.stream().filter(SeedConstants.SupplierSpec::active).count();
+    checks.add(
+        check(
+            "suppliers", SeedConstants.SUPPLIERS.size(), scalar("SELECT COUNT(*) FROM suppliers")));
+    checks.add(
+        check(
+            "active suppliers",
+            activeSuppliers,
+            scalar("SELECT COUNT(*) FROM suppliers WHERE active = TRUE")));
+    checks.add(
+        check(
+            "purchase orders",
+            SeedConstants.PURCHASE_ORDER_COUNT,
+            scalar("SELECT COUNT(*) FROM purchase_orders")));
+    checks.add(
+        check(
+            "received purchase orders",
+            SeedConstants.RECEIVED_PURCHASE_ORDERS,
+            scalar("SELECT COUNT(*) FROM purchase_orders WHERE notes LIKE 'RECIBIDA%'")));
+    checks.add(
+        check(
+            "confirmed purchase orders",
+            SeedConstants.CONFIRMED_PURCHASE_ORDERS,
+            scalar("SELECT COUNT(*) FROM purchase_orders WHERE notes LIKE 'CONFIRMADA%'")));
+    checks.add(
+        check(
+            "purchase statuses valid",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM purchase_orders WHERE notes IS NULL "
+                    + "OR (notes NOT LIKE 'RECIBIDA%' AND notes NOT LIKE 'CONFIRMADA%')")));
+    checks.add(
+        check(
+            "purchase items present",
+            1,
+            scalar("SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END FROM purchase_order_items")));
+    checks.add(
+        check(
+            "purchase quantities valid",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM purchase_order_items WHERE quantity_ordered <= 0 "
+                    + "OR quantity_received < 0 OR quantity_received > quantity_ordered")));
+    checks.add(
+        check(
+            "purchase item total matches order",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM purchase_orders po WHERE po.total_amount <> "
+                    + "(SELECT COALESCE(SUM(i.quantity_ordered * i.unit_price),0) "
+                    + "FROM purchase_order_items i WHERE i.purchase_order_id = po.id)")));
+    checks.add(
+        check(
+            "purchase money",
+            1,
+            scalar(
+                "SELECT CASE WHEN COALESCE(SUM(total_amount),0) > 0 THEN 1 ELSE 0 END "
+                    + "FROM purchase_orders")));
+    checks.add(
+        check(
+            "no orphan purchase items",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM purchase_order_items i LEFT JOIN purchase_orders po "
+                    + "ON po.id = i.purchase_order_id WHERE po.id IS NULL")));
+    checks.add(
+        check(
+            "received quantities applied",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM purchase_orders po WHERE po.notes LIKE 'RECIBIDA%' "
+                    + "AND EXISTS (SELECT 1 FROM purchase_order_items i "
+                    + "WHERE i.purchase_order_id = po.id "
+                    + "AND i.quantity_received <> i.quantity_ordered)")));
+    checks.add(
+        check(
+            "confirmed quantities pending",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM purchase_orders po WHERE po.notes LIKE 'CONFIRMADA%' "
+                    + "AND EXISTS (SELECT 1 FROM purchase_order_items i "
+                    + "WHERE i.purchase_order_id = po.id AND i.quantity_received <> 0)")));
+    checks.add(
+        check(
+            "received orders with stock entry",
+            SeedConstants.RECEIVED_PURCHASE_ORDERS,
+            scalar(
+                "SELECT COUNT(DISTINCT reference_purchase_order_id) FROM inventory_movements "
+                    + "WHERE movement_type = 'PURCHASE'")));
+    checks.add(
+        check(
+            "purchase movements match items",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM (SELECT purchase_order_id, supply_variant_id FROM ("
+                    + "SELECT i.purchase_order_id, i.supply_variant_id, "
+                    + "i.quantity_received AS qty "
+                    + "FROM purchase_order_items i "
+                    + "JOIN purchase_orders po ON po.id = i.purchase_order_id "
+                    + "WHERE po.notes LIKE 'RECIBIDA%' "
+                    + "UNION ALL SELECT m.reference_purchase_order_id, m.supply_variant_id, "
+                    + "-m.quantity FROM inventory_movements m "
+                    + "WHERE m.movement_type = 'PURCHASE') all_rows "
+                    + "GROUP BY purchase_order_id, supply_variant_id "
+                    + "HAVING SUM(qty) <> 0) mismatches")));
+    checks.add(
+        check(
+            "no purchase on anchor day",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM inventory_movements WHERE movement_type = 'PURCHASE' "
+                    + "AND created_at >= '"
+                    + anchor
+                    + " 00:00:00'")));
+    checks.add(
+        check(
+            "stock ledger matches movements",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM inventory_stock s LEFT JOIN ("
+                    + "SELECT supply_variant_id, storage_location_id, SUM(delta) AS net FROM ("
+                    + "SELECT supply_variant_id, to_storage_location_id AS storage_location_id, "
+                    + "quantity AS delta FROM inventory_movements "
+                    + "WHERE to_storage_location_id IS NOT NULL "
+                    + "UNION ALL SELECT supply_variant_id, from_storage_location_id, -quantity "
+                    + "FROM inventory_movements WHERE from_storage_location_id IS NOT NULL) flows "
+                    + "GROUP BY supply_variant_id, storage_location_id) m "
+                    + "ON m.supply_variant_id = s.supply_variant_id "
+                    + "AND m.storage_location_id = s.storage_location_id "
+                    + "WHERE s.current_quantity <> COALESCE(m.net, 0)")));
+    checks.add(
+        check(
+            "transfers cover consumption",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM (SELECT supply_variant_id, "
+                    + "SUM(CASE WHEN movement_type = 'TRANSFER' THEN quantity "
+                    + "ELSE -quantity END) AS net "
+                    + "FROM inventory_movements "
+                    + "WHERE movement_type IN ('TRANSFER','DEDUCTION') "
+                    + "GROUP BY supply_variant_id HAVING net < 0) deficits")));
     return checks;
   }
 
