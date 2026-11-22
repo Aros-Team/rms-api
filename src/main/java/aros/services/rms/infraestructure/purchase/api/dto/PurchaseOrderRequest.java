@@ -24,7 +24,11 @@ public record PurchaseOrderRequest(
             example = "2026-04-02T10:30:00")
         @NotNull(message = "purchasedAt is required")
         LocalDateTime purchasedAt,
-    @Schema(description = "Total amount paid to the supplier", example = "120000.00")
+    @Schema(
+            description =
+                "Total amount paid to the supplier. Kept for compatibility; the server "
+                    + "recomputes the authoritative total from the line items.",
+            example = "120000.00")
         @NotNull(message = "totalAmount is required")
         @DecimalMin(value = "0.00", inclusive = true, message = "totalAmount must be >= 0")
         BigDecimal totalAmount,

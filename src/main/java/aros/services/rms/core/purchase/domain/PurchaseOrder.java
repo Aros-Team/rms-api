@@ -22,6 +22,7 @@ public class PurchaseOrder {
   private Long registeredById;
   private LocalDateTime purchasedAt;
   @Builder.Default private Money totalAmount = Money.zeroDefault();
+  @Builder.Default private PurchaseStatus status = PurchaseStatus.CONFIRMED;
   private String notes;
   private LocalDateTime createdAt;
   private List<PurchaseOrderItem> items;

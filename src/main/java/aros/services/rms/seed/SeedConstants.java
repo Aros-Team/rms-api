@@ -99,11 +99,17 @@ final class SeedConstants {
   static final int CONFIRMED_PURCHASE_ORDERS = 1;
 
   /**
-   * Purchase status tokens. The schema has no status column, so the token prefixes {@code notes}.
+   * Legacy purchase status tokens. V61 promotes the status to a typed column; the seed still writes
+   * these prefixes to {@code notes} so older clients and the status-token checks keep working.
    */
-  static final String PURCHASE_STATUS_RECEIVED = "RECIBIDA";
+  static final String PURCHASE_NOTES_RECEIVED = "RECIBIDA";
 
-  static final String PURCHASE_STATUS_CONFIRMED = "CONFIRMADA";
+  static final String PURCHASE_NOTES_CONFIRMED = "CONFIRMADA";
+
+  /** Typed purchase status values persisted in {@code purchase_orders.status} (V61). */
+  static final String PURCHASE_ORDER_STATUS_RECEIVED = "RECEIVED";
+
+  static final String PURCHASE_ORDER_STATUS_CONFIRMED = "CONFIRMED";
 
   /**
    * Deterministic supplier master. {@code categoryIds} and {@code supplyIds} describe what each

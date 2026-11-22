@@ -33,6 +33,11 @@ import aros.services.rms.core.payroll.domain.port.output.PayrollRepositoryPort;
 import aros.services.rms.core.payroll.domain.port.output.PayrollSettlementRepositoryPort;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
+import aros.services.rms.infraestructure.payroll.transaction.TransactionalDeletePayrollEventService;
+import aros.services.rms.infraestructure.payroll.transaction.TransactionalRegisterPayrollEventService;
+import aros.services.rms.infraestructure.payroll.transaction.TransactionalRegisterSettlementService;
+import aros.services.rms.infraestructure.payroll.transaction.TransactionalUpdatePayrollService;
+import aros.services.rms.infraestructure.payroll.transaction.TransactionalVoidSettlementService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -47,13 +52,14 @@ public class PayrollConfigBeans {
     return new RegisterPayrollService(payrollRepositoryPort, logger);
   }
 
-  /** Creates bean for payroll update use case. */
+  /** Creates bean for payroll update use case, wrapped in a transaction. */
   @Bean
   public UpdatePayrollUseCase updatePayrollUseCase(
       PayrollRepositoryPort payrollRepositoryPort,
       PayrollAggregationService payrollAggregationService,
       Logger logger) {
-    return new UpdatePayrollService(payrollRepositoryPort, payrollAggregationService, logger);
+    return new TransactionalUpdatePayrollService(
+        new UpdatePayrollService(payrollRepositoryPort, payrollAggregationService, logger));
   }
 
   /** Creates the shared payroll aggregation service. */
@@ -86,15 +92,16 @@ public class PayrollConfigBeans {
     return new DeletePayrollService(payrollRepositoryPort, logger);
   }
 
-  /** Creates bean for payroll event registration use case. */
+  /** Creates bean for payroll event registration use case, wrapped in a transaction. */
   @Bean
   public RegisterPayrollEventUseCase registerPayrollEventUseCase(
       PayrollEventRepositoryPort eventRepository,
       PayrollRepositoryPort payrollRepository,
       PayrollAggregationService payrollAggregationService,
       Logger logger) {
-    return new RegisterPayrollEventService(
-        eventRepository, payrollRepository, payrollAggregationService, logger);
+    return new TransactionalRegisterPayrollEventService(
+        new RegisterPayrollEventService(
+            eventRepository, payrollRepository, payrollAggregationService, logger));
   }
 
   /** Creates bean for payroll event listing use case. */
@@ -104,15 +111,16 @@ public class PayrollConfigBeans {
     return new ListPayrollEventsService(eventRepository, logger);
   }
 
-  /** Creates bean for payroll event deletion use case. */
+  /** Creates bean for payroll event deletion use case, wrapped in a transaction. */
   @Bean
   public DeletePayrollEventUseCase deletePayrollEventUseCase(
       PayrollEventRepositoryPort eventRepository,
       PayrollRepositoryPort payrollRepository,
       PayrollAggregationService payrollAggregationService,
       Logger logger) {
-    return new DeletePayrollEventService(
-        eventRepository, payrollRepository, payrollAggregationService, logger);
+    return new TransactionalDeletePayrollEventService(
+        new DeletePayrollEventService(
+            eventRepository, payrollRepository, payrollAggregationService, logger));
   }
 
   /** Creates bean for payroll event calculation use case. */
@@ -122,26 +130,28 @@ public class PayrollConfigBeans {
     return new CalculatePayrollEventService(userRepositoryPort, currencyProvider);
   }
 
-  /** Creates bean for settlement registration use case. */
+  /** Creates bean for settlement registration use case, wrapped in a transaction. */
   @Bean
   public RegisterSettlementUseCase registerSettlementUseCase(
       PayrollSettlementRepositoryPort settlementRepository,
       PayrollRepositoryPort payrollRepository,
       PayrollAggregationService payrollAggregationService,
       Logger logger) {
-    return new RegisterSettlementService(
-        settlementRepository, payrollRepository, payrollAggregationService, logger);
+    return new TransactionalRegisterSettlementService(
+        new RegisterSettlementService(
+            settlementRepository, payrollRepository, payrollAggregationService, logger));
   }
 
-  /** Creates bean for settlement voiding use case. */
+  /** Creates bean for settlement voiding use case, wrapped in a transaction. */
   @Bean
   public VoidSettlementUseCase voidSettlementUseCase(
       PayrollSettlementRepositoryPort settlementRepository,
       PayrollRepositoryPort payrollRepository,
       PayrollAggregationService payrollAggregationService,
       Logger logger) {
-    return new VoidSettlementService(
-        settlementRepository, payrollRepository, payrollAggregationService, logger);
+    return new TransactionalVoidSettlementService(
+        new VoidSettlementService(
+            settlementRepository, payrollRepository, payrollAggregationService, logger));
   }
 
   /** Creates bean for settlement listing use case. */

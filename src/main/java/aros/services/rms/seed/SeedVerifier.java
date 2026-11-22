@@ -337,15 +337,45 @@ final class SeedVerifier {
         check(
             "received purchase orders",
             SeedConstants.RECEIVED_PURCHASE_ORDERS,
-            scalar("SELECT COUNT(*) FROM purchase_orders WHERE notes LIKE 'RECIBIDA%'")));
+            scalar(
+                "SELECT COUNT(*) FROM purchase_orders WHERE status = '"
+                    + SeedConstants.PURCHASE_ORDER_STATUS_RECEIVED
+                    + "'")));
     checks.add(
         check(
             "confirmed purchase orders",
             SeedConstants.CONFIRMED_PURCHASE_ORDERS,
-            scalar("SELECT COUNT(*) FROM purchase_orders WHERE notes LIKE 'CONFIRMADA%'")));
+            scalar(
+                "SELECT COUNT(*) FROM purchase_orders WHERE status = '"
+                    + SeedConstants.PURCHASE_ORDER_STATUS_CONFIRMED
+                    + "'")));
     checks.add(
         check(
             "purchase statuses valid",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM purchase_orders WHERE status IS NULL OR status NOT IN ('"
+                    + SeedConstants.PURCHASE_ORDER_STATUS_RECEIVED
+                    + "','"
+                    + SeedConstants.PURCHASE_ORDER_STATUS_CONFIRMED
+                    + "')")));
+    checks.add(
+        check(
+            "purchase status matches received quantity",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM purchase_orders po WHERE "
+                    + "(po.status = '"
+                    + SeedConstants.PURCHASE_ORDER_STATUS_RECEIVED
+                    + "' AND NOT EXISTS (SELECT 1 FROM purchase_order_items i "
+                    + "WHERE i.purchase_order_id = po.id AND i.quantity_received > 0)) "
+                    + "OR (po.status = '"
+                    + SeedConstants.PURCHASE_ORDER_STATUS_CONFIRMED
+                    + "' AND EXISTS (SELECT 1 FROM purchase_order_items i "
+                    + "WHERE i.purchase_order_id = po.id AND i.quantity_received > 0))")));
+    checks.add(
+        check(
+            "purchase notes tokens present",
             0,
             scalar(
                 "SELECT COUNT(*) FROM purchase_orders WHERE notes IS NULL "
@@ -389,8 +419,9 @@ final class SeedVerifier {
             "received quantities applied",
             0,
             scalar(
-                "SELECT COUNT(*) FROM purchase_orders po WHERE po.notes LIKE 'RECIBIDA%' "
-                    + "AND EXISTS (SELECT 1 FROM purchase_order_items i "
+                "SELECT COUNT(*) FROM purchase_orders po WHERE po.status = '"
+                    + SeedConstants.PURCHASE_ORDER_STATUS_RECEIVED
+                    + "' AND EXISTS (SELECT 1 FROM purchase_order_items i "
                     + "WHERE i.purchase_order_id = po.id "
                     + "AND i.quantity_received <> i.quantity_ordered)")));
     checks.add(
@@ -398,8 +429,9 @@ final class SeedVerifier {
             "confirmed quantities pending",
             0,
             scalar(
-                "SELECT COUNT(*) FROM purchase_orders po WHERE po.notes LIKE 'CONFIRMADA%' "
-                    + "AND EXISTS (SELECT 1 FROM purchase_order_items i "
+                "SELECT COUNT(*) FROM purchase_orders po WHERE po.status = '"
+                    + SeedConstants.PURCHASE_ORDER_STATUS_CONFIRMED
+                    + "' AND EXISTS (SELECT 1 FROM purchase_order_items i "
                     + "WHERE i.purchase_order_id = po.id AND i.quantity_received <> 0)")));
     checks.add(
         check(
@@ -418,7 +450,9 @@ final class SeedVerifier {
                     + "i.quantity_received AS qty "
                     + "FROM purchase_order_items i "
                     + "JOIN purchase_orders po ON po.id = i.purchase_order_id "
-                    + "WHERE po.notes LIKE 'RECIBIDA%' "
+                    + "WHERE po.status = '"
+                    + SeedConstants.PURCHASE_ORDER_STATUS_RECEIVED
+                    + "' "
                     + "UNION ALL SELECT m.reference_purchase_order_id, m.supply_variant_id, "
                     + "-m.quantity FROM inventory_movements m "
                     + "WHERE m.movement_type = 'PURCHASE') all_rows "

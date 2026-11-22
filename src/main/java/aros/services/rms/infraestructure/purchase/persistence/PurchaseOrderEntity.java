@@ -2,10 +2,13 @@
 
 package aros.services.rms.infraestructure.purchase.persistence;
 
+import aros.services.rms.core.purchase.domain.PurchaseStatus;
 import aros.services.rms.infraestructure.user.persistence.jpa.UserEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -49,6 +52,11 @@ public class PurchaseOrderEntity {
 
   @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
   private BigDecimal totalAmount;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  @Builder.Default
+  private PurchaseStatus status = PurchaseStatus.CONFIRMED;
 
   @Column(length = 500)
   private String notes;

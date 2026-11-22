@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
+import aros.services.rms.core.purchase.domain.PurchaseStatus;
 import aros.services.rms.core.purchase.port.input.GetPurchaseHistoryUseCase;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.common.dto.ApiEnvelopeAdvice;
@@ -138,6 +139,24 @@ class PurchaseOrderControllerTest {
 
     verify(getPurchaseHistoryUseCase).findBySupplierId(7L);
     verify(getPurchaseHistoryUseCase, never()).findBySearch(anyString());
+  }
+
+  @Test
+  void shouldReturn200_withTypedPurchaseStatus() throws Exception {
+    PurchaseOrder order =
+        PurchaseOrder.builder()
+            .id(13L)
+            .supplierId(1L)
+            .notes("RECIBIDA · Compra semanal")
+            .status(PurchaseStatus.RECEIVED)
+            .build();
+    when(getPurchaseHistoryUseCase.findAll()).thenReturn(List.of(order));
+
+    mockMvc
+        .perform(get("/api/v1/purchases"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data[0].status").value("RECEIVED"))
+        .andExpect(jsonPath("$.data[0].notes").value("RECIBIDA · Compra semanal"));
   }
 
   private static PurchaseOrder purchaseOrder(Long id, Long supplierId, String notes) {

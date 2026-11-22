@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.purchase.persistence.jpa;
 
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.purchase.domain.PurchaseOrder;
+import aros.services.rms.core.purchase.domain.PurchaseStatus;
 import aros.services.rms.infraestructure.purchase.persistence.PurchaseOrderEntity;
 import aros.services.rms.infraestructure.purchase.persistence.SupplierEntity;
 import aros.services.rms.infraestructure.user.persistence.jpa.UserEntity;
@@ -45,6 +46,9 @@ public class PurchaseOrderMapper {
         .registeredById(entity.getRegisteredBy() != null ? entity.getRegisteredBy().getId() : null)
         .purchasedAt(entity.getPurchasedAt())
         .totalAmount(new Money(entity.getTotalAmount(), currency))
+        .status(
+            PurchaseStatus.fromPersisted(
+                entity.getStatus() != null ? entity.getStatus().name() : null))
         .notes(entity.getNotes())
         .createdAt(entity.getCreatedAt())
         .items(
@@ -71,6 +75,7 @@ public class PurchaseOrderMapper {
             .id(domain.getId())
             .purchasedAt(domain.getPurchasedAt())
             .totalAmount(domain.getTotalAmount().amount())
+            .status(domain.getStatus() != null ? domain.getStatus() : PurchaseStatus.CONFIRMED)
             .notes(domain.getNotes())
             // createdAt is set by the server on insert; never trust the domain value
             .createdAt(domain.getCreatedAt() != null ? domain.getCreatedAt() : LocalDateTime.now())
