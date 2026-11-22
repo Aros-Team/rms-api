@@ -7,6 +7,7 @@ import aros.services.rms.core.payroll.domain.port.output.PayrollSettlementReposi
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -32,6 +33,18 @@ public class PayrollSettlementPersistenceAdapter implements PayrollSettlementRep
     return repository.findByUserIdAndPeriodStartBetween(userId, startDate, endDate).stream()
         .map(mapper::toDomain)
         .toList();
+  }
+
+  /** Finds a settlement by id. */
+  @Override
+  public Optional<PayrollSettlement> findById(Long id) {
+    return repository.findById(id).map(mapper::toDomain);
+  }
+
+  /** Deletes a settlement by id. */
+  @Override
+  public void deleteById(Long id) {
+    repository.deleteById(id);
   }
 
   /** Finds all settlements for a given payroll record. */

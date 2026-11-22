@@ -47,16 +47,16 @@ public class CalculatePayrollEventService implements CalculatePayrollEventUseCas
 
     BigDecimal multiplier = type.getMultiplier();
     if (multiplier == null) {
-      return new PayrollCalculationResult(userId, eventType, hourlyRate.amount(), null, null, null);
+      return new PayrollCalculationResult(userId, eventType, hourlyRate, null, null, null);
     }
 
-    BigDecimal suggestedUnitRate = hourlyRate.amount().multiply(multiplier);
-    BigDecimal suggestedAmount = null;
+    Money suggestedUnitRate = hourlyRate.times(multiplier);
+    Money suggestedAmount = null;
     if (quantity != null) {
-      suggestedAmount = suggestedUnitRate.multiply(quantity);
+      suggestedAmount = suggestedUnitRate.times(quantity);
     }
 
     return new PayrollCalculationResult(
-        userId, eventType, hourlyRate.amount(), multiplier, suggestedUnitRate, suggestedAmount);
+        userId, eventType, hourlyRate, multiplier, suggestedUnitRate, suggestedAmount);
   }
 }

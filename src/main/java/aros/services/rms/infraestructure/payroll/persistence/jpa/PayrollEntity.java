@@ -42,8 +42,14 @@ public class PayrollEntity {
   @Column(nullable = false)
   private BigDecimal bonuses;
 
+  @Column(name = "manual_bonuses", nullable = false)
+  private BigDecimal manualBonuses;
+
   @Column(nullable = false)
   private BigDecimal deductions;
+
+  @Column(name = "manual_deductions", nullable = false)
+  private BigDecimal manualDeductions;
 
   @Column(name = "net_amount", nullable = false)
   private BigDecimal netAmount;
@@ -132,12 +138,28 @@ public class PayrollEntity {
     this.bonuses = bonuses;
   }
 
+  public BigDecimal getManualBonuses() {
+    return manualBonuses;
+  }
+
+  public void setManualBonuses(BigDecimal manualBonuses) {
+    this.manualBonuses = manualBonuses;
+  }
+
   public BigDecimal getDeductions() {
     return deductions;
   }
 
   public void setDeductions(BigDecimal deductions) {
     this.deductions = deductions;
+  }
+
+  public BigDecimal getManualDeductions() {
+    return manualDeductions;
+  }
+
+  public void setManualDeductions(BigDecimal manualDeductions) {
+    this.manualDeductions = manualDeductions;
   }
 
   public BigDecimal getNetAmount() {

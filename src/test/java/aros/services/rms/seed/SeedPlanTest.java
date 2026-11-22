@@ -157,6 +157,28 @@ class SeedPlanTest {
     }
   }
 
+  @Test
+  void supplierMasterIsCompleteAndDeterministic() {
+    assertThat(SeedConstants.SUPPLIERS).hasSize(12);
+    assertThat(SeedConstants.SUPPLIERS)
+        .extracting(SeedConstants.SupplierSpec::id)
+        .doesNotHaveDuplicates();
+    assertThat(SeedConstants.SUPPLIERS).filteredOn(supplier -> supplier.active()).hasSize(11);
+    assertThat(
+            SeedConstants.SUPPLIERS.stream()
+                .filter(supplier -> !supplier.active())
+                .map(SeedConstants.SupplierSpec::name)
+                .toList())
+        .containsExactly("Distribuidora Andina de Insumos");
+
+    for (SeedConstants.SupplierSpec supplier : SeedConstants.SUPPLIERS) {
+      assertThat(supplier.name()).isNotBlank();
+      assertThat(supplier.contact()).contains("+57").contains("·");
+    }
+    assertThat(SeedConstants.RECEIVED_PURCHASE_ORDERS + SeedConstants.CONFIRMED_PURCHASE_ORDERS)
+        .isEqualTo(SeedConstants.PURCHASE_ORDER_COUNT);
+  }
+
   private JsonNode fixture() throws Exception {
     try (InputStream stream =
         getClass().getClassLoader().getResourceAsStream("seed/golden/expected.json")) {

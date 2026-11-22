@@ -2,13 +2,14 @@
 
 package aros.services.rms.core.payroll.domain;
 
+import aros.services.rms.core.common.money.domain.Money;
 import java.math.BigDecimal;
 
 /** Result of a payroll event rate calculation. */
 public record PayrollCalculationResult(
     Long userId,
     String eventType,
-    BigDecimal hourlyRate,
+    Money hourlyRate,
     BigDecimal multiplier,
-    BigDecimal suggestedUnitRate,
-    BigDecimal suggestedAmount) {}
+    Money suggestedUnitRate,
+    Money suggestedAmount) {}

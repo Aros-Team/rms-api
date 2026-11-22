@@ -6,17 +6,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.payroll.domain.PayrollSettlement;
 import aros.services.rms.core.payroll.domain.SettlementType;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Currency;
 import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link PayrollSettlementMapper}. */
 class PayrollSettlementMapperTest {
 
-  private final PayrollSettlementMapper mapper = new PayrollSettlementMapper();
+  private static final Currency COP = Currency.getInstance("COP");
+  private final PayrollSettlementMapper mapper = new PayrollSettlementMapper(() -> COP);
 
   // ---------------------------------------------------------------------------
   // UC-01: should_map_entity_to_domain
@@ -47,7 +50,8 @@ class PayrollSettlementMapperTest {
     assertEquals(SettlementType.MONTHLY, domain.settlementType());
     assertEquals(LocalDate.of(2026, 8, 1), domain.periodStart());
     assertEquals(LocalDate.of(2026, 8, 31), domain.periodEnd());
-    assertEquals(0, new BigDecimal("2500000").compareTo(domain.amount()));
+    assertEquals(0, new BigDecimal("2500000").compareTo(domain.amount().amount()));
+    assertEquals(COP, domain.amount().currency());
     assertEquals("August salary", domain.notes());
     assertEquals(Instant.parse("2026-08-31T12:00:00Z"), domain.settledAt());
     assertEquals("admin", domain.settledBy());
@@ -67,7 +71,7 @@ class PayrollSettlementMapperTest {
             SettlementType.BIWEEKLY,
             LocalDate.of(2026, 8, 1),
             LocalDate.of(2026, 8, 15),
-            new BigDecimal("1250000"),
+            money("1250000"),
             "Half month",
             Instant.parse("2026-08-15T10:00:00Z"),
             "manager");
@@ -118,7 +122,7 @@ class PayrollSettlementMapperTest {
             SettlementType.WEEKLY,
             LocalDate.of(2026, 9, 1),
             LocalDate.of(2026, 9, 7),
-            new BigDecimal("500000"),
+            money("500000"),
             "Weekly pay",
             Instant.parse("2026-09-07T16:00:00Z"),
             "finance");
@@ -133,7 +137,7 @@ class PayrollSettlementMapperTest {
     assertEquals(original.settlementType(), roundtripped.settlementType());
     assertEquals(original.periodStart(), roundtripped.periodStart());
     assertEquals(original.periodEnd(), roundtripped.periodEnd());
-    assertEquals(0, original.amount().compareTo(roundtripped.amount()));
+    assertEquals(0, original.amount().amount().compareTo(roundtripped.amount().amount()));
     assertEquals(original.notes(), roundtripped.notes());
     assertEquals(original.settledBy(), roundtripped.settledBy());
   }
@@ -161,5 +165,9 @@ class PayrollSettlementMapperTest {
 
     assertNotNull(domain);
     assertNull(domain.notes());
+  }
+
+  private Money money(String amount) {
+    return new Money(new BigDecimal(amount), COP);
   }
 }

@@ -2,6 +2,7 @@
 
 package aros.services.rms.infraestructure.payroll.api;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.payroll.domain.PayrollCalculationResult;
 import aros.services.rms.core.payroll.domain.PayrollEvent;
 import aros.services.rms.core.payroll.domain.PayrollEventType;
@@ -9,6 +10,7 @@ import aros.services.rms.core.payroll.domain.port.input.CalculatePayrollEventUse
 import aros.services.rms.core.payroll.domain.port.input.DeletePayrollEventUseCase;
 import aros.services.rms.core.payroll.domain.port.input.ListPayrollEventsUseCase;
 import aros.services.rms.core.payroll.domain.port.input.RegisterPayrollEventUseCase;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.user.application.exception.UserNotFoundException;
 import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import aros.services.rms.infraestructure.payroll.api.dto.PayrollCalculateRequest;
@@ -47,6 +49,7 @@ public class PayrollEventController {
   private final ListPayrollEventsUseCase listEvents;
   private final DeletePayrollEventUseCase deleteEvent;
   private final CalculatePayrollEventUseCase calculateEvent;
+  private final CurrencyProvider currencyProvider;
 
   /**
    * Registers a new payroll event.
@@ -74,7 +77,7 @@ public class PayrollEventController {
             request.eventDate(),
             PayrollEventType.valueOf(request.eventType()),
             request.quantity(),
-            request.unitRate(),
+            new Money(request.unitRate(), currencyProvider.getCurrency()),
             request.notes(),
             "system");
     PayrollEvent saved = registerEvent.execute(event);

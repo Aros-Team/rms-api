@@ -92,16 +92,126 @@ final class SeedConstants {
   static final List<Long> PAYROLL_ADMINS = List.of(1007L, 1008L);
   static final List<Long> QA_USERS = List.of(1009L, 1010L);
 
-  static final List<String> SUPPLIER_NAMES =
+  /** Purchase demo depth (P4-INV-06/07): 12 suppliers, 60 orders over the 180-day window. */
+  static final int PURCHASE_ORDER_COUNT = 60;
+
+  static final int RECEIVED_PURCHASE_ORDERS = 59;
+  static final int CONFIRMED_PURCHASE_ORDERS = 1;
+
+  /**
+   * Purchase status tokens. The schema has no status column, so the token prefixes {@code notes}.
+   */
+  static final String PURCHASE_STATUS_RECEIVED = "RECIBIDA";
+
+  static final String PURCHASE_STATUS_CONFIRMED = "CONFIRMADA";
+
+  /**
+   * Deterministic supplier master. {@code categoryIds} and {@code supplyIds} describe what each
+   * supplier sells; {@code excludedSupplyIds} removes a supply that belongs to another vendor (the
+   * seafood vendor owns the shrimp that also sits in the protein category). One supplier is
+   * inactive so the UI can exercise the inactive state.
+   */
+  static final List<SupplierSpec> SUPPLIERS =
       List.of(
-          "Distribuidora El Trigal",
-          "Cárnicos La Estancia",
-          "Frutas del Quindío",
-          "Lácteos del Valle",
-          "Bebidas Andinas",
-          "Licores del Eje",
-          "Empaques Cartón S.A.",
-          "Mariscos del Pacífico");
+          new SupplierSpec(
+              1,
+              "Distribuidora El Trigal",
+              "Cra. 19 #22-14, Armenia, Quindío · +57 606 745 1234 · pedidos@eltrigal.co",
+              true,
+              List.of(5, 6, 9, 13, 14),
+              List.of(),
+              List.of()),
+          new SupplierSpec(
+              2,
+              "Cárnicos La Estancia",
+              "Calle 8 #14-52, Armenia, Quindío · +57 606 741 8820 · ventas@laestancia.co",
+              true,
+              List.of(1, 7),
+              List.of(),
+              List.of(6L)),
+          new SupplierSpec(
+              3,
+              "Frutas del Quindío",
+              "Km 3 vía Armenia–Calarcá, Quindío · +57 315 482 7710 · pedidos@frutasquindio.co",
+              true,
+              List.of(2, 8),
+              List.of(),
+              List.of()),
+          new SupplierSpec(
+              4,
+              "Lácteos del Valle",
+              "Cra. 5 #31-08, Cali, Valle del Cauca · +57 602 485 3311 · comercial@lacteosvalle.co",
+              true,
+              List.of(3),
+              List.of(),
+              List.of()),
+          new SupplierSpec(
+              5,
+              "Bebidas Andinas",
+              "Calle 26 #68-41, Bogotá D.C. · +57 601 412 9080 · distribucion@bebidasandinas.co",
+              true,
+              List.of(15),
+              List.of(),
+              List.of()),
+          new SupplierSpec(
+              6,
+              "Licores del Eje",
+              "Cra. 23 #18-77, Pereira, Risaralda · +57 606 344 2100 · ventas@licoreseje.co",
+              true,
+              List.of(16),
+              List.of(),
+              List.of()),
+          new SupplierSpec(
+              7,
+              "Empaques Cartón S.A.",
+              "Zona Industrial Km 2, Dosquebradas, Risaralda · +57 606 366 4410 · "
+                  + "servicio@empaquescarton.co",
+              true,
+              List.of(10),
+              List.of(),
+              List.of()),
+          new SupplierSpec(
+              8,
+              "Mariscos del Pacífico",
+              "Muelle Buenaventura, Bodega 7, Valle del Cauca · +57 602 241 5566 · "
+                  + "pedidos@mariscospacifico.co",
+              true,
+              List.of(),
+              List.of(6L),
+              List.of()),
+          new SupplierSpec(
+              9,
+              "Panadería La Espiga",
+              "Calle 20 #12-45, Armenia, Quindío · +57 606 746 0192 · hola@laespiga.co",
+              true,
+              List.of(4),
+              List.of(),
+              List.of()),
+          new SupplierSpec(
+              10,
+              "Abarrotes del Sur",
+              "Cra. 8 #16-30, Ibagué, Tolima · +57 608 263 7744 · pedidos@abarrotessur.co",
+              true,
+              List.of(12),
+              List.of(),
+              List.of()),
+          new SupplierSpec(
+              11,
+              "Congelados del Norte",
+              "Autopista Norte Km 12, Medellín, Antioquia · +57 604 481 2299 · "
+                  + "ventas@congeladosnorte.co",
+              true,
+              List.of(11),
+              List.of(),
+              List.of()),
+          new SupplierSpec(
+              12,
+              "Distribuidora Andina de Insumos",
+              "Cra. 14 #9-21, Manizales, Caldas · +57 606 884 1177 · contacto@andina-insumos.co",
+              false,
+              List.of(),
+              List.of(),
+              List.of()));
 
   private SeedConstants() {}
 
@@ -134,6 +244,16 @@ final class SeedConstants {
 
   /** A payroll worker. */
   record WorkerSpec(long id, String name, int areaId, int salary, int bonus, int deduction) {}
+
+  /** A supplier and the catalogue slice it delivers. */
+  record SupplierSpec(
+      long id,
+      String name,
+      String contact,
+      boolean active,
+      List<Integer> categoryIds,
+      List<Long> supplyIds,
+      List<Long> excludedSupplyIds) {}
 
   private static List<ProductSpec> buildProducts() {
     List<ProductSpec> list = new ArrayList<>();

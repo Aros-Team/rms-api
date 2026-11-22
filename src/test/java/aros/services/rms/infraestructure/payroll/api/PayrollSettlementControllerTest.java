@@ -8,21 +8,28 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.payroll.domain.PayrollSettlement;
 import aros.services.rms.core.payroll.domain.SettlementType;
+import aros.services.rms.core.payroll.domain.exception.PayrollSettlementException;
+import aros.services.rms.core.payroll.domain.exception.PayrollSettlementNotFoundException;
 import aros.services.rms.core.payroll.domain.port.input.ListSettlementsUseCase;
 import aros.services.rms.core.payroll.domain.port.input.RegisterSettlementUseCase;
+import aros.services.rms.core.payroll.domain.port.input.VoidSettlementUseCase;
+import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.common.exception.GlobalExceptionHandler;
 import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Currency;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,10 +77,14 @@ import org.springframework.test.web.servlet.MockMvc;
 @Import({PayrollSettlementControllerTest.TestSecurityConfig.class, GlobalExceptionHandler.class})
 class PayrollSettlementControllerTest {
 
+  private static final Currency COP = Currency.getInstance("COP");
+
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private RegisterSettlementUseCase registerSettlement;
   @MockitoBean private ListSettlementsUseCase listSettlements;
+  @MockitoBean private VoidSettlementUseCase voidSettlement;
+  @MockitoBean private CurrencyProvider currencyProvider;
   @MockitoBean private JwtDecoder jwtDecoder;
 
   @org.springframework.boot.test.context.TestConfiguration
@@ -104,12 +115,13 @@ class PayrollSettlementControllerTest {
             SettlementType.MONTHLY,
             LocalDate.of(2026, 8, 1),
             LocalDate.of(2026, 8, 31),
-            new BigDecimal("2500000"),
+            money("2500000"),
             "August salary",
             Instant.parse("2026-08-31T12:00:00Z"),
             "system");
 
     when(registerSettlement.execute(any())).thenReturn(saved);
+    when(currencyProvider.getCurrency()).thenReturn(COP);
 
     String requestJson =
         """
@@ -135,7 +147,7 @@ class PayrollSettlementControllerTest {
         .andExpect(jsonPath("$.data.payrollId").value(10))
         .andExpect(jsonPath("$.data.userId").value(1))
         .andExpect(jsonPath("$.data.settlementType").value("MONTHLY"))
-        .andExpect(jsonPath("$.data.amount.amount").value("2500000"))
+        .andExpect(jsonPath("$.data.amount.amount").value("2500000.00"))
         .andExpect(jsonPath("$.data.amount.currency").value("COP"))
         .andExpect(jsonPath("$.data.notes").value("August salary"));
   }
@@ -154,7 +166,7 @@ class PayrollSettlementControllerTest {
             SettlementType.MONTHLY,
             LocalDate.of(2026, 8, 1),
             LocalDate.of(2026, 8, 31),
-            new BigDecimal("2500000"),
+            money("2500000"),
             "August",
             Instant.parse("2026-08-31T12:00:00Z"),
             "admin");
@@ -167,7 +179,7 @@ class PayrollSettlementControllerTest {
             SettlementType.BIWEEKLY,
             LocalDate.of(2026, 8, 15),
             LocalDate.of(2026, 8, 31),
-            new BigDecimal("1250000"),
+            money("1250000"),
             "Mid-month",
             Instant.parse("2026-08-31T12:00:00Z"),
             "admin");
@@ -241,5 +253,72 @@ class PayrollSettlementControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data.length()").value(0));
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-06: should_void_settlement
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void should_void_settlement() throws Exception {
+    org.mockito.Mockito.doNothing().when(voidSettlement).execute(1L);
+
+    mockMvc
+        .perform(delete("/api/v1/payroll/settlements/1").with(jwt()))
+        .andExpect(status().isNoContent());
+
+    verify(voidSettlement).execute(1L);
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-07: should_return_not_found_when_voiding_unknown_settlement
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void should_return_not_found_when_voiding_unknown_settlement() throws Exception {
+    org.mockito.Mockito.doThrow(new PayrollSettlementNotFoundException(99L))
+        .when(voidSettlement)
+        .execute(99L);
+
+    mockMvc
+        .perform(delete("/api/v1/payroll/settlements/99").with(jwt()))
+        .andExpect(status().isNotFound())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-08: should_return_conflict_when_settlement_exceeds_pending
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void should_return_conflict_when_settlement_exceeds_pending() throws Exception {
+    when(currencyProvider.getCurrency()).thenReturn(COP);
+    when(registerSettlement.execute(any()))
+        .thenThrow(new PayrollSettlementException("Settlement amount exceeds the pending amount"));
+
+    String requestJson =
+        """
+        {
+          "payrollId": 10,
+          "userId": 1,
+          "settlementType": "MONTHLY",
+          "periodStart": "2026-08-01",
+          "periodEnd": "2026-08-31",
+          "amount": 2500000
+        }
+        """;
+
+    mockMvc
+        .perform(
+            post("/api/v1/payroll/settle")
+                .with(jwt())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson))
+        .andExpect(status().isConflict())
+        .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+  }
+
+  private Money money(String amount) {
+    return new Money(new BigDecimal(amount), COP);
   }
 }

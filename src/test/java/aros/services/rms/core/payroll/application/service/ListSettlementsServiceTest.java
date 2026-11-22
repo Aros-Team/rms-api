@@ -9,12 +9,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.common.logger.Logger;
+import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.payroll.domain.PayrollSettlement;
 import aros.services.rms.core.payroll.domain.SettlementType;
 import aros.services.rms.core.payroll.domain.port.output.PayrollSettlementRepositoryPort;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Currency;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /** Unit tests for {@link ListSettlementsService}. */
 @ExtendWith(MockitoExtension.class)
 class ListSettlementsServiceTest {
+
+  private static final Currency COP = Currency.getInstance("COP");
 
   @Mock private PayrollSettlementRepositoryPort settlementRepository;
   @Mock private Logger logger;
@@ -53,7 +57,7 @@ class ListSettlementsServiceTest {
             SettlementType.MONTHLY,
             LocalDate.of(2026, 8, 1),
             LocalDate.of(2026, 8, 31),
-            new BigDecimal("2500000"),
+            new Money(new BigDecimal("2500000"), COP),
             "August",
             Instant.now(),
             "admin");
@@ -66,7 +70,7 @@ class ListSettlementsServiceTest {
             SettlementType.BIWEEKLY,
             LocalDate.of(2026, 8, 15),
             LocalDate.of(2026, 8, 31),
-            new BigDecimal("1250000"),
+            new Money(new BigDecimal("1250000"), COP),
             "Mid-month",
             Instant.now(),
             "admin");
