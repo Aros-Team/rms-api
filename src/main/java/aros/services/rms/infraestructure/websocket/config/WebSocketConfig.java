@@ -74,7 +74,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   }
 
   /**
-   * Registra el endpoint STOMP con SockJS y configura los orígenes permitidos.
+   * Registra los endpoints STOMP y configura los orígenes permitidos.
+   *
+   * <p>Se exponen dos endpoints con el mismo broker y el mismo interceptor de seguridad:
+   *
+   * <ul>
+   *   <li>{@code /ws-native}: WebSocket nativo (sin SockJS). Es el que usa la aplicación Angular;
+   *       evita el transporte SockJS y su listener {@code unload} deprecado.
+   *   <li>{@code /ws}: endpoint histórico con fallback SockJS, conservado para clientes que aún no
+   *       migraron.
+   * </ul>
    *
    * @param registry registro de endpoints STOMP
    */
@@ -86,6 +95,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             ? new String[] {"https://rms.aros.services"}
             : new String[] {"http://localhost:*", "http://127.0.0.1:*"};
 
+    // Native WebSocket: the browser connects with ws:// or wss:// directly.
+    registry.addEndpoint("/ws-native").setAllowedOriginPatterns(allowedOrigins);
+
+    // Legacy SockJS endpoint, kept for backward compatibility.
     registry.addEndpoint("/ws").setAllowedOriginPatterns(allowedOrigins).withSockJS();
   }
 
