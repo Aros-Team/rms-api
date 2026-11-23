@@ -23,16 +23,16 @@ import java.util.Objects;
  * Service for assigning a schedule to a worker.
  *
  * <p>Before persisting, the assignment is validated against double booking, shift overlap and the
- * hard weekly hours cap. The legal weekly reference (48 h) is a warning, not a block, because
- * contracts may legitimately exceed it; the hard cap (66 h) rejects the assignment.
+ * hard weekly hours cap. The legal weekly limit is 42 h; assignments that would exceed it are
+ * rejected, so the warning path only documents the reference.
  */
 public class AssignScheduleToWorkerService implements AssignScheduleToWorkerUseCase {
 
   /** Legal weekly reference used for the non-blocking warning. */
-  public static final int LEGAL_WEEKLY_HOURS = 48;
+  public static final int LEGAL_WEEKLY_HOURS = 42;
 
   /** Hard weekly cap that rejects an assignment. */
-  public static final int HARD_WEEKLY_CAP_HOURS = 66;
+  public static final int HARD_WEEKLY_CAP_HOURS = 42;
 
   private final ScheduleRepositoryPort scheduleRepository;
   private final WorkerScheduleAssignmentRepositoryPort assignmentRepository;

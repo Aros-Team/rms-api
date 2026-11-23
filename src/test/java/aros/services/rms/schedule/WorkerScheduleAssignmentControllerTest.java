@@ -107,8 +107,7 @@ class WorkerScheduleAssignmentControllerTest {
   void shouldAssignScheduleToWorker() throws Exception {
     when(jwtDecoder.decode(anyString())).thenReturn(createAdminJwt());
     var assignment = new WorkerScheduleAssignment(UserId.of(1L), ScheduleId.of(1L));
-    var result =
-        new AssignScheduleToWorkerUseCase.AssignmentResult(assignment, 63.0, 48, 66, "warning");
+    var result = new AssignScheduleToWorkerUseCase.AssignmentResult(assignment, 40.0, 42, 42, null);
     when(assignScheduleUseCase.assign(any())).thenReturn(result);
 
     mockMvc
@@ -120,8 +119,7 @@ class WorkerScheduleAssignmentControllerTest {
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.data.workerId").value(1))
         .andExpect(jsonPath("$.data.scheduleId").value(1))
-        .andExpect(jsonPath("$.data.weeklyHours").value(63.0))
-        .andExpect(jsonPath("$.data.warning").value("warning"));
+        .andExpect(jsonPath("$.data.weeklyHours").value(40.0));
   }
 
   @Test

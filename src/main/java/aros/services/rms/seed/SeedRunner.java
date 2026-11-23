@@ -413,36 +413,54 @@ final class SeedRunner {
   }
 
   private void seedSchedulesAndTimeLogs() throws SQLException {
-    String[] days = {"MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"};
+    // Monday is closed in the default opening hours, so no pattern schedules it.
+    String[] tuesdayToSaturday = {"TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"};
+    String[] wednesdayToSunday = {"WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"};
+    String[] tuesdayThursdayToSunday = {"TUESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"};
+    String[] wednesdayToSaturday = {"WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"};
+    String[][] patterns = {
+      tuesdayToSaturday, wednesdayToSunday, tuesdayThursdayToSunday, wednesdayToSaturday
+    };
+
+    // One individual schedule per worker: a continuous shift, 4 or 8 hours, five days a week.
+    // No worker exceeds 40 h/week, under the 42 h cap, and the days off rotate so not everyone
+    // works the same days.
     try (PreparedStatement schedule =
             connection.prepareStatement(
-                "INSERT INTO schedules (id, name, description) VALUES (1, ?, ?)");
+                "INSERT INTO schedules (id, name, description) VALUES (?, ?, ?)");
         PreparedStatement shift =
             connection.prepareStatement(
                 "INSERT INTO schedule_shifts (id, schedule_id, day_of_week, start_time, end_time) "
-                    + "VALUES (?, 1, ?, ?, ?)")) {
-      schedule.setString(1, "Turno Seed");
-      schedule.setString(2, "Operación 11:00-23:00 del dataset determinista");
-      schedule.executeUpdate();
-      for (int i = 0; i < 7; i++) {
-        shift.setInt(1, i + 1);
-        shift.setString(2, days[i]);
-        shift.setTime(3, java.sql.Time.valueOf(LocalTime.of(11, 0)));
-        shift.setTime(4, java.sql.Time.valueOf(LocalTime.of(15, 0)));
-        shift.addBatch();
-        shift.setInt(1, i + 8);
-        shift.setString(2, days[i]);
-        shift.setTime(3, java.sql.Time.valueOf(LocalTime.of(18, 0)));
-        shift.setTime(4, java.sql.Time.valueOf(LocalTime.of(23, 0)));
-        shift.addBatch();
+                    + "VALUES (?, ?, ?, ?, ?)")) {
+      int shiftId = 1;
+      for (int index = 0; index < SeedConstants.WORKERS.size(); index++) {
+        SeedConstants.WorkerSpec worker = SeedConstants.WORKERS.get(index);
+        int scheduleId = index + 1;
+        int startHour = 8 + 2 * (index % 4);
+        int length = index >= SeedConstants.WORKERS.size() - 2 ? 4 : 8;
+        schedule.setInt(1, scheduleId);
+        schedule.setString(2, "Turno de " + worker.name());
+        schedule.setString(3, "Turno individual continuo del dataset determinista");
+        schedule.addBatch();
+
+        for (String day : patterns[index % patterns.length]) {
+          shift.setInt(1, shiftId++);
+          shift.setInt(2, scheduleId);
+          shift.setString(3, day);
+          shift.setTime(4, java.sql.Time.valueOf(LocalTime.of(startHour, 0)));
+          shift.setTime(5, java.sql.Time.valueOf(LocalTime.of(startHour + length, 0)));
+          shift.addBatch();
+        }
       }
+      schedule.executeBatch();
       shift.executeBatch();
     }
     try (PreparedStatement assignment =
         connection.prepareStatement(
-            "INSERT INTO worker_schedule_assignments (worker_id, schedule_id) VALUES (?, 1)")) {
-      for (SeedConstants.WorkerSpec worker : SeedConstants.WORKERS) {
-        assignment.setLong(1, worker.id());
+            "INSERT INTO worker_schedule_assignments (worker_id, schedule_id) VALUES (?, ?)")) {
+      for (int index = 0; index < SeedConstants.WORKERS.size(); index++) {
+        assignment.setLong(1, SeedConstants.WORKERS.get(index).id());
+        assignment.setInt(2, index + 1);
         assignment.addBatch();
       }
       assignment.executeBatch();
@@ -469,17 +487,16 @@ final class SeedRunner {
                     == 0;
             LocalTime start = lunch ? LocalTime.of(11, 0) : LocalTime.of(15, 0);
             LocalDateTime in = day.atTime(start);
-            int shiftId = day.getDayOfWeek().getValue() + (lunch ? 0 : 7);
             log.setLong(1, worker.id());
             log.setString(2, SeedMath.timestamp(in));
             log.setString(3, "IN");
             log.setBoolean(4, true);
-            log.setInt(5, shiftId);
+            log.setNull(5, Types.INTEGER);
             log.addBatch();
             log.setString(2, SeedMath.timestamp(in.plusHours(8)));
             log.setString(3, "OUT");
             log.setBoolean(4, true);
-            log.setInt(5, shiftId);
+            log.setNull(5, Types.INTEGER);
             log.addBatch();
             pending += 2;
             if (pending >= BATCH_SIZE) {
