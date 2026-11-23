@@ -14,11 +14,11 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 /**
- * Configuración del broker de mensajes WebSocket con STOMP y SockJS.
+ * Configuración del broker de mensajes WebSocket con STOMP.
  *
- * <p>Registra el endpoint {@code /ws} con fallback SockJS, habilita el broker en memoria para
- * destinos {@code /topic}, establece el prefijo de aplicación {@code /app} y registra el {@link
- * WebSocketChannelInterceptor} para validar JWT en los frames CONNECT, SEND y SUBSCRIBE.
+ * <p>Registra el endpoint {@code /ws-native} sobre WebSocket nativo, habilita el broker en memoria
+ * para destinos {@code /topic}, establece el prefijo de aplicación {@code /app} y registra el
+ * {@link WebSocketChannelInterceptor} para validar JWT en los frames CONNECT, SEND y SUBSCRIBE.
  *
  * <p>El {@link SimpMessagingTemplate} se inyecta con {@code @Lazy} para evitar la dependencia
  * circular entre el broker de mensajes y el interceptor de canal.
@@ -95,11 +95,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             ? new String[] {"https://rms.aros.services"}
             : new String[] {"http://localhost:*", "http://127.0.0.1:*"};
 
-    // Native WebSocket: the browser connects with ws:// or wss:// directly.
     registry.addEndpoint("/ws-native").setAllowedOriginPatterns(allowedOrigins);
-
-    // Legacy SockJS endpoint, kept for backward compatibility.
-    registry.addEndpoint("/ws").setAllowedOriginPatterns(allowedOrigins).withSockJS();
   }
 
   /**
