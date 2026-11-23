@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.notification.domain.port.input.NotificationUseCase;
 import aros.services.rms.core.schedule.application.exception.NoOpenSessionException;
 import aros.services.rms.core.schedule.application.exception.OpenSessionAlreadyExistsException;
 import aros.services.rms.core.schedule.domain.LogType;
@@ -16,6 +17,7 @@ import aros.services.rms.core.schedule.domain.TimeLog;
 import aros.services.rms.core.schedule.domain.TimeLogId;
 import aros.services.rms.core.schedule.port.input.ClockInUseCase;
 import aros.services.rms.core.schedule.port.input.ClockOutUseCase;
+import aros.services.rms.core.systemconfig.domain.port.output.BusinessTimeZoneProvider;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.core.user.domain.UserId;
@@ -25,9 +27,11 @@ import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import aros.services.rms.infraestructure.image.storage.local.LocalResourceConfig;
 import aros.services.rms.infraestructure.schedule.api.WorkerClockController;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -80,7 +84,14 @@ class WorkerClockControllerTest {
   @MockitoBean private ClockInUseCase clockInUseCase;
   @MockitoBean private ClockOutUseCase clockOutUseCase;
   @MockitoBean private UserRepositoryPort userRepositoryPort;
+  @MockitoBean private NotificationUseCase notificationUseCase;
+  @MockitoBean private BusinessTimeZoneProvider timeZoneProvider;
   @MockitoBean private JwtDecoder jwtDecoder;
+
+  @BeforeEach
+  void stubBusinessZone() {
+    when(timeZoneProvider.getZoneId()).thenReturn(ZoneOffset.UTC);
+  }
 
   @org.springframework.boot.test.context.TestConfiguration
   @EnableMethodSecurity
