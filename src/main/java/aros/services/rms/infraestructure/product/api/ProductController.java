@@ -267,11 +267,21 @@ public class ProductController {
    * @return the product responses
    */
   private List<ProductResponse> toResponses(List<Product> products) {
-    Map<Long, String> primaryImageUrls = resolvePrimaryImageUrls(products);
+    Map<Long, PrimaryImageUrls> primaryImageUrls = resolvePrimaryImageUrls(products);
     return products.stream()
-        .map(product -> ProductResponse.fromDomain(product, primaryImageUrls.get(product.getId())))
+        .map(
+            product -> {
+              PrimaryImageUrls urls = primaryImageUrls.get(product.getId());
+              return urls == null
+                  ? ProductResponse.fromDomain(product)
+                  : ProductResponse.fromDomain(
+                      product, urls.mobile(), urls.tablet(), urls.desktop());
+            })
         .collect(Collectors.toList());
   }
+
+  /** Responsive variants of the primary image. */
+  private record PrimaryImageUrls(String mobile, String tablet, String desktop) {}
 
   /**
    * Resolves the primary image URL for each product in a single batch query. The primary image is
@@ -280,7 +290,7 @@ public class ProductController {
    * @param products the products to resolve images for
    * @return map of product ID to primary image signed URL
    */
-  private Map<Long, String> resolvePrimaryImageUrls(Collection<Product> products) {
+  private Map<Long, PrimaryImageUrls> resolvePrimaryImageUrls(Collection<Product> products) {
     if (products.isEmpty()) {
       return Map.of();
     }
@@ -292,20 +302,25 @@ public class ProductController {
         .collect(
             Collectors.toMap(
                 EntityImage::getEntityId,
-                this::primaryImageUrl,
+                this::primaryImageUrls,
                 (first, ignored) -> first,
                 LinkedHashMap::new));
   }
 
   /**
-   * Generates a signed URL for the mobile variant of an image.
+   * Generates the signed URLs for the three responsive variants of an image.
    *
    * @param image the image
-   * @return the signed URL
+   * @return the mobile, tablet and desktop URLs
    */
-  private String primaryImageUrl(EntityImage image) {
-    return storagePort.generateSignedUrl(
-        image.getStorageKey() + "/mobile.webp", SIGNED_URL_EXPIRATION);
+  private PrimaryImageUrls primaryImageUrls(EntityImage image) {
+    return new PrimaryImageUrls(
+        storagePort.generateSignedUrl(
+            image.getStorageKey() + "/mobile.webp", SIGNED_URL_EXPIRATION),
+        storagePort.generateSignedUrl(
+            image.getStorageKey() + "/tablet.webp", SIGNED_URL_EXPIRATION),
+        storagePort.generateSignedUrl(
+            image.getStorageKey() + "/desktop.webp", SIGNED_URL_EXPIRATION));
   }
 
   /**
