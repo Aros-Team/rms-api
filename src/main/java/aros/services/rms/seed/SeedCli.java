@@ -2,6 +2,7 @@
 
 package aros.services.rms.seed;
 
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -28,6 +29,7 @@ public final class SeedCli {
    * @throws Exception when the database cannot be reached or a check fails
    */
   public static void main(String[] args) throws Exception {
+    System.setProperty("java.awt.headless", "true");
     String command = args.length > 0 && !args[0].startsWith("--") ? args[0] : "status";
     Options options = Options.parse(args);
     LocalDate anchor =
@@ -55,7 +57,8 @@ public final class SeedCli {
   private static void reset(Connection connection, LocalDate anchor, Options options)
       throws Exception {
     SeedRunner.SeedRunResult result =
-        new SeedRunner(connection, anchor, LocalDateTime.now()).reset(!options.skipCatalog());
+        new SeedRunner(connection, anchor, LocalDateTime.now(), Paths.get(options.uploadsDir()))
+            .reset(!options.skipCatalog());
     System.out.printf(
         "seed reset ok: anchor=%s historicalOrders=%d lines=%d revenue=%d "
             + "covers=%d todayOrders=%d%n",
@@ -124,6 +127,7 @@ public final class SeedCli {
       String user,
       String password,
       String anchor,
+      String uploadsDir,
       boolean skipCatalog,
       boolean migrate) {
 
@@ -145,6 +149,9 @@ public final class SeedCli {
           System.getProperty(
               "seed.db.password", System.getenv().getOrDefault("SEED_DB_PASSWORD", "root"));
       String anchor = "";
+      String uploadsDir =
+          System.getProperty(
+              "seed.uploads.dir", System.getenv().getOrDefault("SEED_UPLOADS_DIR", "./uploads"));
       boolean skipCatalog = false;
       boolean skipMigrate = false;
       for (String arg : args) {
@@ -156,13 +163,15 @@ public final class SeedCli {
           password = arg.substring(11);
         } else if (arg.startsWith("--anchor=")) {
           anchor = arg.substring(9);
+        } else if (arg.startsWith("--uploads-dir=")) {
+          uploadsDir = arg.substring(14);
         } else if (arg.equals("--skip-catalog")) {
           skipCatalog = true;
         } else if (arg.equals("--skip-migrate")) {
           skipMigrate = true;
         }
       }
-      return new Options(url, user, password, anchor, skipCatalog, !skipMigrate);
+      return new Options(url, user, password, anchor, uploadsDir, skipCatalog, !skipMigrate);
     }
   }
 }

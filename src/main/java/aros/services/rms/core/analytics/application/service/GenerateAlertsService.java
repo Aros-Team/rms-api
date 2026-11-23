@@ -6,6 +6,8 @@ import aros.services.rms.core.analytics.application.service.AlertRuleEvaluator.D
 import aros.services.rms.core.analytics.application.service.AlertRuleEvaluator.MonthlyCostPoint;
 import aros.services.rms.core.analytics.application.service.AlertRuleEvaluator.SalesYoyPoint;
 import aros.services.rms.core.analytics.application.service.AlertRuleEvaluator.WeeklyValue;
+import aros.services.rms.core.analytics.domain.AlertSeverity;
+import aros.services.rms.core.analytics.domain.AlertType;
 import aros.services.rms.core.analytics.domain.AnalyticsConfig;
 import aros.services.rms.core.analytics.domain.AnalyticsPeriods;
 import aros.services.rms.core.analytics.domain.BcgQuadrant;
@@ -19,6 +21,9 @@ import aros.services.rms.core.analytics.domain.port.out.MenuEngineeringCacheRepo
 import aros.services.rms.core.analytics.domain.port.out.MonthlyFinancialSummaryRepositoryPort;
 import aros.services.rms.core.analytics.domain.port.out.OperationsQueryPort;
 import aros.services.rms.core.analytics.domain.port.out.SystemAlertRepositoryPort;
+import aros.services.rms.core.notification.domain.NotificationCommand;
+import aros.services.rms.core.notification.domain.NotificationSeverity;
+import aros.services.rms.core.notification.domain.port.input.NotificationUseCase;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
@@ -30,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class GenerateAlertsService implements GenerateAlertsUseCase {
 
   private static final int MONTH_BASELINE = 13;
@@ -53,6 +60,7 @@ public class GenerateAlertsService implements GenerateAlertsUseCase {
   private final OperationsQueryPort operationsQueryPort;
   private final GetOperationsUseCase getOperationsUseCase;
   private final Clock clock;
+  private final NotificationUseCase notificationUseCase;
 
   /** {@inheritDoc} */
   @Override
@@ -76,9 +84,49 @@ public class GenerateAlertsService implements GenerateAlertsUseCase {
     for (SystemAlert candidate : candidates) {
       if (alertRepositoryPort.insertIfAbsent(candidate)) {
         inserted++;
+        publishNotification(candidate);
       }
     }
     return inserted;
+  }
+
+  /** Mirrors a newly inserted variance alert into the persistent admin feed. */
+  private void publishNotification(SystemAlert alert) {
+    try {
+      notificationUseCase.create(
+          new NotificationCommand(
+              "ANALYTICS_ALERT",
+              severityOf(alert.getSeverity()),
+              titleFor(alert.getType()),
+              alert.getMessage(),
+              "/admin/analytics",
+              "ALERT:" + alert.getType() + ":" + alert.getMetric() + ":" + alert.getPeriodKey(),
+              alert.getDetectedAt()));
+    } catch (Exception e) {
+      log.error(
+          "Failed to publish analytics alert notification {}: {}",
+          alert.getType(),
+          e.getMessage(),
+          e);
+    }
+  }
+
+  private static NotificationSeverity severityOf(AlertSeverity severity) {
+    return switch (severity) {
+      case RED -> NotificationSeverity.CRITICAL;
+      case YELLOW -> NotificationSeverity.WARNING;
+      case INFO -> NotificationSeverity.INFO;
+    };
+  }
+
+  private static String titleFor(AlertType type) {
+    return switch (type) {
+      case FOOD_COST_DEVIATION -> "Costo de alimentos";
+      case LABOR_COST_DEVIATION -> "Costo de nómina";
+      case SALES_DROP_YOY -> "Caída de ventas";
+      case LOW_MARGIN_SKU_SPIKE -> "Producto de bajo margen";
+      case REVPASH_DROP -> "Caída de RevPASH";
+    };
   }
 
   private List<MonthlyCostPoint> loadMonthlyCosts(LocalDate referenceDate) {

@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -137,10 +136,10 @@ class AssignScheduleToWorkerServiceTest {
   }
 
   @Test
-  void shouldWarnAboveTheLegalWeeklyReference() {
+  void shouldAcceptExactlyTheFortyTwoHourWeek() {
     var workerId = UserId.of(1L);
     var scheduleId = ScheduleId.of(1L);
-    var schedule = fullWeek(scheduleId, 9, 18);
+    var schedule = fullWeek(scheduleId, 8, 14);
     var assignment = new WorkerScheduleAssignment(workerId, scheduleId);
 
     when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
@@ -149,16 +148,15 @@ class AssignScheduleToWorkerServiceTest {
 
     var result = service.assign(new AssignInfo(workerId, 1L));
 
-    assertEquals(63.0, result.weeklyHours());
-    assertNotNull(result.warning());
-    assertTrue(result.warning().contains("48"));
+    assertEquals(42.0, result.weeklyHours());
+    assertNull(result.warning());
   }
 
   @Test
-  void shouldRejectAboveTheHardWeeklyCap() {
+  void shouldRejectAboveTheFortyTwoHourWeek() {
     var workerId = UserId.of(1L);
     var scheduleId = ScheduleId.of(1L);
-    var schedule = fullWeek(scheduleId, 10, 20);
+    var schedule = fullWeek(scheduleId, 9, 18);
 
     when(scheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
     when(assignmentRepository.findByWorkerId(workerId)).thenReturn(List.of());
@@ -166,8 +164,8 @@ class AssignScheduleToWorkerServiceTest {
     var exception =
         assertThrows(
             WeeklyHoursExceededException.class, () -> service.assign(new AssignInfo(workerId, 1L)));
-    assertEquals(70.0, exception.getWeeklyHours());
-    assertEquals(66, exception.getHardWeeklyCapHours());
+    assertEquals(63.0, exception.getWeeklyHours());
+    assertEquals(42, exception.getHardWeeklyCapHours());
   }
 
   @Test

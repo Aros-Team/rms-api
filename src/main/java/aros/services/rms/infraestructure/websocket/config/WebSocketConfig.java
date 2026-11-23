@@ -14,11 +14,11 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 /**
- * Configuración del broker de mensajes WebSocket con STOMP y SockJS.
+ * Configuración del broker de mensajes WebSocket con STOMP.
  *
- * <p>Registra el endpoint {@code /ws} con fallback SockJS, habilita el broker en memoria para
- * destinos {@code /topic}, establece el prefijo de aplicación {@code /app} y registra el {@link
- * WebSocketChannelInterceptor} para validar JWT en los frames CONNECT, SEND y SUBSCRIBE.
+ * <p>Registra el endpoint {@code /ws-native} sobre WebSocket nativo, habilita el broker en memoria
+ * para destinos {@code /topic}, establece el prefijo de aplicación {@code /app} y registra el
+ * {@link WebSocketChannelInterceptor} para validar JWT en los frames CONNECT, SEND y SUBSCRIBE.
  *
  * <p>El {@link SimpMessagingTemplate} se inyecta con {@code @Lazy} para evitar la dependencia
  * circular entre el broker de mensajes y el interceptor de canal.
@@ -74,7 +74,16 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   }
 
   /**
-   * Registra el endpoint STOMP con SockJS y configura los orígenes permitidos.
+   * Registra los endpoints STOMP y configura los orígenes permitidos.
+   *
+   * <p>Se exponen dos endpoints con el mismo broker y el mismo interceptor de seguridad:
+   *
+   * <ul>
+   *   <li>{@code /ws-native}: WebSocket nativo (sin SockJS). Es el que usa la aplicación Angular;
+   *       evita el transporte SockJS y su listener {@code unload} deprecado.
+   *   <li>{@code /ws}: endpoint histórico con fallback SockJS, conservado para clientes que aún no
+   *       migraron.
+   * </ul>
    *
    * @param registry registro de endpoints STOMP
    */
@@ -86,7 +95,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             ? new String[] {"https://rms.aros.services"}
             : new String[] {"http://localhost:*", "http://127.0.0.1:*"};
 
-    registry.addEndpoint("/ws").setAllowedOriginPatterns(allowedOrigins).withSockJS();
+    registry.addEndpoint("/ws-native").setAllowedOriginPatterns(allowedOrigins);
   }
 
   /**

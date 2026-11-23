@@ -38,6 +38,14 @@ public record ProductResponse(
             description = "Signed URL of the primary image (mobile variant)",
             example = "/api/v1/images/local/products/1/mobile.webp")
         String imageUrl,
+    @Schema(
+            description = "Signed URL of the primary image (tablet variant)",
+            example = "/api/v1/images/local/products/1/tablet.webp")
+        String imageTabletUrl,
+    @Schema(
+            description = "Signed URL of the primary image (desktop variant)",
+            example = "/api/v1/images/local/products/1/desktop.webp")
+        String imageDesktopUrl,
     @Schema(description = "IDs of associated option groups") List<Long> optionGroupIds) {
 
   /** Nested DTO representing a single recipe item (supply variant + quantity). */
@@ -85,6 +93,8 @@ public record ProductResponse(
         product.getEstimatedPrepMinutes(),
         product.getSelectionType() != null ? product.getSelectionType().name() : "STANDARD",
         null,
+        null,
+        null,
         product.getOptionGroupIds() != null ? product.getOptionGroupIds() : List.of());
   }
 
@@ -96,6 +106,20 @@ public record ProductResponse(
    * @return the response DTO
    */
   public static ProductResponse fromDomain(Product product, String imageUrl) {
+    return fromDomain(product, imageUrl, null, null);
+  }
+
+  /**
+   * Creates a response from a domain object with all responsive image variants resolved.
+   *
+   * @param product the product
+   * @param imageUrl mobile variant URL (may be null)
+   * @param imageTabletUrl tablet variant URL (may be null)
+   * @param imageDesktopUrl desktop variant URL (may be null)
+   * @return the response DTO
+   */
+  public static ProductResponse fromDomain(
+      Product product, String imageUrl, String imageTabletUrl, String imageDesktopUrl) {
     ProductResponse base = fromDomain(product);
     if (base == null) {
       return null;
@@ -114,6 +138,8 @@ public record ProductResponse(
         base.estimatedPrepMinutes(),
         base.selectionType(),
         imageUrl,
+        imageTabletUrl,
+        imageDesktopUrl,
         base.optionGroupIds());
   }
 }

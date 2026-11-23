@@ -2,6 +2,7 @@
 
 package aros.services.rms.seed;
 
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -12,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.sql.DataSource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
@@ -26,15 +28,19 @@ import org.springframework.stereotype.Service;
 public class SeedResetService {
 
   private final DataSource dataSource;
+  private final String uploadsDir;
   private final AtomicBoolean running = new AtomicBoolean(false);
 
   /**
    * Creates the service.
    *
    * @param dataSource application datasource
+   * @param uploadsDir local image storage root used to regenerate product media
    */
-  public SeedResetService(DataSource dataSource) {
+  public SeedResetService(
+      DataSource dataSource, @Value("${app.storage.local.base-dir:./uploads}") String uploadsDir) {
     this.dataSource = dataSource;
+    this.uploadsDir = uploadsDir;
   }
 
   /**
@@ -55,7 +61,8 @@ public class SeedResetService {
       LocalDate businessDate =
           anchor == null || anchor.isBlank() ? LocalDate.now() : LocalDate.parse(anchor);
       SeedRunner.SeedRunResult result =
-          new SeedRunner(connection, businessDate, LocalDateTime.now()).reset(true);
+          new SeedRunner(connection, businessDate, LocalDateTime.now(), Paths.get(uploadsDir))
+              .reset(true);
       return new SeedResult(
           result.anchor().toString(),
           result.historicalOrders(),

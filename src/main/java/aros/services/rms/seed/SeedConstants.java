@@ -78,19 +78,19 @@ final class SeedConstants {
   /** Workers: id, role, area, salary, bonus, deduction. */
   static final List<WorkerSpec> WORKERS =
       List.of(
-          new WorkerSpec(1001, "Mesero 1", SERVICE_AREA, 2_500_000, 0, 50_000),
-          new WorkerSpec(1002, "Mesero 2", SERVICE_AREA, 2_500_000, 0, 50_000),
-          new WorkerSpec(1003, "Cocinero 1", KITCHEN_AREA, 2_800_000, 200_000, 50_000),
-          new WorkerSpec(1004, "Cocinero 2", KITCHEN_AREA, 2_800_000, 200_000, 50_000),
-          new WorkerSpec(1005, "Cocinero 3", KITCHEN_AREA, 2_800_000, 0, 50_000),
-          new WorkerSpec(1006, "Cocinero 4", KITCHEN_AREA, 2_800_000, 0, 50_000),
-          new WorkerSpec(1011, "Mesero 3", SERVICE_AREA, 2_500_000, 0, 50_000),
-          new WorkerSpec(1012, "Mesero 4", SERVICE_AREA, 2_500_000, 0, 50_000),
-          new WorkerSpec(1013, "Cajero 1", CASH_AREA, 2_200_000, 0, 50_000),
-          new WorkerSpec(1014, "Cajero 2", CASH_AREA, 2_200_000, 0, 50_000),
-          new WorkerSpec(1015, "Cocinero 5", KITCHEN_AREA, 2_800_000, 0, 50_000),
-          new WorkerSpec(1016, "Cocinero 6", KITCHEN_AREA, 2_800_000, 0, 50_000),
-          new WorkerSpec(1017, "Auxiliar de cocina", KITCHEN_AREA, 1_900_000, 0, 50_000));
+          new WorkerSpec(1001, "María Gómez", SERVICE_AREA, 2_500_000, 0, 50_000),
+          new WorkerSpec(1002, "Juan Restrepo", SERVICE_AREA, 2_500_000, 0, 50_000),
+          new WorkerSpec(1003, "Carlos Ramírez", KITCHEN_AREA, 2_800_000, 200_000, 50_000),
+          new WorkerSpec(1004, "Andrés Mejía", KITCHEN_AREA, 2_800_000, 200_000, 50_000),
+          new WorkerSpec(1005, "Felipe Cárdenas", KITCHEN_AREA, 2_800_000, 0, 50_000),
+          new WorkerSpec(1006, "Diego Herrera", KITCHEN_AREA, 2_800_000, 0, 50_000),
+          new WorkerSpec(1011, "Laura Osorio", SERVICE_AREA, 2_500_000, 0, 50_000),
+          new WorkerSpec(1012, "Camila Torres", SERVICE_AREA, 2_500_000, 0, 50_000),
+          new WorkerSpec(1013, "Sofía Jiménez", CASH_AREA, 2_200_000, 0, 50_000),
+          new WorkerSpec(1014, "Valentina Ríos", CASH_AREA, 2_200_000, 0, 50_000),
+          new WorkerSpec(1015, "Jorge Salazar", KITCHEN_AREA, 2_800_000, 0, 50_000),
+          new WorkerSpec(1016, "Miguel Ángel Peña", KITCHEN_AREA, 2_800_000, 0, 50_000),
+          new WorkerSpec(1017, "Luisa Fernanda Vargas", KITCHEN_AREA, 1_900_000, 0, 50_000));
 
   static final List<Long> PAYROLL_ADMINS = List.of(1007L, 1008L);
   static final List<Long> QA_USERS = List.of(1009L, 1010L);

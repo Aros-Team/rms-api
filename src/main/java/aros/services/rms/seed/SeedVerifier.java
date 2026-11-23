@@ -71,6 +71,14 @@ final class SeedVerifier {
                     + anchor
                     + " 00:00:00'")));
     checks.add(check("products", 27, scalar("SELECT COUNT(*) FROM products WHERE active = TRUE")));
+    checks.add(
+        check(
+            "products with images",
+            scalar("SELECT COUNT(*) FROM products WHERE active = TRUE"),
+            scalar(
+                "SELECT COUNT(DISTINCT entity_id) FROM entity_images "
+                    + "WHERE entity_type = 'PRODUCT' "
+                    + "AND entity_id IN (SELECT id FROM products WHERE active = TRUE)")));
     checks.add(check("tables", 20, scalar("SELECT COUNT(*) FROM tables")));
     checks.add(check("seats", 74, scalar("SELECT COALESCE(SUM(capacity),0) FROM tables")));
     checks.add(

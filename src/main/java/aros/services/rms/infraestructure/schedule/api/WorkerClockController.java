@@ -2,17 +2,24 @@
 
 package aros.services.rms.infraestructure.schedule.api;
 
+import aros.services.rms.core.notification.domain.NotificationCommand;
+import aros.services.rms.core.notification.domain.NotificationSeverity;
+import aros.services.rms.core.notification.domain.port.input.NotificationUseCase;
+import aros.services.rms.core.schedule.domain.TimeLog;
 import aros.services.rms.core.schedule.port.input.ClockInUseCase;
 import aros.services.rms.core.schedule.port.input.ClockOutUseCase;
+import aros.services.rms.core.systemconfig.domain.port.output.BusinessTimeZoneProvider;
 import aros.services.rms.core.user.application.exception.UserNotFoundException;
-import aros.services.rms.core.user.domain.UserId;
+import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import aros.services.rms.infraestructure.schedule.api.dto.TimeLogResponse;
 import aros.services.rms.infraestructure.share.security.JustWorkerOrAdmin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,12 +38,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/workers/me")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Workers", description = "Operations for workers to record their own attendance")
 public class WorkerClockController {
+
+  private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
 
   private final ClockInUseCase clockInUseCase;
   private final ClockOutUseCase clockOutUseCase;
   private final UserRepositoryPort userRepositoryPort;
+  private final NotificationUseCase notificationUseCase;
+  private final BusinessTimeZoneProvider timeZoneProvider;
 
   /** Opens the authenticated worker's attendance session. */
   @PostMapping("/clock-in")
@@ -54,7 +66,9 @@ public class WorkerClockController {
   @ApiResponse(responseCode = "409", description = "An open clock-in session already exists")
   @ApiResponse(responseCode = "500", description = "Internal server error")
   public ResponseEntity<TimeLogResponse> clockIn(@AuthenticationPrincipal Jwt jwt) {
-    var entry = clockInUseCase.clockIn(resolveWorkerId(jwt));
+    User worker = resolveWorker(jwt);
+    var entry = clockInUseCase.clockIn(worker.getId());
+    publishClockIn(worker, entry);
     return ResponseEntity.status(HttpStatus.CREATED).body(TimeLogResponse.fromDomain(entry));
   }
 
@@ -74,14 +88,34 @@ public class WorkerClockController {
   @ApiResponse(responseCode = "409", description = "No open clock-in session exists")
   @ApiResponse(responseCode = "500", description = "Internal server error")
   public ResponseEntity<TimeLogResponse> clockOut(@AuthenticationPrincipal Jwt jwt) {
-    var entry = clockOutUseCase.clockOut(resolveWorkerId(jwt));
+    var entry = clockOutUseCase.clockOut(resolveWorker(jwt).getId());
     return ResponseEntity.status(HttpStatus.CREATED).body(TimeLogResponse.fromDomain(entry));
   }
 
-  private UserId resolveWorkerId(Jwt jwt) {
+  private User resolveWorker(Jwt jwt) {
     return userRepositoryPort
         .findByEmail(jwt.getSubject())
-        .orElseThrow(() -> new UserNotFoundException("User not found: " + jwt.getSubject()))
-        .getId();
+        .orElseThrow(() -> new UserNotFoundException("User not found: " + jwt.getSubject()));
+  }
+
+  private void publishClockIn(User worker, TimeLog entry) {
+    try {
+      String time = entry.getTimestamp().atZone(timeZoneProvider.getZoneId()).format(TIME_FORMAT);
+      String id = entry.getId() == null ? "unknown" : entry.getId().value().toString();
+      notificationUseCase.create(
+          new NotificationCommand(
+              "WORKER_CLOCK_IN",
+              NotificationSeverity.INFO,
+              "Entrada registrada",
+              worker.getName() + " marcó entrada a las " + time + ".",
+              "/admin/schedules?tab=registros",
+              "CLOCK_IN:" + id));
+    } catch (Exception exception) {
+      log.error(
+          "Failed to publish clock-in notification for worker {}: {}",
+          worker.getId().value(),
+          exception.getMessage(),
+          exception);
+    }
   }
 }

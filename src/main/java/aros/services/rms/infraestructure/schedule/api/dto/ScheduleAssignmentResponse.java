@@ -12,11 +12,11 @@ public record ScheduleAssignmentResponse(
     @Schema(description = "Worker ID", example = "1001") Long workerId,
     @Schema(description = "Assigned schedule ID", example = "1") Long scheduleId,
     @Schema(description = "Worker's resulting weekly hours", example = "63.0") double weeklyHours,
-    @Schema(description = "Legal weekly reference in hours", example = "48") int legalWeeklyHours,
-    @Schema(description = "Hard weekly cap in hours", example = "66") int hardWeeklyCapHours,
+    @Schema(description = "Legal weekly reference in hours", example = "42") int legalWeeklyHours,
+    @Schema(description = "Hard weekly cap in hours", example = "42") int hardWeeklyCapHours,
     @Schema(
             description = "Non-blocking warning when hours exceed the legal reference",
-            example = "Weekly hours 63.00 exceed the 48 h legal reference")
+            example = "Weekly hours 45.00 exceed the 42 h legal reference")
         String warning) {
 
   /**

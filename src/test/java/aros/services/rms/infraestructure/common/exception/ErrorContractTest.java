@@ -10,10 +10,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import aros.services.rms.core.analytics.domain.exception.InvalidAnalyticsRangeException;
 import aros.services.rms.core.analytics.infrastructure.rest.AnalyticsExceptionHandler;
 import aros.services.rms.core.auth.application.exception.InvalidCredentialsException;
+import aros.services.rms.core.notification.domain.port.input.NotificationUseCase;
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.application.exception.TableNotAvailableException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.http.MediaType;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.test.web.servlet.MockMvc;
@@ -55,10 +58,12 @@ class ErrorContractTest {
 
   @BeforeEach
   void setUp() {
+    ObjectProvider<NotificationUseCase> notifications =
+        new DefaultListableBeanFactory().getBeanProvider(NotificationUseCase.class);
     mockMvc =
         MockMvcBuilders.standaloneSetup(new ThrowingController())
             .setControllerAdvice(
-                new GlobalExceptionHandler(),
+                new GlobalExceptionHandler(notifications),
                 new AnalyticsExceptionHandler(),
                 new ProblemDetailInstanceAdvice())
             .build();
