@@ -436,8 +436,8 @@ final class SeedRunner {
       for (int index = 0; index < SeedConstants.WORKERS.size(); index++) {
         SeedConstants.WorkerSpec worker = SeedConstants.WORKERS.get(index);
         int scheduleId = index + 1;
-        int startHour = 8 + 2 * (index % 4);
-        int length = index >= SeedConstants.WORKERS.size() - 2 ? 4 : 8;
+        final int startHour = 8 + 2 * (index % 4);
+        final int length = index >= SeedConstants.WORKERS.size() - 2 ? 4 : 8;
         schedule.setInt(1, scheduleId);
         schedule.setString(2, "Turno de " + worker.name());
         schedule.setString(3, "Turno individual continuo del dataset determinista");
