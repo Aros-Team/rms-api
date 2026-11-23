@@ -2,9 +2,22 @@
 
 package aros.services.rms.seed;
 
+import aros.services.rms.core.image.domain.ImageSize;
+import com.sksamuel.scrimage.ImmutableImage;
+import com.sksamuel.scrimage.webp.WebpWriter;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.GradientPaint;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -33,9 +46,19 @@ final class SeedRunner {
   private static final int BATCH_SIZE = 2_000;
   private static final String LOCK_NAME = "rms_seed";
 
+  private static final Color[] IMAGE_PALETTE = {
+    new Color(196, 96, 58),
+    new Color(58, 122, 104),
+    new Color(180, 132, 42),
+    new Color(112, 84, 150),
+    new Color(52, 104, 148),
+    new Color(168, 70, 90),
+  };
+
   private final Connection connection;
   private final LocalDate anchor;
   private final LocalDateTime now;
+  private final Path uploadsDir;
 
   private final Map<Integer, Long> tableIds = new LinkedHashMap<>();
   private final Map<Integer, Integer> productAreas = new LinkedHashMap<>();
@@ -54,10 +77,11 @@ final class SeedRunner {
   private int cuartoFrioLocation;
   private int barLocation;
 
-  SeedRunner(Connection connection, LocalDate anchor, LocalDateTime now) {
+  SeedRunner(Connection connection, LocalDate anchor, LocalDateTime now, Path uploadsDir) {
     this.connection = connection;
     this.anchor = anchor;
     this.now = now;
+    this.uploadsDir = uploadsDir;
   }
 
   SeedRunResult reset(boolean runCatalog) {
@@ -79,6 +103,7 @@ final class SeedRunner {
         }
         deleteSeedOwnedRows();
         loadReferenceData();
+        seedProductImages();
         upsertUsers();
         seedSuppliers();
         resetFloor();
@@ -200,6 +225,217 @@ final class SeedRunner {
       // data created after the previous reset and would break the golden supplier count.
       statement.executeUpdate("DELETE FROM suppliers WHERE id > " + SeedConstants.SUPPLIERS.size());
     }
+  }
+
+  /**
+   * Ensures every active product has a usable image.
+   *
+   * <p>The catalogue seeds names and prices, not media. Without this step a fresh database shows
+   * the frontend placeholder for the whole card. Bundled seed photos are used when present,
+   * otherwise a deterministic gradient card is rendered, always to the three WebP sizes the API
+   * serves. A real upload always wins, so an existing image is never replaced.
+   */
+  private void seedProductImages() throws SQLException {
+    try {
+      Files.createDirectories(uploadsDir);
+    } catch (IOException exception) {
+      throw new SeedException("Could not create image directory: " + uploadsDir, exception);
+    }
+
+    String existingSql =
+        "SELECT id, storage_key, original_filename FROM entity_images "
+            + "WHERE entity_type = 'PRODUCT' AND entity_id = ? ORDER BY id LIMIT 1";
+    String insertSql =
+        "INSERT INTO entity_images "
+            + "(entity_type, entity_id, original_filename, content_type, original_size_bytes, "
+            + "storage_key) VALUES ('PRODUCT', ?, ?, ?, ?, ?)";
+    String updateSql =
+        "UPDATE entity_images SET original_filename = ?, content_type = ?, "
+            + "original_size_bytes = ? WHERE id = ?";
+    String productSql =
+        "SELECT p.id, p.name, c.name AS category_name FROM products p "
+            + "LEFT JOIN categories c ON c.id = p.category_id "
+            + "WHERE p.active = TRUE ORDER BY p.id";
+
+    try (PreparedStatement existing = connection.prepareStatement(existingSql);
+        PreparedStatement insert = connection.prepareStatement(insertSql);
+        PreparedStatement update = connection.prepareStatement(updateSql);
+        Statement products = connection.createStatement();
+        ResultSet rows = products.executeQuery(productSql)) {
+      while (rows.next()) {
+        long productId = rows.getLong("id");
+        String name = rows.getString("name");
+        String category = rows.getString("category_name");
+
+        ImageRow row = findImageRow(existing, productId);
+        ClassPathResource photo = photoResource(productId);
+        boolean hasPhoto = photo.exists();
+        boolean seedManaged =
+            row != null
+                && (row.originalFilename().startsWith("seed-")
+                    || (hasPhoto && row.originalFilename().equals(photo.getFilename())));
+
+        if (row != null && !(seedManaged && hasPhoto) && imageFilesExist(row.storageKey())) {
+          continue;
+        }
+
+        String storageKey = row != null ? row.storageKey() : "products/" + productId + "/seed";
+        byte[] photoData = hasPhoto ? readResource(photo) : null;
+        long desktopSize = writeProductImages(storageKey, productId, name, category, photoData);
+        String filename =
+            hasPhoto ? "seed-photo-" + productId + ".jpg" : "seed-" + productId + ".webp";
+        String contentType = hasPhoto ? "image/jpeg" : "image/webp";
+
+        if (row == null) {
+          insert.setLong(1, productId);
+          insert.setString(2, filename);
+          insert.setString(3, contentType);
+          insert.setLong(4, desktopSize);
+          insert.setString(5, storageKey);
+          insert.executeUpdate();
+        } else if (!filename.equals(row.originalFilename())) {
+          update.setString(1, filename);
+          update.setString(2, contentType);
+          update.setLong(3, desktopSize);
+          update.setLong(4, row.id());
+          update.executeUpdate();
+        }
+      }
+    }
+  }
+
+  /** First image row for a product, or {@code null} when it has no image. */
+  private ImageRow findImageRow(PreparedStatement query, long productId) throws SQLException {
+    query.setLong(1, productId);
+    try (ResultSet row = query.executeQuery()) {
+      if (!row.next()) {
+        return null;
+      }
+      return new ImageRow(
+          row.getLong("id"), row.getString("storage_key"), row.getString("original_filename"));
+    }
+  }
+
+  private static ClassPathResource photoResource(long productId) {
+    return new ClassPathResource("seed/product-images/" + productId + ".jpg");
+  }
+
+  private static byte[] readResource(ClassPathResource resource) {
+    try (var stream = resource.getInputStream()) {
+      return stream.readAllBytes();
+    } catch (IOException exception) {
+      throw new SeedException(
+          "Could not read bundled product image: " + resource.getPath(), exception);
+    }
+  }
+
+  /** Whether all three size variants exist on disk for a storage key. */
+  private boolean imageFilesExist(String storageKey) {
+    for (ImageSize size : ImageSize.values()) {
+      if (!Files.exists(versionPath(storageKey, size))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /** Stores the mobile, tablet and desktop WebP versions of a product image. */
+  private long writeProductImages(
+      String storageKey, long productId, String name, String category, byte[] photo) {
+    try {
+      ImmutableImage image =
+          photo == null
+              ? ImmutableImage.fromAwt(renderProductCard(productId, name, category))
+              : ImmutableImage.loader().fromBytes(photo);
+
+      for (ImageSize size : ImageSize.values()) {
+        ImmutableImage resized = image.scaleToWidth(Math.min(size.maxWidth, image.width));
+        byte[] bytes = resized.bytes(WebpWriter.DEFAULT.withQ(size.quality));
+        Path path = versionPath(storageKey, size);
+        Files.createDirectories(path.getParent());
+        Files.write(path, bytes);
+      }
+      return Files.size(versionPath(storageKey, ImageSize.DESKTOP));
+    } catch (IOException exception) {
+      throw new SeedException(
+          "Could not write product image " + storageKey + ": " + exception.getMessage(), exception);
+    }
+  }
+
+  private record ImageRow(long id, String storageKey, String originalFilename) {}
+
+  private Path versionPath(String storageKey, ImageSize size) {
+    return uploadsDir.resolve(storageKey).resolve(size.name().toLowerCase(Locale.ROOT) + ".webp");
+  }
+
+  /** Draws a branded placeholder card so seeded products never look empty on the menu. */
+  private static BufferedImage renderProductCard(long productId, String name, String category) {
+    int width = 1200;
+    int height = 800;
+    Color base = IMAGE_PALETTE[(int) Math.floorMod(productId, IMAGE_PALETTE.length)];
+
+    BufferedImage canvas = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    Graphics2D graphics = canvas.createGraphics();
+    try {
+      graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      graphics.setRenderingHint(
+          RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+      graphics.setPaint(new GradientPaint(0, 0, base.brighter(), width, height, base.darker()));
+      graphics.fillRect(0, 0, width, height);
+
+      graphics.setColor(new Color(255, 255, 255, 26));
+      graphics.fillOval(width - 320, -140, 520, 520);
+      graphics.fillOval(-180, height - 260, 420, 420);
+
+      graphics.setColor(new Color(255, 255, 255, 205));
+      graphics.setFont(new Font("SansSerif", Font.BOLD, 28));
+      String eyebrow =
+          category == null || category.isBlank() ? "CARTA" : category.toUpperCase(Locale.ROOT);
+      graphics.drawString(eyebrow, 72, 104);
+
+      graphics.setFont(new Font("SansSerif", Font.BOLD, 74));
+      FontMetrics metrics = graphics.getFontMetrics();
+      List<String> lines = wrapText(name, metrics, width - 144);
+      int blockHeight = lines.size() * metrics.getHeight();
+      int baseline = (height - blockHeight) / 2 + metrics.getAscent();
+
+      for (String line : lines) {
+        int x = (width - metrics.stringWidth(line)) / 2;
+        graphics.setColor(new Color(0, 0, 0, 45));
+        graphics.drawString(line, x + 3, baseline + 3);
+        graphics.setColor(Color.WHITE);
+        graphics.drawString(line, x, baseline);
+        baseline += metrics.getHeight();
+      }
+
+      graphics.setColor(new Color(255, 255, 255, 150));
+      graphics.setFont(new Font("SansSerif", Font.BOLD, 24));
+      graphics.drawString("RMS", 72, height - 64);
+    } finally {
+      graphics.dispose();
+    }
+    return canvas;
+  }
+
+  private static List<String> wrapText(String text, FontMetrics metrics, int maxWidth) {
+    String[] words = text.trim().split("\\s+");
+    List<String> lines = new ArrayList<>();
+    StringBuilder current = new StringBuilder();
+
+    for (String word : words) {
+      String candidate = current.isEmpty() ? word : current + " " + word;
+      if (!current.isEmpty() && metrics.stringWidth(candidate) > maxWidth) {
+        lines.add(current.toString());
+        current = new StringBuilder(word);
+      } else {
+        current = new StringBuilder(candidate);
+      }
+    }
+    if (!current.isEmpty()) {
+      lines.add(current.toString());
+    }
+    return lines;
   }
 
   private void loadReferenceData() throws SQLException {

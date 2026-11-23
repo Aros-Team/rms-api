@@ -41,3 +41,13 @@ tasks:
   jwtkeys:
     cmds:
       - '{{.GRADLEW}} generate-jwt-keys'
+
+  seedReset:
+    desc: Migrate and regenerate the deterministic seed dataset (ANCHOR=YYYY-MM-DD)
+    cmds:
+      - docker compose up -d
+      - >-
+        {{.GRADLEW}} seedReset
+        -Panchor={{.ANCHOR | default "2026-11-21"}}
+        -PdbUser={{.DB_USER | default "root"}}
+        -PdbPassword={{.DB_PASSWORD | default "root"}}
