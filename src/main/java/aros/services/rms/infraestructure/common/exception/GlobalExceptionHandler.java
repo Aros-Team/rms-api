@@ -22,6 +22,9 @@ import aros.services.rms.core.inventory.application.exception.SupplyCategoryAlre
 import aros.services.rms.core.inventory.application.exception.SupplyNotFoundException;
 import aros.services.rms.core.inventory.application.exception.SupplyVariantAlreadyExistsException;
 import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFoundException;
+import aros.services.rms.core.notification.domain.NotificationCommand;
+import aros.services.rms.core.notification.domain.NotificationSeverity;
+import aros.services.rms.core.notification.domain.port.input.NotificationUseCase;
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.application.exception.SingleChoiceOptionGroupLimitException;
 import aros.services.rms.core.order.application.exception.TableNotAvailableException;
@@ -64,8 +67,10 @@ import aros.services.rms.core.systemconfig.domain.exception.SettingsException;
 import aros.services.rms.core.table.application.exception.InvalidTableStatusException;
 import aros.services.rms.core.user.application.exception.InvalidSalaryException;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -85,9 +90,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  */
 @RestControllerAdvice
 @Order(10)
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+  private final ObjectProvider<NotificationUseCase> notificationUseCaseProvider;
 
   /**
    * Builds a problem response for the given status and detail.
@@ -366,10 +374,26 @@ public class GlobalExceptionHandler {
         Map.of("missingVariants", e.getVariantIds()));
   }
 
-  /** Handles InsufficientStockException. */
+  /** Handles InsufficientStockException and records the broken business rule. */
   @ExceptionHandler(InsufficientStockException.class)
   public ResponseEntity<ProblemDetail> handleInsufficientStock(InsufficientStockException e) {
+    publishBusinessRule("Stock insuficiente", e.getMessage(), "/admin/manage");
     return problem(HttpStatus.CONFLICT, e.getMessage());
+  }
+
+  /** Records a business-rule violation in the persistent admin feed. */
+  private void publishBusinessRule(String title, String detail, String route) {
+    NotificationUseCase notificationUseCase = notificationUseCaseProvider.getIfAvailable();
+    if (notificationUseCase == null) {
+      return;
+    }
+    try {
+      notificationUseCase.create(
+          new NotificationCommand(
+              "BUSINESS_RULE_VIOLATED", NotificationSeverity.WARNING, title, detail, route, null));
+    } catch (Exception notificationError) {
+      log.error("Failed to publish business rule notification: {}", notificationError.getMessage());
+    }
   }
 
   /**
