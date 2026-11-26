@@ -19,4 +19,13 @@ public interface DeliveryUseCase {
    * @throws IllegalStateException si la orden no está en READY
    */
   Order markAsDelivered(Long id);
+
+  /**
+   * Delivers one ready line. The order becomes DELIVERED only when every line is delivered.
+   *
+   * @param orderId the order identifier
+   * @param detailId the line identifier
+   * @return the updated order
+   */
+  Order markDetailAsDelivered(Long orderId, Long detailId);
 }

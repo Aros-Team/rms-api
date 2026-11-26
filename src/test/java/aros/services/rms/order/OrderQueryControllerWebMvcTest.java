@@ -104,7 +104,7 @@ class OrderQueryControllerWebMvcTest {
   void setUp() {
     OrderResponse dummyResponse =
         new OrderResponse(
-            1L, LocalDateTime.now(), "QUEUE", null, null, null, null, null, List.of());
+            1L, LocalDateTime.now(), "QUEUE", null, null, null, null, null, null, null, List.of());
     when(orderResponseMapper.toResponse(any())).thenReturn(dummyResponse);
     when(orderResponseMapper.toResponses(anyList()))
         .thenAnswer(

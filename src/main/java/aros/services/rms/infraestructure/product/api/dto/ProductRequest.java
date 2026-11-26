@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.product.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -60,4 +61,16 @@ public record ProductRequest(
         @Valid
         List<RecipeItemRequest> recipe,
     @Schema(description = "Estimated preparation time in minutes", example = "15")
-        Integer estimatedPrepMinutes) {}
+        Integer estimatedPrepMinutes,
+    @Schema(
+            description = "How many people work on the product during its preparation time",
+            example = "2",
+            defaultValue = "1")
+        @Min(value = 1, message = "La cantidad de personas debe ser al menos 1")
+        Integer requiredWorkers,
+    @Schema(
+            description = "Preparation-time source used for labor costing",
+            example = "ESTIMATED",
+            allowableValues = {"ESTIMATED", "REAL", "AUTO"},
+            defaultValue = "ESTIMATED")
+        String prepTimeMode) {}

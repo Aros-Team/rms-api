@@ -26,6 +26,7 @@ import aros.services.rms.core.notification.domain.NotificationCommand;
 import aros.services.rms.core.notification.domain.NotificationSeverity;
 import aros.services.rms.core.notification.domain.port.input.NotificationUseCase;
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
+import aros.services.rms.core.order.application.exception.RequiredOptionGroupMissingException;
 import aros.services.rms.core.order.application.exception.SingleChoiceOptionGroupLimitException;
 import aros.services.rms.core.order.application.exception.TableNotAvailableException;
 import aros.services.rms.core.payment.application.exception.InvalidPaymentException;
@@ -679,6 +680,13 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(SingleChoiceOptionGroupLimitException.class)
   public ResponseEntity<ProblemDetail> handleSingleChoiceOptionGroupLimit(
       SingleChoiceOptionGroupLimitException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
+  }
+
+  /** Handles RequiredOptionGroupMissingException. */
+  @ExceptionHandler(RequiredOptionGroupMissingException.class)
+  public ResponseEntity<ProblemDetail> handleRequiredOptionGroupMissing(
+      RequiredOptionGroupMissingException e) {
     return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 

@@ -37,4 +37,13 @@ public interface MarkAsReadyUseCase {
    * @throws IllegalStateException si la orden no está en PREPARING o READY
    */
   Order markDetailAsReady(Long orderId, Long detailId);
+
+  /**
+   * Marks every pending line of the given preparation area as ready.
+   *
+   * @param orderId the order identifier
+   * @param areaId the preparation area identifier
+   * @return the updated order
+   */
+  Order markAreaAsReady(Long orderId, Long areaId);
 }

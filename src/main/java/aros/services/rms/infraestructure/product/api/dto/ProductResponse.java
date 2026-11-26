@@ -30,6 +30,10 @@ public record ProductResponse(
         List<RecipeItemResponse> recipe,
     @Schema(description = "Estimated preparation time in minutes", example = "15")
         Integer estimatedPrepMinutes,
+    @Schema(description = "People required to prepare the product", example = "2")
+        Integer requiredWorkers,
+    @Schema(description = "Preparation-time source used for costing", example = "ESTIMATED")
+        String prepTimeMode,
     @Schema(
             description = "Selection type (SPECIAL_SELECTION or STANDARD)",
             example = "SPECIAL_SELECTION")
@@ -91,6 +95,8 @@ public record ProductResponse(
         product.getPreparationAreaName(),
         recipeItems,
         product.getEstimatedPrepMinutes(),
+        product.getRequiredWorkers() == null ? 1 : product.getRequiredWorkers(),
+        product.getPrepTimeMode() == null ? "ESTIMATED" : product.getPrepTimeMode().name(),
         product.getSelectionType() != null ? product.getSelectionType().name() : "STANDARD",
         null,
         null,
@@ -136,6 +142,8 @@ public record ProductResponse(
         base.areaName(),
         base.recipe(),
         base.estimatedPrepMinutes(),
+        base.requiredWorkers(),
+        base.prepTimeMode(),
         base.selectionType(),
         imageUrl,
         imageTabletUrl,

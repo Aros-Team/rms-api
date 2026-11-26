@@ -81,7 +81,9 @@ public class OptionGroupController {
 
     OptionGroup created =
         optionGroupUseCase.create(optionGroup, request.productIds(), request.required());
-    return new ResponseEntity<>(enrichAndMap(List.of(created)).getFirst(), HttpStatus.CREATED);
+    return new ResponseEntity<>(
+        enrichAndMap(List.of(created), Map.of(created.getId(), request.required())).getFirst(),
+        HttpStatus.CREATED);
   }
 
   /**
@@ -118,7 +120,8 @@ public class OptionGroupController {
 
     OptionGroup updated =
         optionGroupUseCase.update(id, optionGroup, request.productIds(), request.required());
-    return ResponseEntity.ok(enrichAndMap(List.of(updated)).getFirst());
+    return ResponseEntity.ok(
+        enrichAndMap(List.of(updated), Map.of(updated.getId(), request.required())).getFirst());
   }
 
   /**
@@ -151,8 +154,10 @@ public class OptionGroupController {
           @RequestParam(required = false)
           Long productId) {
     List<OptionGroup> groups;
+    Map<Long, Boolean> requiredByGroup = Map.of();
     if (productId != null) {
       groups = optionGroupUseCase.findByProductId(productId);
+      requiredByGroup = optionGroupUseCase.loadRequiredFlagsByProductId(productId);
       if (search != null && !search.isBlank()) {
         String lowerSearch = search.toLowerCase();
         groups =
@@ -165,7 +170,7 @@ public class OptionGroupController {
     } else {
       groups = optionGroupUseCase.findAll();
     }
-    List<OptionGroupResponse> responses = enrichAndMap(groups);
+    List<OptionGroupResponse> responses = enrichAndMap(groups, requiredByGroup);
     return ResponseEntity.ok(responses);
   }
 
@@ -191,7 +196,7 @@ public class OptionGroupController {
       @Parameter(description = "Option group ID", example = "1", required = true) @PathVariable
           Long id) {
     OptionGroup optionGroup = optionGroupUseCase.findById(id);
-    List<OptionGroupResponse> responses = enrichAndMap(List.of(optionGroup));
+    List<OptionGroupResponse> responses = enrichAndMap(List.of(optionGroup), Map.of());
     return ResponseEntity.ok(responses.getFirst());
   }
 
@@ -254,6 +259,11 @@ public class OptionGroupController {
   }
 
   private List<OptionGroupResponse> enrichAndMap(List<OptionGroup> groups) {
+    return enrichAndMap(groups, Map.of());
+  }
+
+  private List<OptionGroupResponse> enrichAndMap(
+      List<OptionGroup> groups, Map<Long, Boolean> requiredByGroup) {
     if (groups.isEmpty()) {
       return List.of();
     }
@@ -261,13 +271,15 @@ public class OptionGroupController {
     Map<Long, String> selectionTypes = optionGroupUseCase.loadSelectionTypesByIds(groupIds);
     Map<Long, List<Long>> productIdsByGroup =
         optionGroupUseCase.loadProductIdsByOptionGroupIds(groupIds);
+    Map<Long, Boolean> required = requiredByGroup == null ? Map.of() : requiredByGroup;
     return groups.stream()
         .map(
             g ->
                 OptionGroupResponse.fromDomain(
                     g,
                     selectionTypes.get(g.getId()),
-                    productIdsByGroup.getOrDefault(g.getId(), List.of())))
+                    productIdsByGroup.getOrDefault(g.getId(), List.of()),
+                    Boolean.TRUE.equals(required.get(g.getId()))))
         .toList();
   }
 }

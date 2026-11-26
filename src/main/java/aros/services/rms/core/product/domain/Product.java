@@ -44,5 +44,17 @@ public class Product {
   @Builder.Default private boolean baseRecipeEnabled = false;
   @Builder.Default private boolean schedulingRequired = false;
   private Integer estimatedPrepMinutes;
+
+  /**
+   * How many people work on this product during its estimated preparation time.
+   *
+   * <p>Labor cost = (estimated prep minutes / 60) * area hourly rate * required workers. Defaults
+   * to 1 for historical products and for products prepared by a single person.
+   */
+  @Builder.Default private Integer requiredWorkers = 1;
+
+  /** Which preparation time drives labor cost. Defaults to the editable estimate. */
+  @Builder.Default private PrepTimeMode prepTimeMode = PrepTimeMode.ESTIMATED;
+
   private List<Long> optionGroupIds;
 }

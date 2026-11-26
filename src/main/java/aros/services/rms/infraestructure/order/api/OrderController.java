@@ -234,6 +234,56 @@ public class OrderController {
     return ResponseEntity.ok(response);
   }
 
+  /** Starts one order line at its station. */
+  @Operation(
+      tags = {"Orders"},
+      summary = "Start an order line",
+      description = "Sets the line's preparation start timestamp. Idempotent.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Line started"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Order or line not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @PutMapping("/{id}/details/{detailId}/start")
+  @JustKitchenOrAdmin
+  public ResponseEntity<OrderResponse> startOrderDetail(
+      @Parameter(description = "Order ID", required = true) @PathVariable Long id,
+      @Parameter(description = "Order detail ID", required = true) @PathVariable Long detailId) {
+    Order order = preparationUseCase.startDetail(id, detailId);
+    OrderResponse response = orderResponseMapper.toResponse(order);
+    if (order.getStatus() == OrderStatus.PREPARING) {
+      orderNotificationService.notifyOrderPreparing(response);
+    }
+    return ResponseEntity.ok(response);
+  }
+
+  /** Starts every pending line of one preparation area in the order. */
+  @Operation(
+      tags = {"Orders"},
+      summary = "Start a preparation station",
+      description = "Sets the preparation start timestamp for the lines of one area.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Station started"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Order not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @PutMapping("/{id}/areas/{areaId}/start")
+  @JustKitchenOrAdmin
+  public ResponseEntity<OrderResponse> startOrderArea(
+      @Parameter(description = "Order ID", required = true) @PathVariable Long id,
+      @Parameter(description = "Preparation area ID", required = true) @PathVariable Long areaId) {
+    Order order = preparationUseCase.startArea(id, areaId);
+    OrderResponse response = orderResponseMapper.toResponse(order);
+    if (order.getStatus() == OrderStatus.PREPARING) {
+      orderNotificationService.notifyOrderPreparing(response);
+    }
+    return ResponseEntity.ok(response);
+  }
+
   /**
    * Starts preparation of a specific order.
    *
@@ -340,6 +390,65 @@ public class OrderController {
     OrderResponse response = orderResponseMapper.toResponse(order);
     if (order.getStatus() == OrderStatus.READY) {
       orderNotificationService.notifyOrderReady(response);
+    }
+    return ResponseEntity.ok(response);
+  }
+
+  /** Marks every pending line of one preparation area as ready. */
+  @Operation(
+      tags = {"Orders"},
+      summary = "Mark a preparation station ready",
+      description =
+          "Marks all pending lines of one area ready. "
+              + "The order closes only when every area is done.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Station lines marked ready"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Order not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @PutMapping("/{id}/areas/{areaId}/ready")
+  @JustKitchenOrAdmin
+  public ResponseEntity<OrderResponse> markOrderAreaAsReady(
+      @Parameter(description = "Order ID", required = true) @PathVariable Long id,
+      @Parameter(description = "Preparation area ID", required = true) @PathVariable Long areaId) {
+    Order order = markAsReadyUseCase.markAreaAsReady(id, areaId);
+    OrderResponse response = orderResponseMapper.toResponse(order);
+    if (order.getStatus() == OrderStatus.READY) {
+      orderNotificationService.notifyOrderReady(response);
+    }
+    return ResponseEntity.ok(response);
+  }
+
+  /** Delivers one ready line. The order remains open until every line is delivered. */
+  @Operation(
+      tags = {"Orders"},
+      summary = "Deliver an order line",
+      description =
+          "Marks one ready line delivered. "
+              + "The order becomes DELIVERED only when all lines are delivered.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Line delivered"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Order or line not found"),
+        @ApiResponse(responseCode = "409", description = "Line is not ready"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @PutMapping("/{id}/details/{detailId}/deliver")
+  @JustOperationsStaff
+  public ResponseEntity<OrderResponse> deliverOrderDetail(
+      @Parameter(description = "Order ID", required = true) @PathVariable Long id,
+      @Parameter(description = "Order detail ID", required = true) @PathVariable Long detailId) {
+    Order order = deliveryUseCase.markDetailAsDelivered(id, detailId);
+    OrderResponse response = orderResponseMapper.toResponse(order);
+    if (order.getStatus() == OrderStatus.DELIVERED) {
+      orderNotificationService.notifyOrderDelivered(response);
+      if (order.getTable() != null) {
+        tableNotificationService.notifyTableStatusChanged(
+            TableResponse.fromDomain(order.getTable()));
+      }
     }
     return ResponseEntity.ok(response);
   }

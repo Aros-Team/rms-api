@@ -40,6 +40,7 @@ import aros.services.rms.core.payroll.domain.port.input.UpdatePayrollUseCase;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.port.input.CalculateProductCostUseCase;
 import aros.services.rms.core.product.port.input.GetProductCostBreakdownUseCase;
+import aros.services.rms.core.product.port.input.GetProductPrepTimeUseCase;
 import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.core.specialselection.domain.SpecialSelectionConfiguration;
 import aros.services.rms.core.specialselection.port.input.CreateSpecialSelectionUseCase;
@@ -184,6 +185,7 @@ class AuthorizationMatrixTest {
   @MockitoBean private ProductUseCase productUseCase;
   @MockitoBean private CalculateProductCostUseCase calculateProductCostUseCase;
   @MockitoBean private GetProductCostBreakdownUseCase getProductCostBreakdownUseCase;
+  @MockitoBean private GetProductPrepTimeUseCase getProductPrepTimeUseCase;
   @MockitoBean private ImageRepositoryPort imageRepositoryPort;
   @MockitoBean private StoragePort storagePort;
   @MockitoBean private GetImagesUseCase getImagesUseCase;
@@ -289,7 +291,17 @@ class AuthorizationMatrixTest {
         .thenReturn(new OrderQueryResult(List.of(), 0L, 0, 20));
     OrderResponse orderResponse =
         new OrderResponse(
-            1L, LocalDateTime.now(), "PREPARING", null, null, null, null, null, List.of());
+            1L,
+            LocalDateTime.now(),
+            "PREPARING",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            List.of());
     when(orderResponseMapper.toResponse(any())).thenReturn(orderResponse);
 
     SpecialSelectionConfiguration combo =

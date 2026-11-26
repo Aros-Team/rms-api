@@ -14,7 +14,13 @@ public record ProductCost(
     BigDecimal totalCost,
     BigDecimal materialCost,
     BigDecimal laborCost,
-    List<CostBreakdownItem> breakdown) {
+    List<CostBreakdownItem> breakdown,
+    Integer estimatedPrepMinutes,
+    BigDecimal realPrepMinutes,
+    long realPrepSampleCount,
+    PrepTimeMode prepTimeMode,
+    PrepTimeMode prepTimeUsedSource,
+    BigDecimal prepTimeUsedMinutes) {
 
   /** A single line in the cost breakdown describing one component (e.g., a material or labor). */
   public record CostBreakdownItem(String description, BigDecimal amount, String type) {

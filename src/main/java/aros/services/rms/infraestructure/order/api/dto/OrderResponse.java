@@ -36,6 +36,14 @@ public record OrderResponse(
         @JsonFormat(shape = JsonFormat.Shape.STRING)
         @Schema(description = "Time when table occupancy ended", nullable = true)
         LocalDateTime closeTime,
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
+        @Schema(description = "Time when every line became ready", nullable = true)
+        LocalDateTime preparedAt,
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
+        @Schema(description = "Time when every line was delivered", nullable = true)
+        LocalDateTime deliveredAt,
     @Schema(
             description = "Order total (sum of line unit prices)",
             example = "{\"amount\":\"37.50\",\"currency\":\"COP\"}")
@@ -84,6 +92,15 @@ public record OrderResponse(
           @JsonFormat(shape = JsonFormat.Shape.STRING)
           @Schema(description = "Time when the line was marked ready", nullable = true)
           LocalDateTime readyAt,
+      @JsonInclude(JsonInclude.Include.NON_NULL)
+          @JsonFormat(shape = JsonFormat.Shape.STRING)
+          @Schema(description = "Time when the line's station started it", nullable = true)
+          LocalDateTime preparationStartedAt,
+      @Schema(description = "Whether this line was delivered to the customer") boolean delivered,
+      @JsonInclude(JsonInclude.Include.NON_NULL)
+          @JsonFormat(shape = JsonFormat.Shape.STRING)
+          @Schema(description = "Time when the line was delivered", nullable = true)
+          LocalDateTime deliveredAt,
       @Schema(description = "Clarification answers") List<ClarificationResponse> clarifications) {}
 
   /** Selected product option. */
@@ -135,6 +152,8 @@ public record OrderResponse(
         order.getPartySize(),
         order.getOpenTime(),
         order.getCloseTime(),
+        order.getPreparedAt(),
+        order.getDeliveredAt(),
         calculateTotal(orderDetails),
         orderDetails != null
             ? orderDetails.stream()
@@ -200,6 +219,9 @@ public record OrderResponse(
         null,
         detail.isReady(),
         detail.getReadyAt(),
+        detail.getPreparationStartedAt(),
+        detail.isDelivered(),
+        detail.getDeliveredAt(),
         detail.getClarifications() != null
             ? detail.getClarifications().stream()
                 .map(ca -> new ClarificationResponse(ca.getQuestionId(), null, ca.getAnswer()))

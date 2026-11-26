@@ -14,7 +14,11 @@ public record OptionGroupResponse(
     @Schema(description = "Group description", example = "Available sizes for drinks")
         String description,
     @Schema(description = "Selection mode", example = "SINGLE_CHOICE") String selectionType,
-    @Schema(description = "IDs of associated products") List<Long> productIds) {
+    @Schema(description = "IDs of associated products") List<Long> productIds,
+    @Schema(
+            description = "Whether this group is mandatory for the queried product",
+            example = "false")
+        boolean required) {
 
   /**
    * Creates a response from an option group domain object.
@@ -26,7 +30,7 @@ public record OptionGroupResponse(
     if (optionGroup == null) {
       return null;
     }
-    return fromDomain(optionGroup, "SINGLE_CHOICE", List.of());
+    return fromDomain(optionGroup, "SINGLE_CHOICE", List.of(), false);
   }
 
   /**
@@ -39,6 +43,21 @@ public record OptionGroupResponse(
    */
   public static OptionGroupResponse fromDomain(
       OptionGroup optionGroup, String selectionType, List<Long> productIds) {
+    return fromDomain(optionGroup, selectionType, productIds, false);
+  }
+
+  /**
+   * Creates a response with selection type, associated product IDs and the mandatory flag for the
+   * queried product.
+   *
+   * @param optionGroup the option group
+   * @param selectionType projected selection type
+   * @param productIds associated product IDs
+   * @param required whether the group is mandatory for the queried product
+   * @return the response DTO
+   */
+  public static OptionGroupResponse fromDomain(
+      OptionGroup optionGroup, String selectionType, List<Long> productIds, boolean required) {
     if (optionGroup == null) {
       return null;
     }
@@ -47,6 +66,7 @@ public record OptionGroupResponse(
         optionGroup.getName(),
         optionGroup.getDescription(),
         selectionType == null || selectionType.isBlank() ? "SINGLE_CHOICE" : selectionType,
-        productIds == null ? List.of() : productIds);
+        productIds == null ? List.of() : productIds,
+        required);
   }
 }

@@ -89,4 +89,12 @@ public interface OptionGroupUseCase {
    * @return map of option-group ID -> list of associated product IDs
    */
   Map<Long, List<Long>> loadProductIdsByOptionGroupIds(Collection<Long> optionGroupIds);
+
+  /**
+   * Loads the per-product mandatory flag for every option group associated with the product.
+   *
+   * @param productId the product identifier
+   * @return option-group id -> required flag
+   */
+  Map<Long, Boolean> loadRequiredFlagsByProductId(Long productId);
 }

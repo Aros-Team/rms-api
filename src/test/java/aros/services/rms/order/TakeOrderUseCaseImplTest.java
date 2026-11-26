@@ -21,6 +21,7 @@ import aros.services.rms.core.inventory.application.exception.InsufficientStockE
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.order.application.dto.TakeOrderCommand;
+import aros.services.rms.core.order.application.exception.RequiredOptionGroupMissingException;
 import aros.services.rms.core.order.application.exception.SingleChoiceOptionGroupLimitException;
 import aros.services.rms.core.order.application.service.TakeOrderService;
 import aros.services.rms.core.order.domain.Order;
@@ -46,6 +47,7 @@ import aros.services.rms.core.table.port.output.TableRepositoryPort;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -168,6 +170,84 @@ class TakeOrderUseCaseImplTest {
     assertEquals(1, result.getDetails().get(0).getSelectedOptions().size());
     verify(tableRepositoryPort, times(1)).save(table);
     assertEquals(TableStatus.OCCUPIED, table.getStatus());
+  }
+
+  @Test
+  void shouldRejectOrder_whenRequiredOptionGroupHasNoSelection() {
+    Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
+    Product product =
+        Product.builder()
+            .id(1L)
+            .name("Desayuno estandar")
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .category(Category.builder().id(1L).name("Food").build())
+            .build();
+
+    when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
+    when(productOptionRepositoryPort.findRequiredOptionGroupsByProductId(1L))
+        .thenReturn(Map.of(42L, "Proteína"));
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(1L)
+            .details(
+                List.of(
+                    TakeOrderCommand.OrderDetailCommand.builder()
+                        .productId(1L)
+                        .selectedOptionIds(List.of())
+                        .build()))
+            .build();
+
+    RequiredOptionGroupMissingException thrown =
+        assertThrows(
+            RequiredOptionGroupMissingException.class, () -> takeOrderUseCase.execute(command));
+
+    assertNotNull(thrown.getMessage());
+    verify(orderRepositoryPort, never()).save(any(Order.class));
+  }
+
+  @Test
+  void shouldAcceptOrder_whenRequiredOptionGroupReceivesOneSelection() {
+    Table table = Table.builder().id(1L).status(TableStatus.AVAILABLE).build();
+    Product product =
+        Product.builder()
+            .id(1L)
+            .name("Desayuno estandar")
+            .basePrice(new Money(BigDecimal.valueOf(10.0), Currency.getInstance("COP")))
+            .category(Category.builder().id(1L).name("Food").build())
+            .build();
+    OptionGroup protein =
+        OptionGroup.builder()
+            .id(42L)
+            .name("Proteína")
+            .selectionType(OptionSelectionType.SINGLE_CHOICE)
+            .build();
+    ProductOption egg = ProductOption.builder().id(1L).name("Huevo").category(protein).build();
+
+    when(tableRepositoryPort.findById(1L)).thenReturn(Optional.of(table));
+    when(productRepositoryPort.findById(1L)).thenReturn(Optional.of(product));
+    when(productOptionRepositoryPort.findAllById(List.of(1L))).thenReturn(List.of(egg));
+    when(productOptionRepositoryPort.isOptionAssociatedWithProduct(1L, 1L)).thenReturn(true);
+    when(productOptionRepositoryPort.findRequiredOptionGroupsByProductId(1L))
+        .thenReturn(Map.of(42L, "Proteína"));
+    when(orderRepositoryPort.save(any(Order.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    TakeOrderCommand command =
+        TakeOrderCommand.builder()
+            .tableId(1L)
+            .details(
+                List.of(
+                    TakeOrderCommand.OrderDetailCommand.builder()
+                        .productId(1L)
+                        .selectedOptionIds(List.of(1L))
+                        .build()))
+            .build();
+
+    Order result = takeOrderUseCase.execute(command);
+
+    assertEquals(1, result.getDetails().get(0).getSelectedOptions().size());
   }
 
   @Test

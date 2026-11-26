@@ -30,4 +30,10 @@ public class Order {
   private Integer partySize;
   private LocalDateTime openTime;
   private LocalDateTime closeTime;
+
+  /** When every line became ready. Used for ticket-preparation averages. */
+  private LocalDateTime preparedAt;
+
+  /** When every line was delivered. Used for ticket-delivery averages. */
+  private LocalDateTime deliveredAt;
 }

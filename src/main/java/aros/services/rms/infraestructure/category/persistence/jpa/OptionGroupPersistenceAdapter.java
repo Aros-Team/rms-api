@@ -125,6 +125,31 @@ public class OptionGroupPersistenceAdapter implements OptionGroupRepositoryPort 
   }
 
   @Override
+  public Map<Long, Boolean> loadRequiredFlagsByProductId(Long productId) {
+    if (productId == null) {
+      return Map.of();
+    }
+    Map<Long, Boolean> result = new LinkedHashMap<>();
+    for (ProductOptionGroupJpaRepository.GroupRequiredProjection projection :
+        productOptionGroupRepository.findGroupRequiredByProductId(productId)) {
+      result.put(projection.getOptionGroupId(), Boolean.TRUE.equals(projection.getRequired()));
+    }
+    return Map.copyOf(result);
+  }
+
+  @Override
+  @org.springframework.transaction.annotation.Transactional
+  public void associateProduct(Long productId, Long optionGroupId, boolean required) {
+    productOptionGroupRepository.insertIgnoreAssociation(productId, optionGroupId, required);
+  }
+
+  @Override
+  @org.springframework.transaction.annotation.Transactional
+  public void detachProduct(Long productId, Long optionGroupId) {
+    productOptionGroupRepository.deleteByProductIdAndOptionGroupId(productId, optionGroupId);
+  }
+
+  @Override
   @org.springframework.transaction.annotation.Transactional
   public void replaceProductAssociations(
       Long optionGroupId, List<Long> productIds, boolean required) {

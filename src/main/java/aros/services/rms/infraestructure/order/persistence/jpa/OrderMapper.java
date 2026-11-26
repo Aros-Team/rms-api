@@ -53,6 +53,8 @@ public class OrderMapper {
             .partySize(domain.getPartySize())
             .openTime(domain.getOpenTime())
             .closeTime(domain.getCloseTime())
+            .preparedAt(domain.getPreparedAt())
+            .deliveredAt(domain.getDeliveredAt())
             .build();
 
     if (domain.getDetails() != null) {
@@ -94,6 +96,9 @@ public class OrderMapper {
             .instructions(domain.getInstructions())
             .ready(domain.isReady())
             .readyAt(domain.getReadyAt())
+            .preparationStartedAt(domain.getPreparationStartedAt())
+            .delivered(domain.isDelivered())
+            .deliveredAt(domain.getDeliveredAt())
             .build();
 
     entity.setSelectedOptions(toOrderDetailOptionEntities(domain, entity));
@@ -158,6 +163,8 @@ public class OrderMapper {
         .partySize(entity.getPartySize())
         .openTime(entity.getOpenTime())
         .closeTime(entity.getCloseTime())
+        .preparedAt(entity.getPreparedAt())
+        .deliveredAt(entity.getDeliveredAt())
         .details(
             entity.getDetails() != null
                 ? entity.getDetails().stream()
@@ -216,6 +223,9 @@ public class OrderMapper {
         .selectedOptions(selectedOptions)
         .ready(entity.isReady())
         .readyAt(entity.getReadyAt())
+        .preparationStartedAt(entity.getPreparationStartedAt())
+        .delivered(entity.isDelivered())
+        .deliveredAt(entity.getDeliveredAt())
         .build();
   }
 }

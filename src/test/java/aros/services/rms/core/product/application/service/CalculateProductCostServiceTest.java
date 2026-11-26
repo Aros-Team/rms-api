@@ -19,6 +19,8 @@ import aros.services.rms.core.product.application.exception.ProductNotFoundExcep
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductCost;
 import aros.services.rms.core.product.domain.ProductCost.CostBreakdownItem;
+import aros.services.rms.core.product.domain.ProductPrepTimeStats;
+import aros.services.rms.core.product.port.output.ProductPrepTimeStatsPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.math.BigDecimal;
@@ -44,12 +46,16 @@ class CalculateProductCostServiceTest {
   @Mock private SupplyVariantRepositoryPort supplyVariantRepositoryPort;
   @Mock private UserRepositoryPort userRepositoryPort;
   @Mock private AreaLaborCostPort areaLaborCostPort;
+  @Mock private ProductPrepTimeStatsPort productPrepTimeStatsPort;
   @Mock private Logger logger;
 
   private CalculateProductCostService service;
 
   @BeforeEach
   void setUp() {
+    org.mockito.Mockito.lenient()
+        .when(productPrepTimeStatsPort.findByProductId(org.mockito.ArgumentMatchers.anyLong()))
+        .thenReturn(ProductPrepTimeStats.empty());
     service =
         new CalculateProductCostService(
             productRepositoryPort,
@@ -57,6 +63,7 @@ class CalculateProductCostServiceTest {
             supplyVariantRepositoryPort,
             userRepositoryPort,
             areaLaborCostPort,
+            productPrepTimeStatsPort,
             logger);
   }
 
@@ -200,6 +207,64 @@ class CalculateProductCostServiceTest {
     assertTrue(
         cost.breakdown().stream().anyMatch(b -> "LABOR".equals(b.type())),
         "expected a LABOR breakdown line");
+  }
+
+  // ---------------------------------------------------------------------------
+  // UC-03b: shouldMultiplyLaborCost_whenProductRequiresSeveralWorkers
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldMultiplyLaborCost_whenProductRequiresSeveralWorkers() {
+    Product product =
+        Product.builder()
+            .id(PRODUCT_ID)
+            .name("Pizza para dos estaciones")
+            .estimatedPrepMinutes(30)
+            .requiredWorkers(3)
+            .preparationAreaId(AREA_ID)
+            .build();
+
+    when(productRepositoryPort.findById(PRODUCT_ID)).thenReturn(Optional.of(product));
+    when(productRecipeRepositoryPort.findByProductId(PRODUCT_ID)).thenReturn(List.of());
+    when(areaLaborCostPort.calculateCostPerHour(AREA_ID, YearMonth.now()))
+        .thenReturn(new Money(new BigDecimal("10000"), Currency.getInstance("COP")));
+
+    ProductCost cost = service.calculateCost(PRODUCT_ID);
+
+    // hours = 30 / 60 = 0.5; labor = 10000 * 0.5 * 3 workers = 15000
+    assertEquals(0, new BigDecimal("15000.00").compareTo(cost.laborCost()));
+    assertEquals(0, new BigDecimal("15000.00").compareTo(cost.totalCost()));
+    assertTrue(
+        cost.breakdown().stream()
+            .anyMatch(b -> "LABOR".equals(b.type()) && b.description().contains("3 persona")),
+        "expected the labor line to mention the worker count");
+  }
+
+  @Test
+  void shouldUseMeasuredTime_whenModeIsRealAndThereAreEnoughSamples() {
+    Product product =
+        Product.builder()
+            .id(PRODUCT_ID)
+            .name("Pizza medida")
+            .estimatedPrepMinutes(10)
+            .prepTimeMode(aros.services.rms.core.product.domain.PrepTimeMode.REAL)
+            .preparationAreaId(AREA_ID)
+            .build();
+
+    when(productRepositoryPort.findById(PRODUCT_ID)).thenReturn(Optional.of(product));
+    when(productRecipeRepositoryPort.findByProductId(PRODUCT_ID)).thenReturn(List.of());
+    when(productPrepTimeStatsPort.findByProductId(PRODUCT_ID))
+        .thenReturn(new ProductPrepTimeStats(12.0, 12, null, null));
+    when(areaLaborCostPort.calculateCostPerHour(AREA_ID, YearMonth.now()))
+        .thenReturn(new Money(new BigDecimal("10000"), Currency.getInstance("COP")));
+
+    ProductCost cost = service.calculateCost(PRODUCT_ID);
+
+    // real 12 min -> 0.2 h * 10000 = 2000
+    assertEquals(0, new BigDecimal("2000.00").compareTo(cost.laborCost()));
+    assertEquals(
+        aros.services.rms.core.product.domain.PrepTimeMode.REAL, cost.prepTimeUsedSource());
+    assertEquals(0, new BigDecimal("12.00").compareTo(cost.prepTimeUsedMinutes()));
   }
 
   // ---------------------------------------------------------------------------

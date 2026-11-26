@@ -23,6 +23,7 @@ import aros.services.rms.core.image.port.output.StoragePort;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.port.input.CalculateProductCostUseCase;
 import aros.services.rms.core.product.port.input.GetProductCostBreakdownUseCase;
+import aros.services.rms.core.product.port.input.GetProductPrepTimeUseCase;
 import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.common.config.RestApiConfig;
@@ -91,6 +92,7 @@ class ProductControllerTest {
   @MockitoBean private ProductUseCase productUseCase;
   @MockitoBean private CalculateProductCostUseCase calculateProductCostUseCase;
   @MockitoBean private GetProductCostBreakdownUseCase getProductCostBreakdownUseCase;
+  @MockitoBean private GetProductPrepTimeUseCase getProductPrepTimeUseCase;
   @MockitoBean private ImageRepositoryPort imageRepositoryPort;
   @MockitoBean private StoragePort storagePort;
   @MockitoBean private OptionGroupUseCase optionGroupUseCase;

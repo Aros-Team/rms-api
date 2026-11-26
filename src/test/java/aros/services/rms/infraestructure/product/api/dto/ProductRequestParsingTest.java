@@ -134,7 +134,9 @@ class ProductRequestParsingTest {
             List.of(1L, 2L),
             List.of(new OptionExtrasRequest(4L, new BigDecimal("2500.00"))),
             null,
-            15);
+            15,
+            2,
+            "ESTIMATED");
 
     String json = mapper.writeValueAsString(request);
     JsonNode root = mapper.readTree(json);
@@ -149,7 +151,8 @@ class ProductRequestParsingTest {
   @Test
   void should_serialize_with_null_optionExtras() throws Exception {
     ProductRequest request =
-        new ProductRequest("Burger", null, 12.50, 1L, 1L, List.of(1L), null, null, 15);
+        new ProductRequest(
+            "Burger", null, 12.50, 1L, 1L, List.of(1L), null, null, 15, 1, "ESTIMATED");
 
     String json = mapper.writeValueAsString(request);
     JsonNode root = mapper.readTree(json);

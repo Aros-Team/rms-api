@@ -55,6 +55,8 @@ public class ProductMapper {
         .baseRecipeEnabled(entity.isSelectionBaseRecipeEnabled())
         .schedulingRequired(entity.isSchedulingRequired())
         .estimatedPrepMinutes(entity.getEstimatedPrepMinutes())
+        .requiredWorkers(entity.getRequiredWorkers() == null ? 1 : entity.getRequiredWorkers())
+        .prepTimeMode(toPrepTimeMode(entity.getPrepTimeMode()))
         .build();
   }
 
@@ -90,6 +92,9 @@ public class ProductMapper {
             .selectionBaseRecipeEnabled(domain.isBaseRecipeEnabled())
             .schedulingRequired(domain.isSchedulingRequired())
             .estimatedPrepMinutes(domain.getEstimatedPrepMinutes())
+            .requiredWorkers(domain.getRequiredWorkers() == null ? 1 : domain.getRequiredWorkers())
+            .prepTimeMode(
+                domain.getPrepTimeMode() == null ? "ESTIMATED" : domain.getPrepTimeMode().name())
             .build();
 
     if (domain.getPreparationAreaId() != null) {
@@ -110,5 +115,16 @@ public class ProductMapper {
         .name(domain.getName())
         .category(categoryMapper.toOptionGroupEntity(domain.getCategory()))
         .build();
+  }
+
+  private static aros.services.rms.core.product.domain.PrepTimeMode toPrepTimeMode(String value) {
+    if (value == null || value.isBlank()) {
+      return aros.services.rms.core.product.domain.PrepTimeMode.ESTIMATED;
+    }
+    try {
+      return aros.services.rms.core.product.domain.PrepTimeMode.valueOf(value);
+    } catch (IllegalArgumentException unknown) {
+      return aros.services.rms.core.product.domain.PrepTimeMode.ESTIMATED;
+    }
   }
 }

@@ -62,6 +62,16 @@ public class OrderDetail {
   @jakarta.persistence.Column(name = "ready_at")
   private LocalDateTime readyAt;
 
+  @jakarta.persistence.Column(name = "preparation_started_at")
+  private LocalDateTime preparationStartedAt;
+
+  @Builder.Default
+  @jakarta.persistence.Column(name = "delivered", nullable = false)
+  private boolean delivered = false;
+
+  @jakarta.persistence.Column(name = "delivered_at")
+  private LocalDateTime deliveredAt;
+
   /**
    * Selected option rows. Each row pairs an {@link
    * aros.services.rms.infraestructure.product.persistence.ProductOption} with its per-selection

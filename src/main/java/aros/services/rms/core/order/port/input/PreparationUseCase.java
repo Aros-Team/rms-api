@@ -27,4 +27,22 @@ public interface PreparationUseCase {
    * @throws IllegalStateException si la orden no está en estado QUEUE
    */
   Order prepareOrder(Long id);
+
+  /**
+   * Starts one order line at its station.
+   *
+   * @param orderId the order identifier
+   * @param detailId the line identifier
+   * @return the updated order
+   */
+  Order startDetail(Long orderId, Long detailId);
+
+  /**
+   * Starts every pending line of the given preparation area in the order.
+   *
+   * @param orderId the order identifier
+   * @param areaId the preparation area identifier
+   * @return the updated order
+   */
+  Order startArea(Long orderId, Long areaId);
 }
