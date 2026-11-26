@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import aros.services.rms.core.auth.port.input.AccountSetupUseCase;
 import aros.services.rms.core.category.port.input.OptionGroupUseCase;
+import aros.services.rms.core.image.port.input.GetImagesUseCase;
 import aros.services.rms.core.image.port.output.ImageRepositoryPort;
 import aros.services.rms.core.image.port.output.StoragePort;
 import aros.services.rms.core.order.domain.Order;
@@ -185,6 +186,7 @@ class AuthorizationMatrixTest {
   @MockitoBean private GetProductCostBreakdownUseCase getProductCostBreakdownUseCase;
   @MockitoBean private ImageRepositoryPort imageRepositoryPort;
   @MockitoBean private StoragePort storagePort;
+  @MockitoBean private GetImagesUseCase getImagesUseCase;
   @MockitoBean private OptionGroupUseCase optionGroupUseCase;
 
   @MockitoBean

@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- **seed**: replace the demo roster with the seven real workers (Camila Navarro, Bruno Castillo,
+  Renata Flores, Diego Salas, Mateo Rivas, Tomás Méndez and Valentina Soto), their weekly shifts
+  covering every open hour (Mon closed; Tue–Fri 08–22, Sat–Sun 08–17) within the 42 h cap, salaries
+  and per-worker expected hours; delete every previous `WORKER` user on reset.
+- **seed**: attach the bundled worker portraits through `entity_images` (three WebP sizes) and
+  expose them in the API.
+- **seed**: include anchor-day attendance marks up to the seed instant (completed shift → IN/OUT,
+  in-progress shift → open IN) and persist the cut-off in `seed_logged_until`.
+- **workers**: expose `imageUrl` in `GET/PUT /api/v1/workers` and batch-resolve portraits with the
+  new `GetImagesUseCase.getFirstByEntities`.
+
 ## [v2.2.0](https://github.com/Aros-Team/rms-api/releases/tag/v2.2.0)
 
 ### Features

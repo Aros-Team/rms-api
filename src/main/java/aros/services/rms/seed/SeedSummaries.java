@@ -22,6 +22,8 @@ import java.util.Map;
 final class SeedSummaries {
 
   private static final BigDecimal HUNDRED = new BigDecimal("100");
+  private static final BigDecimal FOH_SHARE =
+      SeedConstants.FOH_LABOR.divide(SeedConstants.FULL_MONTH_LABOR, 10, RoundingMode.HALF_UP);
   private static final int BATCH = 1_000;
 
   private final Connection connection;
@@ -134,7 +136,7 @@ final class SeedSummaries {
                   SeedConstants.FULL_MONTH_LABOR.divide(
                       BigDecimal.valueOf(month.lengthOfMonth()), 2, RoundingMode.HALF_UP));
         }
-        BigDecimal laborFoh = labor.multiply(new BigDecimal("0.4298507463"));
+        BigDecimal laborFoh = labor.multiply(FOH_SHARE);
         bindSummary(
             statement,
             week.getKey(),

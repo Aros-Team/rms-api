@@ -4,6 +4,9 @@ package aros.services.rms.infraestructure.user.api;
 
 import aros.services.rms.core.auth.application.exception.UserNotFoundException;
 import aros.services.rms.core.auth.port.input.AccountSetupUseCase;
+import aros.services.rms.core.image.domain.ImageEntityType;
+import aros.services.rms.core.image.domain.ImageWithUrls;
+import aros.services.rms.core.image.port.input.GetImagesUseCase;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.user.application.exception.UserAlreadyExistsException;
 import aros.services.rms.core.user.domain.User;
@@ -27,6 +30,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -62,6 +66,7 @@ public class WorkerController {
   private final AccountSetupUseCase accountSetupUseCase;
   private final UserRepositoryPort userRepositoryPort;
   private final GetSalaryHistoryUseCase getSalaryHistoryUseCase;
+  private final GetImagesUseCase getImagesUseCase;
   private final CurrencyProvider currencyProvider;
 
   /**
@@ -99,8 +104,26 @@ public class WorkerController {
     } else {
       workers = getAllWorkersUseCase.getAll();
     }
-    List<UserResponse> responses = workers.stream().map(UserResponse::fromDomain).toList();
+    Map<Long, ImageWithUrls> images =
+        getImagesUseCase.getFirstByEntities(
+            ImageEntityType.USER, workers.stream().map(worker -> worker.getId().value()).toList());
+    Map<Long, ImageWithUrls> imageByEntity = images == null ? Map.of() : images;
+    List<UserResponse> responses =
+        workers.stream()
+            .map(
+                worker ->
+                    UserResponse.fromDomain(
+                        worker, imageUrl(imageByEntity.get(worker.getId().value()))))
+            .toList();
     return ResponseEntity.ok(responses);
+  }
+
+  /** Prefers the tablet portrait and falls back to the mobile variant. */
+  private static String imageUrl(ImageWithUrls image) {
+    if (image == null) {
+      return null;
+    }
+    return image.getTabletUrl() != null ? image.getTabletUrl() : image.getMobileUrl();
   }
 
   /**
@@ -166,7 +189,14 @@ public class WorkerController {
     var user =
         this.updateUserUseCase.update(id, request.toUpdateUserInfo(currencyProvider.getCurrency()));
     log.info("Worker updated successfully: id={}", id);
-    return ResponseEntity.ok(UserResponse.fromDomain(user));
+    return ResponseEntity.ok(UserResponse.fromDomain(user, workerImage(user.getId().value())));
+  }
+
+  /** Resolves a single worker's profile image URL, tolerating an empty image lookup. */
+  private String workerImage(Long workerId) {
+    Map<Long, ImageWithUrls> images =
+        getImagesUseCase.getFirstByEntities(ImageEntityType.USER, List.of(workerId));
+    return images == null ? null : imageUrl(images.get(workerId));
   }
 
   /**
