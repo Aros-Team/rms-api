@@ -92,6 +92,8 @@ public class CreateUserService implements CreateUserUseCase {
       user.setSalary(info.salary());
     }
 
+    user.setJobTitle(info.jobTitle());
+
     User saved = this.userPort.save(user);
 
     if (saved.getSalary() != null) {

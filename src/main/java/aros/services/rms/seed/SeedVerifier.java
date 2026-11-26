@@ -87,7 +87,22 @@ final class SeedVerifier {
             "workers",
             SeedConstants.WORKERS.size(),
             scalar(
-                "SELECT COUNT(*) FROM users WHERE document LIKE 'SEED-1%' AND role = 'WORKER'")));
+                "SELECT COUNT(*) FROM users WHERE email LIKE 'seed%@rms.local' "
+                    + "AND role = 'WORKER'")));
+    checks.add(
+        check(
+            "workers with job title",
+            SeedConstants.WORKERS.size(),
+            scalar(
+                "SELECT COUNT(*) FROM users WHERE email LIKE 'seed%@rms.local' "
+                    + "AND role = 'WORKER' AND job_title IS NOT NULL AND job_title <> ''")));
+    checks.add(
+        check(
+            "worker documents are numeric",
+            SeedConstants.WORKERS.size(),
+            scalar(
+                "SELECT COUNT(*) FROM users WHERE email LIKE 'seed%@rms.local' "
+                    + "AND role = 'WORKER' AND document REGEXP '^[0-9]+$'")));
     checks.add(
         check(
             "workers with images",

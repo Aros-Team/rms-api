@@ -18,6 +18,8 @@ public record UserResponse(
     @Schema(description = "Email address", example = "jane@example.com") String email,
     @Schema(description = "Address", example = "123 Main Street") String address,
     @Schema(description = "Phone number", example = "3001234567") String phone,
+    @Schema(description = "Job title or role inside the assigned area", example = "Jefe de cocina")
+        String jobTitle,
     @Schema(description = "User role", example = "ADMIN") UserRole role,
     @Schema(description = "User status", example = "ACTIVE") UserStatus status,
     @Schema(description = "IDs of areas assigned to the user", example = "[1, 2]")
@@ -41,6 +43,7 @@ public record UserResponse(
         user.getEmail().value(),
         user.getAddress(),
         user.getPhone(),
+        user.getJobTitle(),
         user.getRole(),
         user.getStatus(),
         user.getAssignedAreas().stream().map(areaId -> areaId.value()).toList(),

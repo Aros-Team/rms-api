@@ -17,4 +17,20 @@ public record UpdateUserInfo(
     Set<AreaId> areas,
     Salary salary,
     String reason,
-    String observations) {}
+    String observations,
+    String jobTitle) {
+
+  /** Backwards-compatible constructor without a job title. */
+  public UpdateUserInfo(
+      String document,
+      String name,
+      UserEmail email,
+      String address,
+      String phone,
+      Set<AreaId> areas,
+      Salary salary,
+      String reason,
+      String observations) {
+    this(document, name, email, address, phone, areas, salary, reason, observations, null);
+  }
+}

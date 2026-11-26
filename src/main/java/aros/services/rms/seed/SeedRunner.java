@@ -671,12 +671,13 @@ final class SeedRunner {
 
   private void upsertUsers() throws SQLException {
     String sql =
-        "INSERT INTO users (id, document, name, email, password, address, phone, role, status, "
-            + "salary, expected_hours_per_month) VALUES (?,?,?,?,?,?,?,?,?,?,?) "
+        "INSERT INTO users (id, document, name, email, password, address, phone, job_title, "
+            + "role, status, salary, expected_hours_per_month) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?) "
             + "ON DUPLICATE KEY UPDATE document=VALUES(document), name=VALUES(name), "
             + "email=VALUES(email), address=VALUES(address), phone=VALUES(phone), "
-            + "role=VALUES(role), status=VALUES(status), salary=VALUES(salary), "
-            + "expected_hours_per_month=VALUES(expected_hours_per_month)";
+            + "job_title=VALUES(job_title), role=VALUES(role), status=VALUES(status), "
+            + "salary=VALUES(salary), expected_hours_per_month=VALUES(expected_hours_per_month)";
     try (PreparedStatement statement = connection.prepareStatement(sql)) {
       for (SeedConstants.WorkerSpec worker : SeedConstants.WORKERS) {
         bindUser(
@@ -686,15 +687,32 @@ final class SeedRunner {
             worker.salary(),
             worker.expectedHoursPerMonth(),
             "WORKER",
-            "SEED-" + worker.id(),
-            "seed" + worker.id() + "@rms.local");
+            SeedConstants.seedDocument(worker.id()),
+            "seed" + worker.id() + "@rms.local",
+            worker.jobTitle());
         statement.addBatch();
       }
       bindUser(
-          statement, 1007, "Administrador 1", null, 160, "ADMIN", "SEED-1007", "admin1@rms.local");
+          statement,
+          1007,
+          "Administrador 1",
+          null,
+          160,
+          "ADMIN",
+          SeedConstants.seedDocument(1007),
+          "admin1@rms.local",
+          null);
       statement.addBatch();
       bindUser(
-          statement, 1008, "Administrador 2", null, 160, "ADMIN", "SEED-1008", "admin2@rms.local");
+          statement,
+          1008,
+          "Administrador 2",
+          null,
+          160,
+          "ADMIN",
+          SeedConstants.seedDocument(1008),
+          "admin2@rms.local",
+          null);
       statement.addBatch();
       statement.executeBatch();
     }
@@ -735,7 +753,8 @@ final class SeedRunner {
       int expectedHours,
       String role,
       String document,
-      String email)
+      String email,
+      String jobTitle)
       throws SQLException {
     statement.setLong(1, id);
     statement.setString(2, document);
@@ -744,14 +763,19 @@ final class SeedRunner {
     statement.setNull(5, Types.VARCHAR);
     statement.setString(6, "Calle 10 # 20-" + (id % 100));
     statement.setString(7, String.format(Locale.ROOT, "300%07d", id));
-    statement.setString(8, role);
-    statement.setString(9, "ACTIVE");
-    if (salary == null) {
-      statement.setNull(10, Types.DECIMAL);
+    if (jobTitle == null) {
+      statement.setNull(8, Types.VARCHAR);
     } else {
-      statement.setBigDecimal(10, BigDecimal.valueOf(salary));
+      statement.setString(8, jobTitle);
     }
-    statement.setInt(11, expectedHours);
+    statement.setString(9, role);
+    statement.setString(10, "ACTIVE");
+    if (salary == null) {
+      statement.setNull(11, Types.DECIMAL);
+    } else {
+      statement.setBigDecimal(11, BigDecimal.valueOf(salary));
+    }
+    statement.setInt(12, expectedHours);
   }
 
   private void resetFloor() throws SQLException {

@@ -18,6 +18,7 @@ public class User {
   private String password;
   private String address;
   private String phone;
+  private String jobTitle;
   private UserRole role;
   private UserStatus status;
   private List<AreaId> assignedAreas;
@@ -222,6 +223,24 @@ public class User {
    */
   public String getPhone() {
     return phone;
+  }
+
+  /**
+   * Gets the user's job title ("rol" inside their area).
+   *
+   * @return the job title, or null when not set
+   */
+  public String getJobTitle() {
+    return jobTitle;
+  }
+
+  /**
+   * Sets the user's job title ("rol" inside their area).
+   *
+   * @param jobTitle the job title
+   */
+  public void setJobTitle(String jobTitle) {
+    this.jobTitle = jobTitle;
   }
 
   /**

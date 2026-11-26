@@ -9,6 +9,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -39,6 +40,17 @@ final class SeedConstants {
   static final long SEED_USER_FIRST = 1001L;
   static final long SEED_USER_LAST = 1017L;
   static final long ADMIN_ID = 1007L;
+
+  /**
+   * Numeric-only document for a seeded user.
+   *
+   * <p>The worker create/update forms and the API validate {@code document} as digits only, so the
+   * seed must not use readable prefixes such as {@code SEED-1007}. The value is deterministic and
+   * unique per user id: {@code 1000001011} for worker 1011.
+   */
+  static String seedDocument(long userId) {
+    return String.format(Locale.ROOT, "1%09d", userId);
+  }
 
   static final long HISTORY_ORDER_ID_BASE = 100_000L;
   static final long OPERATIONAL_ORDER_ID_BASE = 900_000L;
@@ -79,6 +91,7 @@ final class SeedConstants {
           new WorkerSpec(
               1011,
               "Camila Navarro",
+              "Jefa de cocina",
               KITCHEN_AREA,
               3_800_000,
               200_000,
@@ -87,6 +100,7 @@ final class SeedConstants {
           new WorkerSpec(
               1012,
               "Bruno Castillo",
+              "Cajero",
               CASH_AREA,
               2_400_000,
               0,
@@ -95,6 +109,7 @@ final class SeedConstants {
           new WorkerSpec(
               1013,
               "Renata Flores",
+              "Mesera",
               SERVICE_AREA,
               2_300_000,
               0,
@@ -106,6 +121,7 @@ final class SeedConstants {
           new WorkerSpec(
               1014,
               "Diego Salas",
+              "Mesero",
               SERVICE_AREA,
               1_800_000,
               0,
@@ -114,6 +130,7 @@ final class SeedConstants {
           new WorkerSpec(
               1015,
               "Mateo Rivas",
+              "Cocinero",
               KITCHEN_AREA,
               1_750_000,
               0,
@@ -122,6 +139,7 @@ final class SeedConstants {
           new WorkerSpec(
               1016,
               "Tomás Méndez",
+              "Cocinero",
               KITCHEN_AREA,
               1_750_000,
               0,
@@ -130,6 +148,7 @@ final class SeedConstants {
           new WorkerSpec(
               1017,
               "Valentina Soto",
+              "Auxiliar de cocina",
               KITCHEN_AREA,
               1_300_000,
               0,
@@ -310,6 +329,7 @@ final class SeedConstants {
   record WorkerSpec(
       long id,
       String name,
+      String jobTitle,
       int areaId,
       int salary,
       int bonus,

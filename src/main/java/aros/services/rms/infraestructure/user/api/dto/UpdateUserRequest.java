@@ -45,6 +45,9 @@ public record UpdateUserRequest(
         @NotBlank(message = "Campo obligatorio")
         @Pattern(message = "El teléfono debe tener 10 dígitos", regexp = "\\d{10}")
         String phone,
+    @Schema(description = "Job title or role inside the assigned area", example = "Jefe de cocina")
+        @Size(max = 100, message = "El rol debe tener como máximo 100 caracteres")
+        String jobTitle,
     @Schema(description = "IDs of areas to assign to the user", example = "[1, 2]")
         @NotNull(message = "Las áreas son obligatorias")
         @NotEmpty(message = "Las áreas no pueden estar vacías")
@@ -70,6 +73,7 @@ public record UpdateUserRequest(
         areas.stream().map(AreaId::of).collect(Collectors.toSet()),
         salary != null ? Salary.of(salary, currency) : null,
         reason,
-        observations);
+        observations,
+        jobTitle);
   }
 }

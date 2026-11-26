@@ -15,4 +15,18 @@ public record CreateUserInfo(
     String address,
     String phone,
     Set<AreaId> areas,
-    Salary salary) {}
+    Salary salary,
+    String jobTitle) {
+
+  /** Backwards-compatible constructor without a job title. */
+  public CreateUserInfo(
+      String document,
+      String name,
+      UserEmail email,
+      String address,
+      String phone,
+      Set<AreaId> areas,
+      Salary salary) {
+    this(document, name, email, address, phone, areas, salary, null);
+  }
+}

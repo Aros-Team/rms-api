@@ -52,6 +52,7 @@ public class UpdateUserService implements UpdateUserUseCase {
     }
 
     user.updateInfo(info.document(), info.name(), info.address(), info.phone());
+    user.setJobTitle(info.jobTitle());
     user.reAssinngAreas(info.areas());
 
     if (!user.getEmail().value().equals(info.email().value())) {
