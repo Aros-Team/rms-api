@@ -11,6 +11,6 @@ public class OrderNotFoundException extends RuntimeException {
    * @param id the order identifier that was not found
    */
   public OrderNotFoundException(Long id) {
-    super("Order not found: " + id);
+    super("Pedido no encontrado: " + id);
   }
 }

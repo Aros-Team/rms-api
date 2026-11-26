@@ -49,7 +49,8 @@ public class JwkSourceAdapter implements JwkSourcePort {
       return new JwkKey(
           m.kid(), JwkAlgorithm.RS256, JwkUse.SIGNATURE, nimbus, m.privateKey() != null);
     } catch (RuntimeException e) {
-      throw new InvalidJwkConfigurationException("Failed to build JWK for kid=" + m.kid(), e);
+      throw new InvalidJwkConfigurationException(
+          "No se pudo construir el JWK para kid=" + m.kid(), e);
     }
   }
 }

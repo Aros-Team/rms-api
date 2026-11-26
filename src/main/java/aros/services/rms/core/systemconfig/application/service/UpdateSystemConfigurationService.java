@@ -37,10 +37,10 @@ public class UpdateSystemConfigurationService implements UpdateSystemConfigurati
 
   private void validateConfig(SystemConfiguration config) {
     if (config.getKey() == null || config.getKey().isBlank()) {
-      throw new InvalidConfigurationException("key", "null or blank");
+      throw new InvalidConfigurationException("key", "nulo o vacío");
     }
     if (config.getValue() == null || config.getValue().isBlank()) {
-      throw new InvalidConfigurationException(config.getKey(), "null or blank");
+      throw new InvalidConfigurationException(config.getKey(), "nulo o vacío");
     }
   }
 }

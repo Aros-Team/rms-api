@@ -11,6 +11,6 @@ public class SupplyCategoryAlreadyExistsException extends RuntimeException {
    * @param name supply category name
    */
   public SupplyCategoryAlreadyExistsException(String name) {
-    super("Supply category already exists: name=" + name);
+    super("La categoría de insumo ya existe: nombre=" + name);
   }
 }

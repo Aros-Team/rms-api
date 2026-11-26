@@ -56,10 +56,10 @@ public class GetAlertsService implements GetAlertsUseCase {
   private void validatePeriodRange(String from, String to) {
     if ((from == null) != (to == null)) {
       throw new InvalidAnalyticsPeriodException(
-          "Both 'from' and 'to' must be provided together when filtering alerts by period.");
+          "Se deben indicar 'from' y 'to' juntos al filtrar alertas por periodo.");
     }
     if (from != null && from.compareTo(to) > 0) {
-      throw new InvalidAnalyticsPeriodException("'from' must be before or equal to 'to'.");
+      throw new InvalidAnalyticsPeriodException("'from' debe ser anterior o igual a 'to'.");
     }
   }
 }

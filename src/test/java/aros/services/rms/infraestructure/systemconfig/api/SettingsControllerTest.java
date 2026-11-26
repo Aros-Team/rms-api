@@ -210,7 +210,7 @@ class SettingsControllerTest {
   @Test
   void should_map_invalid_timezone_to_problem_detail() throws Exception {
     when(updateBusinessProfileUseCase.update(any()))
-        .thenThrow(new InvalidConfigurationException("Invalid IANA timezone: Mars/Olympus"));
+        .thenThrow(new InvalidConfigurationException("Zona horaria IANA inválida: Mars/Olympus"));
     String body =
         """
         {"restaurantName": "RMS", "timezone": "Mars/Olympus", "locale": "es-CO"}
@@ -224,7 +224,7 @@ class SettingsControllerTest {
                 .content(body))
         .andExpect(status().isBadRequest())
         .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-        .andExpect(jsonPath("$.detail").value("Invalid IANA timezone: Mars/Olympus"));
+        .andExpect(jsonPath("$.detail").value("Zona horaria IANA inválida: Mars/Olympus"));
   }
 
   @Test

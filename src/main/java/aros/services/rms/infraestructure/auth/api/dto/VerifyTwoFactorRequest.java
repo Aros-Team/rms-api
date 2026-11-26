@@ -14,5 +14,5 @@ public record VerifyTwoFactorRequest(
         @Size(min = 6, max = 6, message = "El código debe tener 6 dígitos")
         String code,
     @Schema(description = "Device identifier", example = "device-123")
-        @NotBlank(message = "Se requiere el identifador del dispositivo")
+        @NotBlank(message = "Se requiere el identificador del dispositivo")
         String deviceHash) {}

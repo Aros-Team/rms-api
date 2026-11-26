@@ -11,6 +11,6 @@ public class SupplyNotFoundException extends RuntimeException {
    * @param id supply ID
    */
   public SupplyNotFoundException(Long id) {
-    super("Supply not found: " + id);
+    super("Insumo no encontrado: " + id);
   }
 }

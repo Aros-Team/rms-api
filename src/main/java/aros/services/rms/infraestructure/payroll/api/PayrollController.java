@@ -216,7 +216,7 @@ public class PayrollController {
                     new PayrollNotFoundException(
                         "Payroll not found for user "
                             + userId
-                            + " in period "
+                            + " en el periodo "
                             + year
                             + "-"
                             + month));
@@ -316,7 +316,8 @@ public class PayrollController {
             .orElseThrow(
                 () -> new AuthorizationDeniedException("Worker not found for the current session"));
     if (!self.getId().value().equals(userId)) {
-      throw new AuthorizationDeniedException("Workers can only read their own payroll");
+      throw new AuthorizationDeniedException(
+          "Los trabajadores solo pueden consultar su propia nómina");
     }
   }
 

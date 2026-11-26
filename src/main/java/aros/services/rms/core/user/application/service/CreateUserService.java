@@ -72,7 +72,7 @@ public class CreateUserService implements CreateUserUseCase {
     }
 
     if (!areaPort.existsAllByIds(info.areas())) {
-      throw new AreaNotFoundException("No se pudo encontrar alguna de areas referenciadas.");
+      throw new AreaNotFoundException("No se pudo encontrar alguna de las áreas referenciadas.");
     }
 
     User user =

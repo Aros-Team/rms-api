@@ -9,7 +9,7 @@ public class JwtKeysMissingException extends ExpectedStartupException {
   /** Creates a new exception. */
   public JwtKeysMissingException() {
     super(
-        "JWT keys not configured. Run './gradlew generate-jwt-keys' or 'task jwtkeys' "
+        "Claves JWT no configuradas. Ejecuta './gradlew generate-jwt-keys' o 'task jwtkeys' "
             + "to generate and add to .env file");
   }
 }

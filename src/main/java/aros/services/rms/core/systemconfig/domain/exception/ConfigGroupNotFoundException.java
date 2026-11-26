@@ -11,6 +11,6 @@ public class ConfigGroupNotFoundException extends SettingsException {
    * @param id the group id or name that was requested
    */
   public ConfigGroupNotFoundException(String id) {
-    super(SettingsErrorType.NOT_FOUND, "Configuration group not found: " + id);
+    super(SettingsErrorType.NOT_FOUND, "Grupo de configuración no encontrado: " + id);
   }
 }

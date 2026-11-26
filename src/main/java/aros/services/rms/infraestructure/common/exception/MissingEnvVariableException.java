@@ -7,6 +7,7 @@ public class MissingEnvVariableException extends ExpectedStartupException {
 
   /** Creates a new exception. */
   public MissingEnvVariableException(String variableName) {
-    super("Environment variable '" + variableName + "' is not set. Add it to your .env file");
+    super(
+        "Environment variable '" + variableName + "' no está definida. Agrégala a tu archivo .env");
   }
 }

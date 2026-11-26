@@ -92,7 +92,8 @@ public class SpecialSelectionSnapshotService {
     try {
       return objectMapper.writeValueAsString(snapshot);
     } catch (JsonProcessingException e) {
-      throw new RuntimeException("Failed to serialize special selection snapshot", e);
+      throw new RuntimeException(
+          "No se pudo serializar la instantánea de la selección especial", e);
     }
   }
 
@@ -109,7 +110,8 @@ public class SpecialSelectionSnapshotService {
     try {
       return objectMapper.readValue(json, SpecialSelectionSnapshot.class);
     } catch (JsonProcessingException e) {
-      throw new RuntimeException("Failed to deserialize special selection snapshot", e);
+      throw new RuntimeException(
+          "No se pudo deserializar la instantánea de la selección especial", e);
     }
   }
 

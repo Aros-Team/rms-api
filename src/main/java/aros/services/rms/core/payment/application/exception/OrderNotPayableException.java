@@ -12,6 +12,6 @@ public class OrderNotPayableException extends RuntimeException {
    * @param status the current order status
    */
   public OrderNotPayableException(Long orderId, String status) {
-    super("Order " + orderId + " cannot be charged while it is " + status);
+    super("El pedido " + orderId + " no se puede cobrar mientras está en estado " + status);
   }
 }

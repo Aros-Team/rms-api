@@ -43,10 +43,11 @@ public class UpdateScheduleService implements UpdateScheduleUseCase {
         scheduleRepository
             .findById(id)
             .orElseThrow(
-                () -> new ScheduleNotFoundException("Schedule not found with id: " + id.value()));
+                () -> new ScheduleNotFoundException("Horario no encontrado con id: " + id.value()));
 
     if (!existing.getName().equals(info.name()) && scheduleRepository.existsByName(info.name())) {
-      throw new ScheduleAlreadyExistsException("Schedule already exists with name: " + info.name());
+      throw new ScheduleAlreadyExistsException(
+          "Ya existe un horario con el nombre: " + info.name());
     }
 
     List<ScheduleShift> shifts =

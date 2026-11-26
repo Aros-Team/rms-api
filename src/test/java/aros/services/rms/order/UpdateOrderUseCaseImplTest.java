@@ -172,7 +172,7 @@ class UpdateOrderUseCaseImplTest {
     IllegalArgumentException exception =
         assertThrows(IllegalArgumentException.class, () -> updateOrderUseCase.cancel(99L));
 
-    assertEquals("Order not found", exception.getMessage());
+    assertEquals("Pedido no encontrado", exception.getMessage());
     verify(orderRepositoryPort, times(1)).findById(99L);
     verify(orderRepositoryPort, never()).save(any(Order.class));
   }
@@ -186,7 +186,8 @@ class UpdateOrderUseCaseImplTest {
     IllegalStateException exception =
         assertThrows(IllegalStateException.class, () -> updateOrderUseCase.cancel(1L));
 
-    assertEquals("Order can only be cancelled when in QUEUE status", exception.getMessage());
+    assertEquals(
+        "El pedido solo se puede cancelar cuando está en estado QUEUE", exception.getMessage());
     verify(orderRepositoryPort, times(1)).findById(1L);
     verify(orderRepositoryPort, never()).save(any(Order.class));
   }
@@ -200,7 +201,8 @@ class UpdateOrderUseCaseImplTest {
     IllegalStateException exception =
         assertThrows(IllegalStateException.class, () -> updateOrderUseCase.cancel(1L));
 
-    assertEquals("Order can only be cancelled when in QUEUE status", exception.getMessage());
+    assertEquals(
+        "El pedido solo se puede cancelar cuando está en estado QUEUE", exception.getMessage());
   }
 
   @Test
@@ -212,7 +214,8 @@ class UpdateOrderUseCaseImplTest {
     IllegalStateException exception =
         assertThrows(IllegalStateException.class, () -> updateOrderUseCase.cancel(1L));
 
-    assertEquals("Order can only be cancelled when in QUEUE status", exception.getMessage());
+    assertEquals(
+        "El pedido solo se puede cancelar cuando está en estado QUEUE", exception.getMessage());
   }
 
   // ==================== UPDATE TESTS ====================
@@ -303,7 +306,7 @@ class UpdateOrderUseCaseImplTest {
     IllegalArgumentException exception =
         assertThrows(IllegalArgumentException.class, () -> updateOrderUseCase.update(99L, command));
 
-    assertEquals("Order not found", exception.getMessage());
+    assertEquals("Pedido no encontrado", exception.getMessage());
   }
 
   @Test
@@ -317,7 +320,8 @@ class UpdateOrderUseCaseImplTest {
     IllegalStateException exception =
         assertThrows(IllegalStateException.class, () -> updateOrderUseCase.update(1L, command));
 
-    assertEquals("Order can only be updated when in QUEUE status", exception.getMessage());
+    assertEquals(
+        "El pedido solo se puede actualizar cuando está en estado QUEUE", exception.getMessage());
   }
 
   @Test
@@ -418,7 +422,7 @@ class UpdateOrderUseCaseImplTest {
     IllegalArgumentException exception =
         assertThrows(IllegalArgumentException.class, () -> updateOrderUseCase.update(1L, command));
 
-    assertEquals("Product not found", exception.getMessage());
+    assertEquals("Producto no encontrado", exception.getMessage());
   }
 
   @Test

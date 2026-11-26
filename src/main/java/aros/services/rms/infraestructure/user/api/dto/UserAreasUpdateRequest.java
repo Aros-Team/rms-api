@@ -10,5 +10,5 @@ import java.util.Set;
 @Schema(description = "Area reassignment")
 public record UserAreasUpdateRequest(
     @Schema(description = "New area ids; an empty set removes every area", example = "[2, 3]")
-        @NotNull(message = "Area ids are required")
+        @NotNull(message = "Los IDs de áreas son obligatorios")
         Set<Long> areaIds) {}

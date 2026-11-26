@@ -12,7 +12,7 @@ public class InvalidPurchaseItemException extends RuntimeException {
    */
   public InvalidPurchaseItemException(Long supplyVariantId) {
     super(
-        "Invalid purchase item: quantityReceived > quantityOrdered for supplyVariantId="
+        "Ítem de compra inválido: quantityReceived > quantityOrdered para supplyVariantId="
             + supplyVariantId);
   }
 }

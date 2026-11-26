@@ -132,7 +132,7 @@ class ProductCostBreakdownControllerWebMvcTest {
         .andExpect(status().isNotFound())
         .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
         .andExpect(jsonPath("$.status").value(404))
-        .andExpect(jsonPath("$.detail").value("Product not found: 42"));
+        .andExpect(jsonPath("$.detail").value("Producto no encontrado: 42"));
   }
 
   private static org.springframework.test.web.servlet.request.RequestPostProcessor workerJwt() {

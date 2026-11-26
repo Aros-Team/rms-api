@@ -11,6 +11,6 @@ public class ProductOptionNotFoundException extends RuntimeException {
    * @param id the product option identifier that was not found
    */
   public ProductOptionNotFoundException(Long id) {
-    super("Product option not found: " + id);
+    super("Opción de producto no encontrada: " + id);
   }
 }

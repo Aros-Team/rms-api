@@ -61,13 +61,13 @@ public class UpdateAnalyticsConfigService implements UpdateAnalyticsConfigUseCas
 
   private static void validateThresholds(UpdateAnalyticsConfigCommand cmd) {
     if (cmd.foodCostDeviationPp() == null || cmd.foodCostDeviationPp().signum() < 0) {
-      throw new InvalidAnalyticsConfigException("foodCostDeviationPp must be >= 0");
+      throw new InvalidAnalyticsConfigException("foodCostDeviationPp debe ser >= 0");
     }
     if (cmd.laborCostDeviationPp() == null || cmd.laborCostDeviationPp().signum() < 0) {
-      throw new InvalidAnalyticsConfigException("laborCostDeviationPp must be >= 0");
+      throw new InvalidAnalyticsConfigException("laborCostDeviationPp debe ser >= 0");
     }
     if (cmd.salesDropYoyPct() == null || cmd.salesDropYoyPct().signum() < 0) {
-      throw new InvalidAnalyticsConfigException("salesDropYoyPct must be >= 0");
+      throw new InvalidAnalyticsConfigException("salesDropYoyPct debe ser >= 0");
     }
   }
 
@@ -75,17 +75,20 @@ public class UpdateAnalyticsConfigService implements UpdateAnalyticsConfigUseCas
     if (cmd.defaultOpen() == null
         || cmd.defaultClose() == null
         || !cmd.defaultOpen().isBefore(cmd.defaultClose())) {
-      throw new InvalidAnalyticsConfigException("defaultOpen must be strictly before defaultClose");
+      throw new InvalidAnalyticsConfigException(
+          "defaultOpen debe ser estrictamente anterior a defaultClose");
     }
     if (cmd.lunchStart() == null
         || cmd.lunchEnd() == null
         || !cmd.lunchStart().isBefore(cmd.lunchEnd())) {
-      throw new InvalidAnalyticsConfigException("lunchStart must be strictly before lunchEnd");
+      throw new InvalidAnalyticsConfigException(
+          "lunchStart debe ser estrictamente anterior a lunchEnd");
     }
     if (cmd.dinnerStart() == null
         || cmd.dinnerEnd() == null
         || !cmd.dinnerStart().isBefore(cmd.dinnerEnd())) {
-      throw new InvalidAnalyticsConfigException("dinnerStart must be strictly before dinnerEnd");
+      throw new InvalidAnalyticsConfigException(
+          "dinnerStart debe ser estrictamente anterior a dinnerEnd");
     }
   }
 }

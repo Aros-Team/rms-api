@@ -35,7 +35,7 @@ public record PaymentDiscount(
     Objects.requireNonNull(reason, "reason");
     if (percentageBasisPoints < 0) {
       throw new IllegalArgumentException(
-          "percentageBasisPoints must not be negative, was: " + percentageBasisPoints);
+          "percentageBasisPoints no puede ser negativo, era: " + percentageBasisPoints);
     }
   }
 }

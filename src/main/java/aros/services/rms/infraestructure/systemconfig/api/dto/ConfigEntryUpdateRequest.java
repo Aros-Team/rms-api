@@ -9,10 +9,10 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "Partial configuration entry update")
 public record ConfigEntryUpdateRequest(
     @Schema(description = "New value", example = "USD")
-        @Size(max = 500, message = "Value must not exceed 500 characters")
+        @Size(max = 500, message = "El valor no debe superar los 500 caracteres")
         String value,
     @Schema(description = "New description", example = "Moneda del sistema")
-        @Size(max = 200, message = "Description must not exceed 200 characters")
+        @Size(max = 200, message = "La descripción no debe superar los 200 caracteres")
         String description,
     @Schema(description = "Target group id", example = "1") Long groupId,
     @Schema(description = "Display order within the group", example = "2") Integer sortOrder) {}

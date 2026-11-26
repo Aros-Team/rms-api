@@ -84,7 +84,7 @@ class PreparationUseCaseImplTest {
     IllegalStateException exception =
         assertThrows(IllegalStateException.class, () -> preparationUseCase.processNextOrder());
 
-    assertEquals("No orders in queue", exception.getMessage());
+    assertEquals("No hay pedidos en cola", exception.getMessage());
     verify(orderRepositoryPort, times(1)).findFirstByStatusOrderByDateAsc(OrderStatus.QUEUE);
     verify(orderRepositoryPort, times(0)).save(any(Order.class));
   }
@@ -129,7 +129,7 @@ class PreparationUseCaseImplTest {
     OrderNotFoundException exception =
         assertThrows(OrderNotFoundException.class, () -> preparationUseCase.prepareOrder(99L));
 
-    assertEquals("Order not found: 99", exception.getMessage());
+    assertEquals("Pedido no encontrado: 99", exception.getMessage());
     verify(orderRepositoryPort, times(0)).save(any(Order.class));
   }
 
@@ -142,7 +142,8 @@ class PreparationUseCaseImplTest {
     IllegalStateException exception =
         assertThrows(IllegalStateException.class, () -> preparationUseCase.prepareOrder(6L));
 
-    assertEquals("Order can only be prepared when in QUEUE status", exception.getMessage());
+    assertEquals(
+        "El pedido solo se puede preparar cuando está en estado QUEUE", exception.getMessage());
     verify(orderRepositoryPort, times(0)).save(any(Order.class));
   }
 }

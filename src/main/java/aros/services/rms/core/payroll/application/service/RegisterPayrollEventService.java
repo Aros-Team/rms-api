@@ -31,7 +31,7 @@ public class RegisterPayrollEventService implements RegisterPayrollEventUseCase 
   @Override
   public PayrollEvent execute(PayrollEvent event) {
     if (event.userId() == null || event.eventDate() == null) {
-      throw new InvalidPayrollPeriodException("userId and eventDate are required");
+      throw new InvalidPayrollPeriodException("userId y eventDate son obligatorios");
     }
 
     YearMonth period = YearMonth.from(event.eventDate());
@@ -41,9 +41,9 @@ public class RegisterPayrollEventService implements RegisterPayrollEventUseCase 
             .orElseThrow(
                 () ->
                     new PayrollNotFoundException(
-                        "No payroll for user "
+                        "No hay nómina para el usuario "
                             + event.userId()
-                            + " in period "
+                            + " en el periodo "
                             + period
                             + "; register the payroll before adding events"));
 
@@ -52,9 +52,9 @@ public class RegisterPayrollEventService implements RegisterPayrollEventUseCase 
     }
     if (!payroll.covers(event.eventDate())) {
       throw new InvalidPayrollPeriodException(
-          "Event date "
+          "La fecha del evento "
               + event.eventDate()
-              + " is outside the payroll period "
+              + " está fuera del periodo de nómina "
               + payroll.periodStart()
               + ".."
               + payroll.periodEnd());

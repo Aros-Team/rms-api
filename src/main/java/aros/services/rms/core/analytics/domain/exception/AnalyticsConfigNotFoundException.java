@@ -7,6 +7,6 @@ public class AnalyticsConfigNotFoundException extends RuntimeException {
 
   /** Creates an exception for the missing analytics configuration singleton. */
   public AnalyticsConfigNotFoundException() {
-    super("Analytics config singleton not found");
+    super("Configuración de analítica no encontrada");
   }
 }

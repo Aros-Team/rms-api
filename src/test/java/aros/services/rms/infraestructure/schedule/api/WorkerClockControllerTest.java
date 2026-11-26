@@ -32,7 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 /**
- * Tests for the clock-in notification produced by {@link WorkerClockController}.
+ * Tests for {@link WorkerClockController}: the clock-in notification.
  *
  * <p><b>Feature:</b> the admin feed learns when a worker marks entry.
  *

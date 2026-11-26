@@ -8,6 +8,6 @@ public class SpecialSelectionNotFoundException extends RuntimeException {
    * @param productId the product identifier
    */
   public SpecialSelectionNotFoundException(Long productId) {
-    super("Special selection not found: " + productId);
+    super("Selección especial no encontrada: " + productId);
   }
 }

@@ -106,7 +106,7 @@ public class ScheduleController {
     return scheduleRepository
         .findById(new ScheduleId(id))
         .map(s -> ResponseEntity.ok(ScheduleResponse.fromDomain(s)))
-        .orElseThrow(() -> new ScheduleNotFoundException("Schedule not found with id: " + id));
+        .orElseThrow(() -> new ScheduleNotFoundException("Horario no encontrado con id: " + id));
   }
 
   /** Updates an existing schedule. */

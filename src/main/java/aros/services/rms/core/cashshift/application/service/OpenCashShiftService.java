@@ -29,10 +29,10 @@ public class OpenCashShiftService implements OpenCashShiftUseCase {
   @Override
   public CashShift open(OpenCashShiftCommand command) {
     if (command == null || command.openingFloat() == null) {
-      throw new InvalidCashShiftException("An opening float is required");
+      throw new InvalidCashShiftException("El fondo inicial es obligatorio");
     }
     if (command.openingFloat().isNegative()) {
-      throw new InvalidCashShiftException("The opening float cannot be negative");
+      throw new InvalidCashShiftException("El fondo inicial no puede ser negativo");
     }
     if (cashShiftRepositoryPort.findOpen().isPresent()) {
       throw new ShiftAlreadyOpenException();

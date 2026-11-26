@@ -24,7 +24,7 @@ public class ProblemDetailAccessDeniedHandler implements AccessDeniedHandler {
 
   private static final String TITLE = "Forbidden";
 
-  private static final String DETAIL = "Access denied";
+  private static final String DETAIL = "Acceso denegado";
 
   private final JsonMapper mapper;
 

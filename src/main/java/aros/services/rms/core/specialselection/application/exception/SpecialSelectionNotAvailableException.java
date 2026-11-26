@@ -10,7 +10,8 @@ public class SpecialSelectionNotAvailableException extends RuntimeException {
    * @param productId the product identifier
    */
   public SpecialSelectionNotAvailableException(Long productId) {
-    super("Special selection with productId=" + productId + " is not available at this time");
+    super(
+        "La selección especial con productId=" + productId + " no está disponible en este momento");
     this.productId = productId;
   }
 

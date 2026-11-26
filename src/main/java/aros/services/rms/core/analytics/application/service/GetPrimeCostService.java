@@ -231,7 +231,7 @@ public class GetPrimeCostService implements GetPrimeCostUseCase {
           keys.add(String.valueOf(y));
         }
       }
-      default -> throw new IllegalArgumentException("Unsupported bucket: " + bucket);
+      default -> throw new IllegalArgumentException("Bucket no soportado: " + bucket);
     }
     return keys;
   }
@@ -263,7 +263,7 @@ public class GetPrimeCostService implements GetPrimeCostUseCase {
   private void validateBucket(String bucket) {
     if (!Set.of("daily", "weekly", "monthly", "yearly").contains(bucket)) {
       throw new IllegalArgumentException(
-          "Invalid bucket '" + bucket + "'. Must be one of: daily, weekly, monthly, yearly.");
+          "Bucket inválido '" + bucket + "'. Debe ser uno de: daily, weekly, monthly, yearly.");
     }
   }
 
@@ -281,9 +281,9 @@ public class GetPrimeCostService implements GetPrimeCostUseCase {
           parseIsoWeek(to, 7);
         } catch (DateTimeParseException e) {
           throw new IllegalArgumentException(
-              "Invalid period format for weekly: '"
+              "Formato de periodo inválido para weekly: '"
                   + from
-                  + "' or '"
+                  + "' o '"
                   + to
                   + "'. Expected format: YYYY-Www");
         }
@@ -296,17 +296,18 @@ public class GetPrimeCostService implements GetPrimeCostUseCase {
         validateDateFormat(from + "-01-01", DateTimeFormatter.ISO_LOCAL_DATE, "YYYY");
         validateDateFormat(to + "-01-01", DateTimeFormatter.ISO_LOCAL_DATE, "YYYY");
       }
-      default -> throw new IllegalArgumentException("Unsupported bucket: " + bucket);
+      default -> throw new IllegalArgumentException("Bucket no soportado: " + bucket);
     }
 
     // Range validation
     List<String> keys = generatePeriodKeys(bucket, from, to);
     if (keys.isEmpty()) {
-      throw new IllegalArgumentException("Range produced no periods: from=" + from + " to=" + to);
+      throw new IllegalArgumentException(
+          "El rango no produjo periodos: desde=" + from + " hasta=" + to);
     }
     if (keys.size() > MAX_RANGE_DAYS && "daily".equals(bucket)) {
       throw new IllegalArgumentException(
-          "Range exceeds " + MAX_RANGE_DAYS + " days: " + keys.size() + " days requested.");
+          "El rango supera " + MAX_RANGE_DAYS + " días: " + keys.size() + " días solicitados.");
     }
   }
 
@@ -315,7 +316,10 @@ public class GetPrimeCostService implements GetPrimeCostUseCase {
       LocalDate.parse(value, formatter);
     } catch (DateTimeParseException e) {
       throw new IllegalArgumentException(
-          "Invalid period format for bucket: '" + value + "'. Expected format: " + expected);
+          "Formato de periodo inválido para bucket: '"
+              + value
+              + "'. Formato esperado: "
+              + expected);
     }
   }
 }

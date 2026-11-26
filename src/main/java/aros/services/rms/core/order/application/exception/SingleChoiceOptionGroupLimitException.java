@@ -27,13 +27,13 @@ public class SingleChoiceOptionGroupLimitException extends RuntimeException {
   public SingleChoiceOptionGroupLimitException(
       Long categoryId, String categoryName, int selectedCount) {
     super(
-        "SINGLE_CHOICE category limit exceeded: '"
+        "Se superó el límite de la categoría SINGLE_CHOICE: '"
             + (categoryName == null ? categoryId : categoryName)
             + "' (categoryId="
             + categoryId
-            + ") allows at most 1 option, but "
+            + ") permite como máximo 1 opción, pero "
             + selectedCount
-            + " were selected");
+            + " fueron seleccionadas");
     this.categoryId = categoryId;
     this.selectedCount = selectedCount;
   }

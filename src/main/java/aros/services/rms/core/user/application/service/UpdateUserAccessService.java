@@ -29,7 +29,7 @@ public class UpdateUserAccessService implements UpdateUserAccessUseCase {
   @Override
   public User changeRole(Long id, UserRole role, Long actorId) {
     if (role == null) {
-      throw new InvalidUserAccessException("Role is required");
+      throw new InvalidUserAccessException("El rol es obligatorio");
     }
     User user = requireUser(id);
     if (user.getRole() == role) {
@@ -50,7 +50,7 @@ public class UpdateUserAccessService implements UpdateUserAccessUseCase {
     Set<Long> requested = areaIds == null ? Set.of() : areaIds;
     Set<AreaId> areas = requested.stream().map(AreaId::of).collect(Collectors.toSet());
     if (!areas.isEmpty() && !areaRepositoryPort.existsAllByIds(areas)) {
-      throw new AreaNotFoundException("No se pudo encontrar alguna de areas referenciadas.");
+      throw new AreaNotFoundException("No se pudo encontrar alguna de las áreas referenciadas.");
     }
     user.reAssinngAreas(areas);
     return userRepositoryPort.save(user);
@@ -60,14 +60,14 @@ public class UpdateUserAccessService implements UpdateUserAccessUseCase {
   @Override
   public User changeStatus(Long id, UserStatus status, Long actorId) {
     if (status == null) {
-      throw new InvalidUserAccessException("Status is required");
+      throw new InvalidUserAccessException("El estado es obligatorio");
     }
     if (status != UserStatus.ACTIVE && status != UserStatus.INACTIVE) {
-      throw new InvalidUserAccessException("Status must be ACTIVE or INACTIVE");
+      throw new InvalidUserAccessException("El estado debe ser ACTIVE o INACTIVE");
     }
     User user = requireUser(id);
     if (status == UserStatus.INACTIVE) {
-      assertNotSelf(id, actorId, "You cannot deactivate your own account");
+      assertNotSelf(id, actorId, "No puedes desactivar tu propia cuenta");
       if (user.getRole() == UserRole.ADMIN) {
         assertNotLastAdmin(user);
       }
@@ -87,7 +87,7 @@ public class UpdateUserAccessService implements UpdateUserAccessUseCase {
 
   private void assertNotLastAdmin(User user) {
     if (adminRepositoryPort.countByRole(UserRole.ADMIN) <= 1) {
-      throw new InvalidUserAccessException("At least one administrator must remain active");
+      throw new InvalidUserAccessException("Debe quedar al menos un administrador activo");
     }
   }
 

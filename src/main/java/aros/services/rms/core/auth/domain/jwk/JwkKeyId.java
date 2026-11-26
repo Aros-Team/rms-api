@@ -10,7 +10,7 @@ public record JwkKeyId(String value) {
   public JwkKeyId {
     Objects.requireNonNull(value, "kid must not be null");
     if (value.isBlank()) {
-      throw new IllegalArgumentException("kid must not be blank");
+      throw new IllegalArgumentException("kid no puede estar vacío");
     }
   }
 }

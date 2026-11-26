@@ -112,10 +112,11 @@ public class UpdateOrderService implements UpdateOrderUseCase {
     Order order =
         orderRepositoryPort
             .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+            .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado"));
 
     if (order.getStatus() != OrderStatus.QUEUE) {
-      throw new IllegalStateException("Order can only be cancelled when in QUEUE status");
+      throw new IllegalStateException(
+          "El pedido solo se puede cancelar cuando está en estado QUEUE");
     }
 
     order.setStatus(OrderStatus.CANCELLED);
@@ -141,10 +142,11 @@ public class UpdateOrderService implements UpdateOrderUseCase {
     Order order =
         orderRepositoryPort
             .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+            .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado"));
 
     if (order.getStatus() != OrderStatus.QUEUE) {
-      throw new IllegalStateException("Order can only be updated when in QUEUE status");
+      throw new IllegalStateException(
+          "El pedido solo se puede actualizar cuando está en estado QUEUE");
     }
 
     List<OrderDetail> newDetails = new ArrayList<>();
@@ -152,7 +154,7 @@ public class UpdateOrderService implements UpdateOrderUseCase {
       Product product =
           productRepositoryPort
               .findById(detailCommand.getProductId())
-              .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+              .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
 
       boolean hasSelectedOptions =
           detailCommand.getSelectedOptionIds() != null
@@ -212,7 +214,7 @@ public class UpdateOrderService implements UpdateOrderUseCase {
         throw new InsufficientStockException(
             detail.getProduct().getId(),
             aros.services.rms.core.inventory.domain.MovementType.DEDUCTION,
-            "Insufficient stock for product: " + detail.getProduct().getName());
+            "Stock insuficiente para el producto: " + detail.getProduct().getName());
       }
     }
 

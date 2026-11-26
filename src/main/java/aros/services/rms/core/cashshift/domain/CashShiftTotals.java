@@ -86,7 +86,8 @@ public record CashShiftTotals(
               case CARD -> card = card.plus(tender.amount());
               case TRANSFER -> transfer = transfer.plus(tender.amount());
               default ->
-                  throw new IllegalStateException("Unsupported tender method: " + tender.method());
+                  throw new IllegalStateException(
+                      "Método de pago no soportado: " + tender.method());
             }
           }
         }
@@ -101,7 +102,8 @@ public record CashShiftTotals(
           case PAID_IN -> paidIn = paidIn.plus(movement.amount());
           case PAID_OUT -> paidOut = paidOut.plus(movement.amount());
           default ->
-              throw new IllegalStateException("Unsupported cash movement type: " + movement.type());
+              throw new IllegalStateException(
+                  "Tipo de movimiento de caja no soportado: " + movement.type());
         }
       }
     }

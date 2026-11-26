@@ -156,7 +156,7 @@ class PaymentControllerTest extends AbstractJwtIntegrationTest {
   @Test
   void shouldReturn400ProblemWhenThePaymentIsInvalid() throws Exception {
     when(registerPaymentUseCase.register(any()))
-        .thenThrow(new InvalidPaymentException("The tenders do not cover the total"));
+        .thenThrow(new InvalidPaymentException("Los medios de pago no cubren el total"));
 
     mockMvc
         .perform(
@@ -166,7 +166,7 @@ class PaymentControllerTest extends AbstractJwtIntegrationTest {
                 .content(CHARGE_BODY))
         .andExpect(status().isBadRequest())
         .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-        .andExpect(jsonPath("$.detail").value("The tenders do not cover the total"));
+        .andExpect(jsonPath("$.detail").value("Los medios de pago no cubren el total"));
   }
 
   @Test

@@ -16,11 +16,11 @@ public record TwoFactorCode(
   /** Validates the two-factor code fields. */
   public TwoFactorCode {
     if (codeHash == null || codeHash.isBlank()) {
-      throw new IllegalArgumentException("Code hash is required");
+      throw new IllegalArgumentException("El hash del código es obligatorio");
     }
 
     if (expiresAt == null) {
-      throw new IllegalArgumentException("Expiration is required");
+      throw new IllegalArgumentException("La expiración es obligatoria");
     }
   }
 

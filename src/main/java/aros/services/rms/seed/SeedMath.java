@@ -200,7 +200,7 @@ final class SeedMath {
       MessageDigest digest = MessageDigest.getInstance("SHA-256");
       return HexFormat.of().formatHex(digest.digest(phone.getBytes(StandardCharsets.UTF_8)));
     } catch (NoSuchAlgorithmException exception) {
-      throw new IllegalStateException("SHA-256 is not available", exception);
+      throw new IllegalStateException("SHA-256 no está disponible", exception);
     }
   }
 }

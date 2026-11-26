@@ -28,7 +28,7 @@ public class ProblemDetailAuthenticationEntryPoint implements AuthenticationEntr
 
   private static final String TITLE = "Unauthorized";
 
-  private static final String DETAIL = "Authentication required";
+  private static final String DETAIL = "Autenticación requerida";
 
   private final BearerTokenAuthenticationEntryPoint delegate =
       new BearerTokenAuthenticationEntryPoint();

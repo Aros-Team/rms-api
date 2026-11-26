@@ -54,7 +54,10 @@ public class RevertSpecialSelectionService implements RevertSpecialSelectionUseC
             .orElseThrow(
                 () ->
                     new InvalidSpecialSelectionHistoryException(
-                        "Version " + targetVersion + " not found for product " + productId));
+                        "La versión "
+                            + targetVersion
+                            + " no encontrada para el producto "
+                            + productId));
 
     SpecialSelectionSnapshot snapshot = snapshotService.fromJson(targetHistory.getSnapshotJson());
 

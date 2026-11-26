@@ -124,7 +124,10 @@ public class EmailServiceAdapter implements EmailServicePort {
         email.getSubject(),
         lastException.getMessage());
     throw new EmailServiceException(
-        "Failed to send email after " + MAX_RETRIES + " attempts: " + lastException.getMessage(),
+        "No se pudo enviar el correo tras "
+            + MAX_RETRIES
+            + " attempts: "
+            + lastException.getMessage(),
         lastException);
   }
 }

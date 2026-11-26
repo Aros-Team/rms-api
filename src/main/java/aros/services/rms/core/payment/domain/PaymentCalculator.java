@@ -57,10 +57,10 @@ public final class PaymentCalculator {
       List<PaymentTenderInput> tenders) {
 
     if (subtotal == null || !subtotal.isPositive()) {
-      throw new InvalidPaymentException("The order has no amount to charge");
+      throw new InvalidPaymentException("El pedido no tiene un monto para cobrar");
     }
     if (tenders == null || tenders.isEmpty()) {
-      throw new InvalidPaymentException("At least one tender is required");
+      throw new InvalidPaymentException("Se requiere al menos un medio de pago");
     }
 
     PaymentDiscount discount =
@@ -68,31 +68,34 @@ public final class PaymentCalculator {
             subtotal, discountType, percentageBasisPoints, discountAmount, discountReason);
     Money discountMoney = discount != null ? discount.amount() : Money.zero(subtotal.currency());
     Money resolvedTip =
-        tip == null ? Money.zero(subtotal.currency()) : requireSameCurrency(tip, subtotal, "Tip");
+        tip == null
+            ? Money.zero(subtotal.currency())
+            : requireSameCurrency(tip, subtotal, "Propina");
     if (resolvedTip.isNegative()) {
-      throw new InvalidPaymentException("The tip cannot be negative");
+      throw new InvalidPaymentException("La propina no puede ser negativa");
     }
 
     Money total = subtotal.minus(discountMoney).plus(resolvedTip);
     if (!total.isPositive()) {
-      throw new InvalidPaymentException("The payment total must be positive");
+      throw new InvalidPaymentException("El total del pago debe ser positivo");
     }
 
     Money tendered = Money.zero(subtotal.currency());
     Money remaining = total;
     for (int i = 0; i < tenders.size(); i++) {
       PaymentTenderInput tender = tenders.get(i);
-      Money amount = requireSameCurrency(tender.amount(), subtotal, "Tender");
+      Money amount = requireSameCurrency(tender.amount(), subtotal, "Pago");
       if (!amount.isPositive()) {
-        throw new InvalidPaymentException("Every tender amount must be positive");
+        throw new InvalidPaymentException("Cada monto de pago debe ser positivo");
       }
       if (amount.isGreaterThan(remaining)) {
         if (tender.method() != PaymentTenderMethod.CASH) {
-          throw new InvalidPaymentException("Only a cash tender may exceed the remaining amount");
+          throw new InvalidPaymentException(
+              "Solo un pago en efectivo puede superar el monto restante");
         }
         if (i != tenders.size() - 1) {
           throw new InvalidPaymentException(
-              "Only the last cash tender may exceed the remaining amount");
+              "Solo el último pago en efectivo puede superar el monto restante");
         }
       }
       remaining = remaining.minus(amount);
@@ -101,7 +104,7 @@ public final class PaymentCalculator {
 
     if (remaining.isPositive()) {
       throw new InvalidPaymentException(
-          "The tenders do not cover the total; " + remaining + " is still missing");
+          "Los medios de pago no cubren el total; " + remaining + " aún falta");
     }
 
     Money change = tendered.minus(total);
@@ -121,39 +124,40 @@ public final class PaymentCalculator {
       return null;
     }
     if (reason == null || reason.isBlank()) {
-      throw new InvalidPaymentException("A discount reason is required");
+      throw new InvalidPaymentException("El motivo del descuento es obligatorio");
     }
     if (reason.length() > MAX_REASON_LENGTH) {
       throw new InvalidPaymentException(
-          "The discount reason must not exceed " + MAX_REASON_LENGTH + " characters");
+          "El motivo del descuento no debe superar " + MAX_REASON_LENGTH + " characters");
     }
 
     if (type == DiscountType.PERCENT) {
       if (discountAmount != null) {
-        throw new InvalidPaymentException("A percentage discount must not carry a money amount");
+        throw new InvalidPaymentException(
+            "Un descuento porcentual no debe incluir un monto de dinero");
       }
       if (percentageBasisPoints <= 0) {
-        throw new InvalidPaymentException("The discount percentage must be positive");
+        throw new InvalidPaymentException("El porcentaje de descuento debe ser positivo");
       }
       if (percentageBasisPoints > MAX_BASIS_POINTS) {
-        throw new InvalidPaymentException("A percentage discount cannot exceed 100");
+        throw new InvalidPaymentException("El porcentaje de descuento no puede superar 100");
       }
       Money amount = subtotal.percentBasisPoints(percentageBasisPoints);
       if (!amount.isLessThan(subtotal)) {
-        throw new InvalidPaymentException("The discount must be lower than the subtotal");
+        throw new InvalidPaymentException("El descuento debe ser menor que el subtotal");
       }
       return new PaymentDiscount(type, percentageBasisPoints, amount, reason.trim());
     }
 
     if (percentageBasisPoints != 0) {
-      throw new InvalidPaymentException("An amount discount must not carry a percentage");
+      throw new InvalidPaymentException("Un descuento por monto no debe incluir un porcentaje");
     }
     if (discountAmount == null || !discountAmount.isPositive()) {
-      throw new InvalidPaymentException("The discount value must be positive");
+      throw new InvalidPaymentException("El valor del descuento debe ser positivo");
     }
-    Money amount = requireSameCurrency(discountAmount, subtotal, "Discount");
+    Money amount = requireSameCurrency(discountAmount, subtotal, "Descuento");
     if (!amount.isLessThan(subtotal)) {
-      throw new InvalidPaymentException("The discount must be lower than the subtotal");
+      throw new InvalidPaymentException("El descuento debe ser menor que el subtotal");
     }
     return new PaymentDiscount(type, 0, amount, reason.trim());
   }
@@ -161,7 +165,7 @@ public final class PaymentCalculator {
   private static Money requireSameCurrency(Money money, Money reference, String label) {
     Currency expected = reference.currency();
     if (money == null || !expected.equals(money.currency())) {
-      throw new InvalidPaymentException(label + " currency must match the order currency");
+      throw new InvalidPaymentException(label + ": la moneda debe coincidir con la del pedido");
     }
     return money;
   }

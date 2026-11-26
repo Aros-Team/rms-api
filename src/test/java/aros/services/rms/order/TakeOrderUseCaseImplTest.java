@@ -361,7 +361,7 @@ class TakeOrderUseCaseImplTest {
     InvalidProductOptionException exception =
         assertThrows(InvalidProductOptionException.class, () -> takeOrderUseCase.execute(command));
 
-    assertEquals("Option 99 is not valid for product 1", exception.getMessage());
+    assertEquals("La opción 99 no es válida para el producto 1", exception.getMessage());
     assertEquals(TableStatus.AVAILABLE, table.getStatus());
     verify(tableRepositoryPort, times(2)).save(table);
     verify(orderRepositoryPort, never()).save(any(Order.class));

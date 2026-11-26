@@ -48,7 +48,7 @@ public class PreparationService implements PreparationUseCase {
     Order order =
         orderRepositoryPort
             .findFirstByStatusOrderByDateAsc(OrderStatus.QUEUE)
-            .orElseThrow(() -> new IllegalStateException("No orders in queue"));
+            .orElseThrow(() -> new IllegalStateException("No hay pedidos en cola"));
 
     return startPreparation(order);
   }
@@ -64,7 +64,8 @@ public class PreparationService implements PreparationUseCase {
         orderRepositoryPort.findById(id).orElseThrow(() -> new OrderNotFoundException(id));
 
     if (order.getStatus() != OrderStatus.QUEUE) {
-      throw new IllegalStateException("Order can only be prepared when in QUEUE status");
+      throw new IllegalStateException(
+          "El pedido solo se puede preparar cuando está en estado QUEUE");
     }
 
     return startPreparation(order);

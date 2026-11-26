@@ -11,6 +11,6 @@ public class ConfigEntryNotFoundException extends SettingsException {
    * @param key the requested configuration key
    */
   public ConfigEntryNotFoundException(String key) {
-    super(SettingsErrorType.NOT_FOUND, "Configuration entry not found: " + key);
+    super(SettingsErrorType.NOT_FOUND, "Entrada de configuración no encontrada: " + key);
   }
 }

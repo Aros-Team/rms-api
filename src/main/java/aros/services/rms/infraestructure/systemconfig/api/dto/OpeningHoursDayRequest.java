@@ -43,7 +43,7 @@ public record OpeningHoursDayRequest(
       return LocalTime.parse(value);
     } catch (DateTimeParseException e) {
       throw new InvalidConfigurationException(
-          "Invalid " + field + " for " + dayOfWeek + ": " + value);
+          "Valor inválido de " + field + " para " + dayOfWeek + ": " + value);
     }
   }
 }

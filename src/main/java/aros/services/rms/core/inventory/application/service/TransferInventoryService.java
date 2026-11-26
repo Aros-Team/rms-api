@@ -76,7 +76,7 @@ public class TransferInventoryService implements TransferInventoryUseCase {
       // Validate quantity is positive
       if (item.quantity().compareTo(BigDecimal.ZERO) <= 0) {
         throw new IllegalArgumentException(
-            "Quantity must be greater than zero for variant: " + item.supplyVariantId());
+            "La cantidad debe ser mayor que cero para la variante: " + item.supplyVariantId());
       }
 
       // Get stock from Bodega with pessimistic lock

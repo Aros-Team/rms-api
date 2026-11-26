@@ -42,7 +42,7 @@ public class RollupPrimeCostService implements RollupPrimeCostUseCase {
   public int rollup(LocalDate from, LocalDate to) {
     if (to.isBefore(from)) {
       throw new aros.services.rms.core.analytics.domain.exception.InvalidAnalyticsRangeException(
-          "'to' must not be before 'from'");
+          "'to' no puede ser anterior a 'from'");
     }
     List<MonthlyFinancialSummary> daily =
         summaryRepositoryPort.findByBucketAndPeriodKeyBetween(

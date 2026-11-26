@@ -27,7 +27,7 @@ public class HashServiceAdapter implements HashServicePort {
       }
       return hexString.toString();
     } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException("Failed to hash input", e);
+      throw new RuntimeException("No se pudo calcular el hash de la entrada", e);
     }
   }
 }

@@ -699,7 +699,7 @@ public class GlobalExceptionHandler {
         e.getBindingResult().getFieldErrors().stream()
             .map(error -> error.getField() + ": " + error.getDefaultMessage())
             .findFirst()
-            .orElse("Validation failed");
+            .orElse("Validación fallida");
     return problem(HttpStatus.BAD_REQUEST, message);
   }
 
@@ -760,7 +760,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
   public ResponseEntity<ProblemDetail> handleMaxUploadSizeExceeded(
       org.springframework.web.multipart.MaxUploadSizeExceededException e) {
-    return problem(HttpStatus.BAD_REQUEST, "File size exceeds maximum allowed size");
+    return problem(HttpStatus.BAD_REQUEST, "El archivo supera el tamaño máximo permitido");
   }
 
   // --- Generic catch-all handlers ---
@@ -770,7 +770,7 @@ public class GlobalExceptionHandler {
       org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
   public ResponseEntity<ProblemDetail> handleMethodArgumentTypeMismatch(
       org.springframework.web.method.annotation.MethodArgumentTypeMismatchException e) {
-    String message = "Invalid value '" + e.getName() + "': " + e.getValue();
+    String message = "Valor inválido '" + e.getName() + "': " + e.getValue();
     log.warn("Invalid parameter: {}", message);
     return problem(HttpStatus.BAD_REQUEST, message);
   }
@@ -780,7 +780,7 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ProblemDetail> handleHttpMediaTypeNotAcceptable(
       org.springframework.web.HttpMediaTypeNotAcceptableException e) {
     log.warn("Unsupported media type: {}", e.getMessage());
-    return problem(HttpStatus.NOT_ACCEPTABLE, "Content type not accepted");
+    return problem(HttpStatus.NOT_ACCEPTABLE, "Tipo de contenido no aceptado");
   }
 
   /** Handles MissingServletRequestParameterException. */
@@ -789,7 +789,8 @@ public class GlobalExceptionHandler {
       org.springframework.web.bind.MissingServletRequestParameterException e) {
     log.warn("Missing required parameter: {}", e.getParameterName());
     return problem(
-        HttpStatus.BAD_REQUEST, "Required parameter '" + e.getParameterName() + "' not found");
+        HttpStatus.BAD_REQUEST,
+        "El parámetro obligatorio '" + e.getParameterName() + "' no se encontró");
   }
 
   /**
@@ -815,10 +816,10 @@ public class GlobalExceptionHandler {
     String message;
     if (path.contains("/products/") || path.contains("/workers/")) {
       message =
-          "Invalid image endpoint format."
-              + " Use: /api/v1/products/{productId}/images or /api/v1/workers/{workerId}/images";
+          "Formato de endpoint de imagen inválido."
+              + " Usa: /api/v1/products/{productId}/images o /api/v1/workers/{workerId}/images";
     } else {
-      message = "Endpoint not found: " + path;
+      message = "Ruta no encontrada: " + path;
     }
     log.warn("Resource not found: {}", path);
     return problem(HttpStatus.NOT_FOUND, message);
@@ -848,9 +849,9 @@ public class GlobalExceptionHandler {
     ProblemDetail body =
         ProblemDetail.forStatusAndDetail(
             HttpStatus.METHOD_NOT_ALLOWED,
-            "Method "
+            "El método "
                 + e.getMethod()
-                + " is not supported for this endpoint. Supported: "
+                + " no está soportado para este endpoint. Soportados: "
                 + e.getSupportedHttpMethods());
     body.setTitle(HttpStatus.METHOD_NOT_ALLOWED.getReasonPhrase());
     return builder.body(body);
@@ -865,7 +866,7 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ProblemDetail> handleMessageNotReadable(
       org.springframework.http.converter.HttpMessageNotReadableException e) {
     log.warn("Malformed request body: {}", e.getMessage());
-    return problem(HttpStatus.BAD_REQUEST, "Malformed JSON request body");
+    return problem(HttpStatus.BAD_REQUEST, "Cuerpo JSON de la solicitud mal formado");
   }
 
   /** Handles generic Exception. */

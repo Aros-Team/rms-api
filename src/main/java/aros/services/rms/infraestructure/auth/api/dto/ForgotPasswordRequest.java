@@ -10,6 +10,6 @@ import jakarta.validation.constraints.NotBlank;
 @Schema(description = "Forgot password request DTO", example = "{\"email\": \"user@example.com\"}")
 public record ForgotPasswordRequest(
     @Schema(description = "User email", example = "user@example.com")
-        @NotBlank(message = "El email es requerido")
+        @NotBlank(message = "El correo electrónico es obligatorio")
         @Email(message = "Formato de email inválido")
         String email) {}

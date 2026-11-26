@@ -54,10 +54,11 @@ public class DeliveryService implements DeliveryUseCase {
     Order order =
         orderRepositoryPort
             .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+            .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado"));
 
     if (order.getStatus() != OrderStatus.READY) {
-      throw new IllegalStateException("Order can only be delivered when in READY status");
+      throw new IllegalStateException(
+          "El pedido solo se puede entregar cuando está en estado READY");
     }
 
     order.setStatus(OrderStatus.DELIVERED);

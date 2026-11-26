@@ -22,21 +22,21 @@ import java.util.List;
             + "\"categoryId\": 1, \"areaId\": 1, \"optionIds\": [1, 2, 3]}")
 public record ProductRequest(
     @Schema(description = "Product name", example = "Hamburguesa Clásica")
-        @NotBlank(message = "Product name is required")
+        @NotBlank(message = "El nombre del producto es obligatorio")
         String name,
     @Schema(
             description = "Product description",
             example = "Deliciosa hamburguesa con queso cheddar, tocino y vegetales frescos")
         String description,
     @Schema(description = "Product base price", example = "12.50")
-        @NotNull(message = "Base price is required")
-        @PositiveOrZero(message = "Base price must be zero or positive")
+        @NotNull(message = "El precio base es obligatorio")
+        @PositiveOrZero(message = "El precio base debe ser cero o positivo")
         Double basePrice,
     @Schema(description = "Category ID the product belongs to", example = "1")
-        @NotNull(message = "Category ID is required")
+        @NotNull(message = "El ID de categoría es obligatorio")
         Long categoryId,
     @Schema(description = "Preparation area ID", example = "1")
-        @NotNull(message = "Area ID is required")
+        @NotNull(message = "El ID del área es obligatorio")
         Long areaId,
     @Schema(
             description = "IDs of existing product options to associate with this product",

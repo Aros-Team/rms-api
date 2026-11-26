@@ -16,14 +16,15 @@ import java.util.List;
         "{\"tableId\": 1, \"details\": [{\"productId\": 1, \"instructions\": \"No onions\", "
             + "\"selectedOptionIds\": [1, 2]}]}")
 public record TakeOrderRequest(
-    @Schema(description = "Table ID", example = "1") @NotNull(message = "Table ID is required")
+    @Schema(description = "Table ID", example = "1")
+        @NotNull(message = "El ID de mesa es obligatorio")
         Long tableId,
     @Schema(description = "Number of guests (covers)", example = "4")
-        @Min(value = 1, message = "Party size must be at least 1")
-        @Max(value = 20, message = "Party size must be at most 20")
+        @Min(value = 1, message = "El número de comensales debe ser al menos 1")
+        @Max(value = 20, message = "El número de comensales debe ser como máximo 20")
         Integer partySize,
     @Schema(description = "List of ordered products")
-        @NotEmpty(message = "Order details cannot be empty")
+        @NotEmpty(message = "Los detalles del pedido no pueden estar vacíos")
         @Valid
         List<OrderDetailRequest> details) {
 
@@ -31,7 +32,7 @@ public record TakeOrderRequest(
   @Schema(description = "Detail of a product in the order")
   public record OrderDetailRequest(
       @Schema(description = "Product ID", example = "1")
-          @NotNull(message = "Product ID is required")
+          @NotNull(message = "El ID del producto es obligatorio")
           Long productId,
       @Schema(description = "Special instructions for the product", example = "No onions")
           String instructions,

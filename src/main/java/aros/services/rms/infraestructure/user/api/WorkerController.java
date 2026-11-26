@@ -215,7 +215,7 @@ public class WorkerController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
         @ApiResponse(responseCode = "403", description = "Admin access required"),
         @ApiResponse(responseCode = "404", description = "Worker not found"),
-        @ApiResponse(responseCode = "500", description = "Error sending email")
+        @ApiResponse(responseCode = "500", description = "Error al enviar el correo")
       })
   public ResponseEntity<Void> retrySetupEmail(
       @Parameter(description = "Worker ID", example = "1", required = true) @PathVariable Long id)
@@ -279,7 +279,8 @@ public class WorkerController {
             .orElseThrow(
                 () -> new AuthorizationDeniedException("Worker not found for the current session"));
     if (!self.getId().value().equals(id)) {
-      throw new AuthorizationDeniedException("Workers can only read their own salary history");
+      throw new AuthorizationDeniedException(
+          "Los trabajadores solo pueden consultar su propio historial salarial");
     }
   }
 }

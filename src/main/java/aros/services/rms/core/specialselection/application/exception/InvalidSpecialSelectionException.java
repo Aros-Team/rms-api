@@ -12,7 +12,7 @@ public class InvalidSpecialSelectionException extends RuntimeException {
    * @param errors the validation errors
    */
   public InvalidSpecialSelectionException(List<String> errors) {
-    super("Invalid special selection: " + String.join("; ", errors));
+    super("Selección especial inválida: " + String.join("; ", errors));
     this.errors = errors;
   }
 

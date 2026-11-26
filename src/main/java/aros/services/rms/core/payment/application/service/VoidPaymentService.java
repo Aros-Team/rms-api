@@ -47,7 +47,7 @@ public class VoidPaymentService implements VoidPaymentUseCase {
   @Override
   public Payment voidPayment(VoidPaymentCommand command) {
     if (command == null || command.paymentId() == null) {
-      throw new InvalidPaymentException("A paymentId is required");
+      throw new InvalidPaymentException("El paymentId es obligatorio");
     }
     final String reason = normalizeReason(command.reason());
 
@@ -77,12 +77,12 @@ public class VoidPaymentService implements VoidPaymentUseCase {
 
   private static String normalizeReason(String reason) {
     if (reason == null || reason.isBlank()) {
-      throw new InvalidPaymentException("A void reason is required");
+      throw new InvalidPaymentException("El motivo de anulación es obligatorio");
     }
     String normalized = reason.trim();
     if (normalized.length() > MAX_REASON_LENGTH) {
       throw new InvalidPaymentException(
-          "The void reason must not exceed " + MAX_REASON_LENGTH + " characters");
+          "El motivo de anulación no debe superar " + MAX_REASON_LENGTH + " characters");
     }
     return normalized;
   }

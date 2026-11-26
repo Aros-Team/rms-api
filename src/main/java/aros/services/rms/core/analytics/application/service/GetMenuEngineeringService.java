@@ -124,7 +124,7 @@ public class GetMenuEngineeringService implements GetMenuEngineeringUseCase {
   private void validateBucket(String bucket) {
     if (!Set.of("daily", "weekly", "monthly", "yearly").contains(bucket)) {
       throw new IllegalArgumentException(
-          "Invalid bucket '" + bucket + "'. Must be one of: daily, weekly, monthly, yearly.");
+          "Bucket inválido '" + bucket + "'. Debe ser uno de: daily, weekly, monthly, yearly.");
     }
   }
 

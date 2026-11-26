@@ -6,6 +6,8 @@ package aros.services.rms.infraestructure.common.exception;
 public class DatabaseUnavailableException extends ExpectedStartupException {
   /** Creates a new exception. */
   public DatabaseUnavailableException() {
-    super("Database not available. Ensure Docker is running: 'docker compose up -d'");
+    super(
+        "Base de datos no disponible. Verifica que Docker esté en ejecución: "
+            + "'docker compose up -d'");
   }
 }

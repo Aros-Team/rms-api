@@ -421,7 +421,7 @@ class PayrollEventControllerTest {
     when(registerEvent.execute(any()))
         .thenThrow(
             new aros.services.rms.core.payroll.domain.exception.PayrollNotFoundException(
-                "No payroll for user 1 in period 2026-08"));
+                "No hay nómina para el usuario 1 en el periodo 2026-08"));
 
     String requestJson =
         """

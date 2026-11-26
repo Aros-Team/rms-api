@@ -199,10 +199,10 @@ public class SupplyCatalogController {
           @RequestParam(defaultValue = "20")
           int size) {
     if (page < 0) {
-      throw new IllegalArgumentException("Page parameter must be greater than or equal to 0");
+      throw new IllegalArgumentException("El parámetro page debe ser mayor o igual a 0");
     }
     if (size <= 0 || size > 100) {
-      throw new IllegalArgumentException("Size parameter must be between 1 and 100");
+      throw new IllegalArgumentException("El parámetro size debe estar entre 1 y 100");
     }
     var pageable = PageRequest.of(page, size);
 
@@ -254,7 +254,7 @@ public class SupplyCatalogController {
                 () ->
                     new aros.services.rms.core.inventory.application.exception
                         .StorageLocationNotFoundException(
-                        "Category not found: id=" + request.categoryId()));
+                        "Categoría no encontrada: id=" + request.categoryId()));
 
     // Check name uniqueness
     if (supplyRepository.findByNameIgnoreCase(request.name()).isPresent()) {
@@ -314,10 +314,10 @@ public class SupplyCatalogController {
           @RequestParam(defaultValue = "20")
           int size) {
     if (page < 0) {
-      throw new IllegalArgumentException("Page parameter must be greater than or equal to 0");
+      throw new IllegalArgumentException("El parámetro page debe ser mayor o igual a 0");
     }
     if (size <= 0 || size > 100) {
-      throw new IllegalArgumentException("Size parameter must be between 1 and 100");
+      throw new IllegalArgumentException("El parámetro size debe estar entre 1 y 100");
     }
     var pageable = PageRequest.of(page, size);
 

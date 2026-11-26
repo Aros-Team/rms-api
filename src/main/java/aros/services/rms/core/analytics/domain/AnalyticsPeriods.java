@@ -49,7 +49,7 @@ public final class AnalyticsPeriods {
   public static void validateBucket(String bucket) {
     if (bucket == null || !BUCKETS.contains(bucket)) {
       throw new InvalidAnalyticsPeriodException(
-          "Invalid bucket '" + bucket + "'. Must be one of: daily, weekly, monthly, yearly.");
+          "Bucket inválido '" + bucket + "'. Debe ser uno de: daily, weekly, monthly, yearly.");
     }
   }
 
@@ -70,20 +70,20 @@ public final class AnalyticsPeriods {
     LocalDate endExclusive = endExclusive(bucket, to);
     if (endExclusive.isBefore(start) || endExclusive.isEqual(start)) {
       throw new InvalidAnalyticsRangeException(
-          "Range produced no periods: from=" + from + " to=" + to);
+          "El rango no produjo periodos: desde=" + from + " hasta=" + to);
     }
     long days = ChronoUnit.DAYS.between(start, endExclusive);
     // Yearly ranges are inherently multi-year and stay a handful of points, so the
     // day cap applies to daily/weekly/monthly payloads only.
     if (!"yearly".equals(bucket) && days > MAX_RANGE_DAYS) {
       throw new AnalyticsRangeTooLargeException(
-          "Range exceeds "
+          "El rango supera "
               + MAX_RANGE_DAYS
-              + " days: "
+              + " días: "
               + days
-              + " days requested (from="
+              + " días solicitados (desde="
               + from
-              + ", to="
+              + ", hasta="
               + to
               + ").");
     }
@@ -134,7 +134,7 @@ public final class AnalyticsPeriods {
           keys.add(String.valueOf(year));
         }
       }
-      default -> throw new InvalidAnalyticsPeriodException("Unsupported bucket: " + bucket);
+      default -> throw new InvalidAnalyticsPeriodException("Bucket no soportado: " + bucket);
     }
     return keys;
   }
@@ -157,7 +157,7 @@ public final class AnalyticsPeriods {
               date.get(IsoFields.WEEK_BASED_YEAR), date.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
       case "monthly" -> YearMonth.from(date).toString();
       case "yearly" -> String.valueOf(date.getYear());
-      default -> throw new InvalidAnalyticsPeriodException("Unsupported bucket: " + bucket);
+      default -> throw new InvalidAnalyticsPeriodException("Bucket no soportado: " + bucket);
     };
   }
 
@@ -181,7 +181,7 @@ public final class AnalyticsPeriods {
           validateYearly(from);
           yield LocalDate.of(Integer.parseInt(from), 1, 1);
         }
-        default -> throw new InvalidAnalyticsPeriodException("Unsupported bucket: " + bucket);
+        default -> throw new InvalidAnalyticsPeriodException("Bucket no soportado: " + bucket);
       };
     } catch (DateTimeParseException | NumberFormatException exception) {
       throw invalidFormat(bucket, from, expectedFormat(bucket));
@@ -209,7 +209,7 @@ public final class AnalyticsPeriods {
           validateYearly(to);
           yield LocalDate.of(Integer.parseInt(to) + 1, 1, 1);
         }
-        default -> throw new InvalidAnalyticsPeriodException("Unsupported bucket: " + bucket);
+        default -> throw new InvalidAnalyticsPeriodException("Bucket no soportado: " + bucket);
       };
     } catch (DateTimeParseException | NumberFormatException exception) {
       throw invalidFormat(bucket, to, expectedFormat(bucket));
@@ -267,11 +267,11 @@ public final class AnalyticsPeriods {
   private static InvalidAnalyticsPeriodException invalidFormat(
       String bucket, String value, String expected) {
     return new InvalidAnalyticsPeriodException(
-        "Invalid period format for bucket '"
+        "Formato de periodo inválido para bucket '"
             + bucket
             + "': '"
             + value
-            + "'. Expected: "
+            + "'. Esperado: "
             + expected);
   }
 }

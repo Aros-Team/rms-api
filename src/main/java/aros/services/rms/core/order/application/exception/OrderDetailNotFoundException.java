@@ -12,6 +12,6 @@ public class OrderDetailNotFoundException extends RuntimeException {
    * @param detailId the order detail identifier that was not found
    */
   public OrderDetailNotFoundException(Long orderId, Long detailId) {
-    super("Order detail not found: " + detailId + " in order " + orderId);
+    super("Detalle del pedido no encontrado: " + detailId + " en el pedido " + orderId);
   }
 }

@@ -67,7 +67,8 @@ class ProblemDetailInstanceAdviceTest {
 
   @Test
   void should_set_instance_to_request_uri_when_null() throws Exception {
-    ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "Order not found");
+    ProblemDetail body =
+        ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, "Pedido no encontrado");
     body.setTitle("Not Found");
 
     ProblemDetail result =
@@ -81,7 +82,7 @@ class ProblemDetailInstanceAdviceTest {
 
     assertEquals(URI.create("/api/v1/orders/999"), result.getInstance());
     assertEquals(URI.create("about:blank"), result.getType());
-    assertEquals("Order not found", result.getDetail());
+    assertEquals("Pedido no encontrado", result.getDetail());
     assertEquals(HttpStatus.NOT_FOUND.value(), result.getStatus());
   }
 
@@ -104,7 +105,7 @@ class ProblemDetailInstanceAdviceTest {
 
   @Test
   void should_preserve_existing_instance() throws Exception {
-    ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "Access denied");
+    ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "Acceso denegado");
     body.setInstance(URI.create("/already/set"));
 
     ProblemDetail result =

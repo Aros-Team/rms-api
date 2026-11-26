@@ -119,7 +119,7 @@ public class TakeOrderService implements TakeOrderUseCase {
             .orElseThrow(() -> new IllegalArgumentException("Table not found"));
 
     if (table.getStatus() != TableStatus.AVAILABLE) {
-      throw new IllegalStateException("Table is not available");
+      throw new IllegalStateException("La mesa no está disponible");
     }
 
     table.setStatus(TableStatus.OCCUPIED);
@@ -140,7 +140,7 @@ public class TakeOrderService implements TakeOrderUseCase {
         Product product =
             productRepositoryPort
                 .findById(detailCommand.getProductId())
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
 
         boolean hasSelectedOptions =
             detailCommand.getSelectedOptionIds() != null
@@ -230,7 +230,7 @@ public class TakeOrderService implements TakeOrderUseCase {
           throw new InsufficientStockException(
               detail.getProduct().getId(),
               aros.services.rms.core.inventory.domain.MovementType.DEDUCTION,
-              "Insufficient stock for product: " + detail.getProduct().getName());
+              "Stock insuficiente para el producto: " + detail.getProduct().getName());
         }
       }
 

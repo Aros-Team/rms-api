@@ -14,7 +14,7 @@ public class SupplyVariantAlreadyExistsException extends RuntimeException {
    */
   public SupplyVariantAlreadyExistsException(Long supplyId, Long unitId, String quantity) {
     super(
-        "Supply variant already exists: supplyId="
+        "La variante de insumo ya existe: supplyId="
             + supplyId
             + ", unitId="
             + unitId

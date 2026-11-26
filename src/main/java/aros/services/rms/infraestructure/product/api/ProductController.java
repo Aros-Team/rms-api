@@ -222,10 +222,10 @@ public class ProductController {
           @RequestParam(required = false)
           String search) {
     if (page < 0) {
-      throw new IllegalArgumentException("Page parameter must be greater than or equal to 0");
+      throw new IllegalArgumentException("El parámetro page debe ser mayor o igual a 0");
     }
     if (size <= 0 || size > 100) {
-      throw new IllegalArgumentException("Size parameter must be between 1 and 100");
+      throw new IllegalArgumentException("El parámetro size debe estar entre 1 y 100");
     }
     var pageable = PageRequest.of(page, size);
     Page<ProductResponse> responses;

@@ -74,7 +74,7 @@ public class AssignScheduleToWorkerService implements AssignScheduleToWorkerUseC
             .orElseThrow(
                 () ->
                     new ScheduleNotFoundException(
-                        "Schedule not found with id: " + info.scheduleId()));
+                        "Horario no encontrado con id: " + info.scheduleId()));
 
     List<WorkerScheduleAssignment> existingAssignments =
         assignmentRepository.findByWorkerId(info.workerId());
@@ -84,9 +84,9 @@ public class AssignScheduleToWorkerService implements AssignScheduleToWorkerUseC
             .anyMatch(assignment -> assignment.getScheduleId().equals(schedule.getId()));
     if (alreadyAssigned) {
       throw new ScheduleAlreadyAssignedException(
-          "Schedule "
+          "El horario "
               + info.scheduleId()
-              + " is already assigned to worker "
+              + " ya está asignado al trabajador "
               + info.workerId().value()
               + " (double booking)");
     }
@@ -102,8 +102,11 @@ public class AssignScheduleToWorkerService implements AssignScheduleToWorkerUseC
         for (ScheduleShift existingShift : existingSchedule.getShifts()) {
           if (newShift.overlapsWith(existingShift)) {
             throw new ShiftOverlapException(
-                "Shift overlap detected",
-                "New shift " + newShift + " overlaps with existing shift " + existingShift);
+                "Superposición de turnos detectada",
+                "El nuevo turno "
+                    + newShift
+                    + " se superpone con el turno existente "
+                    + existingShift);
           }
         }
       }
@@ -116,8 +119,8 @@ public class AssignScheduleToWorkerService implements AssignScheduleToWorkerUseC
       throw new WeeklyHoursExceededException(
           String.format(
               Locale.ROOT,
-              "Assigning schedule %d would raise worker %d to %.2f h/week, above the %d h/week"
-                  + " hard cap",
+              "Asignar el horario %d llevaría al trabajador %d a %.2f h/semana, "
+                  + "por encima del tope de %d h/semana",
               info.scheduleId(),
               info.workerId().value(),
               weeklyHours,

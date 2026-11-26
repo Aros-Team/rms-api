@@ -15,16 +15,16 @@ import java.math.BigDecimal;
 @Schema(description = "Labor costing configuration")
 public record LaborSettingsRequest(
     @Schema(description = "Costing strategy", example = "AUTO")
-        @NotNull(message = "Labor cost mode is required")
+        @NotNull(message = "El modo de costo de nómina es obligatorio")
         LaborCostMode mode,
     @Schema(description = "Fallback hourly rate", example = "12000.00")
-        @NotNull(message = "Standard hourly rate is required")
-        @DecimalMin(value = "0.0", message = "Standard hourly rate must not be negative")
+        @NotNull(message = "La tarifa horaria estándar es obligatoria")
+        @DecimalMin(value = "0.0", message = "La tarifa horaria estándar no puede ser negativa")
         BigDecimal standardHourlyRate,
     @Schema(description = "Fallback expected hours per month", example = "160")
-        @NotNull(message = "Default expected hours are required")
-        @Min(value = 0, message = "Default expected hours must not be negative")
-        @Max(value = 744, message = "Default expected hours must not exceed 744")
+        @NotNull(message = "Las horas esperadas por defecto son obligatorias")
+        @Min(value = 0, message = "Las horas esperadas por defecto no pueden ser negativas")
+        @Max(value = 744, message = "Las horas esperadas por defecto no deben superar 744")
         Integer defaultExpectedHoursPerMonth) {
 
   /**

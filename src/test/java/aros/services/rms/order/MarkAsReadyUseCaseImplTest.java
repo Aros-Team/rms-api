@@ -92,7 +92,7 @@ class MarkAsReadyUseCaseImplTest {
     IllegalArgumentException exception =
         assertThrows(IllegalArgumentException.class, () -> markAsReadyUseCase.markAsReady(99L));
 
-    assertEquals("Order not found", exception.getMessage());
+    assertEquals("Pedido no encontrado", exception.getMessage());
     verify(orderRepositoryPort, times(1)).findById(99L);
     verify(orderRepositoryPort, times(0)).save(any(Order.class));
   }
@@ -107,7 +107,8 @@ class MarkAsReadyUseCaseImplTest {
         assertThrows(IllegalStateException.class, () -> markAsReadyUseCase.markAsReady(1L));
 
     assertEquals(
-        "Order can only be marked as ready when in PREPARING status", exception.getMessage());
+        "El pedido solo se puede marcar como listo cuando está en estado PREPARING",
+        exception.getMessage());
     verify(orderRepositoryPort, times(1)).findById(1L);
     verify(orderRepositoryPort, times(0)).save(any(Order.class));
   }
@@ -122,7 +123,8 @@ class MarkAsReadyUseCaseImplTest {
         assertThrows(IllegalStateException.class, () -> markAsReadyUseCase.markAsReady(1L));
 
     assertEquals(
-        "Order can only be marked as ready when in PREPARING status", exception.getMessage());
+        "El pedido solo se puede marcar como listo cuando está en estado PREPARING",
+        exception.getMessage());
   }
 
   @Test
@@ -135,7 +137,8 @@ class MarkAsReadyUseCaseImplTest {
         assertThrows(IllegalStateException.class, () -> markAsReadyUseCase.markAsReady(1L));
 
     assertEquals(
-        "Order can only be marked as ready when in PREPARING status", exception.getMessage());
+        "El pedido solo se puede marcar como listo cuando está en estado PREPARING",
+        exception.getMessage());
   }
 
   @Test
@@ -148,7 +151,8 @@ class MarkAsReadyUseCaseImplTest {
         assertThrows(IllegalStateException.class, () -> markAsReadyUseCase.markAsReady(1L));
 
     assertEquals(
-        "Order can only be marked as ready when in PREPARING status", exception.getMessage());
+        "El pedido solo se puede marcar como listo cuando está en estado PREPARING",
+        exception.getMessage());
   }
 
   // ---------------------------------------------------------------------------
@@ -230,7 +234,7 @@ class MarkAsReadyUseCaseImplTest {
         assertThrows(
             OrderNotFoundException.class, () -> markAsReadyUseCase.markDetailAsReady(99L, 1L));
 
-    assertEquals("Order not found: 99", exception.getMessage());
+    assertEquals("Pedido no encontrado: 99", exception.getMessage());
     verify(orderRepositoryPort, never()).save(any(Order.class));
   }
 
@@ -250,7 +254,7 @@ class MarkAsReadyUseCaseImplTest {
             OrderDetailNotFoundException.class,
             () -> markAsReadyUseCase.markDetailAsReady(1L, 404L));
 
-    assertEquals("Order detail not found: 404 in order 1", exception.getMessage());
+    assertEquals("Detalle del pedido no encontrado: 404 en el pedido 1", exception.getMessage());
     verify(orderRepositoryPort, never()).save(any(Order.class));
   }
 
@@ -270,7 +274,8 @@ class MarkAsReadyUseCaseImplTest {
             IllegalStateException.class, () -> markAsReadyUseCase.markDetailAsReady(1L, 10L));
 
     assertEquals(
-        "Order details can only be marked as ready when in PREPARING status",
+        "Los detalles del pedido solo se pueden marcar como listos cuando están "
+            + "en estado PREPARING",
         exception.getMessage());
     verify(orderRepositoryPort, never()).save(any(Order.class));
   }

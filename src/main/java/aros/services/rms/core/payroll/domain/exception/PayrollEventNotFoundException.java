@@ -11,6 +11,6 @@ public class PayrollEventNotFoundException extends RuntimeException {
    * @param id the event id that was not found
    */
   public PayrollEventNotFoundException(Long id) {
-    super("Payroll event not found with id: " + id);
+    super("Evento de nómina no encontrado con id: " + id);
   }
 }

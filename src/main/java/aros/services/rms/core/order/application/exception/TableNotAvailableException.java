@@ -11,7 +11,7 @@ public class TableNotAvailableException extends RuntimeException {
    * @param tableId the table identifier that is not available
    */
   public TableNotAvailableException(Long tableId) {
-    super("Table not available: " + tableId);
+    super("Mesa no disponible: " + tableId);
   }
 
   /**
@@ -21,6 +21,6 @@ public class TableNotAvailableException extends RuntimeException {
    * @param reason the reason why the table is not available
    */
   public TableNotAvailableException(Long tableId, String reason) {
-    super("Table not available: " + tableId + " - " + reason);
+    super("Mesa no disponible: " + tableId + " - " + reason);
   }
 }

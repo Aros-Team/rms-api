@@ -14,6 +14,6 @@ public class OptionGroupRequiresProductException extends RuntimeException {
 
   /** Creates a new exception for an OptionGroup that was offered without product associations. */
   public OptionGroupRequiresProductException() {
-    super("An option group must be associated with at least one product");
+    super("Un grupo de opciones debe estar asociado a al menos un producto");
   }
 }

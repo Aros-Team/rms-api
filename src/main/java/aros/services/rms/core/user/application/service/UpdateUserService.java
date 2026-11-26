@@ -48,7 +48,7 @@ public class UpdateUserService implements UpdateUserUseCase {
             .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
 
     if (!areaPort.existsAllByIds(info.areas())) {
-      throw new AreaNotFoundException("No se pudo encontrar alguna de areas referenciadas.");
+      throw new AreaNotFoundException("No se pudo encontrar alguna de las áreas referenciadas.");
     }
 
     user.updateInfo(info.document(), info.name(), info.address(), info.phone());

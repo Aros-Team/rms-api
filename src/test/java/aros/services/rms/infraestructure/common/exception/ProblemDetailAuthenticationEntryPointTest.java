@@ -59,7 +59,7 @@ class ProblemDetailAuthenticationEntryPointTest {
     assertEquals("about:blank", body.get("type").asString());
     assertEquals("Unauthorized", body.get("title").asString());
     assertEquals(401, body.get("status").asInt());
-    assertEquals("Authentication required", body.get("detail").asString());
+    assertEquals("Autenticación requerida", body.get("detail").asString());
     assertEquals("/api/auth", body.get("instance").asString());
 
     assertTrue(response.getContentLength() > 0, "the 401 response must carry a non-empty body");

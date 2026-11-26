@@ -16,7 +16,8 @@ public class SupplyVariantUnitCostMissingException extends RuntimeException {
    */
   public SupplyVariantUnitCostMissingException(List<Long> variantIds) {
     super(
-        "Cannot compute suggested price: unit_cost is missing for supply_variant IDs: "
+        "No se puede calcular el precio sugerido: falta unit_cost para los IDs "
+            + "de variante de insumo: "
             + variantIds);
     this.variantIds = variantIds;
   }

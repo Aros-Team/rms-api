@@ -162,7 +162,7 @@ public class PayrollEventController {
     PayrollCalculationResult result =
         calculateEvent.calculate(request.userId(), request.eventType(), request.quantity());
     if (result == null) {
-      throw new UserNotFoundException("Worker not found with id: " + request.userId());
+      throw new UserNotFoundException("Trabajador no encontrado con id: " + request.userId());
     }
 
     return ResponseEntity.ok(

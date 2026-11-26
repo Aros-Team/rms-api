@@ -54,10 +54,11 @@ public class MarkAsReadyService implements MarkAsReadyUseCase {
     Order order =
         orderRepositoryPort
             .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+            .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado"));
 
     if (order.getStatus() != OrderStatus.PREPARING) {
-      throw new IllegalStateException("Order can only be marked as ready when in PREPARING status");
+      throw new IllegalStateException(
+          "El pedido solo se puede marcar como listo cuando está en estado PREPARING");
     }
 
     LocalDateTime readyAt = LocalDateTime.now();
@@ -87,7 +88,8 @@ public class MarkAsReadyService implements MarkAsReadyUseCase {
 
     if (order.getStatus() != OrderStatus.PREPARING && order.getStatus() != OrderStatus.READY) {
       throw new IllegalStateException(
-          "Order details can only be marked as ready when in PREPARING status");
+          "Los detalles del pedido solo se pueden marcar como listos cuando están "
+              + "en estado PREPARING");
     }
 
     OrderDetail detail =

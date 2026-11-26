@@ -61,7 +61,7 @@ public class RefreshTokenService implements RefreshTokensUseCase {
     System.out.println("** Rovoked ==> " + refreshToken.isRevoked());
 
     if (refreshToken.isExpired() || refreshToken.isRevoked()) {
-      throw new InvalidRefreshTokenException("The token was expired or was already used");
+      throw new InvalidRefreshTokenException("El token expiró o ya fue utilizado");
     }
 
     User user = this.userPort.findById(refreshToken.getUserId()).orElseThrow();

@@ -12,32 +12,32 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "Business identity, contact details and regional settings")
 public record BusinessProfileRequest(
     @Schema(description = "Restaurant display name", example = "Rincón del Sabor")
-        @NotBlank(message = "Restaurant name is required")
-        @Size(max = 120, message = "Restaurant name must not exceed 120 characters")
+        @NotBlank(message = "El nombre del restaurante es obligatorio")
+        @Size(max = 120, message = "El nombre del restaurante no debe superar los 120 caracteres")
         String restaurantName,
     @Schema(description = "Legal company name", example = "Rincón del Sabor S.A.S.")
-        @Size(max = 160, message = "Legal name must not exceed 160 characters")
+        @Size(max = 160, message = "La razón social no debe superar los 160 caracteres")
         String legalName,
     @Schema(description = "Tax identifier", example = "900123456-7")
-        @Size(max = 40, message = "Tax id must not exceed 40 characters")
+        @Size(max = 40, message = "El NIT no debe superar los 40 caracteres")
         String taxId,
     @Schema(description = "Physical address", example = "Calle 12 #34-56, Armenia")
-        @Size(max = 200, message = "Address must not exceed 200 characters")
+        @Size(max = 200, message = "La dirección no debe superar los 200 caracteres")
         String address,
     @Schema(description = "Contact phone", example = "+57 606 1234567")
-        @Size(max = 30, message = "Phone must not exceed 30 characters")
+        @Size(max = 30, message = "El teléfono no debe superar los 30 caracteres")
         String phone,
     @Schema(description = "Contact email", example = "contacto@rincondelsabor.co")
-        @Email(message = "Enter a valid email address")
-        @Size(max = 120, message = "Email must not exceed 120 characters")
+        @Email(message = "Ingresa un correo electrónico válido")
+        @Size(max = 120, message = "El correo no debe superar los 120 caracteres")
         String email,
     @Schema(description = "IANA timezone", example = "America/Bogota")
-        @NotBlank(message = "Timezone is required")
-        @Size(max = 60, message = "Timezone must not exceed 60 characters")
+        @NotBlank(message = "La zona horaria es obligatoria")
+        @Size(max = 60, message = "La zona horaria no debe superar los 60 caracteres")
         String timezone,
     @Schema(description = "BCP 47 locale tag", example = "es-CO")
-        @NotBlank(message = "Locale is required")
-        @Size(max = 20, message = "Locale must not exceed 20 characters")
+        @NotBlank(message = "La configuración regional es obligatoria")
+        @Size(max = 20, message = "La configuración regional no debe superar los 20 caracteres")
         String locale) {
 
   /**

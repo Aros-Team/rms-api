@@ -63,7 +63,7 @@ public class JwtServiceImpl implements JwtService {
       boolean restricted) {
     if (jwtEncoder == null) {
       log.error(JWT_NOT_CONFIGURED_ERROR);
-      throw new IllegalStateException("JWT not configured");
+      throw new IllegalStateException("JWT no configurado");
     }
 
     Instant now = Instant.now();
@@ -91,7 +91,7 @@ public class JwtServiceImpl implements JwtService {
   public String generateRefreshToken(String username) {
     if (jwtEncoder == null) {
       log.error(JWT_NOT_CONFIGURED_ERROR);
-      throw new IllegalStateException("JWT not configured");
+      throw new IllegalStateException("JWT no configurado");
     }
 
     Instant now = Instant.now();
@@ -112,7 +112,7 @@ public class JwtServiceImpl implements JwtService {
   public String generateTfaToken(String username) {
     if (jwtEncoder == null) {
       log.error(JWT_NOT_CONFIGURED_ERROR);
-      throw new IllegalStateException("JWT not configured");
+      throw new IllegalStateException("JWT no configurado");
     }
 
     Instant now = Instant.now();

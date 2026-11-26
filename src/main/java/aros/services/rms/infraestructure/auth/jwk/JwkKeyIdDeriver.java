@@ -28,7 +28,7 @@ public final class JwkKeyIdDeriver {
     try {
       return MessageDigest.getInstance("SHA-256").digest(input);
     } catch (Exception e) {
-      throw new RuntimeException("SHA-256 not available", e);
+      throw new RuntimeException("SHA-256 no disponible", e);
     }
   }
 }

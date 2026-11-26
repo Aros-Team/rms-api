@@ -12,8 +12,8 @@ import jakarta.validation.constraints.NotNull;
     example = "{\"name\": \"Cocina Principal\", \"type\": \"KITCHEN\"}")
 public record AreaRequest(
     @Schema(description = "Area name", example = "Cocina Principal")
-        @NotBlank(message = "Area name is required")
+        @NotBlank(message = "El nombre del área es obligatorio")
         String name,
     @Schema(description = "Area type: KITCHEN or BARTENDER", example = "KITCHEN")
-        @NotNull(message = "Area type is required")
+        @NotNull(message = "El tipo de área es obligatorio")
         String type) {}

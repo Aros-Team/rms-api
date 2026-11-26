@@ -13,7 +13,7 @@ public class InvalidMoneyScaleException extends RuntimeException {
    * @param scale the scale that exceeded the limit
    */
   public InvalidMoneyScaleException(int scale) {
-    super("Invalid money scale: " + scale + " (max allowed: 10)");
+    super("Escala de dinero inválida: " + scale + " (max allowed: 10)");
     this.scale = scale;
   }
 

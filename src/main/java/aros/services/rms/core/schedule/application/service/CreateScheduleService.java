@@ -36,7 +36,8 @@ public class CreateScheduleService implements CreateScheduleUseCase {
   @Override
   public Schedule create(CreateScheduleInfo info) {
     if (scheduleRepository.existsByName(info.name())) {
-      throw new ScheduleAlreadyExistsException("Schedule already exists with name: " + info.name());
+      throw new ScheduleAlreadyExistsException(
+          "Ya existe un horario con el nombre: " + info.name());
     }
 
     List<ScheduleShift> shifts =

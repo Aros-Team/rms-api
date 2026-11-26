@@ -247,7 +247,7 @@ public class OptionGroupController {
       return OptionSelectionType.valueOf(value.trim());
     } catch (IllegalArgumentException unknown) {
       throw new IllegalArgumentException(
-          "Invalid selectionType: '"
+          "selectionType inválido: '"
               + value
               + "'. Allowed values: SINGLE_CHOICE, MULTI_CHOICE, ADD_ON, REMOVAL");
     }

@@ -41,7 +41,7 @@ public class LocalStorageAdapter implements StoragePort {
       log.info("Stored file locally at: {}", filePath);
       return baseUrl + "/" + key;
     } catch (IOException e) {
-      throw new RuntimeException("Failed to store file locally: " + key, e);
+      throw new RuntimeException("No se pudo guardar el archivo localmente: " + key, e);
     }
   }
 
@@ -55,7 +55,7 @@ public class LocalStorageAdapter implements StoragePort {
       }
       return Optional.empty();
     } catch (IOException e) {
-      throw new RuntimeException("Failed to load file locally: " + key, e);
+      throw new RuntimeException("No se pudo cargar el archivo localmente: " + key, e);
     }
   }
 
@@ -82,7 +82,7 @@ public class LocalStorageAdapter implements StoragePort {
     try {
       Files.createDirectories(baseDir);
     } catch (IOException e) {
-      throw new RuntimeException("Failed to create base upload directory: " + baseDir, e);
+      throw new RuntimeException("No se pudo crear el directorio base de subidas: " + baseDir, e);
     }
   }
 }

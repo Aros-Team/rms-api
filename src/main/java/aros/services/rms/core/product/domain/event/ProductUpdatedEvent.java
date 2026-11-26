@@ -19,10 +19,10 @@ public record ProductUpdatedEvent(Long productId, Instant occurredAt) {
    */
   public ProductUpdatedEvent {
     if (productId == null) {
-      throw new IllegalArgumentException("productId must not be null");
+      throw new IllegalArgumentException("productId no puede ser nulo");
     }
     if (occurredAt == null) {
-      throw new IllegalArgumentException("occurredAt must not be null");
+      throw new IllegalArgumentException("occurredAt no puede ser nulo");
     }
   }
 }

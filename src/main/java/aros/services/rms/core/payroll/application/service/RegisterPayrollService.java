@@ -28,10 +28,10 @@ public class RegisterPayrollService implements RegisterPayrollUseCase {
   public Payroll register(RegisterPayrollCommand cmd) {
     // Validate period
     if (cmd.periodStart() == null || cmd.periodEnd() == null) {
-      throw new InvalidPayrollPeriodException("periodStart and periodEnd are required");
+      throw new InvalidPayrollPeriodException("periodStart y periodEnd son obligatorios");
     }
     if (cmd.periodEnd().isBefore(cmd.periodStart())) {
-      throw new InvalidPayrollPeriodException("periodEnd must not be before periodStart");
+      throw new InvalidPayrollPeriodException("periodEnd no puede ser anterior a periodStart");
     }
 
     // Check duplicate
@@ -43,7 +43,7 @@ public class RegisterPayrollService implements RegisterPayrollUseCase {
     Money netAmount = cmd.baseSalary().plus(cmd.bonuses()).minus(cmd.deductions());
     if (netAmount.isNegative()) {
       throw new InvalidPayrollPeriodException(
-          "netAmount must not be negative (base + bonuses - deductions < 0)");
+          "netAmount no puede ser negativo (base + bonus - deducciones < 0)");
     }
 
     // Alert if hours_worked is significantly less than expected (80%)

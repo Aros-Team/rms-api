@@ -14,7 +14,11 @@ public class InvalidOrderStatusException extends RuntimeException {
    * @param operation the operation that was attempted
    */
   public InvalidOrderStatusException(OrderStatus currentStatus, String operation) {
-    super("Cannot perform operation '" + operation + "' when order status is: " + currentStatus);
+    super(
+        "No se puede realizar la operación '"
+            + operation
+            + "' cuando el estado del pedido es: "
+            + currentStatus);
   }
 
   /**
@@ -24,6 +28,7 @@ public class InvalidOrderStatusException extends RuntimeException {
    * @param expectedStatus the expected order status
    */
   public InvalidOrderStatusException(OrderStatus currentStatus, OrderStatus expectedStatus) {
-    super("Invalid order status: expected " + expectedStatus + " but was " + currentStatus);
+    super(
+        "Estado de pedido inválido: se esperaba " + expectedStatus + " pero fue " + currentStatus);
   }
 }

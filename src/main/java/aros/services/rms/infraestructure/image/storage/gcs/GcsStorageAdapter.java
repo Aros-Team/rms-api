@@ -52,7 +52,7 @@ public class GcsStorageAdapter implements StoragePort {
       storage.create(blobInfo, bytes);
       return key;
     } catch (IOException e) {
-      throw new RuntimeException("Failed to store file in GCS: " + key, e);
+      throw new RuntimeException("No se pudo guardar el archivo en GCS: " + key, e);
     }
   }
 

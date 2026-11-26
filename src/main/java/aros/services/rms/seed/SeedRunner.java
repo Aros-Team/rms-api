@@ -95,7 +95,7 @@ final class SeedRunner {
         statement.execute("SET unique_checks = 0");
       }
       if (!acquireLock()) {
-        throw new SeedException("Another seed is already running (GET_LOCK rms_seed)");
+        throw new SeedException("Ya hay otra carga de datos en ejecución (GET_LOCK rms_seed)");
       }
       try {
         if (runCatalog) {
@@ -142,7 +142,7 @@ final class SeedRunner {
         releaseLock();
       }
     } catch (SQLException exception) {
-      throw new SeedException("Seed reset failed: " + exception.getMessage(), exception);
+      throw new SeedException("Falló el reinicio de datos: " + exception.getMessage(), exception);
     } finally {
       try {
         connection.setAutoCommit(true);
@@ -239,7 +239,8 @@ final class SeedRunner {
     try {
       Files.createDirectories(uploadsDir);
     } catch (IOException exception) {
-      throw new SeedException("Could not create image directory: " + uploadsDir, exception);
+      throw new SeedException(
+          "No se pudo crear el directorio de imágenes: " + uploadsDir, exception);
     }
 
     String existingSql =
@@ -325,7 +326,7 @@ final class SeedRunner {
       return stream.readAllBytes();
     } catch (IOException exception) {
       throw new SeedException(
-          "Could not read bundled product image: " + resource.getPath(), exception);
+          "No se pudo leer la imagen de producto incluida: " + resource.getPath(), exception);
     }
   }
 
@@ -358,7 +359,8 @@ final class SeedRunner {
       return Files.size(versionPath(storageKey, ImageSize.DESKTOP));
     } catch (IOException exception) {
       throw new SeedException(
-          "Could not write product image " + storageKey + ": " + exception.getMessage(), exception);
+          "No se pudo escribir la imagen de producto " + storageKey + ": " + exception.getMessage(),
+          exception);
     }
   }
 
@@ -2081,7 +2083,7 @@ final class SeedRunner {
           BigDecimal bodegaQuantity = bodega.getOrDefault(variant, BigDecimal.ZERO);
           BigDecimal cocinaQuantity = cocina.getOrDefault(variant, BigDecimal.ZERO);
           if (bodegaQuantity.signum() < 0 || cocinaQuantity.signum() < 0) {
-            throw new SeedException("Negative stock for variant " + variant);
+            throw new SeedException("Stock negativo para la variante " + variant);
           }
           statement.setLong(1, variant);
           statement.setInt(2, bodegaLocation);

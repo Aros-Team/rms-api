@@ -41,20 +41,20 @@ public class ScrimeImageProcessor implements ImageProcessingPort {
       ImmutableImage resized = image.scaleToWidth(targetWidth);
       return resized.bytes(WebpWriter.DEFAULT.withQ(size.quality));
     } catch (IOException e) {
-      throw new InvalidImageException("Failed to process image: " + e.getMessage());
+      throw new InvalidImageException("No se pudo procesar la imagen: " + e.getMessage());
     }
   }
 
   @Override
   public void validate(byte[] imageData, String contentType) {
     if (imageData == null || imageData.length == 0) {
-      throw new InvalidImageException("Image data is empty");
+      throw new InvalidImageException("Los datos de la imagen están vacíos");
     }
     if (imageData.length > MAX_FILE_SIZE_BYTES) {
       throw new InvalidImageException("Image size exceeds maximum allowed size of 5MB");
     }
     if (!ImageFormat.isSupported(contentType)) {
-      throw new InvalidImageException("Unsupported image format: " + contentType);
+      throw new InvalidImageException("Formato de imagen no soportado: " + contentType);
     }
   }
 }

@@ -205,7 +205,10 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
     String field = SORTABLE_FIELDS.get(requested);
     if (field == null) {
       throw new IllegalArgumentException(
-          "Unsupported sort field '" + requested + "'. Allowed: " + SORTABLE_FIELDS.keySet());
+          "Campo de ordenamiento no soportado '"
+              + requested
+              + "'. Allowed: "
+              + SORTABLE_FIELDS.keySet());
     }
     if (parts.length >= 2 && !parts[1].isBlank()) {
       try {

@@ -11,6 +11,6 @@ public class CashShiftNotFoundException extends RuntimeException {
    * @param id the missing shift id
    */
   public CashShiftNotFoundException(Long id) {
-    super("Cash shift not found: " + id);
+    super("Turno de caja no encontrado: " + id);
   }
 }

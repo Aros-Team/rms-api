@@ -4,6 +4,6 @@ package aros.services.rms.core.image.application.exception;
 public class ImageNotFoundException extends RuntimeException {
   /** Creates exception with image ID. */
   public ImageNotFoundException(Long imageId) {
-    super("Image not found with ID: " + imageId);
+    super("Imagen no encontrada con ID: " + imageId);
   }
 }

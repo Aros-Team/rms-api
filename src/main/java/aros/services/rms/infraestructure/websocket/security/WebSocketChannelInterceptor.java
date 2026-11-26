@@ -124,7 +124,7 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
 
     if (authHeader == null || !authHeader.startsWith("Bearer ")) {
       log.error("WebSocket CONNECT rejected: missing or malformed Authorization header");
-      throw new MessageDeliveryException(message, "Missing or malformed Authorization header");
+      throw new MessageDeliveryException(message, "Encabezado Authorization ausente o mal formado");
     }
 
     String token = authHeader.substring(7);
@@ -139,7 +139,7 @@ public class WebSocketChannelInterceptor implements ChannelInterceptor {
           jwt.getExpiresAt());
     } catch (JwtException e) {
       log.error("WebSocket CONNECT rejected: invalid JWT — {}", e.getMessage());
-      throw new MessageDeliveryException(message, "Invalid JWT token: " + e.getMessage(), e);
+      throw new MessageDeliveryException(message, "Token JWT inválido: " + e.getMessage(), e);
     }
 
     return message;

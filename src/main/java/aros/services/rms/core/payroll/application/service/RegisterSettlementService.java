@@ -39,10 +39,10 @@ public class RegisterSettlementService implements RegisterSettlementUseCase {
         settlement.userId());
 
     if (settlement.amount() == null || !settlement.amount().isPositive()) {
-      throw new PayrollSettlementException("Settlement amount must be positive");
+      throw new PayrollSettlementException("El monto de la liquidación debe ser positivo");
     }
     if (settlement.payrollId() == null) {
-      throw new PayrollSettlementException("payrollId is required");
+      throw new PayrollSettlementException("El payrollId es obligatorio");
     }
 
     Payroll payroll =
@@ -55,18 +55,18 @@ public class RegisterSettlementService implements RegisterSettlementUseCase {
     }
     if (!payroll.userId().equals(settlement.userId())) {
       throw new PayrollSettlementException(
-          "Settlement user "
+          "El usuario de la liquidación "
               + settlement.userId()
-              + " does not match payroll user "
+              + " no coincide con el usuario de la nómina "
               + payroll.userId());
     }
     if (!settlement.fallsWithin(payroll)) {
       throw new PayrollSettlementException(
-          "Settlement period "
+          "El periodo de la liquidación "
               + settlement.periodStart()
               + ".."
               + settlement.periodEnd()
-              + " is outside the payroll period "
+              + " está fuera del periodo de nómina "
               + payroll.periodStart()
               + ".."
               + payroll.periodEnd());
@@ -77,11 +77,11 @@ public class RegisterSettlementService implements RegisterSettlementUseCase {
     for (PayrollSettlement other : existing) {
       if (settlement.overlaps(other)) {
         throw new PayrollSettlementException(
-            "Settlement period "
+            "El periodo de la liquidación "
                 + settlement.periodStart()
                 + ".."
                 + settlement.periodEnd()
-                + " overlaps settlement "
+                + " se superpone con la liquidación "
                 + other.id()
                 + " ("
                 + other.periodStart()
@@ -95,11 +95,11 @@ public class RegisterSettlementService implements RegisterSettlementUseCase {
     Money pending = payroll.netAmount().minus(alreadyPaid);
     if (settlement.amount().isGreaterThan(pending)) {
       throw new PayrollSettlementException(
-          "Settlement amount "
+          "El monto de la liquidación "
               + settlement.amount()
-              + " exceeds the pending amount "
+              + " supera el monto pendiente "
               + pending
-              + " of payroll "
+              + " de la nómina "
               + payroll.id());
     }
 

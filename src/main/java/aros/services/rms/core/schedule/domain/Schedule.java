@@ -21,10 +21,10 @@ public class Schedule {
    */
   public Schedule(ScheduleId id, String name, String description, List<ScheduleShift> shifts) {
     if (name == null || name.isBlank()) {
-      throw new IllegalArgumentException("name must not be blank");
+      throw new IllegalArgumentException("El nombre no puede estar vacío");
     }
     if (shifts == null || shifts.isEmpty()) {
-      throw new IllegalArgumentException("schedule must have at least one shift");
+      throw new IllegalArgumentException("El horario debe tener al menos un turno");
     }
     validateNoOverlaps(shifts);
     this.id = id;
@@ -44,7 +44,10 @@ public class Schedule {
       for (int j = i + 1; j < shifts.size(); j++) {
         if (shifts.get(i).overlapsWith(shifts.get(j))) {
           throw new IllegalArgumentException(
-              "shifts must not overlap: " + shifts.get(i) + " overlaps " + shifts.get(j));
+              "los turnos no deben superponerse: "
+                  + shifts.get(i)
+                  + " se superpone con "
+                  + shifts.get(j));
         }
       }
     }
@@ -54,7 +57,8 @@ public class Schedule {
   public void addShift(ScheduleShift shift) {
     for (ScheduleShift existing : shifts) {
       if (existing.overlapsWith(shift)) {
-        throw new IllegalArgumentException("shift overlaps with existing shift: " + existing);
+        throw new IllegalArgumentException(
+            "El turno se superpone con un turno existente: " + existing);
       }
     }
     shifts.add(shift);

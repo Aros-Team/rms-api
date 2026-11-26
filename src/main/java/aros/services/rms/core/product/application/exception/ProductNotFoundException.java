@@ -11,6 +11,6 @@ public class ProductNotFoundException extends RuntimeException {
    * @param id the product identifier that was not found
    */
   public ProductNotFoundException(Long id) {
-    super("Product not found: " + id);
+    super("Producto no encontrado: " + id);
   }
 }
