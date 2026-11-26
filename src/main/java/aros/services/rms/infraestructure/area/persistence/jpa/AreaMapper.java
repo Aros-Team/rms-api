@@ -21,6 +21,7 @@ public class AreaMapper {
         .name(domain.getName())
         .type(domain.getType() != null ? AreaType.valueOf(domain.getType().name()) : null)
         .enabled(domain.isEnabled())
+        .exclusive(domain.isExclusive())
         .build();
   }
 
@@ -35,6 +36,7 @@ public class AreaMapper {
         .name(entity.getName())
         .type(entity.getType() != null ? AreaType.valueOf(entity.getType().name()) : null)
         .enabled(entity.isEnabled())
+        .exclusive(entity.isExclusive())
         .build();
   }
 }

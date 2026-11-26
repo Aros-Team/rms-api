@@ -65,6 +65,7 @@ public class AreaController {
         Area.builder()
             .name(request.name())
             .type(AreaType.valueOf(request.type().toUpperCase()))
+            .exclusive(request.exclusive())
             .build();
 
     Area created = areaUseCase.create(area);
@@ -99,6 +100,7 @@ public class AreaController {
         Area.builder()
             .name(request.name())
             .type(AreaType.valueOf(request.type().toUpperCase()))
+            .exclusive(request.exclusive())
             .build();
 
     Area updated = areaUseCase.update(id, area);

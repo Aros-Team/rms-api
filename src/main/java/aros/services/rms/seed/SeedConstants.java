@@ -92,7 +92,7 @@ final class SeedConstants {
               1011,
               "Camila Navarro",
               "Jefa de cocina",
-              KITCHEN_AREA,
+              List.of(KITCHEN_AREA),
               3_800_000,
               200_000,
               50_000,
@@ -101,7 +101,7 @@ final class SeedConstants {
               1012,
               "Bruno Castillo",
               "Cajero",
-              CASH_AREA,
+              List.of(CASH_AREA),
               2_400_000,
               0,
               50_000,
@@ -110,7 +110,7 @@ final class SeedConstants {
               1013,
               "Renata Flores",
               "Mesera",
-              SERVICE_AREA,
+              List.of(SERVICE_AREA, BAR_AREA),
               2_300_000,
               0,
               50_000,
@@ -122,7 +122,7 @@ final class SeedConstants {
               1014,
               "Diego Salas",
               "Mesero",
-              SERVICE_AREA,
+              List.of(SERVICE_AREA, BAR_AREA),
               1_800_000,
               0,
               50_000,
@@ -131,7 +131,7 @@ final class SeedConstants {
               1015,
               "Mateo Rivas",
               "Cocinero",
-              KITCHEN_AREA,
+              List.of(KITCHEN_AREA),
               1_750_000,
               0,
               50_000,
@@ -140,7 +140,7 @@ final class SeedConstants {
               1016,
               "Tomás Méndez",
               "Cocinero",
-              KITCHEN_AREA,
+              List.of(KITCHEN_AREA),
               1_750_000,
               0,
               50_000,
@@ -149,14 +149,32 @@ final class SeedConstants {
               1017,
               "Valentina Soto",
               "Auxiliar de cocina",
-              KITCHEN_AREA,
+              List.of(KITCHEN_AREA),
               1_300_000,
               0,
               50_000,
               List.of(
                   shift(DayOfWeek.FRIDAY, 8, 6),
                   shift(DayOfWeek.SATURDAY, 8, 6),
-                  shift(DayOfWeek.SUNDAY, 8, 6))));
+                  shift(DayOfWeek.SUNDAY, 8, 6))),
+          new WorkerSpec(
+              1018,
+              "Andrés Valero",
+              "Mesero",
+              List.of(SERVICE_AREA, BAR_AREA),
+              1_900_000,
+              0,
+              50_000,
+              shifts(tuesdayToFriday(11, 6), shift(DayOfWeek.SATURDAY, 12, 6))),
+          new WorkerSpec(
+              1019,
+              "Lucía Ferrer",
+              "Cajera",
+              List.of(CASH_AREA),
+              2_300_000,
+              0,
+              50_000,
+              shifts(tuesdayToFriday(8, 6), shift(DayOfWeek.SATURDAY, 14, 8))));
 
   /** Gross monthly labor (base + fixed bonus) derived from the roster. */
   static final BigDecimal FULL_MONTH_LABOR = grossLabor(null);
@@ -330,7 +348,7 @@ final class SeedConstants {
       long id,
       String name,
       String jobTitle,
-      int areaId,
+      List<Integer> areaIds,
       int salary,
       int bonus,
       int deduction,
@@ -380,7 +398,7 @@ final class SeedConstants {
   private static BigDecimal grossLabor(List<Integer> areaIds) {
     BigDecimal total = BigDecimal.ZERO;
     for (WorkerSpec worker : WORKERS) {
-      if (areaIds == null || areaIds.contains(worker.areaId())) {
+      if (areaIds == null || areaIds.stream().anyMatch(worker.areaIds()::contains)) {
         total = total.add(BigDecimal.valueOf(worker.salary() + (long) worker.bonus()));
       }
     }

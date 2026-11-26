@@ -51,6 +51,10 @@ public class Area {
   @Column(nullable = false)
   private boolean forProduct;
 
+  @Column(nullable = false)
+  @Builder.Default
+  private boolean exclusive = false;
+
   @ManyToMany(mappedBy = "preparationAreas")
   @Builder.Default
   @ToString.Exclude

@@ -11,7 +11,9 @@ public record AreaResponse(
     @Schema(description = "Area ID", example = "1") Long id,
     @Schema(description = "Area name", example = "Cocina Principal") String name,
     @Schema(description = "Area type", example = "KITCHEN") String type,
-    @Schema(description = "Whether area is enabled", example = "true") boolean enabled) {
+    @Schema(description = "Whether area is enabled", example = "true") boolean enabled,
+    @Schema(description = "Whether the area cannot be combined with other areas", example = "true")
+        boolean exclusive) {
 
   /**
    * Creates a response from a domain object.
@@ -27,6 +29,7 @@ public record AreaResponse(
         area.getId(),
         area.getName(),
         area.getType() != null ? area.getType().name() : null,
-        area.isEnabled());
+        area.isEnabled(),
+        area.isExclusive());
   }
 }

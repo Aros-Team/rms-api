@@ -19,7 +19,7 @@ public interface NotificationRepositoryPort {
   Optional<UserNotification> insertIfAbsent(UserNotification notification);
 
   /**
-   * Finds notifications newest first.
+   * Finds global (admin) notifications newest first.
    *
    * @param unreadOnly exclude read rows when true
    * @param limit page size
@@ -29,7 +29,7 @@ public interface NotificationRepositoryPort {
   List<UserNotification> find(boolean unreadOnly, int limit, int offset);
 
   /**
-   * Counts notifications.
+   * Counts global notifications.
    *
    * @param unreadOnly count only unread rows when true
    * @return row count
@@ -37,7 +37,27 @@ public interface NotificationRepositoryPort {
   long count(boolean unreadOnly);
 
   /**
-   * Marks one row as read when still unread.
+   * Finds notifications targeted at one user, newest first.
+   *
+   * @param userId recipient id
+   * @param unreadOnly exclude read rows when true
+   * @param limit page size
+   * @param offset zero-based offset
+   * @return matching rows
+   */
+  List<UserNotification> findForUser(Long userId, boolean unreadOnly, int limit, int offset);
+
+  /**
+   * Counts notifications targeted at one user.
+   *
+   * @param userId recipient id
+   * @param unreadOnly count only unread rows when true
+   * @return row count
+   */
+  long countForUser(Long userId, boolean unreadOnly);
+
+  /**
+   * Marks one global row as read when still unread.
    *
    * @param id notification id
    * @param readAt transition timestamp
@@ -46,13 +66,32 @@ public interface NotificationRepositoryPort {
   int markRead(Long id, Instant readAt);
 
   /**
-   * Marks every unread row as read.
+   * Marks one user-owned row as read when still unread.
+   *
+   * @param userId recipient id
+   * @param id notification id
+   * @param readAt transition timestamp
+   * @return number of rows updated
+   */
+  int markReadForUser(Long userId, Long id, Instant readAt);
+
+  /**
+   * Marks every unread global row as read.
    *
    * @param readAt transition timestamp
    * @return number of rows updated
    */
   int markAllRead(Instant readAt);
 
-  /** Deletes every notification. */
+  /**
+   * Marks every unread row of one user as read.
+   *
+   * @param userId recipient id
+   * @param readAt transition timestamp
+   * @return number of rows updated
+   */
+  int markAllReadForUser(Long userId, Instant readAt);
+
+  /** Deletes the global admin feed. */
   void clear();
 }

@@ -203,6 +203,7 @@ final class SeedRunner {
             "purchase_orders",
             "special_selection_history",
             "system_alerts",
+            "user_notifications",
             // Payments reference orders and cash_shifts; children first.
             "payment_tenders",
             "payments",
@@ -720,9 +721,11 @@ final class SeedRunner {
         connection.prepareStatement(
             "INSERT IGNORE INTO user_assigned_areas (user_id, area_id) VALUES (?,?)")) {
       for (SeedConstants.WorkerSpec worker : SeedConstants.WORKERS) {
-        statement.setLong(1, worker.id());
-        statement.setInt(2, worker.areaId());
-        statement.addBatch();
+        for (Integer areaId : worker.areaIds()) {
+          statement.setLong(1, worker.id());
+          statement.setInt(2, areaId);
+          statement.addBatch();
+        }
       }
       statement.executeBatch();
     }
@@ -781,6 +784,7 @@ final class SeedRunner {
   private void resetFloor() throws SQLException {
     try (Statement statement = connection.createStatement()) {
       statement.executeUpdate("UPDATE tables SET status = 'AVAILABLE'");
+      statement.executeUpdate("UPDATE areas SET exclusive = (type = 'KITCHEN')");
     }
   }
 

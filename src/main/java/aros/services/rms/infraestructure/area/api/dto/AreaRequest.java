@@ -9,11 +9,13 @@ import jakarta.validation.constraints.NotNull;
 /** Request DTO for creating or updating a preparation area. */
 @Schema(
     description = "Request DTO for creating or updating a preparation area",
-    example = "{\"name\": \"Cocina Principal\", \"type\": \"KITCHEN\"}")
+    example = "{\"name\": \"Cocina Principal\", \"type\": \"KITCHEN\", \"exclusive\": true}")
 public record AreaRequest(
     @Schema(description = "Area name", example = "Cocina Principal")
         @NotBlank(message = "El nombre del área es obligatorio")
         String name,
     @Schema(description = "Area type: KITCHEN or BARTENDER", example = "KITCHEN")
         @NotNull(message = "El tipo de área es obligatorio")
-        String type) {}
+        String type,
+    @Schema(description = "An exclusive area cannot be combined with other areas", example = "true")
+        boolean exclusive) {}

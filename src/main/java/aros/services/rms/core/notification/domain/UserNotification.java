@@ -11,9 +11,8 @@ import lombok.NoArgsConstructor;
 /**
  * A persisted, user-facing notification.
  *
- * <p>Notifications are global to the installation: they describe operational events an
- * administrator must know about (orders, analytics alerts, broken business rules). The feed is not
- * scoped per user, so read state is shared, matching the single-tenant restaurant deployment.
+ * <p>Notifications are either global (admin feed, {@code userId == null}) or targeted to one worker
+ * (for example a newly assigned area/module). The read state belongs to the feed it appears in.
  */
 @Data
 @Builder
@@ -22,6 +21,9 @@ import lombok.NoArgsConstructor;
 public class UserNotification {
 
   private Long id;
+
+  /** Recipient user id, or {@code null} for the global admin feed. */
+  private Long userId;
 
   /** Stable machine code, e.g. {@code ORDER_READY} or {@code ANALYTICS_ALERT}. */
   private String code;

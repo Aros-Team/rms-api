@@ -20,13 +20,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Orchestrates the persistent global feed and its real-time broadcast. */
+/** Orchestrates the persistent notification feeds and their real-time broadcasts. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class NotificationService implements NotificationUseCase {
 
   static final String TOPIC_NOTIFICATIONS = "/topic/notifications";
+  static final String TOPIC_USER_NOTIFICATIONS = "/topic/users";
   private static final int MAX_LIMIT = 100;
 
   private final NotificationRepositoryPort repositoryPort;
@@ -41,6 +42,7 @@ public class NotificationService implements NotificationUseCase {
 
     UserNotification notification =
         UserNotification.builder()
+            .userId(command.userId())
             .code(command.code())
             .severity(command.severity() == null ? NotificationSeverity.INFO : command.severity())
             .title(command.title())
@@ -56,8 +58,9 @@ public class NotificationService implements NotificationUseCase {
     }
 
     NotificationView view = NotificationView.from(saved.get());
-    notificationPort.notify(TOPIC_NOTIFICATIONS, view);
-    log.info("Notification created: code={}, id={}", view.code(), view.id());
+    notificationPort.notify(destination(command.userId()), view);
+    log.info(
+        "Notification created: code={}, id={}, userId={}", view.code(), view.id(), view.userId());
     return Optional.of(view);
   }
 
@@ -81,9 +84,35 @@ public class NotificationService implements NotificationUseCase {
 
   /** {@inheritDoc} */
   @Override
+  @Transactional(readOnly = true)
+  public NotificationPage listForUser(Long userId, boolean unreadOnly, int limit, int offset) {
+    int safeLimit = Math.max(1, Math.min(limit, MAX_LIMIT));
+    int safeOffset = Math.max(0, offset);
+
+    List<NotificationView> items =
+        repositoryPort.findForUser(userId, unreadOnly, safeLimit, safeOffset).stream()
+            .map(NotificationView::from)
+            .toList();
+
+    NotificationPage.PageInfo page =
+        new NotificationPage.PageInfo(
+            safeLimit, safeOffset, repositoryPort.countForUser(userId, unreadOnly));
+
+    return new NotificationPage(items, page, repositoryPort.countForUser(userId, true));
+  }
+
+  /** {@inheritDoc} */
+  @Override
   @Transactional
   public boolean markRead(Long id) {
     return repositoryPort.markRead(id, Instant.now(clock)) > 0;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional
+  public boolean markReadForUser(Long userId, Long id) {
+    return repositoryPort.markReadForUser(userId, id, Instant.now(clock)) > 0;
   }
 
   /** {@inheritDoc} */
@@ -96,8 +125,21 @@ public class NotificationService implements NotificationUseCase {
   /** {@inheritDoc} */
   @Override
   @Transactional
+  public int markAllReadForUser(Long userId) {
+    return repositoryPort.markAllReadForUser(userId, Instant.now(clock));
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional
   public void clear() {
     repositoryPort.clear();
+  }
+
+  private static String destination(Long userId) {
+    return userId == null
+        ? TOPIC_NOTIFICATIONS
+        : TOPIC_USER_NOTIFICATIONS + "/" + userId + "/notifications";
   }
 
   private static String normalizeDedupeKey(String dedupeKey) {

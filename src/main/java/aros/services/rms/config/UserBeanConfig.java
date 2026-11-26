@@ -5,6 +5,7 @@ import aros.services.rms.core.auth.port.output.AccountSetupTokenRepositoryPort;
 import aros.services.rms.core.auth.port.output.PasswordEncoderPort;
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
 import aros.services.rms.core.email.port.input.WelcomeEmailUseCase;
+import aros.services.rms.core.notification.domain.port.input.NotificationUseCase;
 import aros.services.rms.core.share.port.output.HashServicePort;
 import aros.services.rms.core.user.application.service.ChangePasswordService;
 import aros.services.rms.core.user.application.service.CreateUserService;
@@ -116,11 +117,15 @@ public class UserBeanConfig {
    * @param userPort user repository port
    * @param areaPort area repository port
    * @param adminPort admin repository port
+   * @param notificationUseCase notification use case for module-assignment notices
    * @return configured UpdateUserAccessUseCase
    */
   @Bean
   public UpdateUserAccessUseCase updateUserAccessUseCase(
-      UserRepositoryPort userPort, AreaRepositoryPort areaPort, AdminRepositoryPort adminPort) {
-    return new UpdateUserAccessService(userPort, areaPort, adminPort);
+      UserRepositoryPort userPort,
+      AreaRepositoryPort areaPort,
+      AdminRepositoryPort adminPort,
+      NotificationUseCase notificationUseCase) {
+    return new UpdateUserAccessService(userPort, areaPort, adminPort, notificationUseCase);
   }
 }

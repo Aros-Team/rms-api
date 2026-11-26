@@ -105,6 +105,30 @@ final class SeedVerifier {
                     + "AND role = 'WORKER' AND document REGEXP '^[0-9]+$'")));
     checks.add(
         check(
+            "waiters with service and bar",
+            3,
+            scalar(
+                "SELECT COUNT(*) FROM users u WHERE u.email IN "
+                    + "('seed1013@rms.local','seed1014@rms.local','seed1018@rms.local') "
+                    + "AND (SELECT COUNT(DISTINCT uaa.area_id) FROM user_assigned_areas uaa "
+                    + "WHERE uaa.user_id = u.id AND uaa.area_id IN (2,3)) = 2")));
+    checks.add(
+        check(
+            "exclusive kitchen area",
+            1,
+            scalar("SELECT COUNT(*) FROM areas WHERE type = 'KITCHEN' AND exclusive = TRUE")));
+    checks.add(
+        check(
+            "no exclusive area shared with others",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM user_assigned_areas uaa "
+                    + "JOIN areas a ON a.id = uaa.area_id "
+                    + "WHERE a.exclusive = TRUE AND ("
+                    + "SELECT COUNT(*) FROM user_assigned_areas other "
+                    + "WHERE other.user_id = uaa.user_id) > 1")));
+    checks.add(
+        check(
             "workers with images",
             SeedConstants.WORKERS.size(),
             scalar(

@@ -23,6 +23,10 @@ public class Area {
   private AreaType type;
   private boolean forUser;
   private boolean forProduct;
+
+  /** An exclusive area cannot be combined with any other area for a worker. */
+  @Builder.Default private boolean exclusive = false;
+
   @Builder.Default private boolean enabled = true;
   @Builder.Default private Set<Long> orderIds = new HashSet<>();
 }
