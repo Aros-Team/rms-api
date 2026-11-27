@@ -12,6 +12,11 @@
 - **floor-layout**: add independent table placements (`GET/PUT /api/v1/floor-layout/tables`). A
 table must land on a cell of an enabled `SERVE` area; table and cell duplication are rejected.
   Migration `V74`.
+- **seed**: add the current 40×26 restaurant distribution (Cocina, Salón Principal, Bar and Entrada)
+  from `seed/floor-layout.json`, with 20 tables placed on SERVED areas so the waiter map is
+  usable after `seedReset`.
+- **floor-layout**: add `GET /api/v1/floor-layout/map`, a read-only layout + placements view for
+  operational staff (`WORKER`/`ADMIN`), used by the waiter table picker.
 - **seed**: replace the demo roster with the seven real workers (Camila Navarro, Bruno Castillo,
   Renata Flores, Diego Salas, Mateo Rivas, Tomás Méndez and Valentina Soto), their weekly shifts
   covering every open hour (Mon closed; Tue–Fri 08–22, Sat–Sun 08–17) within the 42 h cap, salaries

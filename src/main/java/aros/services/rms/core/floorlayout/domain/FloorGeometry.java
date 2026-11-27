@@ -41,7 +41,7 @@ public final class FloorGeometry {
       if (segment == null) {
         throw new InvalidFloorLayoutException("La geometría contiene un segmento vacío");
       }
-      if (segment.row() < 0 || segment.from() < 0 || segment.from() > segment.to()) {
+      if (segment.from() > segment.to()) {
         throw new InvalidFloorLayoutException(
             "Segmento inválido: fila "
                 + segment.row()
@@ -90,7 +90,7 @@ public final class FloorGeometry {
     }
 
     Set<String> keys = new HashSet<>();
-    Set<Long> occupied = new HashSet<>();
+    Set<String> occupied = new HashSet<>();
 
     for (FloorRegion region : regions) {
       if (region == null) {
@@ -116,7 +116,7 @@ public final class FloorGeometry {
       for (FloorSegment segment : region.getSegments()) {
         validateBounds(segment, columns, rows);
         for (int column = segment.from(); column <= segment.to(); column++) {
-          long index = (long) segment.row() * columns + column;
+          String index = segment.row() + ":" + column;
           if (!occupied.add(index)) {
             throw new InvalidFloorLayoutException(
                 "Las regiones no pueden compartir celdas: fila "
@@ -142,11 +142,7 @@ public final class FloorGeometry {
       throw new InvalidFloorLayoutException("La geometría contiene un segmento vacío");
     }
     boolean inside =
-        segment.row() >= 0
-            && segment.row() < rows
-            && segment.from() >= 0
-            && segment.to() < columns
-            && segment.from() <= segment.to();
+        segment.row() < rows && segment.to() < columns && segment.from() <= segment.to();
     if (!inside) {
       throw new InvalidFloorLayoutException(
           "Una región queda fuera del lienzo. Ajusta el tamaño o vuelve a dibujarla.");

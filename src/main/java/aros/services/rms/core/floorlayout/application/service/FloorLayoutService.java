@@ -146,12 +146,12 @@ public class FloorLayoutService implements FloorLayoutUseCase {
     }
 
     FloorLayout layout = get();
-    Map<Long, Long> areaByCell = buildAreaByCell(layout);
+    Map<String, Long> areaByCell = buildAreaByCell(layout);
     Map<Long, Table> tables = loadTables(placements);
     Map<Long, Area> areas = loadAreas(areaByCell);
 
     Set<Long> tableIds = new HashSet<>();
-    Set<Long> occupiedCells = new HashSet<>();
+    Set<String> occupiedCells = new HashSet<>();
     for (FloorTablePlacement placement : placements) {
       if (placement == null || placement.getTableId() == null) {
         throw new InvalidFloorTablePlacementException("Cada mesa debe tener un identificador");
@@ -164,14 +164,11 @@ public class FloorLayoutService implements FloorLayoutUseCase {
         throw new InvalidFloorTablePlacementException(
             "La mesa " + placement.getTableId() + " ya no existe");
       }
-      if (placement.getRow() < 0
-          || placement.getRow() >= layout.getRows()
-          || placement.getColumn() < 0
-          || placement.getColumn() >= layout.getColumns()) {
+      if (placement.getRow() >= layout.getRows() || placement.getColumn() >= layout.getColumns()) {
         throw new InvalidFloorTablePlacementException(
             "La mesa " + table.getTableNumber() + " queda fuera del lienzo");
       }
-      long cell = (long) placement.getRow() * layout.getColumns() + placement.getColumn();
+      String cell = placement.getRow() + ":" + placement.getColumn();
       if (!occupiedCells.add(cell)) {
         throw new InvalidFloorTablePlacementException("Dos mesas no pueden ocupar la misma celda");
       }
@@ -198,8 +195,8 @@ public class FloorLayoutService implements FloorLayoutUseCase {
     return floorLayoutRepositoryPort.saveTablePlacements(canonical);
   }
 
-  private Map<Long, Long> buildAreaByCell(FloorLayout layout) {
-    Map<Long, Long> areaByCell = new HashMap<>();
+  private Map<String, Long> buildAreaByCell(FloorLayout layout) {
+    Map<String, Long> areaByCell = new HashMap<>();
     if (layout.getRegions() == null) {
       return areaByCell;
     }
@@ -209,7 +206,7 @@ public class FloorLayoutService implements FloorLayoutUseCase {
       }
       for (FloorSegment segment : region.getSegments()) {
         for (int column = segment.from(); column <= segment.to(); column++) {
-          areaByCell.put((long) segment.row() * layout.getColumns() + column, region.getAreaId());
+          areaByCell.put(segment.row() + ":" + column, region.getAreaId());
         }
       }
     }
@@ -227,7 +224,7 @@ public class FloorLayoutService implements FloorLayoutUseCase {
         .collect(Collectors.toMap(Table::getId, table -> table));
   }
 
-  private Map<Long, Area> loadAreas(Map<Long, Long> areaByCell) {
+  private Map<Long, Area> loadAreas(Map<String, Long> areaByCell) {
     Set<Long> ids = new HashSet<>(areaByCell.values());
     if (ids.isEmpty()) {
       return Map.of();

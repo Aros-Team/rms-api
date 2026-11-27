@@ -1,0 +1,78 @@
+{
+  "columns": 40,
+  "rows": 26,
+  "regions": [
+    {
+      "key": "seed-cocina",
+      "areaId": 1,
+      "segments": [
+        { "row": 8, "from": 15, "to": 18 },
+        { "row": 9, "from": 15, "to": 18 },
+        { "row": 10, "from": 15, "to": 18 },
+        { "row": 11, "from": 15, "to": 18 },
+        { "row": 12, "from": 15, "to": 18 }
+      ]
+    },
+    {
+      "key": "seed-salon",
+      "areaId": 2,
+      "segments": [
+        { "row": 6, "from": 19, "to": 24 },
+        { "row": 7, "from": 19, "to": 24 },
+        { "row": 8, "from": 19, "to": 24 },
+        { "row": 9, "from": 19, "to": 24 },
+        { "row": 10, "from": 19, "to": 24 },
+        { "row": 11, "from": 19, "to": 24 },
+        { "row": 12, "from": 19, "to": 24 },
+        { "row": 13, "from": 19, "to": 24 },
+        { "row": 14, "from": 19, "to": 24 },
+        { "row": 15, "from": 19, "to": 21 },
+        { "row": 16, "from": 19, "to": 21 }
+      ]
+    },
+    {
+      "key": "seed-bar",
+      "areaId": 3,
+      "segments": [
+        { "row": 11, "from": 25, "to": 29 },
+        { "row": 12, "from": 25, "to": 29 },
+        { "row": 13, "from": 25, "to": 29 },
+        { "row": 14, "from": 25, "to": 29 },
+        { "row": 15, "from": 25, "to": 29 },
+        { "row": 16, "from": 25, "to": 29 }
+      ]
+    },
+    {
+      "key": "seed-entrada",
+      "areaId": 4,
+      "segments": [
+        { "row": 15, "from": 22, "to": 24 },
+        { "row": 16, "from": 22, "to": 24 },
+        { "row": 17, "from": 22, "to": 24 },
+        { "row": 18, "from": 22, "to": 24 }
+      ]
+    }
+  ],
+  "tables": [
+    { "tableNumber": 1, "row": 11, "column": 26 },
+    { "tableNumber": 2, "row": 11, "column": 28 },
+    { "tableNumber": 3, "row": 13, "column": 26 },
+    { "tableNumber": 4, "row": 13, "column": 28 },
+    { "tableNumber": 5, "row": 15, "column": 26 },
+    { "tableNumber": 6, "row": 15, "column": 28 },
+    { "tableNumber": 7, "row": 6, "column": 20 },
+    { "tableNumber": 8, "row": 6, "column": 23 },
+    { "tableNumber": 9, "row": 8, "column": 20 },
+    { "tableNumber": 10, "row": 8, "column": 23 },
+    { "tableNumber": 11, "row": 10, "column": 20 },
+    { "tableNumber": 12, "row": 10, "column": 23 },
+    { "tableNumber": 13, "row": 12, "column": 20 },
+    { "tableNumber": 14, "row": 12, "column": 23 },
+    { "tableNumber": 15, "row": 14, "column": 20 },
+    { "tableNumber": 16, "row": 14, "column": 23 },
+    { "tableNumber": 17, "row": 16, "column": 19 },
+    { "tableNumber": 18, "row": 16, "column": 21 },
+    { "tableNumber": 19, "row": 15, "column": 19 },
+    { "tableNumber": 20, "row": 15, "column": 21 }
+  ]
+}

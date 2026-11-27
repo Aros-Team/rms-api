@@ -3,6 +3,7 @@
 package aros.services.rms.seed;
 
 import aros.services.rms.core.image.domain.ImageSize;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sksamuel.scrimage.ImmutableImage;
 import com.sksamuel.scrimage.webp.WebpWriter;
 import java.awt.Color;
@@ -13,6 +14,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
@@ -108,6 +110,7 @@ final class SeedRunner {
         seedWorkerImages();
         seedSuppliers();
         resetFloor();
+        seedFloorLayout();
         resetOpeningHours();
         seedSchedulesAndTimeLogs();
         SeedPlan plan = SeedPlan.complete(anchor, now);
@@ -815,6 +818,103 @@ final class SeedRunner {
           "UPDATE areas SET exclusive = (id = " + SeedConstants.KITCHEN_AREA + ")");
     }
   }
+
+  /**
+   * Writes the restaurant distribution stored in {@code seed/floor-layout.json} and places the 20
+   * seeded tables on SERVED cells so the waiter map is usable right after a seed reset.
+   */
+  private void seedFloorLayout() throws SQLException {
+    FloorLayoutPlan plan = loadFloorLayoutPlan();
+
+    try (PreparedStatement statement =
+        connection.prepareStatement(
+            "INSERT INTO floor_layout (id, columns_count, rows_count) VALUES (1, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE columns_count = VALUES(columns_count), "
+                + "rows_count = VALUES(rows_count), updated_at = CURRENT_TIMESTAMP")) {
+      statement.setInt(1, plan.columns());
+      statement.setInt(2, plan.rows());
+      statement.executeUpdate();
+    }
+    try (Statement statement = connection.createStatement()) {
+      statement.executeUpdate("DELETE FROM floor_layout_table WHERE floor_layout_id = 1");
+      statement.executeUpdate("DELETE FROM floor_layout_region WHERE floor_layout_id = 1");
+    }
+
+    String regionSql =
+        "INSERT INTO floor_layout_region "
+            + "(floor_layout_id, region_key, area_id, segments_json) VALUES (1, ?, ?, ?)";
+    try (PreparedStatement statement = connection.prepareStatement(regionSql)) {
+      for (FloorRegionSpec region : plan.regions()) {
+        addFloorRegion(statement, region.key(), region.areaId(), segmentsJson(region.segments()));
+      }
+      statement.executeBatch();
+    }
+
+    String placementSql =
+        "INSERT INTO floor_layout_table "
+            + "(floor_layout_id, table_id, row_index, column_index) "
+            + "SELECT 1, id, ?, ? FROM tables WHERE table_number = ?";
+    try (PreparedStatement statement = connection.prepareStatement(placementSql)) {
+      for (FloorTableSpec table : plan.tables()) {
+        addTablePlacement(statement, table.tableNumber(), table.row(), table.column());
+      }
+      statement.executeBatch();
+    }
+  }
+
+  static FloorLayoutPlan loadFloorLayoutPlan() {
+    try (InputStream input = new ClassPathResource("seed/floor-layout.json").getInputStream()) {
+      return new ObjectMapper().readValue(input, FloorLayoutPlan.class);
+    } catch (IOException exception) {
+      throw new SeedException("No se pudo leer seed/floor-layout.json", exception);
+    }
+  }
+
+  private static void addFloorRegion(
+      PreparedStatement statement, String key, int areaId, String segmentsJson)
+      throws SQLException {
+    statement.setString(1, key);
+    statement.setInt(2, areaId);
+    statement.setString(3, segmentsJson);
+    statement.addBatch();
+  }
+
+  private static void addTablePlacement(
+      PreparedStatement statement, int tableNumber, int row, int column) throws SQLException {
+    statement.setInt(1, row);
+    statement.setInt(2, column);
+    statement.setInt(3, tableNumber);
+    statement.addBatch();
+  }
+
+  /** Builds the compact row segments stored in {@code floor_layout_region.segments_json}. */
+  static String segmentsJson(List<FloorSegmentSpec> segments) {
+    StringBuilder json = new StringBuilder("[");
+    boolean first = true;
+    for (FloorSegmentSpec segment : segments) {
+      if (!first) {
+        json.append(',');
+      }
+      first = false;
+      json.append("{\"row\":")
+          .append(segment.row())
+          .append(",\"from\":")
+          .append(segment.from())
+          .append(",\"to\":")
+          .append(segment.to())
+          .append('}');
+    }
+    return json.append(']').toString();
+  }
+
+  record FloorLayoutPlan(
+      int columns, int rows, List<FloorRegionSpec> regions, List<FloorTableSpec> tables) {}
+
+  record FloorRegionSpec(String key, int areaId, List<FloorSegmentSpec> segments) {}
+
+  record FloorSegmentSpec(int row, int from, int to) {}
+
+  record FloorTableSpec(int tableNumber, int row, int column) {}
 
   /** Restores the business hours the deterministic schedule is built against. */
   private void resetOpeningHours() throws SQLException {

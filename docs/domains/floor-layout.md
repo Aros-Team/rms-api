@@ -42,9 +42,12 @@ The response also carries `updatedAt`.
 ## Geometry contract
 
 - Origin is the **top-left**.
-- `row` is zero-based and grows downward.
-- `from` and `to` are inclusive zero-based column bounds.
-- `0 <= row < rows`, `0 <= from <= to < columns`.
+- `row` grows downward; `column` grows to the right.
+- `from` and `to` are inclusive column bounds.
+- Coordinates may be negative: the top/left of the sheet is unbounded. Dimensions
+  are the current upper extent, so `row < rows` and `to < columns` must hold.
+- Tables and area regions share the same coordinate system, so editing the area
+  layout never translates table placements.
 - Segments are sorted by row and column.
 - Overlapping or adjacent runs on the same row are merged into maximal runs.
 - Duplicate cells inside one region are unioned; the same cell in two regions
@@ -89,6 +92,7 @@ regions, so editing the area map never deletes the tables.
 
 | Method | Path | Description |
 |---|---|---|
+| GET | `/api/v1/floor-layout/map` | Read-only layout + placements for workers and admins |
 | GET | `/api/v1/floor-layout/tables` | Current table placements |
 | PUT | `/api/v1/floor-layout/tables` | Validate and atomically replace them |
 
