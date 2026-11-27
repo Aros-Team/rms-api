@@ -43,8 +43,10 @@ public class ScheduleConfigBeans {
   /** Creates the UpdateScheduleUseCase bean. */
   @Bean
   public UpdateScheduleUseCase updateScheduleUseCase(
-      ScheduleRepositoryPort scheduleRepository, Logger logger) {
-    return new UpdateScheduleService(scheduleRepository, logger);
+      ScheduleRepositoryPort scheduleRepository,
+      WorkerScheduleAssignmentRepositoryPort assignmentRepository,
+      Logger logger) {
+    return new UpdateScheduleService(scheduleRepository, assignmentRepository, logger);
   }
 
   /** Creates the DeleteScheduleUseCase bean. */
