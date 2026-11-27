@@ -17,6 +17,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.area.domain.AreaActivity;
+import aros.services.rms.core.area.port.output.WorkerAreaActivityPort;
 import aros.services.rms.core.auth.port.input.AccountSetupUseCase;
 import aros.services.rms.core.category.port.input.OptionGroupUseCase;
 import aros.services.rms.core.image.port.input.GetImagesUseCase;
@@ -228,6 +230,7 @@ class AuthorizationMatrixTest {
   @MockitoBean private SpecialSelectionNotificationService specialSelectionNotificationService;
 
   @MockitoBean private JwtDecoder jwtDecoder;
+  @MockitoBean private WorkerAreaActivityPort workerAreaActivityPort;
 
   private static final String ORDERS_URL = "/api/v1/orders";
 
@@ -286,6 +289,7 @@ class AuthorizationMatrixTest {
     when(markAsReadyUseCase.markDetailAsReady(anyLong(), anyLong())).thenReturn(order);
     when(preparationUseCase.prepareOrder(anyLong())).thenReturn(order);
     when(deliveryUseCase.markAsDelivered(anyLong())).thenReturn(order);
+    when(deliveryUseCase.markDetailAsDelivered(anyLong(), anyLong())).thenReturn(order);
     when(orderQueryUseCase.findOrdersPage(
             anyList(), any(), any(), any(), anyInt(), anyInt(), anyString()))
         .thenReturn(new OrderQueryResult(List.of(), 0L, 0, 20));
@@ -372,7 +376,11 @@ class AuthorizationMatrixTest {
     public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
       return Stream.of(
           arg("payroll list / ADMIN allowed", get("/api/v1/payroll"), admin(), 200),
-          arg("payroll list / WORKER denied", get("/api/v1/payroll"), worker("SERVICE"), 403),
+          arg(
+              "payroll list / WORKER denied",
+              get("/api/v1/payroll"),
+              worker(AreaActivity.SERVE.name()),
+              403),
           arg("payroll by worker / ADMIN allowed", get("/api/v1/payroll/worker/7"), admin(), 200),
           arg(
               "payroll by worker / own WORKER allowed",
@@ -385,7 +393,11 @@ class AuthorizationMatrixTest {
               selfWorker(),
               403),
           arg("config read / ADMIN allowed", get("/api/v1/config"), admin(), 200),
-          arg("config read / WORKER denied", get("/api/v1/config"), worker("SERVICE"), 403),
+          arg(
+              "config read / WORKER denied",
+              get("/api/v1/config"),
+              worker(AreaActivity.SERVE.name()),
+              403),
           arg(
               "config write / ADMIN allowed",
               put("/api/v1/config").contentType(MediaType.APPLICATION_JSON).content(CONFIG_BODY),
@@ -394,7 +406,7 @@ class AuthorizationMatrixTest {
           arg(
               "config write / WORKER denied",
               put("/api/v1/config").contentType(MediaType.APPLICATION_JSON).content(CONFIG_BODY),
-              worker("SERVICE"),
+              worker(AreaActivity.SERVE.name()),
               403),
           arg(
               "product create / ADMIN allowed",
@@ -408,9 +420,13 @@ class AuthorizationMatrixTest {
               post("/api/v1/products")
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(PRODUCT_BODY),
-              worker("SERVICE"),
+              worker(AreaActivity.SERVE.name()),
               403),
-          arg("product read / WORKER allowed", get("/api/v1/products"), worker("KITCHEN"), 200),
+          arg(
+              "product read / WORKER allowed",
+              get("/api/v1/products"),
+              worker(AreaActivity.PREPARATION.name()),
+              200),
           arg(
               "table create / ADMIN allowed",
               post("/api/v1/tables").contentType(MediaType.APPLICATION_JSON).content(TABLE_BODY),
@@ -419,64 +435,92 @@ class AuthorizationMatrixTest {
           arg(
               "table create / WORKER denied",
               post("/api/v1/tables").contentType(MediaType.APPLICATION_JSON).content(TABLE_BODY),
-              worker("SERVICE"),
+              worker(AreaActivity.SERVE.name()),
               403),
           arg(
               "table status / waiter allowed",
               put("/api/v1/tables/1/status")
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(TABLE_STATUS_BODY),
-              worker("SERVICE"),
+              worker(AreaActivity.SERVE.name()),
               200),
           arg(
               "table status / kitchen denied",
               put("/api/v1/tables/1/status")
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(TABLE_STATUS_BODY),
-              worker("KITCHEN"),
+              worker(AreaActivity.PREPARATION.name()),
               403),
           arg(
               "order create / waiter allowed",
               post(ORDERS_URL).contentType(MediaType.APPLICATION_JSON).content(ORDER_BODY),
-              worker("SERVICE"),
+              worker(AreaActivity.SERVE.name()),
               201),
           arg(
               "order create / kitchen denied",
               post(ORDERS_URL).contentType(MediaType.APPLICATION_JSON).content(ORDER_BODY),
-              worker("KITCHEN"),
+              worker(AreaActivity.PREPARATION.name()),
               403),
           arg(
               "order ready / kitchen allowed",
               put(ORDERS_URL + "/1/ready"),
-              worker("KITCHEN"),
+              worker(AreaActivity.PREPARATION.name()),
               200),
-          arg("order ready / waiter denied", put(ORDERS_URL + "/1/ready"), worker("SERVICE"), 403),
+          arg(
+              "order ready / waiter denied",
+              put(ORDERS_URL + "/1/ready"),
+              worker(AreaActivity.SERVE.name()),
+              403),
           arg(
               "order prepare by id / kitchen allowed",
               put(ORDERS_URL + "/1/prepare"),
-              worker("KITCHEN"),
+              worker(AreaActivity.PREPARATION.name()),
               200),
           arg(
               "order prepare by id / waiter denied",
               put(ORDERS_URL + "/1/prepare"),
-              worker("SERVICE"),
+              worker(AreaActivity.SERVE.name()),
               403),
           arg(
               "order detail ready / kitchen allowed",
               put(ORDERS_URL + "/1/details/10/ready"),
-              worker("KITCHEN"),
+              worker(AreaActivity.PREPARATION.name()),
               200),
           arg(
               "order detail ready / waiter denied",
               put(ORDERS_URL + "/1/details/10/ready"),
-              worker("SERVICE"),
+              worker(AreaActivity.SERVE.name()),
               403),
           arg(
-              "order deliver / cashier allowed",
+              "order deliver / waiter allowed",
               put(ORDERS_URL + "/1/deliver"),
-              worker("CASH"),
+              worker(AreaActivity.SERVE.name()),
               200),
-          arg("order read / worker allowed", get(ORDERS_URL), worker("KITCHEN"), 200),
+          arg(
+              "order deliver / cashier denied",
+              put(ORDERS_URL + "/1/deliver"),
+              worker(AreaActivity.CASH.name()),
+              403),
+          arg(
+              "order deliver / kitchen denied",
+              put(ORDERS_URL + "/1/deliver"),
+              worker(AreaActivity.PREPARATION.name()),
+              403),
+          arg(
+              "order detail deliver / waiter allowed",
+              put(ORDERS_URL + "/1/details/10/deliver"),
+              worker(AreaActivity.SERVE.name()),
+              200),
+          arg(
+              "order detail deliver / kitchen denied",
+              put(ORDERS_URL + "/1/details/10/deliver"),
+              worker(AreaActivity.PREPARATION.name()),
+              403),
+          arg(
+              "order read / worker allowed",
+              get(ORDERS_URL),
+              worker(AreaActivity.PREPARATION.name()),
+              200),
           arg(
               "salary history / ADMIN allowed",
               get("/api/v1/workers/42/salary-history"),
@@ -490,17 +534,17 @@ class AuthorizationMatrixTest {
           arg(
               "salary history / other WORKER denied",
               get("/api/v1/workers/42/salary-history"),
-              worker("SERVICE"),
+              worker(AreaActivity.SERVE.name()),
               403),
           arg(
               "combo admin detail / WORKER allowed (F-006 transition)",
               get("/api/v1/admin/special-selections/1"),
-              worker("SERVICE"),
+              worker(AreaActivity.SERVE.name()),
               200),
           arg(
               "combo admin list / WORKER denied",
               get("/api/v1/admin/special-selections"),
-              worker("SERVICE"),
+              worker(AreaActivity.SERVE.name()),
               403),
           arg(
               "available special selections / public",
@@ -539,7 +583,7 @@ class AuthorizationMatrixTest {
                     .subject("self@test.com")
                     .claim("type", "access")
                     .claim("role", "WORKER")
-                    .claim("areaTypes", List.of("SERVICE")));
+                    .claim("areaTypes", List.of(AreaActivity.SERVE.name())));
   }
 
   private static JwtRequestPostProcessor worker(String... areaTypes) {

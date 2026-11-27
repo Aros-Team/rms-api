@@ -12,6 +12,8 @@ import aros.services.rms.core.cashshift.application.exception.InvalidCashShiftEx
 import aros.services.rms.core.cashshift.application.exception.ShiftAlreadyOpenException;
 import aros.services.rms.core.cashshift.application.exception.ShiftClosedException;
 import aros.services.rms.core.cashshift.application.exception.ShiftNotOpenException;
+import aros.services.rms.core.floorlayout.domain.exception.InvalidFloorLayoutException;
+import aros.services.rms.core.floorlayout.domain.exception.InvalidFloorTablePlacementException;
 import aros.services.rms.core.image.application.exception.ImageNotFoundException;
 import aros.services.rms.core.image.application.exception.ImageUploadException;
 import aros.services.rms.core.image.application.exception.InvalidImageException;
@@ -755,6 +757,19 @@ public class GlobalExceptionHandler {
   /** Handles InvalidImageException. */
   @ExceptionHandler(InvalidImageException.class)
   public ResponseEntity<ProblemDetail> handleInvalidImage(InvalidImageException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
+  }
+
+  /** Handles InvalidFloorLayoutException. */
+  @ExceptionHandler(InvalidFloorLayoutException.class)
+  public ResponseEntity<ProblemDetail> handleInvalidFloorLayout(InvalidFloorLayoutException e) {
+    return problem(HttpStatus.BAD_REQUEST, e.getMessage());
+  }
+
+  /** Handles InvalidFloorTablePlacementException. */
+  @ExceptionHandler(InvalidFloorTablePlacementException.class)
+  public ResponseEntity<ProblemDetail> handleInvalidFloorTablePlacement(
+      InvalidFloorTablePlacementException e) {
     return problem(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 

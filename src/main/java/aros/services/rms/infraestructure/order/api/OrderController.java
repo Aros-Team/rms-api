@@ -437,7 +437,7 @@ public class OrderController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/details/{detailId}/deliver")
-  @JustOperationsStaff
+  @JustWaiterOrAdmin
   public ResponseEntity<OrderResponse> deliverOrderDetail(
       @Parameter(description = "Order ID", required = true) @PathVariable Long id,
       @Parameter(description = "Order detail ID", required = true) @PathVariable Long detailId) {
@@ -478,7 +478,7 @@ public class OrderController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
       })
   @PutMapping("/{id}/deliver")
-  @JustOperationsStaff
+  @JustWaiterOrAdmin
   public ResponseEntity<OrderResponse> deliverOrder(
       @Parameter(description = "Order ID", example = "1", required = true) @PathVariable Long id) {
     Order order = deliveryUseCase.markAsDelivered(id);

@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.area.port.output.WorkerAreaActivityPort;
 import aros.services.rms.core.auth.port.input.AccountSetupUseCase;
 import aros.services.rms.core.image.port.input.GetImagesUseCase;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
@@ -95,6 +96,7 @@ class UserSecurityTest {
   @MockitoBean private GetSalaryHistoryUseCase getSalaryHistoryUseCase;
   @MockitoBean private GetImagesUseCase getImagesUseCase;
   @MockitoBean private CurrencyProvider currencyProvider;
+  @MockitoBean private WorkerAreaActivityPort workerAreaActivityPort;
 
   @MockitoBean private JwtDecoder jwtDecoder;
 

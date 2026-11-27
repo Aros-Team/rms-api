@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
- * Annotation for waiters: ADMIN or a WORKER assigned to the SERVICE or BAR area.
+ * Annotation for waiters: ADMIN or a WORKER assigned to the SERVE activity.
  *
  * <p>Area assignment is read from the {@code areaTypes} claim of the access token.
  */
@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @Retention(RetentionPolicy.RUNTIME)
 @PreAuthorize(
     "T(aros.services.rms.infraestructure.share.security.SecurityExpressions)"
-        + ".hasAnyArea(principal, 'SERVICE', 'BAR')"
+        + ".hasArea(principal,"
+        + " T(aros.services.rms.core.area.domain.AreaActivity).SERVE)"
         + " or principal.claims['role'] == 'ADMIN'")
 public @interface JustWaiterOrAdmin {}

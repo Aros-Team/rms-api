@@ -16,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @Retention(RetentionPolicy.RUNTIME)
 @PreAuthorize(
     "T(aros.services.rms.infraestructure.share.security.SecurityExpressions)"
-        + ".hasArea(principal, 'CASH')"
+        + ".hasArea(principal,"
+        + " T(aros.services.rms.core.area.domain.AreaActivity).CASH)"
         + " or principal.claims['role'] == 'ADMIN'")
 public @interface JustCashierOrAdmin {}

@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.area.domain.AreaActivity;
 import aros.services.rms.core.auth.port.output.CurrentUserPort;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.payment.application.exception.InvalidPaymentException;
@@ -107,7 +108,7 @@ class PaymentControllerTest extends AbstractJwtIntegrationTest {
   @BeforeEach
   void setUp() {
     mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-    authenticate(List.of("CASH"));
+    authenticate(List.of(AreaActivity.CASH.name()));
     when(currentUserPort.fetchCurrentUserInfo()).thenReturn(Optional.of(cashier()));
     when(currencyProvider.getCurrency()).thenReturn(COP);
   }
@@ -187,7 +188,7 @@ class PaymentControllerTest extends AbstractJwtIntegrationTest {
 
   @Test
   void shouldReturn403WhenTheWorkerHasNoCashArea() throws Exception {
-    authenticate(List.of("SERVICE"));
+    authenticate(List.of(AreaActivity.SERVE.name()));
 
     mockMvc
         .perform(

@@ -2,6 +2,7 @@
 
 package aros.services.rms.seed;
 
+import aros.services.rms.core.area.domain.AreaActivity;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -114,9 +115,32 @@ final class SeedVerifier {
                     + "WHERE uaa.user_id = u.id AND uaa.area_id IN (2,3)) = 2")));
     checks.add(
         check(
+            "bar workers with preparation and service",
+            3,
+            scalar(
+                "SELECT COUNT(*) FROM ("
+                    + "SELECT waa.user_id FROM worker_area_activities waa "
+                    + "JOIN users u ON u.id = waa.user_id "
+                    + "WHERE u.email IN "
+                    + "('seed1013@rms.local','seed1014@rms.local','seed1018@rms.local') "
+                    + "AND waa.area_id = "
+                    + SeedConstants.BAR_AREA
+                    + " AND waa.activity IN ('"
+                    + AreaActivity.PREPARATION.name()
+                    + "','"
+                    + AreaActivity.SERVE.name()
+                    + "') "
+                    + "GROUP BY waa.user_id "
+                    + "HAVING COUNT(DISTINCT waa.activity) = 2) bar_workers")));
+    checks.add(
+        check(
             "exclusive kitchen area",
             1,
-            scalar("SELECT COUNT(*) FROM areas WHERE type = 'KITCHEN' AND exclusive = TRUE")));
+            scalar(
+                "SELECT COUNT(*) FROM areas a JOIN area_activities aa ON aa.area_id = a.id "
+                    + "WHERE aa.activity = '"
+                    + AreaActivity.PREPARATION.name()
+                    + "' AND a.exclusive = TRUE")));
     checks.add(
         check(
             "no exclusive area shared with others",

@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
- * Annotation for table readers: ADMIN or a WORKER assigned to SERVICE, BAR or CASH.
+ * Annotation for table readers: ADMIN or a WORKER assigned to SERVE or CASH.
  *
  * <p>Kitchen staff do not consume table data; waiters and cashiers do.
  */
@@ -15,6 +15,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @Retention(RetentionPolicy.RUNTIME)
 @PreAuthorize(
     "T(aros.services.rms.infraestructure.share.security.SecurityExpressions)"
-        + ".hasAnyArea(principal, 'SERVICE', 'BAR', 'CASH')"
+        + ".hasAnyArea(principal,"
+        + " T(aros.services.rms.core.area.domain.AreaActivity).SERVE,"
+        + " T(aros.services.rms.core.area.domain.AreaActivity).CASH)"
         + " or principal.claims['role'] == 'ADMIN'")
 public @interface JustWaiterOrCashierOrAdmin {}

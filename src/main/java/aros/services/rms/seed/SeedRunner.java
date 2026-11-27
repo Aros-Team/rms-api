@@ -241,6 +241,7 @@ final class SeedRunner {
         "DELETE FROM entity_images WHERE entity_type = 'USER' AND entity_id IN "
             + "(SELECT id FROM users WHERE role = 'WORKER')");
     statement.executeUpdate("DELETE FROM user_assigned_areas" + workerFilter);
+    statement.executeUpdate("DELETE FROM worker_area_activities" + workerFilter);
     statement.executeUpdate("DELETE FROM account_setup_tokens" + workerFilter);
     statement.executeUpdate("DELETE FROM password_reset_tokens" + workerFilter);
     statement.executeUpdate("DELETE FROM users WHERE role = 'WORKER'");
@@ -729,6 +730,32 @@ final class SeedRunner {
       }
       statement.executeBatch();
     }
+    seedWorkerAreaActivities();
+  }
+
+  /**
+   * Grants every activity configured on an area to the seeded workers assigned to it.
+   *
+   * <p>The access token carries the union of these rows, so a worker assigned to both Salón and Bar
+   * needs Bar's {@code PREPARATION} row, not just {@code SERVE}. Leaving this table empty made
+   * seeded bar workers unable to open the preparation workspace (403) even though the area supports
+   * it.
+   */
+  private void seedWorkerAreaActivities() throws SQLException {
+    try (PreparedStatement statement =
+        connection.prepareStatement(
+            "INSERT IGNORE INTO worker_area_activities (user_id, area_id, activity) "
+                + "SELECT ?, ?, activity FROM area_activities WHERE area_id = ?")) {
+      for (SeedConstants.WorkerSpec worker : SeedConstants.WORKERS) {
+        for (Integer areaId : worker.areaIds()) {
+          statement.setLong(1, worker.id());
+          statement.setInt(2, areaId);
+          statement.setInt(3, areaId);
+          statement.addBatch();
+        }
+      }
+      statement.executeBatch();
+    }
   }
 
   private void seedSuppliers() throws SQLException {
@@ -784,7 +811,8 @@ final class SeedRunner {
   private void resetFloor() throws SQLException {
     try (Statement statement = connection.createStatement()) {
       statement.executeUpdate("UPDATE tables SET status = 'AVAILABLE'");
-      statement.executeUpdate("UPDATE areas SET exclusive = (type = 'KITCHEN')");
+      statement.executeUpdate(
+          "UPDATE areas SET exclusive = (id = " + SeedConstants.KITCHEN_AREA + ")");
     }
   }
 
@@ -1575,8 +1603,8 @@ final class SeedRunner {
                   + "customer_phone, customer_fingerprint) VALUES (?,?,?,?,?,?,?,?,?)");
       detailStatement =
           connection.prepareStatement(
-              "INSERT INTO order_details (id, order_id, product_id, unit_price, instructions) "
-                  + "VALUES (?,?,?,?,?)");
+              "INSERT INTO order_details (id, order_id, product_id, unit_price, instructions, "
+                  + "preparation_started_at, ready, ready_at) VALUES (?,?,?,?,?,?,?,?)");
       optionStatement =
           connection.prepareStatement(
               "INSERT INTO order_detail_options (order_detail_id, option_id, extra_price) "
@@ -1669,6 +1697,38 @@ final class SeedRunner {
         detailStatement.setNull(5, Types.VARCHAR);
       } else {
         detailStatement.setString(5, instruction);
+      }
+      // Live tickets must be internally consistent: a READY order needs every
+      // line marked ready, otherwise the waiter cannot deliver it (409).
+      boolean ready = "READY".equals(order.status());
+      boolean started = ready || "PREPARING".equals(order.status());
+      LocalDateTime startedAt = null;
+      LocalDateTime readyAt = null;
+      if (started) {
+        startedAt = order.openTime().plusMinutes(2);
+        if (startedAt.isAfter(now)) {
+          startedAt = now.minusMinutes(1);
+        }
+      }
+      if (ready) {
+        readyAt = order.openTime().plusMinutes(12);
+        if (readyAt.isAfter(now)) {
+          readyAt = now.minusMinutes(1);
+        }
+        if (startedAt == null || startedAt.isAfter(readyAt)) {
+          startedAt = readyAt.minusMinutes(5);
+        }
+      }
+      if (startedAt == null) {
+        detailStatement.setNull(6, Types.TIMESTAMP);
+      } else {
+        detailStatement.setString(6, SeedMath.timestamp(startedAt));
+      }
+      detailStatement.setBoolean(7, ready);
+      if (readyAt == null) {
+        detailStatement.setNull(8, Types.TIMESTAMP);
+      } else {
+        detailStatement.setString(8, SeedMath.timestamp(readyAt));
       }
       detailStatement.addBatch();
       if (++detailPending >= BATCH_SIZE) {

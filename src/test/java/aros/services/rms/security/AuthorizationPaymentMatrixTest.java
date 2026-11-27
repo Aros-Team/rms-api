@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.area.domain.AreaActivity;
 import aros.services.rms.core.auth.port.output.CurrentUserPort;
 import aros.services.rms.core.cashshift.domain.CashShift;
 import aros.services.rms.core.cashshift.domain.CashShiftStatus;
@@ -138,14 +139,14 @@ class AuthorizationPaymentMatrixTest {
   @Test
   void shouldAllowCashWorkerToReadPendingOrders() throws Exception {
     mockMvc
-        .perform(get("/api/v1/payments/pending").with(worker("CASH")))
+        .perform(get("/api/v1/payments/pending").with(worker(AreaActivity.CASH.name())))
         .andExpect(status().isOk());
   }
 
   @Test
   void shouldDenyServiceWorkerOnPendingOrders() throws Exception {
     mockMvc
-        .perform(get("/api/v1/payments/pending").with(worker("SERVICE")))
+        .perform(get("/api/v1/payments/pending").with(worker(AreaActivity.SERVE.name())))
         .andExpect(status().isForbidden())
         .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
         .andExpect(jsonPath("$.status").value(403));
@@ -164,7 +165,7 @@ class AuthorizationPaymentMatrixTest {
                 .header("Idempotency-Key", "key-1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(CHARGE_BODY)
-                .with(worker("CASH")))
+                .with(worker(AreaActivity.CASH.name())))
         .andExpect(status().isCreated());
   }
 
@@ -188,21 +189,21 @@ class AuthorizationPaymentMatrixTest {
                 .header("Idempotency-Key", "key-1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(CHARGE_BODY)
-                .with(worker("SERVICE")))
+                .with(worker(AreaActivity.SERVE.name())))
         .andExpect(status().isForbidden());
   }
 
   @Test
   void shouldDenyKitchenWorkerToReadThePaymentJournal() throws Exception {
     mockMvc
-        .perform(get("/api/v1/payments").with(worker("KITCHEN")))
+        .perform(get("/api/v1/payments").with(worker(AreaActivity.PREPARATION.name())))
         .andExpect(status().isForbidden());
   }
 
   @Test
   void shouldAllowCashWorkerToReadTheCurrentShift() throws Exception {
     mockMvc
-        .perform(get("/api/v1/cash-shifts/current").with(worker("CASH")))
+        .perform(get("/api/v1/cash-shifts/current").with(worker(AreaActivity.CASH.name())))
         .andExpect(status().isOk());
   }
 
@@ -224,7 +225,7 @@ class AuthorizationPaymentMatrixTest {
             post("/api/v1/cash-shifts/open")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"openingFloat\":\"200000.00\"}")
-                .with(worker("SERVICE")))
+                .with(worker(AreaActivity.SERVE.name())))
         .andExpect(status().isForbidden());
   }
 

@@ -20,7 +20,10 @@ import lombok.NoArgsConstructor;
 public class Area {
   private Long id;
   private String name;
-  private AreaType type;
+
+  /** Activities that can be performed in this physical area. */
+  @Builder.Default private Set<AreaActivity> activities = new HashSet<>();
+
   private boolean forUser;
   private boolean forProduct;
 

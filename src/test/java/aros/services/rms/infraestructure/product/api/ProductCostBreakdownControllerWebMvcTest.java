@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.area.domain.AreaActivity;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.product.domain.ProductCostBreakdown;
@@ -143,7 +144,7 @@ class ProductCostBreakdownControllerWebMvcTest {
                     .subject("worker@test.com")
                     .claim("type", "access")
                     .claim("role", "WORKER")
-                    .claim("areaTypes", List.of("SERVICE")));
+                    .claim("areaTypes", List.of(AreaActivity.SERVE.name())));
   }
 
   private static Money money(String amount) {

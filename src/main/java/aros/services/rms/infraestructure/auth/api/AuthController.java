@@ -2,6 +2,7 @@
 
 package aros.services.rms.infraestructure.auth.api;
 
+import aros.services.rms.core.area.port.output.WorkerAreaActivityPort;
 import aros.services.rms.core.auth.application.dto.AuthResult;
 import aros.services.rms.core.auth.application.dto.AuthResultType;
 import aros.services.rms.core.auth.application.dto.Credentials;
@@ -57,6 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
         "Operations for user authentication, session management, 2FA and password recovery")
 @Slf4j
 public class AuthController {
+  private final WorkerAreaActivityPort workerAreaActivityPort;
 
   private final LoginUseCase loginUseCase;
   private final VerifyTwoFactorUseCase verifyTwoFactorUseCase;
@@ -240,7 +242,13 @@ public class AuthController {
               userInfo.address(),
               userInfo.phone(),
               userInfo.role(),
-              userInfo.areas());
+              userInfo.areas(),
+              workerAreaActivityPort.findByUserId(userInfo.id().value()).entrySet().stream()
+                  .map(
+                      entry ->
+                          aros.services.rms.infraestructure.user.api.dto
+                              .AreaActivityAssignmentResponse.of(entry.getKey(), entry.getValue()))
+                  .toList());
 
       return ResponseEntity.ok(userInfoResponse);
     } catch (UserNotFoundException e) {

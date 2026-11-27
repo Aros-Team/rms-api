@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.auth.api.dto;
 
 import aros.services.rms.core.area.domain.Area;
 import aros.services.rms.core.user.domain.UserRole;
+import aros.services.rms.infraestructure.user.api.dto.AreaActivityAssignmentResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
@@ -17,4 +18,6 @@ public record UserFullInfoResponse(
     @Schema(description = "Address", example = "123 Main Street") String address,
     @Schema(description = "Phone number", example = "+1234567890") String phone,
     @Schema(description = "User role", example = "ADMIN") UserRole role,
-    @Schema(description = "Areas assigned to the user") List<Area> areas) {}
+    @Schema(description = "Areas assigned to the user") List<Area> areas,
+    @Schema(description = "Activities assigned to the user per area")
+        List<AreaActivityAssignmentResponse> areaActivities) {}

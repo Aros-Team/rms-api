@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.area.domain.AreaActivity;
 import aros.services.rms.core.order.application.exception.OrderDetailNotFoundException;
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.domain.Order;
@@ -453,7 +454,7 @@ class OrderQueryControllerWebMvcTest {
                 builder
                     .subject("cook@test.com")
                     .claim("role", "WORKER")
-                    .claim("areaTypes", List.of("KITCHEN")))
+                    .claim("areaTypes", List.of(AreaActivity.PREPARATION.name())))
         .authorities(new SimpleGrantedAuthority("ROLE_USER"));
   }
 
@@ -464,7 +465,7 @@ class OrderQueryControllerWebMvcTest {
                 builder
                     .subject("waiter@test.com")
                     .claim("role", "WORKER")
-                    .claim("areaTypes", List.of("SERVICE")))
+                    .claim("areaTypes", List.of(AreaActivity.SERVE.name())))
         .authorities(new SimpleGrantedAuthority("ROLE_USER"));
   }
 }

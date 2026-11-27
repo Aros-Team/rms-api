@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.area.domain.AreaActivity;
 import aros.services.rms.core.image.port.output.StoragePort;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.domain.MovementType;
@@ -103,7 +104,8 @@ class OrderControllerTest extends AbstractJwtIntegrationTest {
                     .subject("test@test.com")
                     .claim("type", "access")
                     .claim("role", "WORKER")
-                    .claim("areaTypes", List.of("SERVICE", "BAR"))
+                    .claim(
+                        "areaTypes", List.of(AreaActivity.SERVE.name(), AreaActivity.SERVE.name()))
                     .build()));
   }
 

@@ -15,7 +15,7 @@ import aros.services.rms.core.area.application.exception.AreaAlreadyExistsExcept
 import aros.services.rms.core.area.application.exception.AreaNotFoundException;
 import aros.services.rms.core.area.application.service.AreaService;
 import aros.services.rms.core.area.domain.Area;
-import aros.services.rms.core.area.domain.AreaType;
+import aros.services.rms.core.area.domain.AreaActivity;
 import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
 import java.util.List;
@@ -63,8 +63,18 @@ class AreaUseCaseImplTest {
 
   @Test
   void shouldCreateAreaSuccessfully() {
-    Area area = Area.builder().name("Kitchen").type(AreaType.KITCHEN).build();
-    Area saved = Area.builder().id(1L).name("Kitchen").type(AreaType.KITCHEN).enabled(true).build();
+    Area area =
+        Area.builder()
+            .name("Kitchen")
+            .activities(java.util.Set.of(AreaActivity.PREPARATION))
+            .build();
+    Area saved =
+        Area.builder()
+            .id(1L)
+            .name("Kitchen")
+            .activities(java.util.Set.of(AreaActivity.PREPARATION))
+            .enabled(true)
+            .build();
 
     when(areaRepositoryPort.findByName("Kitchen")).thenReturn(Optional.empty());
     when(areaRepositoryPort.save(any(Area.class))).thenReturn(saved);
@@ -80,7 +90,11 @@ class AreaUseCaseImplTest {
 
   @Test
   void shouldThrowWhenAreaNameAlreadyExists() {
-    Area area = Area.builder().name("Kitchen").type(AreaType.KITCHEN).build();
+    Area area =
+        Area.builder()
+            .name("Kitchen")
+            .activities(java.util.Set.of(AreaActivity.PREPARATION))
+            .build();
     Area existing = Area.builder().id(1L).name("Kitchen").build();
 
     when(areaRepositoryPort.findByName("Kitchen")).thenReturn(Optional.of(existing));
@@ -91,9 +105,21 @@ class AreaUseCaseImplTest {
   @Test
   void shouldUpdateAreaSuccessfully() {
     Area existing =
-        Area.builder().id(1L).name("Kitchen").type(AreaType.KITCHEN).enabled(true).build();
-    Area updateData = Area.builder().name("Bar").type(AreaType.BAR).build();
-    Area saved = Area.builder().id(1L).name("Bar").type(AreaType.BAR).enabled(true).build();
+        Area.builder()
+            .id(1L)
+            .name("Kitchen")
+            .activities(java.util.Set.of(AreaActivity.PREPARATION))
+            .enabled(true)
+            .build();
+    Area updateData =
+        Area.builder().name("Bar").activities(java.util.Set.of(AreaActivity.SERVE)).build();
+    Area saved =
+        Area.builder()
+            .id(1L)
+            .name("Bar")
+            .activities(java.util.Set.of(AreaActivity.SERVE))
+            .enabled(true)
+            .build();
 
     when(areaRepositoryPort.findById(1L)).thenReturn(Optional.of(existing));
     when(areaRepositoryPort.save(any(Area.class))).thenReturn(saved);
@@ -101,7 +127,7 @@ class AreaUseCaseImplTest {
     Area result = areaUseCase.update(1L, updateData);
 
     assertEquals("Bar", result.getName());
-    assertEquals(AreaType.BAR, result.getType());
+    assertEquals(java.util.Set.of(AreaActivity.SERVE), result.getActivities());
   }
 
   @Test

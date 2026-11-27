@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.area.domain.AreaActivity;
 import aros.services.rms.core.auth.port.output.CurrentUserPort;
 import aros.services.rms.core.cashshift.application.exception.ShiftClosedException;
 import aros.services.rms.core.cashshift.domain.CashShift;
@@ -107,7 +108,7 @@ class CashShiftControllerTest extends AbstractJwtIntegrationTest {
                     .subject("cashier@test.com")
                     .claim("type", "access")
                     .claim("role", "WORKER")
-                    .claim("areaTypes", List.of("CASH"))
+                    .claim("areaTypes", List.of(AreaActivity.CASH.name()))
                     .build()));
     when(currentUserPort.fetchCurrentUserInfo()).thenReturn(Optional.of(cashier()));
     when(currencyProvider.getCurrency()).thenReturn(COP);

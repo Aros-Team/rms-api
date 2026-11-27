@@ -2,6 +2,8 @@
 
 package aros.services.rms.infraestructure.user.api;
 
+import aros.services.rms.core.area.domain.AreaActivity;
+import aros.services.rms.core.area.port.output.WorkerAreaActivityPort;
 import aros.services.rms.core.auth.application.exception.UserNotFoundException;
 import aros.services.rms.core.auth.port.input.AccountSetupUseCase;
 import aros.services.rms.core.image.domain.ImageEntityType;
@@ -68,6 +70,7 @@ public class WorkerController {
   private final GetSalaryHistoryUseCase getSalaryHistoryUseCase;
   private final GetImagesUseCase getImagesUseCase;
   private final CurrencyProvider currencyProvider;
+  private final WorkerAreaActivityPort workerAreaActivityPort;
 
   /**
    * Returns all workers in the system, optionally filtered by search term. Admin access only.
@@ -108,12 +111,18 @@ public class WorkerController {
         getImagesUseCase.getFirstByEntities(
             ImageEntityType.USER, workers.stream().map(worker -> worker.getId().value()).toList());
     Map<Long, ImageWithUrls> imageByEntity = images == null ? Map.of() : images;
+    Map<Long, Map<Long, java.util.Set<AreaActivity>>> activities =
+        workerAreaActivityPort.findByUserIds(
+            workers.stream().map(worker -> worker.getId().value()).toList());
     List<UserResponse> responses =
         workers.stream()
             .map(
                 worker ->
                     UserResponse.fromDomain(
-                        worker, imageUrl(imageByEntity.get(worker.getId().value()))))
+                        worker,
+                        imageUrl(imageByEntity.get(worker.getId().value())),
+                        activities.getOrDefault(
+                            worker.getId().value(), Map.<Long, java.util.Set<AreaActivity>>of())))
             .toList();
     return ResponseEntity.ok(responses);
   }
@@ -189,7 +198,69 @@ public class WorkerController {
     var user =
         this.updateUserUseCase.update(id, request.toUpdateUserInfo(currencyProvider.getCurrency()));
     log.info("Worker updated successfully: id={}", id);
-    return ResponseEntity.ok(UserResponse.fromDomain(user, workerImage(user.getId().value())));
+    return ResponseEntity.ok(
+        UserResponse.fromDomain(
+            user,
+            workerImage(user.getId().value()),
+            workerAreaActivityPort.findByUserId(user.getId().value())));
+  }
+
+  /** Replaces the activities a worker performs in each assigned area. */
+  @org.springframework.web.bind.annotation.PutMapping("/{id}/area-activities")
+  @JustAdminUser
+  @Operation(
+      tags = {"Workers"},
+      summary = "Update worker area activities",
+      description = "Replaces which activities the worker performs in each assigned area.",
+      responses = {
+        @ApiResponse(responseCode = "204", description = "Activities updated"),
+        @ApiResponse(responseCode = "400", description = "Area is not assigned to the worker"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Admin access required"),
+        @ApiResponse(responseCode = "404", description = "Worker not found")
+      })
+  public ResponseEntity<Void> updateAreaActivities(
+      @Parameter(description = "Worker ID", required = true) @PathVariable Long id,
+      @Valid @RequestBody
+          aros.services.rms.infraestructure.user.api.dto.WorkerAreaActivitiesRequest request) {
+    var user =
+        userRepositoryPort
+            .findById(new aros.services.rms.core.user.domain.UserId(id))
+            .orElseThrow(
+                () ->
+                    new aros.services.rms.core.user.application.exception.UserNotFoundException(
+                        "User not found with id: " + id));
+    java.util.Set<Long> assigned =
+        user.getAssignedAreas().stream()
+            .map(aros.services.rms.core.area.domain.AreaId::value)
+            .collect(java.util.stream.Collectors.toSet());
+    java.util.Map<Long, java.util.Set<AreaActivity>> activities = new java.util.LinkedHashMap<>();
+    java.util.Map<Long, java.util.Set<AreaActivity>> allowed =
+        workerAreaActivityPort.findAreaActivities(request.areaActivities().keySet());
+    for (var entry : request.areaActivities().entrySet()) {
+      if (!assigned.contains(entry.getKey())) {
+        throw new IllegalArgumentException(
+            "El área no está asignada al trabajador: " + entry.getKey());
+      }
+      java.util.Set<AreaActivity> parsed = new java.util.LinkedHashSet<>();
+      if (entry.getValue() != null) {
+        for (String value : entry.getValue()) {
+          AreaActivity activity = AreaActivity.valueOf(value.trim().toUpperCase());
+          if (!allowed.getOrDefault(entry.getKey(), java.util.Set.of()).contains(activity)) {
+            throw new IllegalArgumentException(
+                "La actividad " + activity + " no está habilitada en el área " + entry.getKey());
+          }
+          parsed.add(activity);
+        }
+      }
+      if (parsed.isEmpty()) {
+        throw new IllegalArgumentException(
+            "Selecciona al menos una actividad para el área " + entry.getKey());
+      }
+      activities.put(entry.getKey(), parsed);
+    }
+    workerAreaActivityPort.replaceForUser(id, activities);
+    return ResponseEntity.noContent().build();
   }
 
   /** Resolves a single worker's profile image URL, tolerating an empty image lookup. */

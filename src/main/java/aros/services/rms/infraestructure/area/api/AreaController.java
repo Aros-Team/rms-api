@@ -3,7 +3,7 @@
 package aros.services.rms.infraestructure.area.api;
 
 import aros.services.rms.core.area.domain.Area;
-import aros.services.rms.core.area.domain.AreaType;
+import aros.services.rms.core.area.domain.AreaActivity;
 import aros.services.rms.core.area.port.input.AreaUseCase;
 import aros.services.rms.infraestructure.area.api.dto.AreaRequest;
 import aros.services.rms.infraestructure.area.api.dto.AreaResponse;
@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -64,7 +65,7 @@ public class AreaController {
     Area area =
         Area.builder()
             .name(request.name())
-            .type(AreaType.valueOf(request.type().toUpperCase()))
+            .activities(parseActivities(request.activities()))
             .exclusive(request.exclusive())
             .build();
 
@@ -99,12 +100,22 @@ public class AreaController {
     Area area =
         Area.builder()
             .name(request.name())
-            .type(AreaType.valueOf(request.type().toUpperCase()))
+            .activities(parseActivities(request.activities()))
             .exclusive(request.exclusive())
             .build();
 
     Area updated = areaUseCase.update(id, area);
     return ResponseEntity.ok(AreaResponse.fromDomain(updated));
+  }
+
+  private static Set<AreaActivity> parseActivities(Set<String> values) {
+    if (values == null) {
+      return Set.of();
+    }
+    return values.stream()
+        .filter(value -> value != null && !value.isBlank())
+        .map(value -> AreaActivity.valueOf(value.trim().toUpperCase()))
+        .collect(Collectors.toSet());
   }
 
   /**

@@ -82,7 +82,7 @@ public class AreaService implements AreaUseCase {
         areaRepositoryPort.findById(id).orElseThrow(() -> new AreaNotFoundException(id));
 
     existing.setName(area.getName());
-    existing.setType(area.getType());
+    existing.setActivities(area.getActivities());
 
     if (area.isExclusive() && !existing.isExclusive()) {
       long affected = areaRepositoryPort.countUsersWithAreaAndOtherAreas(id);
