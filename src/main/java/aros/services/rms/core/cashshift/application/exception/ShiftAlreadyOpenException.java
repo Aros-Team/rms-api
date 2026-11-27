@@ -7,6 +7,6 @@ public class ShiftAlreadyOpenException extends RuntimeException {
 
   /** Creates the exception. */
   public ShiftAlreadyOpenException() {
-    super("A cash shift is already open; close it before opening another one");
+    super("Ya hay un turno de caja abierto; ciérralo antes de abrir otro");
   }
 }

@@ -26,10 +26,10 @@ public class GetTopSellingProductsService implements GetTopSellingProductsUseCas
   @Override
   public List<TopSellingProduct> execute(LocalDate from, LocalDate to, int limit) {
     if (from == null || to == null) {
-      throw new IllegalArgumentException("Both 'from' and 'to' are required.");
+      throw new IllegalArgumentException("Se requieren 'from' y 'to'.");
     }
     if (to.isBefore(from)) {
-      throw new InvalidAnalyticsRangeException("'to' must not be before 'from'.");
+      throw new InvalidAnalyticsRangeException("'to' no puede ser anterior a 'from'.");
     }
     int effectiveLimit = Math.max(1, Math.min(limit, MAX_LIMIT));
     List<TopSellingProduct> products = new ArrayList<>();

@@ -11,6 +11,6 @@ public class SupplierInactiveException extends RuntimeException {
    * @param id supplier ID
    */
   public SupplierInactiveException(Long id) {
-    super("Supplier is inactive: id=" + id);
+    super("El proveedor está inactivo: id=" + id);
   }
 }

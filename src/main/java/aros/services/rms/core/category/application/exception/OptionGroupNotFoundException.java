@@ -11,6 +11,6 @@ public class OptionGroupNotFoundException extends RuntimeException {
    * @param id the option group identifier that was not found
    */
   public OptionGroupNotFoundException(Long id) {
-    super("Option category not found: " + id);
+    super("Grupo de opciones no encontrado: " + id);
   }
 }

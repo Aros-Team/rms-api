@@ -2,9 +2,11 @@
 
 package aros.services.rms.infraestructure.product.api.dto;
 
+import aros.services.rms.core.product.domain.PrepTimeMode;
 import aros.services.rms.core.product.domain.ProductCost;
 import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,7 +18,16 @@ public record ProductCostResponse(
     @Schema(description = "Total production cost (material + labor)") MoneyDto totalCost,
     @Schema(description = "Material cost (recipe * unit cost)") MoneyDto materialCost,
     @Schema(description = "Labor cost (avg hourly rate * prep time)") MoneyDto laborCost,
-    @Schema(description = "Cost breakdown items") List<CostItem> breakdown) {
+    @Schema(description = "Cost breakdown items") List<CostItem> breakdown,
+    @Schema(description = "Editable estimated preparation minutes") Integer estimatedPrepMinutes,
+    @Schema(description = "Measured average preparation minutes", nullable = true)
+        BigDecimal realPrepMinutes,
+    @Schema(description = "Valid measured samples") long realPrepSampleCount,
+    @Schema(description = "Configured preparation-time mode") PrepTimeMode prepTimeMode,
+    @Schema(description = "Source actually used for the labor cost")
+        PrepTimeMode prepTimeUsedSource,
+    @Schema(description = "Minutes actually used for the labor cost")
+        BigDecimal prepTimeUsedMinutes) {
 
   /** A single breakdown entry describing a cost contribution. */
   @Schema(description = "A single cost breakdown entry")
@@ -49,6 +60,12 @@ public record ProductCostResponse(
         MoneyDto.of(cost.totalCost()),
         MoneyDto.of(cost.materialCost()),
         MoneyDto.of(cost.laborCost()),
-        items);
+        items,
+        cost.estimatedPrepMinutes(),
+        cost.realPrepMinutes(),
+        cost.realPrepSampleCount(),
+        cost.prepTimeMode(),
+        cost.prepTimeUsedSource(),
+        cost.prepTimeUsedMinutes());
   }
 }

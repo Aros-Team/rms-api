@@ -15,7 +15,7 @@ public record UserRoleUpdateRequest(
             description = "New role",
             example = "ADMIN",
             allowableValues = {"ADMIN", "WORKER"})
-        @NotBlank(message = "Role is required")
+        @NotBlank(message = "El rol es obligatorio")
         String role) {
 
   /**
@@ -28,7 +28,7 @@ public record UserRoleUpdateRequest(
     try {
       return UserRole.valueOf(role.trim().toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException e) {
-      throw new InvalidUserAccessException("Invalid role: " + role);
+      throw new InvalidUserAccessException("Rol inválido: " + role);
     }
   }
 }

@@ -11,6 +11,6 @@ public class SupplyVariantNotFoundException extends RuntimeException {
    * @param id supply variant ID
    */
   public SupplyVariantNotFoundException(Long id) {
-    super("Supply variant not found: " + id);
+    super("Variante de insumo no encontrada: " + id);
   }
 }

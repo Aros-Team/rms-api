@@ -69,6 +69,14 @@ public class Product {
   @Column(name = "estimated_prep_minutes")
   private Integer estimatedPrepMinutes;
 
+  @Column(name = "required_workers", nullable = false)
+  @Builder.Default
+  private Integer requiredWorkers = 1;
+
+  @Column(name = "prep_time_mode", nullable = false, length = 20)
+  @Builder.Default
+  private String prepTimeMode = "ESTIMATED";
+
   @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
       name = "product_product_options",

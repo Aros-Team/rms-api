@@ -51,12 +51,12 @@ public class CurrencySettingsService
 
   private Currency parse(String code) {
     if (code == null || code.isBlank()) {
-      throw new InvalidConfigurationException("Currency code is required");
+      throw new InvalidConfigurationException("El código de moneda es obligatorio");
     }
     try {
       return Currency.getInstance(code.trim().toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException e) {
-      throw new InvalidConfigurationException("Invalid ISO 4217 currency code: " + code);
+      throw new InvalidConfigurationException("Código de moneda ISO 4217 inválido: " + code);
     }
   }
 }

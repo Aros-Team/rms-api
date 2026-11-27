@@ -52,10 +52,10 @@ public class SeedResetService {
    */
   public SeedResult reset(String anchor, String dataset) {
     if (dataset != null && !"dev".equals(dataset)) {
-      throw new IllegalArgumentException("Unsupported dataset: " + dataset);
+      throw new IllegalArgumentException("Conjunto de datos no soportado: " + dataset);
     }
     if (!running.compareAndSet(false, true)) {
-      throw new SeedBusyException("A seed is already running");
+      throw new SeedBusyException("Ya hay una carga de datos en ejecución");
     }
     try (Connection connection = dataSource.getConnection()) {
       LocalDate businessDate =
@@ -71,7 +71,7 @@ public class SeedResetService {
           result.historicalCovers(),
           result.todayOrders());
     } catch (SQLException exception) {
-      throw new SeedBusyException("Seed reset failed: " + exception.getMessage());
+      throw new SeedBusyException("Falló el reinicio de datos: " + exception.getMessage());
     } finally {
       running.set(false);
     }
@@ -106,7 +106,8 @@ public class SeedResetService {
       }
       return counts;
     } catch (SQLException exception) {
-      throw new SeedBusyException("Seed status failed: " + exception.getMessage());
+      throw new SeedBusyException(
+          "Falló la consulta de estado de datos: " + exception.getMessage());
     }
   }
 

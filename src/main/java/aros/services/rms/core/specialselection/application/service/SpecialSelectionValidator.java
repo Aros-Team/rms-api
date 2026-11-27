@@ -25,7 +25,7 @@ public class SpecialSelectionValidator {
   public void validateConfiguration(SpecialSelectionConfiguration config) {
     List<String> errors = new ArrayList<>();
     if (config.getName() == null || config.getName().isBlank()) {
-      errors.add("name is required");
+      errors.add("El nombre es obligatorio");
     }
     if (config.getBasePrice() == null || config.getBasePrice() < 0) {
       errors.add("basePrice must be a non-negative value");

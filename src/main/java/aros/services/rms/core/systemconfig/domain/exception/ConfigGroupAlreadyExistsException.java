@@ -11,6 +11,6 @@ public class ConfigGroupAlreadyExistsException extends SettingsException {
    * @param name the duplicated group name
    */
   public ConfigGroupAlreadyExistsException(String name) {
-    super(SettingsErrorType.CONFLICT, "Configuration group already exists: " + name);
+    super(SettingsErrorType.CONFLICT, "El grupo de configuración ya existe: " + name);
   }
 }

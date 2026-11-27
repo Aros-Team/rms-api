@@ -71,7 +71,7 @@ public class PasswordResetService implements PasswordResetUseCase {
             .orElseThrow(
                 () ->
                     new UserNotFoundException(
-                        "the user with email " + email + " couldn't be found"));
+                        "el usuario con correo " + email + " no se encontró"));
 
     tokenRepositoryPort.deleteByUserId(user.getId());
 

@@ -64,9 +64,9 @@ public class ClockAttendanceService implements ClockInUseCase, ClockOutUseCase {
 
     if (TimeLogSessions.isOpen(latest.orElse(null), now)) {
       throw new OpenSessionAlreadyExistsException(
-          "Worker "
+          "El trabajador "
               + workerId.value()
-              + " already has an open clock-in session since "
+              + " ya tiene una sesión de entrada abierta desde "
               + latest.get().getTimestamp());
     }
 
@@ -102,7 +102,9 @@ public class ClockAttendanceService implements ClockInUseCase, ClockOutUseCase {
 
     if (!TimeLogSessions.isOpen(latest.orElse(null), now)) {
       throw new NoOpenSessionException(
-          "Worker " + workerId.value() + " has no open clock-in session to close");
+          "El trabajador "
+              + workerId.value()
+              + " no tiene una sesión de entrada abierta para cerrar");
     }
 
     Optional<ScheduleShift> activeShift = shiftResolver.activeShift(workerId, now);

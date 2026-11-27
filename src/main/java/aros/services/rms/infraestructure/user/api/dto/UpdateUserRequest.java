@@ -22,32 +22,35 @@ import java.util.stream.Collectors;
 @Schema(description = "Request payload to update an existing user")
 public record UpdateUserRequest(
     @Schema(description = "Document number (digits only)", example = "1234567890")
-        @NotBlank(message = "Required field")
-        @Pattern(message = "Document must contain only digits", regexp = "\\d+")
-        @Size(max = 20, message = "Document must have at most 20 characters")
+        @NotBlank(message = "Campo obligatorio")
+        @Pattern(message = "El documento solo debe contener dígitos", regexp = "\\d+")
+        @Size(max = 20, message = "El documento debe tener como máximo 20 caracteres")
         String document,
     @Schema(description = "Full name (letters and spaces only)", example = "Jane Doe")
-        @NotBlank(message = "Required field")
+        @NotBlank(message = "Campo obligatorio")
         @Pattern(
-            message = "Name allows only letters and spaces",
+            message = "El nombre solo permite letras y espacios",
             regexp = "^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")
-        @Size(max = 100, message = "Name must have at most 100 characters")
+        @Size(max = 100, message = "El nombre debe tener como máximo 100 caracteres")
         String name,
     @Schema(description = "Email address", example = "jane@example.com")
-        @NotBlank(message = "Required field")
-        @Email(message = "Enter a valid email address")
-        @Size(max = 100, message = "Email must have at most 100 characters")
+        @NotBlank(message = "Campo obligatorio")
+        @Email(message = "Ingresa un correo electrónico válido")
+        @Size(max = 100, message = "El correo debe tener como máximo 100 caracteres")
         String email,
     @Schema(description = "Address (optional, max 200 chars)", example = "123 Main Street")
-        @Size(max = 200, message = "Address must have at most 200 characters")
+        @Size(max = 200, message = "La dirección debe tener como máximo 200 caracteres")
         String address,
     @Schema(description = "Phone number (10 digits)", example = "3001234567")
-        @NotBlank(message = "Required field")
-        @Pattern(message = "Phone must have 10 digits", regexp = "\\d{10}")
+        @NotBlank(message = "Campo obligatorio")
+        @Pattern(message = "El teléfono debe tener 10 dígitos", regexp = "\\d{10}")
         String phone,
+    @Schema(description = "Job title or role inside the assigned area", example = "Jefe de cocina")
+        @Size(max = 100, message = "El rol debe tener como máximo 100 caracteres")
+        String jobTitle,
     @Schema(description = "IDs of areas to assign to the user", example = "[1, 2]")
-        @NotNull(message = "Areas are required")
-        @NotEmpty(message = "Areas cannot be empty")
+        @NotNull(message = "Las áreas son obligatorias")
+        @NotEmpty(message = "Las áreas no pueden estar vacías")
         Set<Long> areas,
     @Schema(
             description = "New monthly salary (optional, triggers history entry)",
@@ -70,6 +73,7 @@ public record UpdateUserRequest(
         areas.stream().map(AreaId::of).collect(Collectors.toSet()),
         salary != null ? Salary.of(salary, currency) : null,
         reason,
-        observations);
+        observations,
+        jobTitle);
   }
 }

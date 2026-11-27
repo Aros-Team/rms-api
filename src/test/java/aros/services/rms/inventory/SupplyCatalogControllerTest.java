@@ -161,7 +161,7 @@ class SupplyCatalogControllerTest extends AbstractJwtIntegrationTest {
                 .content("{\"name\": \"Pan\", \"categoryId\": 1}"))
         .andExpect(status().isConflict())
         .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-        .andExpect(jsonPath("$.detail").value("Supply already exists: name=Pan"));
+        .andExpect(jsonPath("$.detail").value("El insumo ya existe: nombre=Pan"));
   }
 
   // ---------------------------------------------------------------------------
@@ -180,7 +180,9 @@ class SupplyCatalogControllerTest extends AbstractJwtIntegrationTest {
                 .content("{\"name\": \"Pan\", \"categoryId\": 9999}"))
         .andExpect(status().isNotFound())
         .andExpect(
-            jsonPath("$.detail").value("Storage location not found: Category not found: id=9999"));
+            jsonPath("$.detail")
+                .value(
+                    "Ubicación de almacenamiento no encontrada: Categoría no encontrada: id=9999"));
   }
 
   // ---------------------------------------------------------------------------
@@ -263,7 +265,7 @@ class SupplyCatalogControllerTest extends AbstractJwtIntegrationTest {
         .andExpect(status().isConflict())
         .andExpect(
             jsonPath("$.detail")
-                .value("Supply variant already exists: supplyId=3, unitId=2, quantity=0.500"));
+                .value("La variante de insumo ya existe: supplyId=3, unitId=2, quantity=0.500"));
   }
 
   // ---------------------------------------------------------------------------

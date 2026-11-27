@@ -93,7 +93,8 @@ public class OptionGroup {
   private static Long validateReplacement(OptionSelectionType type, Long replacement) {
     if (type != OptionSelectionType.SINGLE_CHOICE && replacement != null) {
       throw new IllegalArgumentException(
-          type + " categories cannot have a replacement supply category (only SINGLE_CHOICE may)");
+          type
+              + " no pueden tener una categoría de insumo de reemplazo (solo SINGLE_CHOICE puede)");
     }
     return replacement;
   }

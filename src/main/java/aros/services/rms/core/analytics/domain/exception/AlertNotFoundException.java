@@ -13,6 +13,6 @@ public class AlertNotFoundException extends RuntimeException {
    * @param id the missing alert id
    */
   public AlertNotFoundException(Long id) {
-    super("Alert not found: " + id);
+    super("Alerta no encontrada: " + id);
   }
 }

@@ -11,6 +11,6 @@ public class CategoryNotFoundException extends RuntimeException {
    * @param id the category identifier that was not found
    */
   public CategoryNotFoundException(Long id) {
-    super("Category not found: " + id);
+    super("Categoría no encontrada: " + id);
   }
 }

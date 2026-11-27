@@ -16,6 +16,7 @@ import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.category.application.exception.CategoryNotFoundException;
 import aros.services.rms.core.category.domain.Category;
 import aros.services.rms.core.category.port.output.CategoryRepositoryPort;
+import aros.services.rms.core.category.port.output.OptionGroupRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
@@ -76,6 +77,7 @@ class ProductUseCaseImplTest {
   @Mock private SupplyVariantRepositoryPort supplyVariantRepositoryPort;
   @Mock private InventoryStockUseCase inventoryStockUseCase;
   @Mock private ProductOptionRepositoryPort productOptionRepositoryPort;
+  @Mock private OptionGroupRepositoryPort optionGroupRepositoryPort;
   @Mock private ApplicationEventPublisher eventPublisher;
   @Mock private CurrencyProvider currencyProvider;
 
@@ -93,6 +95,7 @@ class ProductUseCaseImplTest {
             supplyVariantRepositoryPort,
             inventoryStockUseCase,
             productOptionRepositoryPort,
+            optionGroupRepositoryPort,
             eventPublisher,
             currencyProvider,
             logger);

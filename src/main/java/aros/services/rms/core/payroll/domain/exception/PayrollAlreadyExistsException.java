@@ -15,6 +15,6 @@ public class PayrollAlreadyExistsException extends RuntimeException {
    * @param month the month
    */
   public PayrollAlreadyExistsException(Long userId, int year, int month) {
-    super("Payroll already exists for user " + userId + " in " + year + "-" + month);
+    super("La nómina ya existe para el usuario " + userId + " en " + year + "-" + month);
   }
 }

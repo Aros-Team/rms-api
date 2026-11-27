@@ -8,7 +8,7 @@ public record ScheduleShift(Long id, DayOfWeek dayOfWeek, LocalTime startTime, L
   /** Compact constructor validating that startTime is before endTime. */
   public ScheduleShift {
     if (startTime != null && endTime != null && !startTime.isBefore(endTime)) {
-      throw new IllegalArgumentException("startTime must be before endTime");
+      throw new IllegalArgumentException("startTime debe ser anterior a endTime");
     }
   }
 

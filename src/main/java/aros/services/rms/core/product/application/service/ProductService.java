@@ -6,6 +6,7 @@ import aros.services.rms.core.area.application.exception.AreaNotFoundException;
 import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.category.application.exception.CategoryNotFoundException;
 import aros.services.rms.core.category.port.output.CategoryRepositoryPort;
+import aros.services.rms.core.category.port.output.OptionGroupRepositoryPort;
 import aros.services.rms.core.common.logger.Logger;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.inventory.application.exception.SupplyVariantNotFoundException;
@@ -15,13 +16,16 @@ import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.inventory.port.output.ProductRecipeRepositoryPort;
 import aros.services.rms.core.inventory.port.output.SupplyVariantRepositoryPort;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
+import aros.services.rms.core.product.application.exception.ProductOptionNotFoundException;
 import aros.services.rms.core.product.domain.Product;
+import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.core.product.domain.event.ProductUpdatedEvent;
 import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.core.product.port.output.ProductOptionRepositoryPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,6 +55,7 @@ public class ProductService implements ProductUseCase {
   private final SupplyVariantRepositoryPort supplyVariantRepositoryPort;
   private final InventoryStockUseCase inventoryStockUseCase;
   private final ProductOptionRepositoryPort productOptionRepositoryPort;
+  private final OptionGroupRepositoryPort optionGroupRepositoryPort;
   private final ApplicationEventPublisher eventPublisher;
   private final Logger logger;
 
@@ -64,6 +69,7 @@ public class ProductService implements ProductUseCase {
    * @param supplyVariantRepositoryPort the supply variant repository port
    * @param inventoryStockUseCase the inventory stock use case
    * @param productOptionRepositoryPort the product option repository port
+   * @param optionGroupRepositoryPort the option group repository port
    * @param currencyProvider the currency provider
    * @param logger the logger instance
    */
@@ -75,6 +81,7 @@ public class ProductService implements ProductUseCase {
       SupplyVariantRepositoryPort supplyVariantRepositoryPort,
       InventoryStockUseCase inventoryStockUseCase,
       ProductOptionRepositoryPort productOptionRepositoryPort,
+      OptionGroupRepositoryPort optionGroupRepositoryPort,
       ApplicationEventPublisher eventPublisher,
       CurrencyProvider currencyProvider,
       Logger logger) {
@@ -85,6 +92,7 @@ public class ProductService implements ProductUseCase {
     this.supplyVariantRepositoryPort = supplyVariantRepositoryPort;
     this.inventoryStockUseCase = inventoryStockUseCase;
     this.productOptionRepositoryPort = productOptionRepositoryPort;
+    this.optionGroupRepositoryPort = optionGroupRepositoryPort;
     this.eventPublisher = eventPublisher;
     this.currencyProvider = currencyProvider;
     this.logger = logger;
@@ -155,6 +163,12 @@ public class ProductService implements ProductUseCase {
     existing.setCategory(product.getCategory());
     existing.setPreparationAreaId(product.getPreparationAreaId());
     existing.setEstimatedPrepMinutes(product.getEstimatedPrepMinutes());
+    if (product.getRequiredWorkers() != null) {
+      existing.setRequiredWorkers(product.getRequiredWorkers());
+    }
+    if (product.getPrepTimeMode() != null) {
+      existing.setPrepTimeMode(product.getPrepTimeMode());
+    }
 
     Product saved = productRepositoryPort.save(existing);
 
@@ -476,6 +490,65 @@ public class ProductService implements ProductUseCase {
         throw new SupplyVariantNotFoundException(recipe.getSupplyVariantId());
       }
     }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void associateOption(Long productId, Long optionId, BigDecimal extraPrice) {
+    productRepositoryPort
+        .findById(productId)
+        .orElseThrow(() -> new ProductNotFoundException(productId));
+    ProductOption option =
+        productOptionRepositoryPort
+            .findById(optionId)
+            .orElseThrow(() -> new ProductOptionNotFoundException(optionId));
+
+    Long optionGroupId = option.getCategory() == null ? null : option.getCategory().getId();
+    if (optionGroupId != null) {
+      // Legacy rows may not have a product_option_groups row yet. Keep the group visible for the
+      // product before attaching the option, without making it mandatory.
+      optionGroupRepositoryPort.associateProduct(productId, optionGroupId, false);
+    }
+
+    productOptionRepositoryPort.upsertOptionAssociation(
+        productId,
+        optionId,
+        extraPrice == null ? BigDecimal.ZERO : extraPrice,
+        productOptionRepositoryPort.nextDisplayOrder(productId));
+
+    eventPublisher.publishEvent(new ProductUpdatedEvent(productId, Instant.now()));
+    logger.info("Option associated: product={}, option={}", productId, optionId);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void updateOptionExtraPrice(Long productId, Long optionId, BigDecimal extraPrice) {
+    if (!productOptionRepositoryPort.isOptionAssociatedWithProduct(productId, optionId)) {
+      throw new ProductOptionNotFoundException(optionId);
+    }
+    productOptionRepositoryPort.updateOptionExtraPrice(
+        productId, optionId, extraPrice == null ? BigDecimal.ZERO : extraPrice);
+    eventPublisher.publishEvent(new ProductUpdatedEvent(productId, Instant.now()));
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void detachOption(Long productId, Long optionId) {
+    productOptionRepositoryPort.removeOptionFromProduct(productId, optionId);
+    eventPublisher.publishEvent(new ProductUpdatedEvent(productId, Instant.now()));
+    logger.info("Option detached: product={}, option={}", productId, optionId);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void detachOptionGroup(Long productId, Long optionGroupId) {
+    productRepositoryPort
+        .findById(productId)
+        .orElseThrow(() -> new ProductNotFoundException(productId));
+    productOptionRepositoryPort.removeOptionsByGroupFromProduct(productId, optionGroupId);
+    optionGroupRepositoryPort.detachProduct(productId, optionGroupId);
+    eventPublisher.publishEvent(new ProductUpdatedEvent(productId, Instant.now()));
+    logger.info("Option group detached: product={}, group={}", productId, optionGroupId);
   }
 
   /**

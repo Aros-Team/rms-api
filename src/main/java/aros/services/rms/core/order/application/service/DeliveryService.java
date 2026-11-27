@@ -3,7 +3,10 @@
 package aros.services.rms.core.order.application.service;
 
 import aros.services.rms.core.common.metrics.BusinessMetricsPort;
+import aros.services.rms.core.order.application.exception.OrderDetailNotFoundException;
+import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.domain.Order;
+import aros.services.rms.core.order.domain.OrderDetail;
 import aros.services.rms.core.order.domain.OrderStatus;
 import aros.services.rms.core.order.port.input.DeliveryUseCase;
 import aros.services.rms.core.order.port.output.OrderRepositoryPort;
@@ -11,6 +14,8 @@ import aros.services.rms.core.table.domain.Table;
 import aros.services.rms.core.table.domain.TableStatus;
 import aros.services.rms.core.table.port.output.TableRepositoryPort;
 import aros.services.rms.infraestructure.common.exception.ServiceUnavailableException;
+import java.time.LocalDateTime;
+import java.util.Objects;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.retry.annotation.Backoff;
@@ -44,6 +49,55 @@ public class DeliveryService implements DeliveryUseCase {
     this.metricsPort = metricsPort;
   }
 
+  /** {@inheritDoc} */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public Order markDetailAsDelivered(Long orderId, Long detailId) {
+    Order order =
+        orderRepositoryPort
+            .findById(orderId)
+            .orElseThrow(() -> new OrderNotFoundException(orderId));
+    OrderDetail detail =
+        order.getDetails() == null
+            ? null
+            : order.getDetails().stream()
+                .filter(
+                    candidate -> candidate != null && Objects.equals(detailId, candidate.getId()))
+                .findFirst()
+                .orElse(null);
+    if (detail == null) {
+      throw new OrderDetailNotFoundException(orderId, detailId);
+    }
+    if (!detail.isReady()) {
+      throw new IllegalStateException("La línea todavía no está lista para entregar");
+    }
+    if (detail.isDelivered()) {
+      return order;
+    }
+    LocalDateTime deliveredAt = LocalDateTime.now();
+    detail.setDelivered(true);
+    detail.setDeliveredAt(deliveredAt);
+    boolean allDelivered =
+        order.getDetails().stream().filter(Objects::nonNull).allMatch(OrderDetail::isDelivered);
+    if (allDelivered) {
+      order.setStatus(OrderStatus.DELIVERED);
+      order.setDeliveredAt(deliveredAt);
+      if (order.getCloseTime() == null) {
+        order.setCloseTime(deliveredAt);
+      }
+    }
+    Order saved = orderRepositoryPort.save(order);
+    if (allDelivered) {
+      releaseTableIfNeeded(saved);
+      metricsPort.recordOrderStatusTransition("READY", "DELIVERED");
+      metricsPort.recordOrderDelivery();
+    }
+    return saved;
+  }
+
   /** {@inheritDoc} Cambia el estado de READY a DELIVERED y libera la mesa. */
   @Override
   @Retryable(
@@ -54,15 +108,34 @@ public class DeliveryService implements DeliveryUseCase {
     Order order =
         orderRepositoryPort
             .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+            .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado"));
 
     if (order.getStatus() != OrderStatus.READY) {
-      throw new IllegalStateException("Order can only be delivered when in READY status");
+      throw new IllegalStateException(
+          "El pedido solo se puede entregar cuando está en estado READY");
     }
 
+    boolean hasPendingLines =
+        order.getDetails() != null
+            && order.getDetails().stream()
+                .filter(Objects::nonNull)
+                .anyMatch(detail -> !detail.isReady());
+    if (hasPendingLines) {
+      throw new IllegalStateException("Todavía hay líneas sin terminar en el pedido");
+    }
+    LocalDateTime deliveredAt = LocalDateTime.now();
+    if (order.getDetails() != null) {
+      for (OrderDetail detail : order.getDetails()) {
+        if (detail != null && !detail.isDelivered()) {
+          detail.setDelivered(true);
+          detail.setDeliveredAt(deliveredAt);
+        }
+      }
+    }
     order.setStatus(OrderStatus.DELIVERED);
+    order.setDeliveredAt(deliveredAt);
     if (order.getCloseTime() == null) {
-      order.setCloseTime(java.time.LocalDateTime.now());
+      order.setCloseTime(deliveredAt);
     }
     Order savedOrder = orderRepositoryPort.save(order);
 

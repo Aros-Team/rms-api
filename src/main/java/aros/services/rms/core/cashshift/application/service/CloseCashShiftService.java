@@ -51,13 +51,13 @@ public class CloseCashShiftService implements CloseCashShiftUseCase {
   @Override
   public CashShiftSummary close(CloseCashShiftCommand command) {
     if (command == null || command.shiftId() == null) {
-      throw new InvalidCashShiftException("A shiftId is required");
+      throw new InvalidCashShiftException("El shiftId es obligatorio");
     }
     if (command.countedCash() == null) {
-      throw new InvalidCashShiftException("The counted cash is required");
+      throw new InvalidCashShiftException("El efectivo contado es obligatorio");
     }
     if (command.countedCash().isNegative()) {
-      throw new InvalidCashShiftException("The counted cash cannot be negative");
+      throw new InvalidCashShiftException("El efectivo contado no puede ser negativo");
     }
 
     CashShift shift =

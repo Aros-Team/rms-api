@@ -11,6 +11,6 @@ public class SupplyAlreadyExistsException extends RuntimeException {
    * @param name supply name
    */
   public SupplyAlreadyExistsException(String name) {
-    super("Supply already exists: name=" + name);
+    super("El insumo ya existe: nombre=" + name);
   }
 }

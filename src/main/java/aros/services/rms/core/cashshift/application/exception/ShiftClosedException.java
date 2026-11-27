@@ -11,6 +11,6 @@ public class ShiftClosedException extends RuntimeException {
    * @param shiftId the closed shift
    */
   public ShiftClosedException(Long shiftId) {
-    super("Cash shift " + shiftId + " is closed and cannot be modified");
+    super("El turno de caja " + shiftId + " está cerrado y no se puede modificar");
   }
 }

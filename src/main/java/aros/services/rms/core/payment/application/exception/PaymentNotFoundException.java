@@ -11,6 +11,6 @@ public class PaymentNotFoundException extends RuntimeException {
    * @param id the missing payment id
    */
   public PaymentNotFoundException(Long id) {
-    super("Payment not found: " + id);
+    super("Pago no encontrado: " + id);
   }
 }

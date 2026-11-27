@@ -18,12 +18,12 @@ import jakarta.validation.constraints.Size;
             + "\"active\": true}")
 public record SupplierUpdateRequest(
     @Schema(description = "Supplier name", example = "Distribuidora El Mayorista")
-        @NotBlank(message = "Supplier name is required")
-        @Size(max = 255, message = "Name must not exceed 255 characters")
+        @NotBlank(message = "El nombre del proveedor es obligatorio")
+        @Size(max = 255, message = "El nombre no debe superar los 255 caracteres")
         String name,
     @Schema(description = "Contact phone or email", example = "3001234567")
-        @Size(max = 255, message = "Contact must not exceed 255 characters")
+        @Size(max = 255, message = "El contacto no debe superar los 255 caracteres")
         String contact,
     @Schema(description = "Whether the supplier is active", example = "true")
-        @NotNull(message = "Active status is required")
+        @NotNull(message = "El estado activo es obligatorio")
         Boolean active) {}

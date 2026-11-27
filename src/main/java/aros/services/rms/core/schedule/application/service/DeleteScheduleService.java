@@ -40,12 +40,14 @@ public class DeleteScheduleService implements DeleteScheduleUseCase {
   @Override
   public void delete(ScheduleId id) {
     if (scheduleRepository.findById(id).isEmpty()) {
-      throw new ScheduleNotFoundException("Schedule not found with id: " + id.value());
+      throw new ScheduleNotFoundException("Horario no encontrado con id: " + id.value());
     }
 
     if (assignmentRepository.existsByScheduleId(id)) {
       throw new ScheduleHasAssignmentsException(
-          "Cannot delete schedule with id: " + id.value() + " because it has active assignments");
+          "No se puede eliminar el horario con id: "
+              + id.value()
+              + " porque tiene asignaciones activas");
     }
 
     scheduleRepository.delete(id);

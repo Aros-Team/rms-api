@@ -41,7 +41,7 @@ public class SpecialSelectionPersistenceAdapter implements SpecialSelectionRepos
     Product productEntity =
         productRepository
             .findById(productId)
-            .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
+            .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + productId));
 
     // The combo owns the product's master data: the wizard edits name, description and price in
     // the same form, and the dedicated price endpoint must update the product as well.

@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.area.domain.AreaActivity;
 import aros.services.rms.core.order.application.exception.OrderDetailNotFoundException;
 import aros.services.rms.core.order.application.exception.OrderNotFoundException;
 import aros.services.rms.core.order.domain.Order;
@@ -104,7 +105,7 @@ class OrderQueryControllerWebMvcTest {
   void setUp() {
     OrderResponse dummyResponse =
         new OrderResponse(
-            1L, LocalDateTime.now(), "QUEUE", null, null, null, null, null, List.of());
+            1L, LocalDateTime.now(), "QUEUE", null, null, null, null, null, null, null, List.of());
     when(orderResponseMapper.toResponse(any())).thenReturn(dummyResponse);
     when(orderResponseMapper.toResponses(anyList()))
         .thenAnswer(
@@ -340,18 +341,22 @@ class OrderQueryControllerWebMvcTest {
     mockMvc
         .perform(put(URL + "/999/prepare").with(kitchenJwt()))
         .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.detail").value("Order not found: 999"));
+        .andExpect(jsonPath("$.detail").value("Pedido no encontrado: 999"));
   }
 
   @Test
   void shouldReturn409_whenOrderIsNotInQueue() throws Exception {
     when(preparationUseCase.prepareOrder(8L))
-        .thenThrow(new IllegalStateException("Order can only be prepared when in QUEUE status"));
+        .thenThrow(
+            new IllegalStateException(
+                "El pedido solo se puede preparar cuando está en estado QUEUE"));
 
     mockMvc
         .perform(put(URL + "/8/prepare").with(kitchenJwt()))
         .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.detail").value("Order can only be prepared when in QUEUE status"));
+        .andExpect(
+            jsonPath("$.detail")
+                .value("El pedido solo se puede preparar cuando está en estado QUEUE"));
   }
 
   @Test
@@ -397,7 +402,8 @@ class OrderQueryControllerWebMvcTest {
     mockMvc
         .perform(put(URL + "/7/details/404/ready").with(kitchenJwt()))
         .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.detail").value("Order detail not found: 404 in order 7"));
+        .andExpect(
+            jsonPath("$.detail").value("Detalle del pedido no encontrado: 404 en el pedido 7"));
   }
 
   @Test
@@ -405,7 +411,8 @@ class OrderQueryControllerWebMvcTest {
     when(markAsReadyUseCase.markDetailAsReady(9L, 10L))
         .thenThrow(
             new IllegalStateException(
-                "Order details can only be marked as ready when in PREPARING status"));
+                "Los detalles del pedido solo se pueden marcar como listos cuando están "
+                    + "en estado PREPARING"));
 
     mockMvc
         .perform(put(URL + "/9/details/10/ready").with(kitchenJwt()))
@@ -447,7 +454,7 @@ class OrderQueryControllerWebMvcTest {
                 builder
                     .subject("cook@test.com")
                     .claim("role", "WORKER")
-                    .claim("areaTypes", List.of("KITCHEN")))
+                    .claim("areaTypes", List.of(AreaActivity.PREPARATION.name())))
         .authorities(new SimpleGrantedAuthority("ROLE_USER"));
   }
 
@@ -458,7 +465,7 @@ class OrderQueryControllerWebMvcTest {
                 builder
                     .subject("waiter@test.com")
                     .claim("role", "WORKER")
-                    .claim("areaTypes", List.of("SERVICE")))
+                    .claim("areaTypes", List.of(AreaActivity.SERVE.name())))
         .authorities(new SimpleGrantedAuthority("ROLE_USER"));
   }
 }

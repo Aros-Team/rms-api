@@ -11,19 +11,19 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "Request payload to change the authenticated user's password")
 public record ChangePasswordRequest(
     @Schema(description = "Current password (8-64 chars)", example = "OldP@ssw0rd")
-        @NotBlank(message = "Current password is required")
-        @Size(min = 8, max = 64, message = "Password must be between 8 and 64 characters")
+        @NotBlank(message = "La contraseña actual es obligatoria")
+        @Size(min = 8, max = 64, message = "La contraseña debe tener entre 8 y 64 caracteres")
         String currentPassword,
     @Schema(
             description =
                 "New password (8-64 chars; must contain uppercase, lowercase,"
                     + " digit and special char)",
             example = "NewP@ssw0rd!")
-        @NotBlank(message = "New password is required")
-        @Size(min = 8, max = 64, message = "Password must be between 8 and 64 characters")
+        @NotBlank(message = "La nueva contraseña es obligatoria")
+        @Size(min = 8, max = 64, message = "La contraseña debe tener entre 8 y 64 caracteres")
         @Pattern(
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*\\p{Punct})[\\p{Graph}]{8,64}$",
             message =
-                "New password must contain at least: one uppercase, one lowercase, "
-                    + "one number and one special character")
+                "La nueva contraseña debe contener al menos: una mayúscula, una minúscula, "
+                    + "un número y un carácter especial")
         String newPassword) {}

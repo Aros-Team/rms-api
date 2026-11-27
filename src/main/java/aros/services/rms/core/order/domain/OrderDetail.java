@@ -59,4 +59,13 @@ public class OrderDetail {
 
   /** When the line was marked ready, or null while it is still pending. */
   private LocalDateTime readyAt;
+
+  /** When this line's station took it. Null means it has not started. */
+  private LocalDateTime preparationStartedAt;
+
+  /** Whether the waiter has delivered this specific line. */
+  @Builder.Default private boolean delivered = false;
+
+  /** When the waiter delivered this line, or null while pending. */
+  private LocalDateTime deliveredAt;
 }

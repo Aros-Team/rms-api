@@ -159,6 +159,6 @@ class InventoryTransferControllerTest extends AbstractJwtIntegrationTest {
         .andExpect(status().isConflict())
         .andExpect(
             jsonPath("$.detail")
-                .value("Insufficient stock for variant 1: required=5.000, available=0.000"));
+                .value("Stock insuficiente para la variante 1: requerido=5.000, disponible=0.000"));
   }
 }

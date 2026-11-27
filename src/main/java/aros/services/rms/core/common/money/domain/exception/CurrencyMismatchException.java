@@ -17,7 +17,7 @@ public class CurrencyMismatchException extends RuntimeException {
    * @param actual the actual currency found
    */
   public CurrencyMismatchException(Currency expected, Currency actual) {
-    super("Currency mismatch: expected " + expected + " but was " + actual);
+    super("La moneda no coincide: se esperaba " + expected + " pero fue " + actual);
     this.expected = expected;
     this.actual = actual;
   }

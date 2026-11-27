@@ -99,7 +99,7 @@ public class ManageConfigurationService implements ManageConfigurationUseCase {
             .findByKey(key)
             .orElseThrow(() -> new ConfigEntryNotFoundException(key));
     if (update == null) {
-      throw new InvalidConfigurationException("Entry update is required");
+      throw new InvalidConfigurationException("La actualización de la entrada es obligatoria");
     }
     if (update.value() != null) {
       existing.setValue(update.value());
@@ -126,7 +126,7 @@ public class ManageConfigurationService implements ManageConfigurationUseCase {
 
   private String validateName(String name) {
     if (name == null || name.isBlank()) {
-      throw new InvalidConfigurationException("group name", "null or blank");
+      throw new InvalidConfigurationException("nombre del grupo", "nulo o vacío");
     }
     return name.trim();
   }

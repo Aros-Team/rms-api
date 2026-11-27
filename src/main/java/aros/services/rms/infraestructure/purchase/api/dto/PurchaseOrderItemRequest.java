@@ -11,17 +11,17 @@ import java.math.BigDecimal;
 @Schema(description = "A single item in a purchase order")
 public record PurchaseOrderItemRequest(
     @Schema(description = "Supply variant ID", example = "3")
-        @NotNull(message = "supplyVariantId is required")
+        @NotNull(message = "supplyVariantId es obligatorio")
         Long supplyVariantId,
     @Schema(description = "Quantity ordered / invoiced by the supplier", example = "10.000")
-        @NotNull(message = "quantityOrdered is required")
-        @DecimalMin(value = "0.001", message = "quantityOrdered must be greater than 0")
+        @NotNull(message = "quantityOrdered es obligatorio")
+        @DecimalMin(value = "0.001", message = "quantityOrdered debe ser mayor que 0")
         BigDecimal quantityOrdered,
     @Schema(description = "Quantity received in good condition (enters stock)", example = "8.000")
-        @NotNull(message = "quantityReceived is required")
-        @DecimalMin(value = "0.000", inclusive = true, message = "quantityReceived must be >= 0")
+        @NotNull(message = "quantityReceived es obligatorio")
+        @DecimalMin(value = "0.000", inclusive = true, message = "quantityReceived debe ser >= 0")
         BigDecimal quantityReceived,
     @Schema(description = "Unit price paid to the supplier", example = "15000.00")
-        @NotNull(message = "unitPrice is required")
-        @DecimalMin(value = "0.00", inclusive = true, message = "unitPrice must be >= 0")
+        @NotNull(message = "unitPrice es obligatorio")
+        @DecimalMin(value = "0.00", inclusive = true, message = "unitPrice debe ser >= 0")
         BigDecimal unitPrice) {}

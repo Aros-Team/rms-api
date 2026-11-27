@@ -13,17 +13,23 @@ import aros.services.rms.core.image.domain.ImageEntityType;
 import aros.services.rms.core.image.port.output.ImageRepositoryPort;
 import aros.services.rms.core.image.port.output.StoragePort;
 import aros.services.rms.core.inventory.domain.ProductRecipe;
+import aros.services.rms.core.product.domain.PrepTimeMode;
 import aros.services.rms.core.product.domain.Product;
 import aros.services.rms.core.product.domain.ProductCost;
 import aros.services.rms.core.product.domain.ProductCostBreakdown;
+import aros.services.rms.core.product.domain.ProductPrepTime;
 import aros.services.rms.core.product.port.input.CalculateProductCostUseCase;
 import aros.services.rms.core.product.port.input.GetProductCostBreakdownUseCase;
+import aros.services.rms.core.product.port.input.GetProductPrepTimeUseCase;
 import aros.services.rms.core.product.port.input.ProductUseCase;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.infraestructure.common.dto.MoneyDto;
+import aros.services.rms.infraestructure.product.api.dto.OptionAssociationRequest;
+import aros.services.rms.infraestructure.product.api.dto.OptionExtraPriceRequest;
 import aros.services.rms.infraestructure.product.api.dto.OptionExtrasRequest;
 import aros.services.rms.infraestructure.product.api.dto.ProductCostResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductOptionResponse;
+import aros.services.rms.infraestructure.product.api.dto.ProductPrepTimeResponse;
 import aros.services.rms.infraestructure.product.api.dto.ProductRequest;
 import aros.services.rms.infraestructure.product.api.dto.ProductResponse;
 import aros.services.rms.infraestructure.product.api.dto.RecipeItemRequest;
@@ -51,6 +57,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -74,6 +81,7 @@ public class ProductController {
   private final ProductUseCase productUseCase;
   private final CalculateProductCostUseCase calculateProductCostUseCase;
   private final GetProductCostBreakdownUseCase getProductCostBreakdownUseCase;
+  private final GetProductPrepTimeUseCase getProductPrepTimeUseCase;
   private final ImageRepositoryPort imageRepositoryPort;
   private final StoragePort storagePort;
   private final OptionGroupUseCase optionGroupUseCase;
@@ -119,6 +127,8 @@ public class ProductController {
             .optionExtras(mapOptionExtras(request.optionExtras()))
             .recipe(recipe)
             .estimatedPrepMinutes(request.estimatedPrepMinutes())
+            .requiredWorkers(request.requiredWorkers() == null ? 1 : request.requiredWorkers())
+            .prepTimeMode(parsePrepTimeMode(request.prepTimeMode()))
             .build();
 
     Product created = productUseCase.create(product);
@@ -162,6 +172,8 @@ public class ProductController {
             .optionExtras(mapOptionExtras(request.optionExtras()))
             .recipe(recipe)
             .estimatedPrepMinutes(request.estimatedPrepMinutes())
+            .requiredWorkers(request.requiredWorkers() == null ? 1 : request.requiredWorkers())
+            .prepTimeMode(parsePrepTimeMode(request.prepTimeMode()))
             .build();
 
     Product updated = productUseCase.update(id, product);
@@ -222,10 +234,10 @@ public class ProductController {
           @RequestParam(required = false)
           String search) {
     if (page < 0) {
-      throw new IllegalArgumentException("Page parameter must be greater than or equal to 0");
+      throw new IllegalArgumentException("El parámetro page debe ser mayor o igual a 0");
     }
     if (size <= 0 || size > 100) {
-      throw new IllegalArgumentException("Size parameter must be between 1 and 100");
+      throw new IllegalArgumentException("El parámetro size debe estar entre 1 y 100");
     }
     var pageable = PageRequest.of(page, size);
     Page<ProductResponse> responses;
@@ -483,6 +495,125 @@ public class ProductController {
   }
 
   /**
+   * Associates an existing option with a product.
+   *
+   * @param id the product ID
+   * @param request the option and its surcharge
+   * @return 204 on success
+   */
+  @Operation(
+      tags = {"Products"},
+      summary = "Associate an option with a product",
+      description =
+          "Creates or updates the association between a product and an existing product option,"
+              + " including the per-product surcharge. The option group is associated with the"
+              + " product when it was not linked yet (legacy data).",
+      responses = {
+        @ApiResponse(responseCode = "204", description = "Option associated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Product or option not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @PostMapping("/{id}/options")
+  @JustAdminUser
+  public ResponseEntity<Void> associateOption(
+      @Parameter(description = "Product ID", example = "1", required = true) @PathVariable Long id,
+      @Valid @RequestBody OptionAssociationRequest request) {
+    productUseCase.associateOption(id, request.optionId(), request.extraPrice());
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Updates the surcharge of an option already associated with a product.
+   *
+   * @param id the product ID
+   * @param optionId the option ID
+   * @param request the new surcharge
+   * @return 204 on success
+   */
+  @Operation(
+      tags = {"Products"},
+      summary = "Update an option surcharge for a product",
+      responses = {
+        @ApiResponse(responseCode = "204", description = "Surcharge updated successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Associación no encontrada"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @PutMapping("/{id}/options/{optionId}")
+  @JustAdminUser
+  public ResponseEntity<Void> updateOptionExtraPrice(
+      @Parameter(description = "Product ID", example = "1", required = true) @PathVariable Long id,
+      @Parameter(description = "Option ID", example = "12", required = true) @PathVariable
+          Long optionId,
+      @RequestBody OptionExtraPriceRequest request) {
+    productUseCase.updateOptionExtraPrice(id, optionId, request.extraPrice());
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Removes one option association from a product.
+   *
+   * @param id the product ID
+   * @param optionId the option ID
+   * @return 204 on success
+   */
+  @Operation(
+      tags = {"Products"},
+      summary = "Detach an option from a product",
+      responses = {
+        @ApiResponse(responseCode = "204", description = "Option detached successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @DeleteMapping("/{id}/options/{optionId}")
+  @JustAdminUser
+  public ResponseEntity<Void> detachOption(
+      @Parameter(description = "Product ID", example = "1", required = true) @PathVariable Long id,
+      @Parameter(description = "Option ID", example = "12", required = true) @PathVariable
+          Long optionId) {
+    productUseCase.detachOption(id, optionId);
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Detaches an option group from a product.
+   *
+   * <p>Removes the product-group association and every product-option association that belongs to
+   * the group. The group and its options remain in the database for future reuse.
+   *
+   * @param id the product ID
+   * @param optionGroupId the option-group ID
+   * @return 204 on success
+   */
+  @Operation(
+      tags = {"Products"},
+      summary = "Detach an option group from a product",
+      description =
+          "Removes the product-group link and the product's option associations for that group."
+              + " The group and its options are kept in the catalogue (detach only).",
+      responses = {
+        @ApiResponse(responseCode = "204", description = "Option group detached successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Product not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @DeleteMapping("/{id}/option-groups/{optionGroupId}")
+  @JustAdminUser
+  public ResponseEntity<Void> detachOptionGroup(
+      @Parameter(description = "Product ID", example = "1", required = true) @PathVariable Long id,
+      @Parameter(description = "Option group ID", example = "4", required = true) @PathVariable
+          Long optionGroupId) {
+    productUseCase.detachOptionGroup(id, optionGroupId);
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
    * Calculates the on-the-fly production cost of a product.
    *
    * @param id the product ID
@@ -508,6 +639,45 @@ public class ProductController {
           Long id) {
     ProductCost cost = calculateProductCostUseCase.calculateCost(id);
     return ResponseEntity.ok(ProductCostResponse.fromDomain(cost));
+  }
+
+  /**
+   * Resolves the estimated and measured preparation times used for costing.
+   *
+   * @param id the product ID
+   * @return both values plus the one currently used
+   */
+  @Operation(
+      tags = {"Products"},
+      summary = "Get product preparation times",
+      description =
+          "Returns the editable estimate, the measured average (when available) and which one"
+              + " feeds the labor cost.",
+      responses = {
+        @ApiResponse(responseCode = "200", description = "Preparation times retrieved"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "404", description = "Product not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+      })
+  @GetMapping("/{id}/prep-time")
+  public ResponseEntity<ProductPrepTimeResponse> getPrepTime(
+      @Parameter(description = "Product ID", example = "1", required = true) @PathVariable
+          Long id) {
+    ProductPrepTime prepTime = getProductPrepTimeUseCase.get(id);
+    return ResponseEntity.ok(ProductPrepTimeResponse.fromDomain(prepTime));
+  }
+
+  private static PrepTimeMode parsePrepTimeMode(String value) {
+    if (value == null || value.isBlank()) {
+      return PrepTimeMode.ESTIMATED;
+    }
+    try {
+      return PrepTimeMode.valueOf(value.trim());
+    } catch (IllegalArgumentException unknown) {
+      throw new IllegalArgumentException(
+          "prepTimeMode inválido: '" + value + "'. Allowed values: ESTIMATED, REAL, AUTO");
+    }
   }
 
   private List<ProductRecipe> mapRecipe(List<RecipeItemRequest> recipeRequests) {

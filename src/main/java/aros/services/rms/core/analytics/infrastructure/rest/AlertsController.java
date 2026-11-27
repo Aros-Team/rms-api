@@ -92,7 +92,7 @@ public class AlertsController {
       return AlertStatus.valueOf(value.trim().toUpperCase(java.util.Locale.ROOT));
     } catch (IllegalArgumentException exception) {
       throw new InvalidAnalyticsPeriodException(
-          "Invalid status '" + value + "'. Must be OPEN, READ or DISMISSED.");
+          "Estado inválido '" + value + "'. Debe ser OPEN, READ o DISMISSED.");
     }
   }
 
@@ -104,7 +104,7 @@ public class AlertsController {
       return AlertSeverity.valueOf(value.trim().toUpperCase(java.util.Locale.ROOT));
     } catch (IllegalArgumentException exception) {
       throw new InvalidAnalyticsPeriodException(
-          "Invalid severity '" + value + "'. Must be RED, YELLOW or INFO.");
+          "Severidad inválida '" + value + "'. Debe ser RED, YELLOW o INFO.");
     }
   }
 }

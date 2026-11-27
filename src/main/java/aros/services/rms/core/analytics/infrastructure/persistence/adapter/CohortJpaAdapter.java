@@ -100,6 +100,6 @@ public class CohortJpaAdapter implements CohortQueryPort {
     if (value instanceof java.util.Date date) {
       return LocalDateTime.ofInstant(date.toInstant(), java.time.ZoneId.systemDefault());
     }
-    throw new IllegalArgumentException("Unsupported date column type: " + value);
+    throw new IllegalArgumentException("Tipo de columna de fecha no soportado: " + value);
   }
 }

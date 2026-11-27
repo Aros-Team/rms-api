@@ -8,7 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
  * Annotation for operational staff whose area feeds the shared order lifecycle: ADMIN or a WORKER
- * assigned to any operational area (SERVICE, BAR, KITCHEN, GRILL or CASH).
+ * assigned to any operational area (PREPARATION, SERVE or CASH).
  *
  * <p>Used for order reads and delivery because waiters, kitchen and cashier all participate in
  * those transitions today.
@@ -17,6 +17,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @Retention(RetentionPolicy.RUNTIME)
 @PreAuthorize(
     "T(aros.services.rms.infraestructure.share.security.SecurityExpressions)"
-        + ".hasAnyArea(principal, 'SERVICE', 'BAR', 'KITCHEN', 'GRILL', 'CASH')"
+        + ".hasAnyActivity(principal)"
         + " or principal.claims['role'] == 'ADMIN'")
 public @interface JustOperationsStaff {}

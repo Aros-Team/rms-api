@@ -150,7 +150,7 @@ class ScheduleControllerTest {
     when(jwtDecoder.decode(anyString())).thenReturn(createAdminJwt());
     when(createScheduleUseCase.create(any()))
         .thenThrow(
-            new ScheduleAlreadyExistsException("Schedule already exists with name: Morning"));
+            new ScheduleAlreadyExistsException("Ya existe un horario con el nombre: Morning"));
 
     mockMvc
         .perform(
@@ -242,7 +242,7 @@ class ScheduleControllerTest {
     when(jwtDecoder.decode(anyString())).thenReturn(createAdminJwt());
     doThrow(
             new ScheduleHasAssignmentsException(
-                "Cannot delete schedule with id: 1 because it has active assignments"))
+                "No se puede eliminar el horario con id: 1 porque tiene asignaciones activas"))
         .when(deleteScheduleUseCase)
         .delete(any());
 

@@ -11,10 +11,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import aros.services.rms.core.area.domain.Area;
+import aros.services.rms.core.area.domain.AreaActivity;
 import aros.services.rms.core.area.domain.AreaId;
-import aros.services.rms.core.area.domain.AreaType;
-import aros.services.rms.core.area.port.output.AreaRepositoryPort;
+import aros.services.rms.core.area.port.output.WorkerAreaActivityPort;
 import aros.services.rms.core.user.domain.User;
 import aros.services.rms.core.user.domain.UserEmail;
 import aros.services.rms.core.user.domain.UserId;
@@ -56,12 +55,18 @@ class TokenAdapterTest {
 
   @Mock private JwtService jwtService;
 
-  @Mock private AreaRepositoryPort areaRepositoryPort;
+  @Mock private WorkerAreaActivityPort workerAreaActivityPort;
 
   @InjectMocks private TokenAdapter adapter;
 
   @Test
   void should_resolve_area_types_when_generating_access_token() {
+    when(workerAreaActivityPort.findByUserId(10L)).thenReturn(java.util.Map.of());
+    when(workerAreaActivityPort.findAreaActivities(List.of(2L)))
+        .thenReturn(java.util.Map.of(2L, java.util.Set.of(AreaActivity.SERVE)));
+    when(jwtService.generateAccessToken(anyString(), any(), anyList(), anyList(), anyBoolean()))
+        .thenReturn("access-token");
+
     User user =
         new User(
             UserId.of(10L),
@@ -74,11 +79,6 @@ class TokenAdapterTest {
             UserRole.WORKER,
             UserStatus.ACTIVE,
             List.of(AreaId.of(2L)));
-    Area serviceArea = Area.builder().id(2L).name("Servicio").type(AreaType.SERVICE).build();
-
-    when(areaRepositoryPort.findByIdIn(List.of(2L))).thenReturn(List.of(serviceArea));
-    when(jwtService.generateAccessToken(anyString(), any(), anyList(), anyList(), anyBoolean()))
-        .thenReturn("access-token");
 
     adapter.generateAccessToken(user, false);
 
@@ -91,7 +91,7 @@ class TokenAdapterTest {
             eq(List.of(AreaId.of(2L))),
             areaTypes.capture(),
             eq(false));
-    assertEquals(List.of("SERVICE"), areaTypes.getValue());
+    assertEquals(List.of(AreaActivity.SERVE.name()), areaTypes.getValue());
   }
 
   @Test

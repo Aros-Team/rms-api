@@ -124,7 +124,7 @@ class RegisterSettlementServiceTest {
             PayrollSettlementException.class,
             () -> service.execute(settlement(USER_ID, "1000001", 1, 31)));
 
-    assertEquals(true, exception.getMessage().contains("exceeds the pending amount"));
+    assertEquals(true, exception.getMessage().contains("supera el monto pendiente"));
     verify(settlementRepository, never()).save(any());
   }
 
@@ -142,7 +142,7 @@ class RegisterSettlementServiceTest {
             PayrollSettlementException.class,
             () -> service.execute(settlement(999L, "100000", 1, 31)));
 
-    assertEquals(true, exception.getMessage().contains("does not match payroll user"));
+    assertEquals(true, exception.getMessage().contains("no coincide con el usuario de la nómina"));
     verify(settlementRepository, never()).save(any());
   }
 
@@ -170,7 +170,7 @@ class RegisterSettlementServiceTest {
                         null,
                         "admin")));
 
-    assertEquals(true, exception.getMessage().contains("outside the payroll period"));
+    assertEquals(true, exception.getMessage().contains("fuera del periodo de nómina"));
     verify(settlementRepository, never()).save(any());
   }
 
@@ -190,7 +190,7 @@ class RegisterSettlementServiceTest {
             PayrollSettlementException.class,
             () -> service.execute(settlement(USER_ID, "500000", 1, 15)));
 
-    assertEquals(true, exception.getMessage().contains("overlaps settlement 1"));
+    assertEquals(true, exception.getMessage().contains("se superpone con la liquidación 1"));
     verify(settlementRepository, never()).save(any());
   }
 
@@ -245,7 +245,7 @@ class RegisterSettlementServiceTest {
     PayrollSettlementException exception =
         assertThrows(PayrollSettlementException.class, () -> service.execute(settlement));
 
-    assertEquals("Settlement amount must be positive", exception.getMessage());
+    assertEquals("El monto de la liquidación debe ser positivo", exception.getMessage());
     verify(settlementRepository, never()).save(any());
   }
 

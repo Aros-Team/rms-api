@@ -11,6 +11,6 @@ public class TableNotFoundException extends RuntimeException {
    * @param id the table identifier that was not found
    */
   public TableNotFoundException(Long id) {
-    super("Table not found: " + id);
+    super("Mesa no encontrada: " + id);
   }
 }

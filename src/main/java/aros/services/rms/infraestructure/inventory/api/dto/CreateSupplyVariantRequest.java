@@ -19,14 +19,14 @@ import java.math.BigDecimal;
     example = "{\"supplyId\": 3, \"unitId\": 2, \"quantity\": 0.500, \"unitCost\": 12000.00}")
 public record CreateSupplyVariantRequest(
     @Schema(description = "Supply (insumo) ID — must already exist", example = "3")
-        @NotNull(message = "supplyId is required")
+        @NotNull(message = "supplyId es obligatorio")
         Long supplyId,
     @Schema(description = "Unit of measure ID — get from GET /api/v1/supplies/units", example = "2")
-        @NotNull(message = "unitId is required")
+        @NotNull(message = "unitId es obligatorio")
         Long unitId,
     @Schema(description = "Quantity per unit presentation (e.g. 0.500 for 500g)", example = "0.500")
-        @NotNull(message = "quantity is required")
-        @DecimalMin(value = "0.001", message = "quantity must be greater than 0")
+        @NotNull(message = "La cantidad es obligatoria")
+        @DecimalMin(value = "0.001", message = "La cantidad debe ser mayor que 0")
         BigDecimal quantity,
     @Schema(
             description =
@@ -34,5 +34,5 @@ public record CreateSupplyVariantRequest(
                     + " (used by the product cost / suggested price engine)",
             example = "12000.00",
             nullable = true)
-        @DecimalMin(value = "0.00", inclusive = true, message = "unitCost must be >= 0")
+        @DecimalMin(value = "0.00", inclusive = true, message = "unitCost debe ser >= 0")
         BigDecimal unitCost) {}

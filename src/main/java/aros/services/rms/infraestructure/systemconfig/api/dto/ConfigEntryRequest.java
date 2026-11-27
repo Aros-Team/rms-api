@@ -12,12 +12,12 @@ import jakarta.validation.constraints.Size;
     example = "{\"key\": \"default_currency\", \"value\": \"USD\"}")
 public record ConfigEntryRequest(
     @Schema(description = "Configuration key", example = "default_currency")
-        @NotBlank(message = "Key must not be blank")
-        @Size(max = 120, message = "Key must not exceed 120 characters")
+        @NotBlank(message = "La clave no puede estar vacía")
+        @Size(max = 120, message = "La clave no debe superar los 120 caracteres")
         String key,
     @Schema(description = "Configuration value", example = "USD")
-        @NotBlank(message = "Value must not be blank")
-        @Size(max = 500, message = "Value must not exceed 500 characters")
+        @NotBlank(message = "El valor no puede estar vacío")
+        @Size(max = 500, message = "El valor no debe superar los 500 caracteres")
         String value,
     @Schema(
             description =

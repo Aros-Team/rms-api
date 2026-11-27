@@ -11,6 +11,6 @@ public class SupplierNotFoundException extends RuntimeException {
    * @param id supplier ID
    */
   public SupplierNotFoundException(Long id) {
-    super("Supplier not found: id=" + id);
+    super("Proveedor no encontrado: id=" + id);
   }
 }

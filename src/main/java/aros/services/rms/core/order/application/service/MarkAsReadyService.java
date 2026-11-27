@@ -54,15 +54,19 @@ public class MarkAsReadyService implements MarkAsReadyUseCase {
     Order order =
         orderRepositoryPort
             .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+            .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado"));
 
     if (order.getStatus() != OrderStatus.PREPARING) {
-      throw new IllegalStateException("Order can only be marked as ready when in PREPARING status");
+      throw new IllegalStateException(
+          "El pedido solo se puede marcar como listo cuando está en estado PREPARING");
     }
 
     LocalDateTime readyAt = LocalDateTime.now();
     markAllDetailsReady(order, readyAt);
     order.setStatus(OrderStatus.READY);
+    if (order.getPreparedAt() == null) {
+      order.setPreparedAt(readyAt);
+    }
     Order savedOrder = orderRepositoryPort.save(order);
 
     metricsPort.recordOrderStatusTransition("PREPARING", "READY");
@@ -87,7 +91,8 @@ public class MarkAsReadyService implements MarkAsReadyUseCase {
 
     if (order.getStatus() != OrderStatus.PREPARING && order.getStatus() != OrderStatus.READY) {
       throw new IllegalStateException(
-          "Order details can only be marked as ready when in PREPARING status");
+          "Los detalles del pedido solo se pueden marcar como listos cuando están "
+              + "en estado PREPARING");
     }
 
     OrderDetail detail =
@@ -109,6 +114,11 @@ public class MarkAsReadyService implements MarkAsReadyUseCase {
 
     final boolean wasPreparing = order.getStatus() == OrderStatus.PREPARING;
     LocalDateTime readyAt = LocalDateTime.now();
+    if (detail.getPreparationStartedAt() == null) {
+      // A line marked ready without an explicit start has no measurable duration; keep the row
+      // coherent without inventing a past timestamp.
+      detail.setPreparationStartedAt(readyAt);
+    }
     detail.setReady(true);
     detail.setReadyAt(readyAt);
 
@@ -116,6 +126,9 @@ public class MarkAsReadyService implements MarkAsReadyUseCase {
         order.getDetails().stream().filter(Objects::nonNull).allMatch(OrderDetail::isReady);
     if (allReady) {
       order.setStatus(OrderStatus.READY);
+      if (order.getPreparedAt() == null) {
+        order.setPreparedAt(readyAt);
+      }
     }
 
     Order savedOrder = orderRepositoryPort.save(order);
@@ -128,12 +141,64 @@ public class MarkAsReadyService implements MarkAsReadyUseCase {
     return savedOrder;
   }
 
+  /** {@inheritDoc} */
+  @Override
+  @Retryable(
+      retryFor = {DataAccessException.class},
+      maxAttempts = 3,
+      backoff = @Backoff(delay = 1000))
+  public Order markAreaAsReady(Long orderId, Long areaId) {
+    Order order =
+        orderRepositoryPort
+            .findById(orderId)
+            .orElseThrow(() -> new OrderNotFoundException(orderId));
+    if (order.getStatus() != OrderStatus.PREPARING && order.getStatus() != OrderStatus.READY) {
+      throw new IllegalStateException(
+          "Las líneas del pedido solo se pueden marcar como listas cuando están "
+              + "en estado PREPARING");
+    }
+    LocalDateTime readyAt = LocalDateTime.now();
+    boolean changed = false;
+    if (order.getDetails() != null) {
+      for (OrderDetail detail : order.getDetails()) {
+        if (detail == null
+            || detail.isReady()
+            || detail.getProduct() == null
+            || !Objects.equals(detail.getProduct().getPreparationAreaId(), areaId)) {
+          continue;
+        }
+        if (detail.getPreparationStartedAt() == null) {
+          detail.setPreparationStartedAt(readyAt);
+        }
+        detail.setReady(true);
+        detail.setReadyAt(readyAt);
+        changed = true;
+      }
+    }
+    boolean allReady =
+        order.getDetails() == null
+            || order.getDetails().stream().filter(Objects::nonNull).allMatch(OrderDetail::isReady);
+    if (allReady && order.getDetails() != null && !order.getDetails().isEmpty()) {
+      order.setStatus(OrderStatus.READY);
+      if (order.getPreparedAt() == null) {
+        order.setPreparedAt(readyAt);
+      }
+    }
+    if (!changed) {
+      return order;
+    }
+    return orderRepositoryPort.save(order);
+  }
+
   private void markAllDetailsReady(Order order, LocalDateTime readyAt) {
     if (order.getDetails() == null) {
       return;
     }
     for (OrderDetail detail : order.getDetails()) {
       if (detail != null && !detail.isReady()) {
+        if (detail.getPreparationStartedAt() == null) {
+          detail.setPreparationStartedAt(readyAt);
+        }
         detail.setReady(true);
         detail.setReadyAt(readyAt);
       }

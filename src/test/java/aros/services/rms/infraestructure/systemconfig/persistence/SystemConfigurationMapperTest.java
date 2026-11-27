@@ -73,6 +73,6 @@ class SystemConfigurationMapperTest {
     assertNotNull(createdAt);
     assertTrue(
         !createdAt.isBefore(before) && !createdAt.isAfter(after),
-        "createdAt should be between " + before + " and " + after + " but was " + createdAt);
+        "createdAt should be between " + before + " and " + after + " pero fue " + createdAt);
   }
 }

@@ -3,9 +3,13 @@
 package aros.services.rms.seed;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -37,14 +41,21 @@ final class SeedConstants {
   static final long SEED_USER_LAST = 1017L;
   static final long ADMIN_ID = 1007L;
 
+  /**
+   * Numeric-only document for a seeded user.
+   *
+   * <p>The worker create/update forms and the API validate {@code document} as digits only, so the
+   * seed must not use readable prefixes such as {@code SEED-1007}. The value is deterministic and
+   * unique per user id: {@code 1000001011} for worker 1011.
+   */
+  static String seedDocument(long userId) {
+    return String.format(Locale.ROOT, "1%09d", userId);
+  }
+
   static final long HISTORY_ORDER_ID_BASE = 100_000L;
   static final long OPERATIONAL_ORDER_ID_BASE = 900_000L;
   static final long HISTORY_DETAIL_ID_BASE = 200_000L;
   static final long OPERATIONAL_DETAIL_ID_BASE = 920_000L;
-
-  static final BigDecimal FULL_MONTH_LABOR = new BigDecimal("33500000.00");
-  static final BigDecimal FOH_LABOR = new BigDecimal("14400000.00");
-  static final BigDecimal BOH_LABOR = new BigDecimal("19100000.00");
 
   /** Days of closed cash shifts / payments behind the anchor day (P3-BE-PAY-08). */
   static final int PAYMENT_HISTORY_DAYS = 30;
@@ -55,8 +66,7 @@ final class SeedConstants {
   /** Drawer float used by every seeded cash shift. */
   static final BigDecimal OPENING_FLOAT = new BigDecimal("200000.00");
 
-  static final long CASHIER_ONE = 1013L;
-  static final long CASHIER_TWO = 1014L;
+  static final long CASHIER_ONE = 1012L;
 
   private static final int[] BASE_BY_DOW = {78, 74, 82, 92, 118, 132, 106};
   private static final int[] SEASON_BY_MONTH = {
@@ -75,25 +85,107 @@ final class SeedConstants {
 
   static final int COMBO_BASE_ID = 22;
 
-  /** Workers: id, role, area, salary, bonus, deduction. */
+  /** Workers with their area, pay and weekly shift pattern. */
   static final List<WorkerSpec> WORKERS =
       List.of(
-          new WorkerSpec(1001, "María Gómez", SERVICE_AREA, 2_500_000, 0, 50_000),
-          new WorkerSpec(1002, "Juan Restrepo", SERVICE_AREA, 2_500_000, 0, 50_000),
-          new WorkerSpec(1003, "Carlos Ramírez", KITCHEN_AREA, 2_800_000, 200_000, 50_000),
-          new WorkerSpec(1004, "Andrés Mejía", KITCHEN_AREA, 2_800_000, 200_000, 50_000),
-          new WorkerSpec(1005, "Felipe Cárdenas", KITCHEN_AREA, 2_800_000, 0, 50_000),
-          new WorkerSpec(1006, "Diego Herrera", KITCHEN_AREA, 2_800_000, 0, 50_000),
-          new WorkerSpec(1011, "Laura Osorio", SERVICE_AREA, 2_500_000, 0, 50_000),
-          new WorkerSpec(1012, "Camila Torres", SERVICE_AREA, 2_500_000, 0, 50_000),
-          new WorkerSpec(1013, "Sofía Jiménez", CASH_AREA, 2_200_000, 0, 50_000),
-          new WorkerSpec(1014, "Valentina Ríos", CASH_AREA, 2_200_000, 0, 50_000),
-          new WorkerSpec(1015, "Jorge Salazar", KITCHEN_AREA, 2_800_000, 0, 50_000),
-          new WorkerSpec(1016, "Miguel Ángel Peña", KITCHEN_AREA, 2_800_000, 0, 50_000),
-          new WorkerSpec(1017, "Luisa Fernanda Vargas", KITCHEN_AREA, 1_900_000, 0, 50_000));
+          new WorkerSpec(
+              1011,
+              "Camila Navarro",
+              "Jefa de cocina",
+              List.of(KITCHEN_AREA),
+              3_800_000,
+              200_000,
+              50_000,
+              shifts(tuesdayToFriday(8, 8), shift(DayOfWeek.SATURDAY, 8, 8))),
+          new WorkerSpec(
+              1012,
+              "Bruno Castillo",
+              "Cajero",
+              List.of(CASH_AREA),
+              2_400_000,
+              0,
+              50_000,
+              shifts(tuesdayToFriday(14, 8), shift(DayOfWeek.SATURDAY, 9, 8))),
+          new WorkerSpec(
+              1013,
+              "Renata Flores",
+              "Mesera",
+              List.of(SERVICE_AREA, BAR_AREA),
+              2_300_000,
+              0,
+              50_000,
+              shifts(
+                  wednesdayToFriday(12, 8),
+                  shift(DayOfWeek.SATURDAY, 9, 8),
+                  shift(DayOfWeek.SUNDAY, 9, 8))),
+          new WorkerSpec(
+              1014,
+              "Diego Salas",
+              "Mesero",
+              List.of(SERVICE_AREA, BAR_AREA),
+              1_800_000,
+              0,
+              50_000,
+              shifts(tuesdayToFriday(10, 6), shift(DayOfWeek.SATURDAY, 11, 6))),
+          new WorkerSpec(
+              1015,
+              "Mateo Rivas",
+              "Cocinero",
+              List.of(KITCHEN_AREA),
+              1_750_000,
+              0,
+              50_000,
+              shifts(tuesdayToFriday(8, 6), shift(DayOfWeek.SATURDAY, 8, 6))),
+          new WorkerSpec(
+              1016,
+              "Tomás Méndez",
+              "Cocinero",
+              List.of(KITCHEN_AREA),
+              1_750_000,
+              0,
+              50_000,
+              shifts(tuesdayToFriday(16, 6), shift(DayOfWeek.SATURDAY, 11, 6))),
+          new WorkerSpec(
+              1017,
+              "Valentina Soto",
+              "Auxiliar de cocina",
+              List.of(KITCHEN_AREA),
+              1_300_000,
+              0,
+              50_000,
+              List.of(
+                  shift(DayOfWeek.FRIDAY, 8, 6),
+                  shift(DayOfWeek.SATURDAY, 8, 6),
+                  shift(DayOfWeek.SUNDAY, 8, 6))),
+          new WorkerSpec(
+              1018,
+              "Andrés Valero",
+              "Mesero",
+              List.of(SERVICE_AREA, BAR_AREA),
+              1_900_000,
+              0,
+              50_000,
+              shifts(tuesdayToFriday(11, 6), shift(DayOfWeek.SATURDAY, 12, 6))),
+          new WorkerSpec(
+              1019,
+              "Lucía Ferrer",
+              "Cajera",
+              List.of(CASH_AREA),
+              2_300_000,
+              0,
+              50_000,
+              shifts(tuesdayToFriday(8, 6), shift(DayOfWeek.SATURDAY, 14, 8))));
+
+  /** Gross monthly labor (base + fixed bonus) derived from the roster. */
+  static final BigDecimal FULL_MONTH_LABOR = grossLabor(null);
+
+  /** Front-of-house gross labor: service + cash. */
+  static final BigDecimal FOH_LABOR = grossLabor(List.of(SERVICE_AREA, CASH_AREA));
+
+  /** Back-of-house gross labor: kitchen + bar. */
+  static final BigDecimal BOH_LABOR = grossLabor(List.of(KITCHEN_AREA, BAR_AREA));
 
   static final List<Long> PAYROLL_ADMINS = List.of(1007L, 1008L);
-  static final List<Long> QA_USERS = List.of(1009L, 1010L);
 
   /** Purchase demo depth (P4-INV-06/07): 12 suppliers, 60 orders over the 180-day window. */
   static final int PURCHASE_ORDER_COUNT = 60;
@@ -251,8 +343,67 @@ final class SeedConstants {
   record ProductSpec(
       int id, String name, int price, int weight, int recipeLines, Cost cost, boolean combo) {}
 
-  /** A payroll worker. */
-  record WorkerSpec(long id, String name, int areaId, int salary, int bonus, int deduction) {}
+  /** A payroll worker and the recurring weekly shifts it works. */
+  record WorkerSpec(
+      long id,
+      String name,
+      String jobTitle,
+      List<Integer> areaIds,
+      int salary,
+      int bonus,
+      int deduction,
+      List<ShiftSpec> shifts) {
+
+    int weeklyHours() {
+      return shifts.stream().mapToInt(ShiftSpec::hours).sum();
+    }
+
+    int expectedHoursPerMonth() {
+      return (int) Math.round(weeklyHours() * 52.0 / 12.0);
+    }
+
+    ShiftSpec shiftOn(DayOfWeek day) {
+      return shifts.stream().filter(shift -> shift.day() == day).findFirst().orElse(null);
+    }
+  }
+
+  /** One recurring weekly shift. */
+  record ShiftSpec(DayOfWeek day, LocalTime start, int hours) {}
+
+  private static ShiftSpec shift(DayOfWeek day, int startHour, int hours) {
+    return new ShiftSpec(day, LocalTime.of(startHour, 0), hours);
+  }
+
+  private static List<ShiftSpec> tuesdayToFriday(int startHour, int hours) {
+    return List.of(
+        shift(DayOfWeek.TUESDAY, startHour, hours),
+        shift(DayOfWeek.WEDNESDAY, startHour, hours),
+        shift(DayOfWeek.THURSDAY, startHour, hours),
+        shift(DayOfWeek.FRIDAY, startHour, hours));
+  }
+
+  private static List<ShiftSpec> wednesdayToFriday(int startHour, int hours) {
+    return List.of(
+        shift(DayOfWeek.WEDNESDAY, startHour, hours),
+        shift(DayOfWeek.THURSDAY, startHour, hours),
+        shift(DayOfWeek.FRIDAY, startHour, hours));
+  }
+
+  private static List<ShiftSpec> shifts(List<ShiftSpec> base, ShiftSpec... extra) {
+    List<ShiftSpec> all = new ArrayList<>(base);
+    all.addAll(List.of(extra));
+    return List.copyOf(all);
+  }
+
+  private static BigDecimal grossLabor(List<Integer> areaIds) {
+    BigDecimal total = BigDecimal.ZERO;
+    for (WorkerSpec worker : WORKERS) {
+      if (areaIds == null || areaIds.stream().anyMatch(worker.areaIds()::contains)) {
+        total = total.add(BigDecimal.valueOf(worker.salary() + (long) worker.bonus()));
+      }
+    }
+    return total.setScale(2, RoundingMode.HALF_UP);
+  }
 
   /** A supplier and the catalogue slice it delivers. */
   record SupplierSpec(

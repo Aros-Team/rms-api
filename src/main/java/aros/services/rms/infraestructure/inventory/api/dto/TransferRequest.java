@@ -15,6 +15,6 @@ public record TransferRequest(
     @Schema(
             description = "List of transfer items (at least one)",
             requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotEmpty(message = "Items list cannot be empty")
+        @NotEmpty(message = "La lista de ítems no puede estar vacía")
         @Valid
         List<TransferItemRequest> items) {}

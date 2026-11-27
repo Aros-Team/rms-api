@@ -62,37 +62,37 @@ public record Payroll(
    */
   public Payroll {
     if (userId == null) {
-      throw new IllegalArgumentException("userId must not be null");
+      throw new IllegalArgumentException("userId no puede ser nulo");
     }
     if (period == null) {
-      throw new IllegalArgumentException("period must not be null");
+      throw new IllegalArgumentException("period no puede ser nulo");
     }
     if (baseSalary == null) {
-      throw new IllegalArgumentException("baseSalary must not be null");
+      throw new IllegalArgumentException("baseSalary no puede ser nulo");
     }
     if (manualBonuses == null) {
-      throw new IllegalArgumentException("manualBonuses must not be null");
+      throw new IllegalArgumentException("manualBonuses no puede ser nulo");
     }
     if (manualDeductions == null) {
-      throw new IllegalArgumentException("manualDeductions must not be null");
+      throw new IllegalArgumentException("manualDeductions no puede ser nulo");
     }
     if (bonuses == null) {
-      throw new IllegalArgumentException("bonuses must not be null");
+      throw new IllegalArgumentException("bonuses no puede ser nulo");
     }
     if (deductions == null) {
-      throw new IllegalArgumentException("deductions must not be null");
+      throw new IllegalArgumentException("deductions no puede ser nulo");
     }
     if (netAmount == null) {
-      throw new IllegalArgumentException("netAmount must not be null");
+      throw new IllegalArgumentException("netAmount no puede ser nulo");
     }
     if (paidAmount == null) {
-      throw new IllegalArgumentException("paidAmount must not be null");
+      throw new IllegalArgumentException("paidAmount no puede ser nulo");
     }
     if (hoursWorked == null) {
-      throw new IllegalArgumentException("hoursWorked must not be null");
+      throw new IllegalArgumentException("hoursWorked no puede ser nulo");
     }
     if (status == null) {
-      throw new IllegalArgumentException("status must not be null");
+      throw new IllegalArgumentException("status no puede ser nulo");
     }
   }
 
@@ -171,7 +171,7 @@ public record Payroll(
     Money provisionalNet = newBaseSalary.plus(newManualBonuses).minus(newManualDeductions);
     if (provisionalNet.isNegative()) {
       throw new PayrollAggregationException(
-          "netAmount must not be negative (base + bonuses - deductions < 0)");
+          "netAmount no puede ser negativo (base + bonus - deducciones < 0)");
     }
     return new Payroll(
         id,
@@ -215,7 +215,7 @@ public record Payroll(
     Money newNet = baseSalary.plus(newBonuses).minus(newDeductions);
     if (newNet.isNegative()) {
       throw new PayrollAggregationException(
-          "netAmount must not be negative (base + bonuses - deductions < 0)");
+          "netAmount no puede ser negativo (base + bonus - deducciones < 0)");
     }
     if (newPaidAmount.isGreaterThan(newNet)) {
       throw new PayrollAggregationException(

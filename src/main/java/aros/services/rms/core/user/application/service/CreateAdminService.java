@@ -157,21 +157,21 @@ public class CreateAdminService {
         message =
             String.format(
                 "\n=============================================%n%n"
-                    + "Administrator credentials (DEVELOPMENT):%n%n"
-                    + "Email: %s%n"
-                    + "Password: %s%n%n"
+                    + "Credenciales de administrador (DESARROLLO):%n%n"
+                    + "Correo: %s%n"
+                    + "Contraseña: %s%n%n"
                     + "=============================================%n%n"
-                    + "Note: Save these credentials. They will not be shown again.%n"
-                    + "DO NOT use in production.\n",
+                    + "Nota: guarda estas credenciales. No se volverán a mostrar.%n"
+                    + "NO usar en producción.\n",
                 email, password);
       } else {
         message =
             String.format(
-                "Welcome to the RMS system.%n%n"
-                    + "Your administrator credentials are:%n%n"
-                    + "Email: %s%n"
-                    + "Password: %s%n%n"
-                    + "Please change your password after the first login.",
+                "Bienvenido al sistema RMS.%n%n"
+                    + "Tus credenciales de administrador son:%n%n"
+                    + "Correo: %s%n"
+                    + "Contraseña: %s%n%n"
+                    + "Cambia tu contraseña después del primer inicio de sesión.",
                 email, password);
       }
 
@@ -181,7 +181,7 @@ public class CreateAdminService {
         log.warn("Email could not be sent (development mode - continuing): {}", e.getMessage());
       } else {
         log.error("Error sending email: {}", e.getMessage());
-        throw new IllegalStateException("Error sending email", e);
+        throw new IllegalStateException("Error al enviar el correo", e);
       }
     }
   }

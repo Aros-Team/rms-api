@@ -11,7 +11,7 @@ public class PayrollNotFoundException extends RuntimeException {
    * @param id the payroll id
    */
   public PayrollNotFoundException(Long id) {
-    super("Payroll not found with id: " + id);
+    super("Nómina no encontrada con id: " + id);
   }
 
   /**

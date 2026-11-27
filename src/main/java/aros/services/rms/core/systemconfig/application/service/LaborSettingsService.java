@@ -53,10 +53,10 @@ public class LaborSettingsService implements GetLaborSettingsUseCase, UpdateLabo
   @Transactional
   public LaborSettings update(LaborSettings settings) {
     if (settings == null || settings.mode() == null) {
-      throw new InvalidConfigurationException("Labor cost mode is required");
+      throw new InvalidConfigurationException("El modo de costo de nómina es obligatorio");
     }
     if (settings.standardHourlyRate() == null || settings.standardHourlyRate().isNegative()) {
-      throw new InvalidConfigurationException("standardHourlyRate", "negative or null");
+      throw new InvalidConfigurationException("standardHourlyRate", "negativo o nulo");
     }
     if (settings.defaultExpectedHoursPerMonth() < 0
         || settings.defaultExpectedHoursPerMonth() > 744) {

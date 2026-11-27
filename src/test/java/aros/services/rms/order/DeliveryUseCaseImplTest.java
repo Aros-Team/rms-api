@@ -113,7 +113,7 @@ class DeliveryUseCaseImplTest {
     IllegalArgumentException exception =
         assertThrows(IllegalArgumentException.class, () -> deliveryUseCase.markAsDelivered(99L));
 
-    assertEquals("Order not found", exception.getMessage());
+    assertEquals("Pedido no encontrado", exception.getMessage());
     verify(orderRepositoryPort, times(1)).findById(99L);
     verify(orderRepositoryPort, times(0)).save(any(Order.class));
   }
@@ -127,7 +127,8 @@ class DeliveryUseCaseImplTest {
     IllegalStateException exception =
         assertThrows(IllegalStateException.class, () -> deliveryUseCase.markAsDelivered(1L));
 
-    assertEquals("Order can only be delivered when in READY status", exception.getMessage());
+    assertEquals(
+        "El pedido solo se puede entregar cuando está en estado READY", exception.getMessage());
     verify(orderRepositoryPort, times(1)).findById(1L);
     verify(orderRepositoryPort, times(0)).save(any(Order.class));
   }
@@ -141,7 +142,8 @@ class DeliveryUseCaseImplTest {
     IllegalStateException exception =
         assertThrows(IllegalStateException.class, () -> deliveryUseCase.markAsDelivered(1L));
 
-    assertEquals("Order can only be delivered when in READY status", exception.getMessage());
+    assertEquals(
+        "El pedido solo se puede entregar cuando está en estado READY", exception.getMessage());
   }
 
   @Test
@@ -153,7 +155,8 @@ class DeliveryUseCaseImplTest {
     IllegalStateException exception =
         assertThrows(IllegalStateException.class, () -> deliveryUseCase.markAsDelivered(1L));
 
-    assertEquals("Order can only be delivered when in READY status", exception.getMessage());
+    assertEquals(
+        "El pedido solo se puede entregar cuando está en estado READY", exception.getMessage());
   }
 
   @Test
@@ -165,6 +168,7 @@ class DeliveryUseCaseImplTest {
     IllegalStateException exception =
         assertThrows(IllegalStateException.class, () -> deliveryUseCase.markAsDelivered(1L));
 
-    assertEquals("Order can only be delivered when in READY status", exception.getMessage());
+    assertEquals(
+        "El pedido solo se puede entregar cuando está en estado READY", exception.getMessage());
   }
 }

@@ -82,7 +82,20 @@ public class AreaService implements AreaUseCase {
         areaRepositoryPort.findById(id).orElseThrow(() -> new AreaNotFoundException(id));
 
     existing.setName(area.getName());
-    existing.setType(area.getType());
+    existing.setActivities(area.getActivities());
+
+    if (area.isExclusive() && !existing.isExclusive()) {
+      long affected = areaRepositoryPort.countUsersWithAreaAndOtherAreas(id);
+      if (affected > 0) {
+        throw new aros.services.rms.core.area.application.exception.ExclusiveAreaConflictException(
+            "No se puede marcar el área «"
+                + existing.getName()
+                + "» como exclusiva: "
+                + affected
+                + " trabajador(es) la comparten con otras áreas.");
+      }
+    }
+    existing.setExclusive(area.isExclusive());
 
     Area saved = areaRepositoryPort.save(existing);
     logger.info("Area updated: id={}, name={}", saved.getId(), saved.getName());

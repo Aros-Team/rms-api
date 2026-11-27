@@ -11,7 +11,7 @@ public class AreaNotFoundException extends RuntimeException {
    * @param id the area identifier that was not found
    */
   public AreaNotFoundException(Long id) {
-    super("Area not found: " + id);
+    super("Área no encontrada: " + id);
   }
 
   /**

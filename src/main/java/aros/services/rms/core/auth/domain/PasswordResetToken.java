@@ -21,11 +21,11 @@ public record PasswordResetToken(
    */
   public PasswordResetToken {
     if (tokenHash == null || tokenHash.isBlank()) {
-      throw new IllegalArgumentException("Token hash is required");
+      throw new IllegalArgumentException("El hash del token es obligatorio");
     }
 
     if (expiresAt == null) {
-      throw new IllegalArgumentException("Expiration is required");
+      throw new IllegalArgumentException("La expiración es obligatoria");
     }
   }
 

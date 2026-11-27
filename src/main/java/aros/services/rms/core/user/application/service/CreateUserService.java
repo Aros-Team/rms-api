@@ -3,6 +3,8 @@
 package aros.services.rms.core.user.application.service;
 
 import aros.services.rms.core.area.application.exception.AreaNotFoundException;
+import aros.services.rms.core.area.application.service.ExclusiveAreaPolicy;
+import aros.services.rms.core.area.domain.AreaId;
 import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.auth.domain.AccountSetupToken;
 import aros.services.rms.core.auth.port.output.AccountSetupTokenRepositoryPort;
@@ -72,8 +74,11 @@ public class CreateUserService implements CreateUserUseCase {
     }
 
     if (!areaPort.existsAllByIds(info.areas())) {
-      throw new AreaNotFoundException("No se pudo encontrar alguna de areas referenciadas.");
+      throw new AreaNotFoundException("No se pudo encontrar alguna de las áreas referenciadas.");
     }
+
+    ExclusiveAreaPolicy.assertAssignable(
+        areaPort.findByIdIn(info.areas().stream().map(AreaId::value).toList()));
 
     User user =
         new User(
@@ -91,6 +96,8 @@ public class CreateUserService implements CreateUserUseCase {
     if (info.salary() != null) {
       user.setSalary(info.salary());
     }
+
+    user.setJobTitle(info.jobTitle());
 
     User saved = this.userPort.save(user);
 

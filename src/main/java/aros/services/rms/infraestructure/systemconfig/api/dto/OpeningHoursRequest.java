@@ -14,7 +14,10 @@ import java.util.List;
 public record OpeningHoursRequest(
     @Schema(description = "One entry per weekday, Monday to Sunday")
         @NotNull
-        @Size(min = 7, max = 7, message = "Opening hours must cover the seven weekdays")
+        @Size(
+            min = 7,
+            max = 7,
+            message = "El horario de atención debe cubrir los siete días de la semana")
         List<@Valid OpeningHoursDayRequest> days) {
 
   /**

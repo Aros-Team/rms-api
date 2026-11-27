@@ -11,7 +11,7 @@ public class InvalidProductOptionException extends RuntimeException {
    * @param optionId the option identifier that is not valid
    */
   public InvalidProductOptionException(Long productId, Long optionId) {
-    super("Option " + optionId + " is not valid for product " + productId);
+    super("La opción " + optionId + " no es válida para el producto " + productId);
   }
 
   /**

@@ -9,7 +9,10 @@ import aros.services.rms.core.image.port.input.GetImagesUseCase;
 import aros.services.rms.core.image.port.output.ImageRepositoryPort;
 import aros.services.rms.core.image.port.output.StoragePort;
 import java.time.Duration;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /** Service implementation for retrieving entity images with signed URLs. */
@@ -43,6 +46,20 @@ public class GetImagesService implements GetImagesUseCase {
             .findById(imageId)
             .orElseThrow(() -> new ImageNotFoundException(imageId));
     return toWithUrls(image);
+  }
+
+  @Override
+  public Map<Long, ImageWithUrls> getFirstByEntities(
+      ImageEntityType entityType, Collection<Long> entityIds) {
+    if (entityIds == null || entityIds.isEmpty()) {
+      return Map.of();
+    }
+    Map<Long, ImageWithUrls> firstByEntity = new LinkedHashMap<>();
+    for (EntityImage image :
+        imageRepositoryPort.findByEntityTypeAndEntityIds(entityType, entityIds)) {
+      firstByEntity.putIfAbsent(image.getEntityId(), toWithUrls(image));
+    }
+    return firstByEntity;
   }
 
   private ImageWithUrls toWithUrls(EntityImage image) {

@@ -14,7 +14,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.area.port.output.WorkerAreaActivityPort;
 import aros.services.rms.core.auth.port.input.AccountSetupUseCase;
+import aros.services.rms.core.image.domain.ImageEntityType;
+import aros.services.rms.core.image.domain.ImageWithUrls;
+import aros.services.rms.core.image.port.input.GetImagesUseCase;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import aros.services.rms.core.user.application.exception.UserAlreadyExistsException;
 import aros.services.rms.core.user.application.exception.UserNotFoundException;
@@ -102,7 +106,9 @@ class WorkerControllerTest {
   @MockitoBean private AccountSetupUseCase accountSetupUseCase;
   @MockitoBean private UserRepositoryPort userRepositoryPort;
   @MockitoBean private GetSalaryHistoryUseCase getSalaryHistoryUseCase;
+  @MockitoBean private GetImagesUseCase getImagesUseCase;
   @MockitoBean private CurrencyProvider currencyProvider;
+  @MockitoBean private WorkerAreaActivityPort workerAreaActivityPort;
 
   @MockitoBean private JwtDecoder jwtDecoder;
 
@@ -199,6 +205,33 @@ class WorkerControllerTest {
         .andExpect(jsonPath("$.data.length()").value(2))
         .andExpect(jsonPath("$.data[0].name").value("Worker One"))
         .andExpect(jsonPath("$.data[1].name").value("Worker Two"));
+  }
+
+  // ---------------------------------------------------------------------------
+  // CT-G01b: shouldReturnImageUrl_whenWorkerHasPortrait
+  // ---------------------------------------------------------------------------
+
+  @Test
+  void shouldReturnImageUrl_whenWorkerHasPortrait() throws Exception {
+    when(jwtDecoder.decode(anyString())).thenReturn(createJwt("access", "ADMIN", null));
+
+    User worker = createWorker(1L, "Worker One", "worker1@example.com");
+    when(getAllWorkersUseCase.getAll()).thenReturn(List.of(worker));
+    when(getImagesUseCase.getFirstByEntities(ImageEntityType.USER, List.of(1L)))
+        .thenReturn(
+            Map.of(
+                1L,
+                ImageWithUrls.builder()
+                    .tabletUrl("http://localhost/api/v1/images/local/users/1/seed/tablet.webp")
+                    .mobileUrl("http://localhost/api/v1/images/local/users/1/seed/mobile.webp")
+                    .build()));
+
+    mockMvc
+        .perform(get(WORKERS_URL).header("Authorization", "Bearer token"))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.data[0].imageUrl")
+                .value("http://localhost/api/v1/images/local/users/1/seed/tablet.webp"));
   }
 
   // ---------------------------------------------------------------------------

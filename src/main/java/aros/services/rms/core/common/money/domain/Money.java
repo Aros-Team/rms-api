@@ -224,7 +224,7 @@ public record Money(BigDecimal amount, Currency currency) {
    */
   public Money percentBasisPoints(int basisPoints) {
     if (basisPoints < 0) {
-      throw new IllegalArgumentException("basisPoints must not be negative, was: " + basisPoints);
+      throw new IllegalArgumentException("basisPoints no puede ser negativo, era: " + basisPoints);
     }
     BigDecimal fraction = BigDecimal.valueOf(basisPoints).movePointLeft(4);
     BigDecimal result =
@@ -254,7 +254,7 @@ public record Money(BigDecimal amount, Currency currency) {
    */
   public List<Money> allocate(int parts) {
     if (parts <= 0) {
-      throw new IllegalArgumentException("parts must be positive, was: " + parts);
+      throw new IllegalArgumentException("parts debe ser positivo, era: " + parts);
     }
     int defaultFractionDigits = currency.getDefaultFractionDigits();
     BigDecimal low =
@@ -282,7 +282,7 @@ public record Money(BigDecimal amount, Currency currency) {
   public List<Money> allocate(List<BigDecimal> ratios) {
     Objects.requireNonNull(ratios, "ratios");
     if (ratios.isEmpty()) {
-      throw new IllegalArgumentException("ratios must not be empty");
+      throw new IllegalArgumentException("ratios no puede estar vacío");
     }
     BigDecimal totalRatio = BigDecimal.ZERO;
     for (BigDecimal r : ratios) {

@@ -9,6 +9,7 @@ import aros.services.rms.core.inventory.application.exception.InsufficientStockE
 import aros.services.rms.core.inventory.port.input.InventoryMovementUseCase;
 import aros.services.rms.core.inventory.port.input.InventoryStockUseCase;
 import aros.services.rms.core.order.application.dto.TakeOrderCommand;
+import aros.services.rms.core.order.application.exception.RequiredOptionGroupMissingException;
 import aros.services.rms.core.order.application.exception.SingleChoiceOptionGroupLimitException;
 import aros.services.rms.core.order.domain.Order;
 import aros.services.rms.core.order.domain.OrderDetail;
@@ -119,7 +120,7 @@ public class TakeOrderService implements TakeOrderUseCase {
             .orElseThrow(() -> new IllegalArgumentException("Table not found"));
 
     if (table.getStatus() != TableStatus.AVAILABLE) {
-      throw new IllegalStateException("Table is not available");
+      throw new IllegalStateException("La mesa no está disponible");
     }
 
     table.setStatus(TableStatus.OCCUPIED);
@@ -140,7 +141,7 @@ public class TakeOrderService implements TakeOrderUseCase {
         Product product =
             productRepositoryPort
                 .findById(detailCommand.getProductId())
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
 
         boolean hasSelectedOptions =
             detailCommand.getSelectedOptionIds() != null
@@ -160,6 +161,13 @@ public class TakeOrderService implements TakeOrderUseCase {
 
           // Phase C: enforce SINGLE_CHOICE max-1 per category.
           enforceSingleChoiceLimit(selectedOptions);
+        }
+
+        if (product.getSelectionType() != null
+            && product.getSelectionType() == SelectionType.SPECIAL_SELECTION) {
+          // Special selections have their own validator below.
+        } else {
+          enforceRequiredOptionGroups(product, selectedOptions);
         }
 
         Money unitPrice = product.getBasePrice();
@@ -230,7 +238,7 @@ public class TakeOrderService implements TakeOrderUseCase {
           throw new InsufficientStockException(
               detail.getProduct().getId(),
               aros.services.rms.core.inventory.domain.MovementType.DEDUCTION,
-              "Insufficient stock for product: " + detail.getProduct().getName());
+              "Stock insuficiente para el producto: " + detail.getProduct().getName());
         }
       }
 
@@ -279,6 +287,36 @@ public class TakeOrderService implements TakeOrderUseCase {
         throw new SingleChoiceOptionGroupLimitException(
             sample.getCategory().getId(), sample.getCategory().getName(), opts.size());
       }
+    }
+  }
+
+  /**
+   * Rejects the detail when the product has required option groups without a selected option.
+   *
+   * @param product the product being ordered
+   * @param selectedOptions the options selected for this detail (may be empty)
+   * @throws RequiredOptionGroupMissingException when at least one required group is unanswered
+   */
+  private void enforceRequiredOptionGroups(Product product, List<ProductOption> selectedOptions) {
+    Map<Long, String> requiredGroups =
+        productOptionRepositoryPort.findRequiredOptionGroupsByProductId(product.getId());
+    if (requiredGroups == null || requiredGroups.isEmpty()) {
+      return;
+    }
+    java.util.Set<Long> selectedGroupIds =
+        selectedOptions.stream()
+            .filter(option -> option != null && option.getCategory() != null)
+            .map(option -> option.getCategory().getId())
+            .filter(java.util.Objects::nonNull)
+            .collect(Collectors.toSet());
+    List<String> missing =
+        requiredGroups.entrySet().stream()
+            .filter(entry -> !selectedGroupIds.contains(entry.getKey()))
+            .map(Map.Entry::getValue)
+            .sorted()
+            .toList();
+    if (!missing.isEmpty()) {
+      throw new RequiredOptionGroupMissingException(product.getName(), missing);
     }
   }
 

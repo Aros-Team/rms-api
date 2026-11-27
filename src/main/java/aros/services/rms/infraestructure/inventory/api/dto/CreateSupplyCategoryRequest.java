@@ -10,6 +10,6 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "Request payload for creating a supply category")
 public record CreateSupplyCategoryRequest(
     @Schema(description = "Category name", example = "Proteínas")
-        @NotBlank(message = "name is required")
-        @Size(max = 255, message = "name must not exceed 255 characters")
+        @NotBlank(message = "El nombre es obligatorio")
+        @Size(max = 255, message = "El nombre no debe superar los 255 caracteres")
         String name) {}

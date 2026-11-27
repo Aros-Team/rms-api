@@ -49,7 +49,7 @@ public final class SeedCli {
         case "reset" -> reset(connection, anchor, options);
         case "verify" -> verify(connection, anchor);
         case "status" -> status(connection);
-        default -> throw new IllegalArgumentException("Unknown command: " + command);
+        default -> throw new IllegalArgumentException("Comando desconocido: " + command);
       }
     }
   }
@@ -84,7 +84,7 @@ public final class SeedCli {
       }
     }
     if (failed > 0) {
-      throw new IllegalStateException(failed + " seed verification checks failed");
+      throw new IllegalStateException(failed + " verificaciones de datos fallaron");
     }
     System.out.println("seed verify ok: " + checks.size() + " checks");
   }

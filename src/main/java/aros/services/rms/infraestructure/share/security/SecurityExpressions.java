@@ -2,8 +2,8 @@
 
 package aros.services.rms.infraestructure.share.security;
 
+import aros.services.rms.core.area.domain.AreaActivity;
 import java.util.Collection;
-import java.util.List;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 /**
@@ -12,6 +12,9 @@ import org.springframework.security.oauth2.jwt.Jwt;
  * <p>Keeping the claim handling in one place avoids leaking {@code null} claims into SpEL
  * expressions: a token issued before the {@code areaTypes} claim existed is treated as "no area"
  * instead of raising an evaluation error (which would surface as a 500 instead of a 403).
+ *
+ * <p>Activities are passed as {@link AreaActivity} constants so a rename in the enum fails at
+ * compile time instead of silently denying access.
  */
 public final class SecurityExpressions {
 
@@ -34,62 +37,24 @@ public final class SecurityExpressions {
   }
 
   /**
-   * Returns whether the authenticated worker is assigned to the given area type.
+   * Returns whether the authenticated worker is assigned to the given activity.
    *
    * @param jwt the authenticated principal
-   * @param areaType the area type to look for (e.g. SERVICE)
-   * @return true when the worker's areaTypes claim contains the area type
+   * @param activity the activity to look for
+   * @return true when the worker's areaTypes claim contains the activity
    */
-  public static boolean hasArea(Jwt jwt, String areaType) {
-    if (jwt == null || !WORKER.equals(jwt.getClaimAsString("role"))) {
-      return false;
-    }
-    Object claim = jwt.getClaims().get(AREA_TYPES_CLAIM);
-    return claim instanceof Collection<?> areaTypes && areaTypes.contains(areaType);
+  public static boolean hasArea(Jwt jwt, AreaActivity activity) {
+    return hasAnyArea(jwt, activity);
   }
 
   /**
-   * Returns whether the authenticated worker is assigned to at least one of two area types.
+   * Returns whether the authenticated worker is assigned to at least one of the given activities.
    *
    * @param jwt the authenticated principal
-   * @param first first area type
-   * @param second second area type
-   * @return true when any of the area types is present
+   * @param activities the activities to look for
+   * @return true when any of the activities is present
    */
-  public static boolean hasAnyArea(Jwt jwt, String first, String second) {
-    return hasAnyArea(jwt, List.of(first, second));
-  }
-
-  /**
-   * Returns whether the authenticated worker is assigned to at least one of three area types.
-   *
-   * @param jwt the authenticated principal
-   * @param first first area type
-   * @param second second area type
-   * @param third third area type
-   * @return true when any of the area types is present
-   */
-  public static boolean hasAnyArea(Jwt jwt, String first, String second, String third) {
-    return hasAnyArea(jwt, List.of(first, second, third));
-  }
-
-  /**
-   * Returns whether the authenticated worker is assigned to at least one of five area types.
-   *
-   * @param jwt the authenticated principal
-   * @param first first area type
-   * @param second second area type
-   * @param third third area type
-   * @param fourth fourth area type
-   * @param fifth fifth area type
-   * @return true when any of the area types is present
-   */
-  public static boolean hasAnyArea(
-      Jwt jwt, String first, String second, String third, String fourth, String fifth) {
-    return hasAnyArea(jwt, List.of(first, second, third, fourth, fifth));
-  }
-
-  private static boolean hasAnyArea(Jwt jwt, Collection<String> candidates) {
+  public static boolean hasAnyArea(Jwt jwt, AreaActivity... activities) {
     if (jwt == null || !WORKER.equals(jwt.getClaimAsString("role"))) {
       return false;
     }
@@ -97,11 +62,25 @@ public final class SecurityExpressions {
     if (!(claim instanceof Collection<?> areaTypes)) {
       return false;
     }
-    for (String candidate : candidates) {
-      if (areaTypes.contains(candidate)) {
+    for (AreaActivity activity : activities) {
+      if (areaTypes.contains(activity.name())) {
         return true;
       }
     }
     return false;
+  }
+
+  /**
+   * Returns whether the worker has at least one operational activity (PREPARATION, SERVE or CASH).
+   *
+   * @param jwt the authenticated principal
+   * @return true when the activities claim contains at least one value
+   */
+  public static boolean hasAnyActivity(Jwt jwt) {
+    if (jwt == null || !WORKER.equals(jwt.getClaimAsString("role"))) {
+      return false;
+    }
+    Object claim = jwt.getClaims().get(AREA_TYPES_CLAIM);
+    return claim instanceof Collection<?> activities && !activities.isEmpty();
   }
 }

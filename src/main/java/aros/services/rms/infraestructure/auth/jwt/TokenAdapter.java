@@ -2,9 +2,9 @@
 
 package aros.services.rms.infraestructure.auth.jwt;
 
-import aros.services.rms.core.area.domain.Area;
+import aros.services.rms.core.area.domain.AreaActivity;
 import aros.services.rms.core.area.domain.AreaId;
-import aros.services.rms.core.area.port.output.AreaRepositoryPort;
+import aros.services.rms.core.area.port.output.WorkerAreaActivityPort;
 import aros.services.rms.core.auth.port.output.TokenPort;
 import aros.services.rms.core.user.domain.User;
 import java.util.List;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TokenAdapter implements TokenPort {
   private final JwtService jwtService;
-  private final AreaRepositoryPort areaRepositoryPort;
+  private final WorkerAreaActivityPort workerAreaActivityPort;
 
   @Override
   public String generateAccessToken(User user, boolean restricted) {
@@ -24,7 +24,8 @@ public class TokenAdapter implements TokenPort {
         user.getEmail().value(),
         user.getRole(),
         user.getAssignedAreas(),
-        resolveAreaTypes(user.getAssignedAreas()),
+        resolveAreaTypes(
+            user.getAssignedAreas(), user.getId() != null ? user.getId().value() : null),
         restricted);
   }
 
@@ -45,16 +46,21 @@ public class TokenAdapter implements TokenPort {
    * @param areas the user's assigned area ids
    * @return the matching area type names, empty when the user has no areas
    */
-  private List<String> resolveAreaTypes(List<AreaId> areas) {
+  private List<String> resolveAreaTypes(List<AreaId> areas, Long userId) {
     if (areas == null || areas.isEmpty()) {
       return List.of();
     }
     List<Long> ids = areas.stream().map(AreaId::value).toList();
-    return areaRepositoryPort.findByIdIn(ids).stream()
-        .map(Area::getType)
-        .filter(type -> type != null)
-        .map(Enum::name)
-        .distinct()
-        .toList();
+    java.util.Set<AreaActivity> activities = new java.util.LinkedHashSet<>();
+    if (userId != null) {
+      workerAreaActivityPort.findByUserId(userId).values().forEach(activities::addAll);
+    }
+    if (activities.isEmpty()) {
+      activities.addAll(
+          workerAreaActivityPort.findAreaActivities(ids).values().stream()
+              .flatMap(java.util.Collection::stream)
+              .toList());
+    }
+    return activities.stream().map(Enum::name).sorted().toList();
   }
 }

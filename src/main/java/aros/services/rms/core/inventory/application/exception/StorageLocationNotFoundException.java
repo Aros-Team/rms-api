@@ -11,7 +11,7 @@ public class StorageLocationNotFoundException extends RuntimeException {
    * @param id storage location ID
    */
   public StorageLocationNotFoundException(Long id) {
-    super("Storage location not found: " + id);
+    super("Ubicación de almacenamiento no encontrada: " + id);
   }
 
   /**
@@ -20,6 +20,6 @@ public class StorageLocationNotFoundException extends RuntimeException {
    * @param name storage location name
    */
   public StorageLocationNotFoundException(String name) {
-    super("Storage location not found: " + name);
+    super("Ubicación de almacenamiento no encontrada: " + name);
   }
 }

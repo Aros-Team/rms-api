@@ -73,7 +73,7 @@ public class UploadImageService implements UploadImageUseCase {
       throw e;
     } catch (Exception e) {
       logger.error("Failed to upload image for " + entityType + " " + entityId, e);
-      throw new ImageUploadException("Failed to upload image: " + e.getMessage());
+      throw new ImageUploadException("No se pudo subir la imagen: " + e.getMessage());
     }
   }
 

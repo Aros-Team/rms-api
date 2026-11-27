@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.area.port.output.WorkerAreaActivityPort;
 import aros.services.rms.core.auth.application.dto.AuthResult;
 import aros.services.rms.core.auth.application.dto.Credentials;
 import aros.services.rms.core.auth.application.exception.InvalidRefreshTokenException;
@@ -82,6 +83,7 @@ class AuthSecurityTest {
   @MockitoBean private PasswordResetUseCase passwordResetUseCase;
 
   @MockitoBean private JwtDecoder jwtDecoder;
+  @MockitoBean private WorkerAreaActivityPort workerAreaActivityPort;
 
   @org.springframework.boot.test.context.TestConfiguration
   @EnableMethodSecurity

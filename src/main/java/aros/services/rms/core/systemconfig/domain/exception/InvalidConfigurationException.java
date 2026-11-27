@@ -12,7 +12,7 @@ public class InvalidConfigurationException extends SettingsException {
    * @param value the invalid value
    */
   public InvalidConfigurationException(String key, String value) {
-    super(SettingsErrorType.INVALID, "Invalid configuration: key=" + key + ", value=" + value);
+    super(SettingsErrorType.INVALID, "Configuración inválida: clave=" + key + ", valor=" + value);
   }
 
   /**

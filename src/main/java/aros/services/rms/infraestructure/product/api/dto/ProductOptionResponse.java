@@ -7,6 +7,7 @@ import aros.services.rms.core.product.domain.ProductOption;
 import aros.services.rms.infraestructure.common.dto.MoneyDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
+import java.util.List;
 
 /** Response DTO for product option data. */
 @Schema(description = "Response DTO for product option data")
@@ -19,7 +20,8 @@ public record ProductOptionResponse(
     @Schema(description = "Configured surcharge when associated with the product")
         MoneyDto extraPrice,
     @Schema(description = "Selection mode of the option category", example = "SINGLE_CHOICE")
-        String categorySelectionType) {
+        String categorySelectionType,
+    @Schema(description = "Option ingredient recipe") List<RecipeItemResponse> recipe) {
 
   /**
    * Creates a response from a domain object.
@@ -38,7 +40,8 @@ public record ProductOptionResponse(
         option.getCategory() != null ? option.getCategory().getName() : null,
         MoneyDto.of(BigDecimal.ZERO),
         MoneyDto.of(BigDecimal.ZERO),
-        "SINGLE_CHOICE");
+        "SINGLE_CHOICE",
+        RecipeItemResponse.fromDomain(option.getRecipe()));
   }
 
   /**
@@ -64,7 +67,8 @@ public record ProductOptionResponse(
         option.getCategory() != null ? option.getCategory().getName() : null,
         MoneyDto.of(BigDecimal.ZERO),
         MoneyDto.of(BigDecimal.ZERO),
-        selectionType);
+        selectionType,
+        RecipeItemResponse.fromDomain(option.getRecipe()));
   }
 
   /**
@@ -84,6 +88,7 @@ public record ProductOptionResponse(
         option.categoryName(),
         MoneyDto.of(option.cost()),
         MoneyDto.of(option.extraPrice()),
-        option.categorySelectionType());
+        option.categorySelectionType(),
+        List.of());
   }
 }

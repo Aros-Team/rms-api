@@ -279,7 +279,7 @@ public class PaymentController {
     try {
       return PaymentTenderMethod.valueOf(value.trim().toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException e) {
-      throw new InvalidPaymentException("Unsupported tender method: " + value);
+      throw new InvalidPaymentException("Método de pago no soportado: " + value);
     }
   }
 
@@ -287,7 +287,7 @@ public class PaymentController {
     try {
       return DiscountType.valueOf(value.trim().toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException e) {
-      throw new InvalidPaymentException("Unsupported discount type: " + value);
+      throw new InvalidPaymentException("Tipo de descuento no soportado: " + value);
     }
   }
 
@@ -296,7 +296,7 @@ public class PaymentController {
       return value.movePointRight(2).intValueExact();
     } catch (ArithmeticException e) {
       throw new InvalidPaymentException(
-          "The discount percentage must have at most two decimal places");
+          "El porcentaje de descuento debe tener como máximo dos decimales");
     }
   }
 
@@ -304,7 +304,7 @@ public class PaymentController {
     try {
       return PaymentStatus.valueOf(value.trim().toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException e) {
-      throw new InvalidPaymentException("Unsupported payment status: " + value);
+      throw new InvalidPaymentException("Estado de pago no soportado: " + value);
     }
   }
 }

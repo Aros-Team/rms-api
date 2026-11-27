@@ -3,6 +3,7 @@
 package aros.services.rms.core.product.port.input;
 
 import aros.services.rms.core.product.domain.Product;
+import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -113,4 +114,39 @@ public interface ProductUseCase {
       boolean includeInactive,
       boolean includeSelections,
       Pageable pageable);
+
+  /**
+   * Associates a product option with a product (upsert) and records its per-product surcharge.
+   *
+   * @param productId the product identifier
+   * @param optionId the option identifier
+   * @param extraPrice the surcharge for this product (nullable -> zero)
+   */
+  void associateOption(Long productId, Long optionId, BigDecimal extraPrice);
+
+  /**
+   * Updates the surcharge of an already-associated product option.
+   *
+   * @param productId the product identifier
+   * @param optionId the option identifier
+   * @param extraPrice the new surcharge (nullable -> zero)
+   */
+  void updateOptionExtraPrice(Long productId, Long optionId, BigDecimal extraPrice);
+
+  /**
+   * Removes a single option association from a product.
+   *
+   * @param productId the product identifier
+   * @param optionId the option identifier
+   */
+  void detachOption(Long productId, Long optionId);
+
+  /**
+   * Removes an option group from a product together with every option association that belongs to
+   * that group. The group and its options remain in the catalogue.
+   *
+   * @param productId the product identifier
+   * @param optionGroupId the option-group identifier
+   */
+  void detachOptionGroup(Long productId, Long optionGroupId);
 }

@@ -193,7 +193,7 @@ public class RefreshMenuEngineeringService implements RefreshMenuEngineeringUseC
         yield ym.atDay(1);
       }
       case "yearly" -> LocalDate.of(Integer.parseInt(periodKey), 1, 1);
-      default -> throw new IllegalArgumentException("Unsupported bucket: " + bucket);
+      default -> throw new IllegalArgumentException("Bucket no soportado: " + bucket);
     };
   }
 
@@ -209,7 +209,7 @@ public class RefreshMenuEngineeringService implements RefreshMenuEngineeringUseC
         yield ym.plusMonths(1).atDay(1);
       }
       case "yearly" -> LocalDate.of(Integer.parseInt(periodKey) + 1, 1, 1);
-      default -> throw new IllegalArgumentException("Unsupported bucket: " + bucket);
+      default -> throw new IllegalArgumentException("Bucket no soportado: " + bucket);
     };
   }
 }

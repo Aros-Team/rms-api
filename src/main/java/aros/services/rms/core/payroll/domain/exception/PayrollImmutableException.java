@@ -12,6 +12,6 @@ public class PayrollImmutableException extends RuntimeException {
    * @param currentStatus the current status
    */
   public PayrollImmutableException(Long id, String currentStatus) {
-    super("Payroll " + id + " is " + currentStatus + " and cannot be modified");
+    super("La nómina " + id + " está " + currentStatus + " y no se puede modificar");
   }
 }

@@ -10,7 +10,10 @@ import aros.services.rms.core.payroll.domain.port.output.AreaLaborCostPort;
 import aros.services.rms.core.product.application.exception.ProductNotFoundException;
 import aros.services.rms.core.product.domain.ProductCost;
 import aros.services.rms.core.product.domain.ProductCost.CostBreakdownItem;
+import aros.services.rms.core.product.domain.ProductPrepTime;
+import aros.services.rms.core.product.domain.ProductPrepTimeStats;
 import aros.services.rms.core.product.port.input.CalculateProductCostUseCase;
+import aros.services.rms.core.product.port.output.ProductPrepTimeStatsPort;
 import aros.services.rms.core.product.port.output.ProductRepositoryPort;
 import aros.services.rms.core.user.port.output.UserRepositoryPort;
 import java.math.BigDecimal;
@@ -43,6 +46,7 @@ public class CalculateProductCostService implements CalculateProductCostUseCase 
   private final SupplyVariantRepositoryPort supplyVariantRepositoryPort;
   private final UserRepositoryPort userRepositoryPort;
   private final AreaLaborCostPort areaLaborCostPort;
+  private final ProductPrepTimeStatsPort productPrepTimeStatsPort;
   private final Logger logger;
 
   /** {@inheritDoc} */
@@ -94,8 +98,16 @@ public class CalculateProductCostService implements CalculateProductCostUseCase 
       }
     }
 
+    ProductPrepTimeStats stats = productPrepTimeStatsPort.findByProductId(productId);
+    ProductPrepTime prepTime =
+        ProductPrepTime.resolve(
+            product.getEstimatedPrepMinutes(), stats, product.getPrepTimeMode());
     BigDecimal laborCost = BigDecimal.ZERO;
-    if (product.getEstimatedPrepMinutes() != null && product.getEstimatedPrepMinutes() > 0) {
+    int requiredWorkers =
+        product.getRequiredWorkers() == null || product.getRequiredWorkers() < 1
+            ? 1
+            : product.getRequiredWorkers();
+    if (prepTime.usedMinutes() != null && prepTime.usedMinutes() > 0) {
       if (product.getPreparationAreaId() != null) {
         YearMonth effectivePeriod = period != null ? period : YearMonth.now();
         Money costPerHour =
@@ -103,16 +115,25 @@ public class CalculateProductCostService implements CalculateProductCostUseCase 
 
         if (costPerHour.isPositive()) {
           BigDecimal hours =
-              BigDecimal.valueOf(product.getEstimatedPrepMinutes())
+              BigDecimal.valueOf(prepTime.usedMinutes())
                   .divide(SIXTY, CALC_SCALE, RoundingMode.HALF_UP);
-          laborCost = costPerHour.amount().multiply(hours);
+          laborCost =
+              costPerHour.amount().multiply(hours).multiply(BigDecimal.valueOf(requiredWorkers));
           breakdown.add(
               new CostBreakdownItem(
                   "Labor: $"
                       + costPerHour.amount().setScale(2, RoundingMode.HALF_UP)
                       + "/h * "
                       + hours.setScale(2, RoundingMode.HALF_UP)
-                      + "h (area "
+                      + "h x "
+                      + requiredWorkers
+                      + " persona(s), tiempo "
+                      + prepTime.usedSource()
+                      + " ("
+                      + BigDecimal.valueOf(prepTime.usedMinutes()).setScale(2, RoundingMode.HALF_UP)
+                      + " min, "
+                      + prepTime.realSampleCount()
+                      + " muestras) (area "
                       + product.getPreparationAreaId()
                       + ", "
                       + effectivePeriod
@@ -142,6 +163,12 @@ public class CalculateProductCostService implements CalculateProductCostUseCase 
         totalCost.setScale(COST_SCALE, RoundingMode.HALF_UP),
         materialCost.setScale(COST_SCALE, RoundingMode.HALF_UP),
         laborCost.setScale(COST_SCALE, RoundingMode.HALF_UP),
-        breakdown);
+        breakdown,
+        prepTime.estimatedMinutes(),
+        prepTime.realMinutes() == null ? null : BigDecimal.valueOf(prepTime.realMinutes()),
+        prepTime.realSampleCount(),
+        prepTime.mode(),
+        prepTime.usedSource(),
+        prepTime.usedMinutes() == null ? null : BigDecimal.valueOf(prepTime.usedMinutes()));
   }
 }

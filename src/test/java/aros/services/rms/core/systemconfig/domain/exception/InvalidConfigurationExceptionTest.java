@@ -17,10 +17,10 @@ class InvalidConfigurationExceptionTest {
   @Test
   void should_create_exception_with_message() {
     InvalidConfigurationException ex =
-        new InvalidConfigurationException("default_currency", "null or blank");
+        new InvalidConfigurationException("default_currency", "nulo o vacío");
 
     assertEquals(
-        "Invalid configuration: key=default_currency, value=null or blank", ex.getMessage());
+        "Configuración inválida: clave=default_currency, valor=nulo o vacío", ex.getMessage());
     assertInstanceOf(RuntimeException.class, ex);
   }
 
@@ -32,6 +32,6 @@ class InvalidConfigurationExceptionTest {
   void should_handle_null_key() {
     InvalidConfigurationException ex = new InvalidConfigurationException(null, "blank");
 
-    assertEquals("Invalid configuration: key=null, value=blank", ex.getMessage());
+    assertEquals("Configuración inválida: clave=null, valor=blank", ex.getMessage());
   }
 }

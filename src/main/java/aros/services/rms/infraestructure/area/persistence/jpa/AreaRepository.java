@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /** JPA repository for Area entity persistence operations. */
@@ -40,4 +41,19 @@ public interface AreaRepository extends JpaRepository<Area, Long> {
    */
   @Query("SELECT COUNT(a.id) = :size FROM Area a WHERE a.id IN :ids")
   boolean existsAllByIdIn(Set<Long> ids, long size);
+
+  /**
+   * Counts workers that have the area together with at least one other area.
+   *
+   * @param areaId the area identifier
+   * @return number of affected workers
+   */
+  @Query(
+      value =
+          "SELECT COUNT(*) FROM user_assigned_areas uaa "
+              + "WHERE uaa.area_id = :areaId AND EXISTS ("
+              + "SELECT 1 FROM user_assigned_areas other "
+              + "WHERE other.user_id = uaa.user_id AND other.area_id <> :areaId)",
+      nativeQuery = true)
+  long countUsersWithAreaAndOtherAreas(@Param("areaId") Long areaId);
 }

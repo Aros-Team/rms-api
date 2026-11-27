@@ -11,6 +11,6 @@ public class PayrollSettlementNotFoundException extends RuntimeException {
    * @param id the settlement id that was not found
    */
   public PayrollSettlementNotFoundException(Long id) {
-    super("Payroll settlement not found with id: " + id);
+    super("Liquidación de nómina no encontrada con id: " + id);
   }
 }

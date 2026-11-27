@@ -178,6 +178,15 @@ public class OptionGroupService implements OptionGroupUseCase {
     return optionGroupRepositoryPort.loadProductIdsByOptionGroupIds(optionGroupIds);
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public Map<Long, Boolean> loadRequiredFlagsByProductId(Long productId) {
+    if (productId == null) {
+      return Map.of();
+    }
+    return optionGroupRepositoryPort.loadRequiredFlagsByProductId(productId);
+  }
+
   /**
    * Recovery handler for create operation when database is unavailable.
    *

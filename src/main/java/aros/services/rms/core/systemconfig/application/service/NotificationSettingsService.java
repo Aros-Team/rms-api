@@ -26,7 +26,7 @@ public class NotificationSettingsService
   @Override
   public NotificationSettings update(NotificationSettings settings) {
     if (settings == null) {
-      throw new InvalidConfigurationException("Notification settings are required");
+      throw new InvalidConfigurationException("La configuración de notificaciones es obligatoria");
     }
     return notificationPreferencesPort.save(settings);
   }

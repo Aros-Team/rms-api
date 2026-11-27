@@ -108,7 +108,8 @@ class ApiErrorStatusIntegrationTest {
         .perform(get("/api/v1/no-such-endpoint").header("Authorization", "Bearer test"))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.status").value(404))
-        .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("not found")));
+        .andExpect(
+            jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("no encontrada")));
   }
 
   @Test

@@ -75,6 +75,35 @@ public interface OptionGroupRepositoryPort {
   Map<Long, List<Long>> loadProductIdsByOptionGroupIds(Collection<Long> optionGroupIds);
 
   /**
+   * Loads the per-product mandatory flag for every option group associated with the product.
+   *
+   * @param productId the product identifier
+   * @return option-group id -> required flag (groups without an association are absent)
+   */
+  Map<Long, Boolean> loadRequiredFlagsByProductId(Long productId);
+
+  /**
+   * Associates an option group with a product, keeping the existing association when present.
+   *
+   * <p>Used when an option is associated with a product and its group has not been linked yet (for
+   * example, legacy data created before V40).
+   *
+   * @param productId the product identifier
+   * @param optionGroupId the option-group identifier
+   * @param required whether the group should be mandatory for this product
+   */
+  void associateProduct(Long productId, Long optionGroupId, boolean required);
+
+  /**
+   * Removes the association between a product and an option group without touching the group or its
+   * options.
+   *
+   * @param productId the product identifier
+   * @param optionGroupId the option-group identifier
+   */
+  void detachProduct(Long productId, Long optionGroupId);
+
+  /**
    * Atomically replaces all product associations for the given option group with the supplied IDs.
    * Each association row is created with the supplied {@code required} flag (same value applied to
    * every association in this group).

@@ -14,6 +14,7 @@ public class UserNotificationMapper {
   public UserNotification toDomain(UserNotificationEntity entity) {
     return UserNotification.builder()
         .id(entity.getId())
+        .userId(entity.getUserId())
         .code(entity.getCode())
         .severity(entity.getSeverity())
         .title(entity.getTitle())
@@ -29,6 +30,7 @@ public class UserNotificationMapper {
   public UserNotificationEntity toEntity(UserNotification notification) {
     return UserNotificationEntity.builder()
         .id(notification.getId())
+        .userId(notification.getUserId())
         .code(notification.getCode())
         .severity(notification.getSeverity())
         .title(notification.getTitle())

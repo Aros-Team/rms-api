@@ -103,6 +103,8 @@ public class OrderResponseMapper {
         order.getPartySize(),
         order.getOpenTime(),
         order.getCloseTime(),
+        order.getPreparedAt(),
+        order.getDeliveredAt(),
         OrderResponse.calculateTotal(order.getDetails()),
         details);
   }
@@ -184,6 +186,9 @@ public class OrderResponseMapper {
         toSelectedAdditions(detail.getAdditionIds(), additionMap),
         detail.isReady(),
         detail.getReadyAt(),
+        detail.getPreparationStartedAt(),
+        detail.isDelivered(),
+        detail.getDeliveredAt(),
         toClarifications(detail.getClarifications(), questionMap));
   }
 

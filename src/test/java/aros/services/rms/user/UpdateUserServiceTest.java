@@ -71,6 +71,10 @@ class UpdateUserServiceTest {
   @Mock private AreaRepositoryPort areaPort;
   @Mock private SalaryHistoryRepositoryPort salaryHistoryPort;
 
+  @Mock
+  private aros.services.rms.core.notification.domain.port.input.NotificationUseCase
+      notificationUseCase;
+
   @Captor private ArgumentCaptor<User> userCaptor;
   @Captor private ArgumentCaptor<SalaryHistoryEntry> salaryHistoryCaptor;
 
@@ -85,7 +89,8 @@ class UpdateUserServiceTest {
 
   @BeforeEach
   void setUp() {
-    updateUserService = new UpdateUserService(userPort, areaPort, salaryHistoryPort);
+    updateUserService =
+        new UpdateUserService(userPort, areaPort, salaryHistoryPort, notificationUseCase);
 
     user =
         new User(

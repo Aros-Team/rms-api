@@ -20,11 +20,11 @@ import java.util.Currency;
     example = "{\"optionId\": 4, \"extraPrice\": 2500.00}")
 public record OptionExtrasRequest(
     @Schema(description = "Product option identifier", example = "4")
-        @NotNull(message = "optionId is required")
+        @NotNull(message = "optionId es obligatorio")
         Long optionId,
     @Schema(description = "Per-association surcharge", example = "2500.00")
-        @NotNull(message = "extraPrice is required")
-        @PositiveOrZero(message = "extraPrice must be zero or positive")
+        @NotNull(message = "extraPrice es obligatorio")
+        @PositiveOrZero(message = "extraPrice debe ser cero o positivo")
         BigDecimal extraPrice) {
 
   /**

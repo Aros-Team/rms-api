@@ -18,7 +18,7 @@ public class InsufficientStockException extends RuntimeException {
       Long variantId, java.math.BigDecimal required, java.math.BigDecimal available) {
     super(
         String.format(
-            "Insufficient stock for variant %d: required=%s, available=%s",
+            "Stock insuficiente para la variante %d: requerido=%s, disponible=%s",
             variantId, required, available));
   }
 

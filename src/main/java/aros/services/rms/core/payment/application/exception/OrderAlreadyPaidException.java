@@ -14,7 +14,7 @@ public class OrderAlreadyPaidException extends RuntimeException {
    * @param paymentId the active payment identifier
    */
   public OrderAlreadyPaidException(Long orderId, Long paymentId) {
-    super("Order " + orderId + " is already paid by payment " + paymentId);
+    super("El pedido " + orderId + " ya fue pagado con el pago " + paymentId);
     this.paymentId = paymentId;
   }
 

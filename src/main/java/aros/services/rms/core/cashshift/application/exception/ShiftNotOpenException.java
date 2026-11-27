@@ -7,6 +7,6 @@ public class ShiftNotOpenException extends RuntimeException {
 
   /** Creates the exception. */
   public ShiftNotOpenException() {
-    super("No cash shift is open; open the drawer before charging");
+    super("No hay un turno de caja abierto; abre la caja antes de cobrar");
   }
 }

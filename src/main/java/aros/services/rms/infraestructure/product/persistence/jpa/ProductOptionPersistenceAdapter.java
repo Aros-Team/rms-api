@@ -14,6 +14,7 @@ import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -162,6 +163,41 @@ public class ProductOptionPersistenceAdapter implements ProductOptionRepositoryP
   @Transactional
   public void removeAllOptionsFromProduct(Long productId) {
     productOptionRepository.removeAllOptionsFromProduct(productId);
+  }
+
+  @Override
+  @Transactional
+  public void removeOptionFromProduct(Long productId, Long optionId) {
+    productOptionRepository.removeOptionFromProduct(productId, optionId);
+  }
+
+  @Override
+  @Transactional
+  public void removeOptionsByGroupFromProduct(Long productId, Long optionGroupId) {
+    productOptionRepository.removeOptionsByGroupFromProduct(productId, optionGroupId);
+  }
+
+  @Override
+  @Transactional
+  public void updateOptionExtraPrice(Long productId, Long optionId, BigDecimal extraPrice) {
+    productOptionRepository.updateOptionExtraPrice(
+        productId, optionId, extraPrice == null ? BigDecimal.ZERO : extraPrice);
+  }
+
+  @Override
+  public int nextDisplayOrder(Long productId) {
+    Integer next = productOptionRepository.nextDisplayOrder(productId);
+    return next == null ? 0 : next;
+  }
+
+  @Override
+  public Map<Long, String> findRequiredOptionGroupsByProductId(Long productId) {
+    Map<Long, String> result = new LinkedHashMap<>();
+    for (ProductOptionRepository.RequiredGroupProjection row :
+        productOptionRepository.findRequiredOptionGroupsByProductId(productId)) {
+      result.put(row.getOptionGroupId(), row.getOptionGroupName());
+    }
+    return Map.copyOf(result);
   }
 
   @Override

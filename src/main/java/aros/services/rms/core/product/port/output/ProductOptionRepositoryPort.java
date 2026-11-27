@@ -107,6 +107,51 @@ public interface ProductOptionRepositoryPort {
   void removeAllOptionsFromProduct(Long productId);
 
   /**
+   * Removes a single option association from a product.
+   *
+   * @param productId the product identifier
+   * @param optionId the option identifier
+   */
+  void removeOptionFromProduct(Long productId, Long optionId);
+
+  /**
+   * Removes every product option that belongs to the given option group from the product.
+   *
+   * <p>Used when an option group is detached from a product: the group and its options stay in the
+   * catalogue, but the product can no longer order them.
+   *
+   * @param productId the product identifier
+   * @param optionGroupId the option-group identifier
+   */
+  void removeOptionsByGroupFromProduct(Long productId, Long optionGroupId);
+
+  /**
+   * Updates the per-product surcharge of an existing option association.
+   *
+   * @param productId the product identifier
+   * @param optionId the option identifier
+   * @param extraPrice the new surcharge
+   */
+  void updateOptionExtraPrice(Long productId, Long optionId, BigDecimal extraPrice);
+
+  /**
+   * Returns the next display order for a new option association on the product.
+   *
+   * @param productId the product identifier
+   * @return zero-based display order
+   */
+  int nextDisplayOrder(Long productId);
+
+  /**
+   * Loads the option groups that are mandatory for a product, keyed by group id with the group name
+   * as value.
+   *
+   * @param productId the product identifier
+   * @return required group id -> group name
+   */
+  Map<Long, String> findRequiredOptionGroupsByProductId(Long productId);
+
+  /**
    * Checks if an option is associated with a specific product.
    *
    * @param productId the product identifier

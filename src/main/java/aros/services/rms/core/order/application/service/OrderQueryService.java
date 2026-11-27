@@ -47,11 +47,12 @@ public class OrderQueryService implements OrderQueryUseCase {
     boolean hasDates = startDate != null && endDate != null;
 
     if (hasDates && endDate.isAfter(LocalDateTime.now())) {
-      throw new IllegalArgumentException("End date cannot be in the future");
+      throw new IllegalArgumentException("La fecha final no puede estar en el futuro");
     }
 
     if (hasDates && startDate.isAfter(endDate)) {
-      throw new IllegalArgumentException("Start date cannot be after end date");
+      throw new IllegalArgumentException(
+          "La fecha inicial no puede ser posterior a la fecha final");
     }
 
     if (hasStatus && hasDates) {
@@ -126,11 +127,12 @@ public class OrderQueryService implements OrderQueryUseCase {
     boolean hasDates = startDate != null && endDate != null;
 
     if (hasDates && endDate.isAfter(LocalDateTime.now())) {
-      throw new IllegalArgumentException("End date cannot be in the future");
+      throw new IllegalArgumentException("La fecha final no puede estar en el futuro");
     }
 
     if (hasDates && startDate.isAfter(endDate)) {
-      throw new IllegalArgumentException("Start date cannot be after end date");
+      throw new IllegalArgumentException(
+          "La fecha inicial no puede ser posterior a la fecha final");
     }
 
     return orderRepositoryPort.findOrdersPage(
@@ -155,11 +157,12 @@ public class OrderQueryService implements OrderQueryUseCase {
     boolean hasDates = startDate != null && endDate != null;
 
     if (hasDates && endDate.isAfter(LocalDateTime.now())) {
-      throw new IllegalArgumentException("End date cannot be in the future");
+      throw new IllegalArgumentException("La fecha final no puede estar en el futuro");
     }
 
     if (hasDates && startDate.isAfter(endDate)) {
-      throw new IllegalArgumentException("Start date cannot be after end date");
+      throw new IllegalArgumentException(
+          "La fecha inicial no puede ser posterior a la fecha final");
     }
 
     return orderRepositoryPort.findOrdersPage(

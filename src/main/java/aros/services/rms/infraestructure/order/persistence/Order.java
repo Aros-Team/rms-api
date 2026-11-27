@@ -70,4 +70,10 @@ public class Order {
 
   @Column(name = "close_time")
   private LocalDateTime closeTime;
+
+  @Column(name = "prepared_at")
+  private LocalDateTime preparedAt;
+
+  @Column(name = "delivered_at")
+  private LocalDateTime deliveredAt;
 }

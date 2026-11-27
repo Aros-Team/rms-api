@@ -14,7 +14,13 @@ public record ProductCost(
     BigDecimal totalCost,
     BigDecimal materialCost,
     BigDecimal laborCost,
-    List<CostBreakdownItem> breakdown) {
+    List<CostBreakdownItem> breakdown,
+    Integer estimatedPrepMinutes,
+    BigDecimal realPrepMinutes,
+    long realPrepSampleCount,
+    PrepTimeMode prepTimeMode,
+    PrepTimeMode prepTimeUsedSource,
+    BigDecimal prepTimeUsedMinutes) {
 
   /** A single line in the cost breakdown describing one component (e.g., a material or labor). */
   public record CostBreakdownItem(String description, BigDecimal amount, String type) {
@@ -28,13 +34,13 @@ public record ProductCost(
      */
     public CostBreakdownItem {
       if (amount == null) {
-        throw new IllegalArgumentException("amount must not be null");
+        throw new IllegalArgumentException("amount no puede ser nulo");
       }
       if (description == null || description.isBlank()) {
-        throw new IllegalArgumentException("description must not be blank");
+        throw new IllegalArgumentException("La descripción no puede estar vacía");
       }
       if (type == null || type.isBlank()) {
-        throw new IllegalArgumentException("type must not be blank");
+        throw new IllegalArgumentException("El tipo no puede estar vacío");
       }
     }
   }
@@ -50,19 +56,19 @@ public record ProductCost(
    */
   public ProductCost {
     if (productId == null) {
-      throw new IllegalArgumentException("productId must not be null");
+      throw new IllegalArgumentException("productId no puede ser nulo");
     }
     if (totalCost == null) {
-      throw new IllegalArgumentException("totalCost must not be null");
+      throw new IllegalArgumentException("totalCost no puede ser nulo");
     }
     if (materialCost == null) {
-      throw new IllegalArgumentException("materialCost must not be null");
+      throw new IllegalArgumentException("materialCost no puede ser nulo");
     }
     if (laborCost == null) {
-      throw new IllegalArgumentException("laborCost must not be null");
+      throw new IllegalArgumentException("laborCost no puede ser nulo");
     }
     if (breakdown == null) {
-      throw new IllegalArgumentException("breakdown must not be null");
+      throw new IllegalArgumentException("breakdown no puede ser nulo");
     }
   }
 }

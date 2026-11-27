@@ -777,3 +777,11 @@ Changes on the API side:
 - `basePrice` allows 0 so draft products can be created before pricing; time-log schema doc corrected to `IN`.
 
 **Verification:** `./gradlew clean spotlessApply checkstyleMain checkstyleTest test` → BUILD SUCCESSFUL. Live checks: config PUT (existing + new key), payroll create/patch, `registeredBy=1007`, 404 problem documents, reset-password invalid token 400.
+
+## Activity 46 — spanish-user-facing-messages
+
+- Translated every user-facing exception message, Bean Validation message and problem-detail literal that reaches the API response (order, payment, cash shift, table, catalog, schedules, payroll, analytics, settings, auth, images, seed).
+- Dynamic messages keep their parameters; only the prose is Spanish. Field names, enum values, error types and statuses are unchanged. Logs and OpenAPI `@Schema` descriptions stay in English.
+- Updated tests that asserted the old English text (1071 tests).
+- Precondition fix: `WorkerClockControllerTest` Javadoc header now matches the harness `Tests for {@...` check.
+- Verification: `./harness/harness.sh` → environment ready; all tests pass.

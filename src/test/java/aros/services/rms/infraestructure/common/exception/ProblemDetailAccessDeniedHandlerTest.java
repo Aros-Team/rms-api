@@ -58,7 +58,7 @@ class ProblemDetailAccessDeniedHandlerTest {
     assertEquals("about:blank", body.get("type").asString());
     assertEquals("Forbidden", body.get("title").asString());
     assertEquals(403, body.get("status").asInt());
-    assertEquals("Access denied", body.get("detail").asString());
+    assertEquals("Acceso denegado", body.get("detail").asString());
     assertEquals("/api/v1/payroll", body.get("instance").asString());
 
     assertTrue(response.getContentLength() > 0, "the 403 response must carry a non-empty body");

@@ -5,6 +5,7 @@ package aros.services.rms.core.analytics.application.service;
 import aros.services.rms.core.analytics.domain.MonthlyFinancialSummary;
 import aros.services.rms.core.analytics.domain.port.in.RefreshPrimeCostUseCase;
 import aros.services.rms.core.analytics.domain.port.out.MonthlyFinancialSummaryRepositoryPort;
+import aros.services.rms.core.area.domain.AreaActivity;
 import aros.services.rms.core.common.money.domain.Money;
 import aros.services.rms.core.systemconfig.domain.port.output.CurrencyProvider;
 import jakarta.persistence.EntityManager;
@@ -275,16 +276,16 @@ public class RefreshPrimeCostService implements RefreshPrimeCostUseCase {
   }
 
   /**
-   * Maps an area group (FOH/BOH) to the corresponding AreaType enum values.
+   * Maps an area group (FOH/BOH) to the corresponding {@link AreaActivity} names.
    *
    * @param areaGroup "FOH" or "BOH"
-   * @return list of area type names
+   * @return list of activity names
    */
   private List<String> mapAreaGroupToTypes(String areaGroup) {
     if ("FOH".equalsIgnoreCase(areaGroup)) {
-      return List.of("SERVICE", "CASH", "BAR");
+      return List.of(AreaActivity.SERVE.name(), AreaActivity.CASH.name());
     } else if ("BOH".equalsIgnoreCase(areaGroup)) {
-      return List.of("KITCHEN", "GRILL");
+      return List.of(AreaActivity.PREPARATION.name());
     }
     return List.of();
   }

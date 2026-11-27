@@ -41,28 +41,29 @@ public record AnalyticsConfig(
    */
   public AnalyticsConfig {
     if (id == null || id != 1) {
-      throw new IllegalArgumentException("AnalyticsConfig.id must be 1 (singleton)");
+      throw new IllegalArgumentException("AnalyticsConfig.id debe ser 1 (singleton)");
     }
     if (defaultOpen == null || defaultClose == null || !defaultOpen.isBefore(defaultClose)) {
-      throw new IllegalArgumentException("defaultOpen must be strictly before defaultClose");
+      throw new IllegalArgumentException(
+          "defaultOpen debe ser estrictamente anterior a defaultClose");
     }
     if (lunchStart == null || lunchEnd == null || !lunchStart.isBefore(lunchEnd)) {
-      throw new IllegalArgumentException("lunchStart must be strictly before lunchEnd");
+      throw new IllegalArgumentException("lunchStart debe ser estrictamente anterior a lunchEnd");
     }
     if (dinnerStart == null || dinnerEnd == null || !dinnerStart.isBefore(dinnerEnd)) {
-      throw new IllegalArgumentException("dinnerStart must be strictly before dinnerEnd");
+      throw new IllegalArgumentException("dinnerStart debe ser estrictamente anterior a dinnerEnd");
     }
     if (foodCostDeviationPp == null || foodCostDeviationPp.signum() < 0) {
-      throw new IllegalArgumentException("foodCostDeviationPp must be >= 0");
+      throw new IllegalArgumentException("foodCostDeviationPp debe ser >= 0");
     }
     if (laborCostDeviationPp == null || laborCostDeviationPp.signum() < 0) {
-      throw new IllegalArgumentException("laborCostDeviationPp must be >= 0");
+      throw new IllegalArgumentException("laborCostDeviationPp debe ser >= 0");
     }
     if (salesDropYoyPct == null || salesDropYoyPct.signum() < 0) {
-      throw new IllegalArgumentException("salesDropYoyPct must be >= 0");
+      throw new IllegalArgumentException("salesDropYoyPct debe ser >= 0");
     }
     if (updatedAt == null) {
-      throw new IllegalArgumentException("updatedAt must not be null");
+      throw new IllegalArgumentException("updatedAt no puede ser nulo");
     }
   }
 

@@ -41,6 +41,9 @@ public class UserEntity {
 
   private String phone;
 
+  @Column(name = "job_title")
+  private String jobTitle;
+
   @Enumerated(EnumType.STRING)
   private UserRole role;
 
@@ -116,6 +119,14 @@ public class UserEntity {
 
   public void setPhone(String phone) {
     this.phone = phone;
+  }
+
+  public String getJobTitle() {
+    return jobTitle;
+  }
+
+  public void setJobTitle(String jobTitle) {
+    this.jobTitle = jobTitle;
   }
 
   public UserRole getRole() {

@@ -89,6 +89,7 @@ public class ProductOptionService implements ProductOptionUseCase {
       optionRecipeRepositoryPort.saveAll(recipesToSave);
     }
 
+    saved.setRecipe(optionRecipeRepositoryPort.findByOptionId(saved.getId()));
     logger.info("ProductOption created: id={}, name={}", saved.getId(), saved.getName());
     return saved;
   }
@@ -139,6 +140,7 @@ public class ProductOptionService implements ProductOptionUseCase {
       optionRecipeRepositoryPort.saveAll(recipesToSave);
     }
 
+    saved.setRecipe(optionRecipeRepositoryPort.findByOptionId(saved.getId()));
     logger.info("ProductOption updated: id={}, name={}", saved.getId(), saved.getName());
     return saved;
   }
@@ -170,9 +172,11 @@ public class ProductOptionService implements ProductOptionUseCase {
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000))
   public ProductOption findById(Long id) {
-    return productOptionRepositoryPort
-        .findById(id)
-        .orElseThrow(() -> new ProductOptionNotFoundException(id));
+    ProductOption option =
+        productOptionRepositoryPort
+            .findById(id)
+            .orElseThrow(() -> new ProductOptionNotFoundException(id));
+    return attachRecipes(List.of(option)).getFirst();
   }
 
   /**
@@ -202,7 +206,7 @@ public class ProductOptionService implements ProductOptionUseCase {
       maxAttempts = 3,
       backoff = @Backoff(delay = 1000))
   public List<ProductOption> findByOptionGroupId(Long optionGroupId) {
-    return productOptionRepositoryPort.findByOptionGroupId(optionGroupId);
+    return attachRecipes(productOptionRepositoryPort.findByOptionGroupId(optionGroupId));
   }
 
   /**
@@ -296,6 +300,30 @@ public class ProductOptionService implements ProductOptionUseCase {
         optionGroupId,
         e.getMessage());
     throw new ServiceUnavailableException("Servicio temporalmente no disponible");
+  }
+
+  /**
+   * Loads the ingredient recipe for the given options in one batch.
+   *
+   * @param options options to enrich
+   * @return the same options with their {@code recipe} populated
+   */
+  private List<ProductOption> attachRecipes(List<ProductOption> options) {
+    if (options == null || options.isEmpty()) {
+      return options == null ? List.of() : options;
+    }
+    List<Long> ids =
+        options.stream().map(ProductOption::getId).filter(java.util.Objects::nonNull).toList();
+    if (ids.isEmpty()) {
+      return options;
+    }
+    var recipesByOption =
+        optionRecipeRepositoryPort.findByOptionIdIn(ids).stream()
+            .collect(java.util.stream.Collectors.groupingBy(recipe -> recipe.getOptionId()));
+    for (ProductOption option : options) {
+      option.setRecipe(recipesByOption.getOrDefault(option.getId(), List.of()));
+    }
+    return options;
   }
 
   /** Validates that the option category exists. */

@@ -10,6 +10,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import aros.services.rms.core.area.application.exception.AreaNotFoundException;
+import aros.services.rms.core.area.application.exception.ExclusiveAreaAssignmentException;
+import aros.services.rms.core.area.domain.Area;
 import aros.services.rms.core.area.domain.AreaId;
 import aros.services.rms.core.area.port.output.AreaRepositoryPort;
 import aros.services.rms.core.user.application.exception.InvalidUserAccessException;
@@ -57,12 +59,17 @@ class UpdateUserAccessServiceTest {
   @Mock private AreaRepositoryPort areaRepositoryPort;
   @Mock private AdminRepositoryPort adminRepositoryPort;
 
+  @Mock
+  private aros.services.rms.core.notification.domain.port.input.NotificationUseCase
+      notificationUseCase;
+
   private UpdateUserAccessService service;
 
   @BeforeEach
   void setUp() {
     service =
-        new UpdateUserAccessService(userRepositoryPort, areaRepositoryPort, adminRepositoryPort);
+        new UpdateUserAccessService(
+            userRepositoryPort, areaRepositoryPort, adminRepositoryPort, notificationUseCase);
   }
 
   @Test
@@ -116,6 +123,23 @@ class UpdateUserAccessServiceTest {
   void should_reject_unknown_status_values() {
     assertThrows(
         InvalidUserAccessException.class, () -> service.changeStatus(1L, UserStatus.PENDING, 2L));
+
+    verify(userRepositoryPort, never()).save(any());
+  }
+
+  @Test
+  void should_reject_combining_an_exclusive_area() {
+    User worker = user(10L, UserRole.WORKER, UserStatus.ACTIVE);
+    when(userRepositoryPort.findById(UserId.of(10L))).thenReturn(Optional.of(worker));
+    when(areaRepositoryPort.existsAllByIds(any())).thenReturn(true);
+    when(areaRepositoryPort.findByIdIn(any()))
+        .thenReturn(
+            List.of(
+                Area.builder().id(1L).name("Cocina").exclusive(true).build(),
+                Area.builder().id(2L).name("Servicio").exclusive(false).build()));
+
+    assertThrows(
+        ExclusiveAreaAssignmentException.class, () -> service.changeAreas(10L, Set.of(1L, 2L)));
 
     verify(userRepositoryPort, never()).save(any());
   }

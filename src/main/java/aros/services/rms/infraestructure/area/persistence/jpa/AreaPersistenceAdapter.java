@@ -70,4 +70,9 @@ public class AreaPersistenceAdapter implements AreaRepositoryPort {
     return areaRepository.existsAllByIdIn(
         ids.stream().map(i -> i.value()).collect(Collectors.toSet()), ids.size());
   }
+
+  @Override
+  public long countUsersWithAreaAndOtherAreas(Long areaId) {
+    return areaRepository.countUsersWithAreaAndOtherAreas(areaId);
+  }
 }

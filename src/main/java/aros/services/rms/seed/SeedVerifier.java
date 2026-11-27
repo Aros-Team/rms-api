@@ -2,12 +2,14 @@
 
 package aros.services.rms.seed;
 
+import aros.services.rms.core.area.domain.AreaActivity;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,13 +86,109 @@ final class SeedVerifier {
     checks.add(
         check(
             "workers",
-            13,
+            SeedConstants.WORKERS.size(),
             scalar(
-                "SELECT COUNT(*) FROM users WHERE document LIKE 'SEED-1%' AND role = 'WORKER'")));
-    checks.add(check("payroll rows", 78, scalar("SELECT COUNT(*) FROM payroll")));
-    checks.add(check("payroll events", 78, scalar("SELECT COUNT(*) FROM payroll_events")));
-    checks.add(check("salary history", 13, scalar("SELECT COUNT(*) FROM salary_history")));
+                "SELECT COUNT(*) FROM users WHERE email LIKE 'seed%@rms.local' "
+                    + "AND role = 'WORKER'")));
+    checks.add(
+        check(
+            "workers with job title",
+            SeedConstants.WORKERS.size(),
+            scalar(
+                "SELECT COUNT(*) FROM users WHERE email LIKE 'seed%@rms.local' "
+                    + "AND role = 'WORKER' AND job_title IS NOT NULL AND job_title <> ''")));
+    checks.add(
+        check(
+            "worker documents are numeric",
+            SeedConstants.WORKERS.size(),
+            scalar(
+                "SELECT COUNT(*) FROM users WHERE email LIKE 'seed%@rms.local' "
+                    + "AND role = 'WORKER' AND document REGEXP '^[0-9]+$'")));
+    checks.add(
+        check(
+            "waiters with service and bar",
+            3,
+            scalar(
+                "SELECT COUNT(*) FROM users u WHERE u.email IN "
+                    + "('seed1013@rms.local','seed1014@rms.local','seed1018@rms.local') "
+                    + "AND (SELECT COUNT(DISTINCT uaa.area_id) FROM user_assigned_areas uaa "
+                    + "WHERE uaa.user_id = u.id AND uaa.area_id IN (2,3)) = 2")));
+    checks.add(
+        check(
+            "bar workers with preparation and service",
+            3,
+            scalar(
+                "SELECT COUNT(*) FROM ("
+                    + "SELECT waa.user_id FROM worker_area_activities waa "
+                    + "JOIN users u ON u.id = waa.user_id "
+                    + "WHERE u.email IN "
+                    + "('seed1013@rms.local','seed1014@rms.local','seed1018@rms.local') "
+                    + "AND waa.area_id = "
+                    + SeedConstants.BAR_AREA
+                    + " AND waa.activity IN ('"
+                    + AreaActivity.PREPARATION.name()
+                    + "','"
+                    + AreaActivity.SERVE.name()
+                    + "') "
+                    + "GROUP BY waa.user_id "
+                    + "HAVING COUNT(DISTINCT waa.activity) = 2) bar_workers")));
+    checks.add(
+        check(
+            "exclusive kitchen area",
+            1,
+            scalar(
+                "SELECT COUNT(*) FROM areas a JOIN area_activities aa ON aa.area_id = a.id "
+                    + "WHERE aa.activity = '"
+                    + AreaActivity.PREPARATION.name()
+                    + "' AND a.exclusive = TRUE")));
+    checks.add(
+        check(
+            "no exclusive area shared with others",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM user_assigned_areas uaa "
+                    + "JOIN areas a ON a.id = uaa.area_id "
+                    + "WHERE a.exclusive = TRUE AND ("
+                    + "SELECT COUNT(*) FROM user_assigned_areas other "
+                    + "WHERE other.user_id = uaa.user_id) > 1")));
+    checks.add(
+        check(
+            "workers with images",
+            SeedConstants.WORKERS.size(),
+            scalar(
+                "SELECT COUNT(DISTINCT entity_id) FROM entity_images "
+                    + "WHERE entity_type = 'USER' "
+                    + "AND entity_id IN (SELECT id FROM users WHERE role = 'WORKER')")));
+    checks.add(
+        check(
+            "payroll rows",
+            6L * SeedConstants.WORKERS.size(),
+            scalar("SELECT COUNT(*) FROM payroll")));
+    checks.add(
+        check(
+            "payroll events",
+            6L * SeedConstants.WORKERS.size(),
+            scalar("SELECT COUNT(*) FROM payroll_events")));
+    checks.add(
+        check(
+            "salary history",
+            SeedConstants.WORKERS.size(),
+            scalar("SELECT COUNT(*) FROM salary_history")));
     checks.add(check("time logs", expectedTimeLogs(), scalar("SELECT COUNT(*) FROM time_logs")));
+    checks.add(
+        check(
+            "payroll hours match time logs",
+            0,
+            scalar(
+                "SELECT COUNT(*) FROM payroll p WHERE p.hours_worked <> ("
+                    + "SELECT COUNT(*) * ("
+                    + "SELECT TIMESTAMPDIFF(MINUTE, ss.start_time, ss.end_time) / 60 "
+                    + "FROM schedule_shifts ss "
+                    + "JOIN worker_schedule_assignments wsa ON wsa.schedule_id = ss.schedule_id "
+                    + "WHERE wsa.worker_id = p.user_id LIMIT 1) "
+                    + "FROM time_logs tl WHERE tl.worker_id = p.user_id AND tl.type = 'OUT' "
+                    + "AND YEAR(tl.timestamp) = p.period_year "
+                    + "AND MONTH(tl.timestamp) = p.period_month)")));
     checks.add(
         check(
             "financial buckets",
@@ -516,19 +614,48 @@ final class SeedVerifier {
     return SeedConstants.HISTORY_DAYS + weeks.size() + expected.months().size() + 6 + 1;
   }
 
-  private long expectedTimeLogs() {
-    long shifts = 0;
+  private long expectedTimeLogs() throws SQLException {
+    long logs = 0;
     LocalDate start = anchor.minusDays(SeedConstants.HISTORY_DAYS);
-    java.util.Map<java.time.YearMonth, Integer> active = new java.util.LinkedHashMap<>();
     for (LocalDate day = start; day.isBefore(anchor); day = day.plusDays(1)) {
-      active.merge(java.time.YearMonth.from(day), 1, Integer::sum);
+      for (SeedConstants.WorkerSpec worker : SeedConstants.WORKERS) {
+        if (worker.shiftOn(day.getDayOfWeek()) != null) {
+          logs += 2;
+        }
+      }
     }
-    for (java.util.Map.Entry<java.time.YearMonth, Integer> entry : active.entrySet()) {
-      shifts +=
-          Math.round(20.0 * entry.getValue() / entry.getKey().lengthOfMonth())
-              * SeedConstants.WORKERS.size();
+    // Today's attendance is bounded by the instant the seed ran; it is stored in metadata so
+    // `seedVerify` does not race a shift boundary.
+    LocalDateTime until = loggedUntil();
+    for (SeedConstants.WorkerSpec worker : SeedConstants.WORKERS) {
+      SeedConstants.ShiftSpec spec = worker.shiftOn(anchor.getDayOfWeek());
+      if (spec == null) {
+        continue;
+      }
+      LocalDateTime in = anchor.atTime(spec.start());
+      if (!until.isBefore(in)) {
+        logs++;
+      }
+      if (!until.isBefore(in.plusHours(spec.hours()))) {
+        logs++;
+      }
     }
-    return shifts * 2;
+    return logs;
+  }
+
+  private LocalDateTime loggedUntil() throws SQLException {
+    try (Statement statement = connection.createStatement();
+        ResultSet rows =
+            statement.executeQuery(
+                "SELECT value FROM system_configuration WHERE `key` = 'seed_logged_until'")) {
+      if (rows.next()) {
+        String value = rows.getString(1);
+        if (value != null && !value.isBlank()) {
+          return LocalDateTime.parse(value.trim().replace(' ', 'T'));
+        }
+      }
+    }
+    return LocalDateTime.now();
   }
 
   private long scalar(String sql) throws SQLException {

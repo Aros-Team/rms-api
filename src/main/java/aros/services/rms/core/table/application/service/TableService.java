@@ -211,7 +211,7 @@ public class TableService implements TableUseCase {
         tableRepositoryPort.findById(id).orElseThrow(() -> new TableNotFoundException(id));
 
     if (status == null) {
-      throw new InvalidTableStatusException("Status cannot be null");
+      throw new InvalidTableStatusException("El estado no puede ser nulo");
     }
 
     existing.setStatus(status);

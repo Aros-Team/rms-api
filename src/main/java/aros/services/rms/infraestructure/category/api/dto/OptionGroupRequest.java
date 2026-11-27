@@ -11,12 +11,12 @@ import java.util.List;
 @Schema(description = "Request DTO for creating or updating an option group")
 public record OptionGroupRequest(
     @Schema(description = "Option group name", example = "Proteína Hamburguesa")
-        @NotBlank(message = "Option group name is required")
+        @NotBlank(message = "El nombre del grupo de opciones es obligatorio")
         String name,
     @Schema(description = "Option group description", example = "Proteínas para hamburguesas")
         String description,
     @Schema(description = "IDs of products this option group applies to", example = "[1, 2, 3]")
-        @NotEmpty(message = "At least one product ID is required")
+        @NotEmpty(message = "Se requiere al menos un ID de producto")
         List<Long> productIds,
     @Schema(
             description = "Whether selecting this option group is mandatory for the product",

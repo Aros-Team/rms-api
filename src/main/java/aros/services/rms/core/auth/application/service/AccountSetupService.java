@@ -104,10 +104,12 @@ public class AccountSetupService implements AccountSetupUseCase {
     // If user is ADMIN, validate name and document are provided
     if (user.getRole() == UserRole.ADMIN) {
       if (name == null || name.isBlank()) {
-        throw new IllegalArgumentException("Name is required for admin users");
+        throw new IllegalArgumentException(
+            "El nombre es obligatorio para usuarios administradores");
       }
       if (document == null || document.isBlank()) {
-        throw new IllegalArgumentException("Document is required for admin users");
+        throw new IllegalArgumentException(
+            "El documento es obligatorio para usuarios administradores");
       }
       if (!user.getDocument().equals(document)) {
         throw new AccountSetupTokenInvalidException("Documento no válido para este token");
@@ -149,7 +151,7 @@ public class AccountSetupService implements AccountSetupUseCase {
             .orElseThrow(
                 () ->
                     new UserNotFoundException(
-                        "the user with email " + email + " couldn't be found"));
+                        "el usuario con correo " + email + " no se encontró"));
 
     tokenRepositoryPort.deleteByUserId(user.getId());
 

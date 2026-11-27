@@ -13,6 +13,6 @@ public class PrimeCostPeriodNotFoundException extends RuntimeException {
    * @param to the inclusive end period key
    */
   public PrimeCostPeriodNotFoundException(String bucket, String from, String to) {
-    super("No prime-cost data found for bucket=" + bucket + " from=" + from + " to=" + to);
+    super("No hay datos de costo primo para bucket=" + bucket + " desde=" + from + " hasta=" + to);
   }
 }

@@ -11,6 +11,6 @@ public class PaymentAlreadyVoidedException extends RuntimeException {
    * @param paymentId the already voided payment
    */
   public PaymentAlreadyVoidedException(Long paymentId) {
-    super("Payment " + paymentId + " is already voided");
+    super("El pago " + paymentId + " ya fue anulado");
   }
 }

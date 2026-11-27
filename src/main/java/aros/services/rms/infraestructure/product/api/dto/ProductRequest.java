@@ -4,6 +4,7 @@ package aros.services.rms.infraestructure.product.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -22,21 +23,21 @@ import java.util.List;
             + "\"categoryId\": 1, \"areaId\": 1, \"optionIds\": [1, 2, 3]}")
 public record ProductRequest(
     @Schema(description = "Product name", example = "Hamburguesa Clásica")
-        @NotBlank(message = "Product name is required")
+        @NotBlank(message = "El nombre del producto es obligatorio")
         String name,
     @Schema(
             description = "Product description",
             example = "Deliciosa hamburguesa con queso cheddar, tocino y vegetales frescos")
         String description,
     @Schema(description = "Product base price", example = "12.50")
-        @NotNull(message = "Base price is required")
-        @PositiveOrZero(message = "Base price must be zero or positive")
+        @NotNull(message = "El precio base es obligatorio")
+        @PositiveOrZero(message = "El precio base debe ser cero o positivo")
         Double basePrice,
     @Schema(description = "Category ID the product belongs to", example = "1")
-        @NotNull(message = "Category ID is required")
+        @NotNull(message = "El ID de categoría es obligatorio")
         Long categoryId,
     @Schema(description = "Preparation area ID", example = "1")
-        @NotNull(message = "Area ID is required")
+        @NotNull(message = "El ID del área es obligatorio")
         Long areaId,
     @Schema(
             description = "IDs of existing product options to associate with this product",
@@ -60,4 +61,16 @@ public record ProductRequest(
         @Valid
         List<RecipeItemRequest> recipe,
     @Schema(description = "Estimated preparation time in minutes", example = "15")
-        Integer estimatedPrepMinutes) {}
+        Integer estimatedPrepMinutes,
+    @Schema(
+            description = "How many people work on the product during its preparation time",
+            example = "2",
+            defaultValue = "1")
+        @Min(value = 1, message = "La cantidad de personas debe ser al menos 1")
+        Integer requiredWorkers,
+    @Schema(
+            description = "Preparation-time source used for labor costing",
+            example = "ESTIMATED",
+            allowableValues = {"ESTIMATED", "REAL", "AUTO"},
+            defaultValue = "ESTIMATED")
+        String prepTimeMode) {}

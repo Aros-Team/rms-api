@@ -10,8 +10,8 @@ import jakarta.validation.constraints.Pattern;
 @Schema(description = "ISO 4217 currency code to activate")
 public record CurrencySettingsRequest(
     @Schema(description = "ISO 4217 alphabetic code", example = "COP")
-        @NotBlank(message = "Currency code is required")
+        @NotBlank(message = "El código de moneda es obligatorio")
         @Pattern(
             regexp = "[A-Za-z]{3}",
-            message = "Currency code must be a three-letter ISO 4217 code")
+            message = "El código de moneda debe constar de tres letras (ISO 4217)")
         String code) {}

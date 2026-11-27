@@ -7,6 +7,7 @@ import java.time.Instant;
 /** Wire-ready view of a notification. */
 public record NotificationView(
     Long id,
+    Long userId,
     String code,
     NotificationSeverity severity,
     String title,
@@ -19,6 +20,7 @@ public record NotificationView(
   public static NotificationView from(UserNotification notification) {
     return new NotificationView(
         notification.getId(),
+        notification.getUserId(),
         notification.getCode(),
         notification.getSeverity(),
         notification.getTitle(),

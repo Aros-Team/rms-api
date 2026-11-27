@@ -11,6 +11,6 @@ public class PurchaseOrderNotFoundException extends RuntimeException {
    * @param id purchase order ID
    */
   public PurchaseOrderNotFoundException(Long id) {
-    super("Purchase order not found: id=" + id);
+    super("Orden de compra no encontrada: id=" + id);
   }
 }

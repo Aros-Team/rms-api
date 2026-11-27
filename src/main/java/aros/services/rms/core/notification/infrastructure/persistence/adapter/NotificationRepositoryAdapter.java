@@ -41,7 +41,7 @@ public class NotificationRepositoryAdapter implements NotificationRepositoryPort
   @Override
   public List<UserNotification> find(boolean unreadOnly, int limit, int offset) {
     int fetch = Math.min(offset + limit, 10_000);
-    return jpaRepo.findPage(unreadOnly, PageRequest.of(0, fetch)).stream()
+    return jpaRepo.findGlobalPage(unreadOnly, PageRequest.of(0, fetch)).stream()
         .skip(offset)
         .limit(limit)
         .map(mapper::toDomain)
@@ -51,27 +51,59 @@ public class NotificationRepositoryAdapter implements NotificationRepositoryPort
   /** {@inheritDoc} */
   @Override
   public long count(boolean unreadOnly) {
-    return jpaRepo.countNotifications(unreadOnly);
+    return jpaRepo.countGlobal(unreadOnly);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public List<UserNotification> findForUser(
+      Long userId, boolean unreadOnly, int limit, int offset) {
+    int fetch = Math.min(offset + limit, 10_000);
+    return jpaRepo.findPageForUser(userId, unreadOnly, PageRequest.of(0, fetch)).stream()
+        .skip(offset)
+        .limit(limit)
+        .map(mapper::toDomain)
+        .toList();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long countForUser(Long userId, boolean unreadOnly) {
+    return jpaRepo.countForUser(userId, unreadOnly);
   }
 
   /** {@inheritDoc} */
   @Override
   @Transactional
   public int markRead(Long id, Instant readAt) {
-    return jpaRepo.markRead(id, readAt);
+    return jpaRepo.markGlobalRead(id, readAt);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional
+  public int markReadForUser(Long userId, Long id, Instant readAt) {
+    return jpaRepo.markReadForUser(id, userId, readAt);
   }
 
   /** {@inheritDoc} */
   @Override
   @Transactional
   public int markAllRead(Instant readAt) {
-    return jpaRepo.markAllRead(readAt);
+    return jpaRepo.markAllGlobalRead(readAt);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @Transactional
+  public int markAllReadForUser(Long userId, Instant readAt) {
+    return jpaRepo.markAllReadForUser(userId, readAt);
   }
 
   /** {@inheritDoc} */
   @Override
   @Transactional
   public void clear() {
-    jpaRepo.deleteAllInBatch();
+    jpaRepo.deleteGlobal();
   }
 }

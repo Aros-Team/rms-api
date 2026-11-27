@@ -73,6 +73,14 @@ public interface AreaRepositoryPort {
   boolean existsAllByIds(Set<AreaId> ids);
 
   /**
+   * Counts workers that have this area together with at least one other area.
+   *
+   * @param areaId the area identifier
+   * @return number of workers that would violate the exclusive rule
+   */
+  long countUsersWithAreaAndOtherAreas(Long areaId);
+
+  /**
    * Finds areas whose name contains the given string (case-insensitive).
    *
    * @param name the name substring

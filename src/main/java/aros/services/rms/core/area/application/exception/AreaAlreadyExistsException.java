@@ -11,6 +11,6 @@ public class AreaAlreadyExistsException extends RuntimeException {
    * @param name the duplicate area name
    */
   public AreaAlreadyExistsException(String name) {
-    super("Area already exists: " + name);
+    super("El área ya existe: " + name);
   }
 }

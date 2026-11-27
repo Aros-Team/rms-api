@@ -15,7 +15,7 @@ import jakarta.validation.constraints.Size;
             + "\"password\": \"123\", \"deviceHash\": \"device-123\"}")
 public record LoginRequest(
     @Schema(description = "User email", example = "quintosteven590@gmail.com")
-        @NotBlank(message = "El username es requerido")
+        @NotBlank(message = "El usuario es obligatorio")
         @Email(message = "Formato de email inválido")
         String username,
     @Schema(description = "User password", example = "123")

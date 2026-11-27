@@ -25,7 +25,7 @@ public class JwtConfigValidator {
   private static final Logger log = LoggerFactory.getLogger(JwtConfigValidator.class);
   private static final String PRODUCTION = "production";
   private static final String ERROR_MESSAGE =
-      "JWT keys not configured. Run './gradlew generate-jwt-keys' or 'task jwtkeys' "
+      "Claves JWT no configuradas. Ejecuta './gradlew generate-jwt-keys' o 'task jwtkeys' "
           + "to generate and add to .env file";
   private static final String PRODUCTION_ERROR_MESSAGE =
       "CRITICAL: JWT keys are required in production. "
@@ -154,7 +154,7 @@ public class JwtConfigValidator {
       JwkKeyId kid = JwkKeyIdDeriver.from(pub);
       return List.of(new JwkKeyMaterial(kid, pub, priv));
     } catch (Exception e) {
-      throw new IllegalStateException("Failed to parse single JWT key", e);
+      throw new IllegalStateException("No se pudo analizar la clave JWT única", e);
     }
   }
 

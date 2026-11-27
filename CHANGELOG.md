@@ -1,5 +1,33 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- **floor-layout**: add the restaurant-wide schematic distribution (`GET/PUT /api/v1/floor-layout`).
+  Regions reference existing Areas, use compact row segments (no per-cell rows), reject overlaps
+  and canvas overflows, and are replaced atomically. The grid starts at 32×20 and can grow without a user-facing size limit
+  (100,000×100,000 safety cap) as the map expands. Area deletion is restricted while a region references
+  it. Migration `V73`.
+- **floor-layout**: add independent table placements (`GET/PUT /api/v1/floor-layout/tables`). A
+table must land on a cell of an enabled `SERVE` area; table and cell duplication are rejected.
+  Migration `V74`.
+- **seed**: add the current 40×26 restaurant distribution (Cocina, Salón Principal, Bar and Entrada)
+  from `seed/floor-layout.json`, with 20 tables placed on SERVED areas so the waiter map is
+  usable after `seedReset`.
+- **floor-layout**: add `GET /api/v1/floor-layout/map`, a read-only layout + placements view for
+  operational staff (`WORKER`/`ADMIN`), used by the waiter table picker.
+- **seed**: replace the demo roster with the seven real workers (Camila Navarro, Bruno Castillo,
+  Renata Flores, Diego Salas, Mateo Rivas, Tomás Méndez and Valentina Soto), their weekly shifts
+  covering every open hour (Mon closed; Tue–Fri 08–22, Sat–Sun 08–17) within the 42 h cap, salaries
+  and per-worker expected hours; delete every previous `WORKER` user on reset.
+- **seed**: attach the bundled worker portraits through `entity_images` (three WebP sizes) and
+  expose them in the API.
+- **seed**: include anchor-day attendance marks up to the seed instant (completed shift → IN/OUT,
+  in-progress shift → open IN) and persist the cut-off in `seed_logged_until`.
+- **workers**: expose `imageUrl` in `GET/PUT /api/v1/workers` and batch-resolve portraits with the
+  new `GetImagesUseCase.getFirstByEntities`.
+
 ## [v2.4.0](https://github.com/Aros-Team/rms-api/releases/tag/v2.4.0)
 
 ### Features

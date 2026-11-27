@@ -15,7 +15,7 @@ public record UserStatusUpdateRequest(
             description = "New status",
             example = "INACTIVE",
             allowableValues = {"ACTIVE", "INACTIVE"})
-        @NotBlank(message = "Status is required")
+        @NotBlank(message = "El estado es obligatorio")
         String status) {
 
   /**
@@ -28,7 +28,7 @@ public record UserStatusUpdateRequest(
     try {
       return UserStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException e) {
-      throw new InvalidUserAccessException("Invalid status: " + status);
+      throw new InvalidUserAccessException("Estado inválido: " + status);
     }
   }
 }

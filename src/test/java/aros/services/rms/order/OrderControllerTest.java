@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import aros.services.rms.core.area.domain.AreaActivity;
 import aros.services.rms.core.image.port.output.StoragePort;
 import aros.services.rms.core.inventory.application.exception.InsufficientStockException;
 import aros.services.rms.core.inventory.domain.MovementType;
@@ -103,7 +104,8 @@ class OrderControllerTest extends AbstractJwtIntegrationTest {
                     .subject("test@test.com")
                     .claim("type", "access")
                     .claim("role", "WORKER")
-                    .claim("areaTypes", List.of("SERVICE", "BAR"))
+                    .claim(
+                        "areaTypes", List.of(AreaActivity.SERVE.name(), AreaActivity.SERVE.name()))
                     .build()));
   }
 
@@ -176,7 +178,7 @@ class OrderControllerTest extends AbstractJwtIntegrationTest {
         .perform(get("/api/v1/orders/999"))
         .andExpect(status().isNotFound())
         .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-        .andExpect(jsonPath("$.detail").value("Order not found: 999"));
+        .andExpect(jsonPath("$.detail").value("Pedido no encontrado: 999"));
   }
 
   // ---------------------------------------------------------------------------
@@ -187,13 +189,13 @@ class OrderControllerTest extends AbstractJwtIntegrationTest {
   @Test
   void shouldReturn400_whenTableNotFound() throws Exception {
     when(takeOrderUseCase.execute(any(TakeOrderCommand.class)))
-        .thenThrow(new IllegalArgumentException("Table not found"));
+        .thenThrow(new IllegalArgumentException("Mesa no encontrada"));
 
     mockMvc
         .perform(post("/api/v1/orders").contentType(MediaType.APPLICATION_JSON).content(VALID_BODY))
         .andExpect(status().isBadRequest())
         .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-        .andExpect(jsonPath("$.detail").value("Table not found"));
+        .andExpect(jsonPath("$.detail").value("Mesa no encontrada"));
   }
 
   // ---------------------------------------------------------------------------
@@ -204,12 +206,12 @@ class OrderControllerTest extends AbstractJwtIntegrationTest {
   @Test
   void shouldReturn409_whenTableIsOccupied() throws Exception {
     when(takeOrderUseCase.execute(any(TakeOrderCommand.class)))
-        .thenThrow(new IllegalStateException("Table is not available"));
+        .thenThrow(new IllegalStateException("La mesa no está disponible"));
 
     mockMvc
         .perform(post("/api/v1/orders").contentType(MediaType.APPLICATION_JSON).content(VALID_BODY))
         .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.detail").value("Table is not available"));
+        .andExpect(jsonPath("$.detail").value("La mesa no está disponible"));
   }
 
   // ---------------------------------------------------------------------------
@@ -220,7 +222,7 @@ class OrderControllerTest extends AbstractJwtIntegrationTest {
   @Test
   void shouldReturn400_whenProductNotFound() throws Exception {
     when(takeOrderUseCase.execute(any(TakeOrderCommand.class)))
-        .thenThrow(new IllegalArgumentException("Product not found"));
+        .thenThrow(new IllegalArgumentException("Producto no encontrado"));
 
     String bodyWithInvalidProduct =
         """
@@ -242,7 +244,7 @@ class OrderControllerTest extends AbstractJwtIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(bodyWithInvalidProduct))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.detail").value("Product not found"));
+        .andExpect(jsonPath("$.detail").value("Producto no encontrado"));
   }
 
   // ---------------------------------------------------------------------------
@@ -255,11 +257,11 @@ class OrderControllerTest extends AbstractJwtIntegrationTest {
     when(takeOrderUseCase.execute(any(TakeOrderCommand.class)))
         .thenThrow(
             new InsufficientStockException(
-                1L, MovementType.DEDUCTION, "Insufficient stock for product: Test Product"));
+                1L, MovementType.DEDUCTION, "Stock insuficiente para el producto: Test Product"));
 
     mockMvc
         .perform(post("/api/v1/orders").contentType(MediaType.APPLICATION_JSON).content(VALID_BODY))
         .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.detail").value("Insufficient stock for product: Test Product"));
+        .andExpect(jsonPath("$.detail").value("Stock insuficiente para el producto: Test Product"));
   }
 }

@@ -61,7 +61,7 @@ public class RegisterPaymentService implements RegisterPaymentUseCase {
   @Override
   public RegisteredPayment register(RegisterPaymentCommand command) {
     if (command == null || command.orderId() == null) {
-      throw new InvalidPaymentException("An orderId is required");
+      throw new InvalidPaymentException("El orderId es obligatorio");
     }
     String idempotencyKey = normalizeKey(command.idempotencyKey());
 
@@ -74,7 +74,7 @@ public class RegisterPaymentService implements RegisterPaymentUseCase {
     if (replay.isPresent()) {
       Payment payment = replay.get();
       if (!order.id().equals(payment.getOrderId())) {
-        throw new InvalidPaymentException("The idempotency key was already used for another order");
+        throw new InvalidPaymentException("La clave de idempotencia ya se usó para otro pedido");
       }
       return new RegisteredPayment(payment, true);
     }
@@ -135,12 +135,12 @@ public class RegisterPaymentService implements RegisterPaymentUseCase {
 
   private static String normalizeKey(String key) {
     if (key == null || key.isBlank()) {
-      throw new InvalidPaymentException("The Idempotency-Key header is required");
+      throw new InvalidPaymentException("El encabezado Idempotency-Key es obligatorio");
     }
     String normalized = key.trim();
     if (normalized.length() > MAX_IDEMPOTENCY_KEY_LENGTH) {
       throw new InvalidPaymentException(
-          "The Idempotency-Key must not exceed " + MAX_IDEMPOTENCY_KEY_LENGTH + " characters");
+          "El Idempotency-Key no debe superar " + MAX_IDEMPOTENCY_KEY_LENGTH + " characters");
     }
     return normalized;
   }

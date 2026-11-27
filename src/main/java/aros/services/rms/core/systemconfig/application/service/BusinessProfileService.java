@@ -46,25 +46,27 @@ public class BusinessProfileService
 
   private void validate(BusinessProfile profile) {
     if (profile == null) {
-      throw new InvalidConfigurationException("Business profile is required");
+      throw new InvalidConfigurationException("El perfil del negocio es obligatorio");
     }
     if (profile.getRestaurantName() == null || profile.getRestaurantName().isBlank()) {
-      throw new InvalidConfigurationException("restaurantName", "null or blank");
+      throw new InvalidConfigurationException("restaurantName", "nulo o vacío");
     }
     if (profile.getTimezone() == null || profile.getTimezone().isBlank()) {
-      throw new InvalidConfigurationException("timezone", "null or blank");
+      throw new InvalidConfigurationException("timezone", "nulo o vacío");
     }
     try {
       ZoneId.of(profile.getTimezone());
     } catch (DateTimeException e) {
-      throw new InvalidConfigurationException("Invalid IANA timezone: " + profile.getTimezone());
+      throw new InvalidConfigurationException(
+          "Zona horaria IANA inválida: " + profile.getTimezone());
     }
     if (profile.getLocale() == null || profile.getLocale().isBlank()) {
-      throw new InvalidConfigurationException("locale", "null or blank");
+      throw new InvalidConfigurationException("locale", "nulo o vacío");
     }
     Locale locale = Locale.forLanguageTag(profile.getLocale());
     if (locale.getLanguage().isEmpty()) {
-      throw new InvalidConfigurationException("Invalid locale: " + profile.getLocale());
+      throw new InvalidConfigurationException(
+          "Configuración regional inválida: " + profile.getLocale());
     }
   }
 }

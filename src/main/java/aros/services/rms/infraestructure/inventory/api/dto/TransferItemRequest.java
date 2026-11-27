@@ -14,12 +14,12 @@ public record TransferItemRequest(
             description = "Supply variant ID",
             example = "3",
             requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotNull(message = "Supply variant ID is required")
+        @NotNull(message = "El ID de variante de insumo es obligatorio")
         Long supplyVariantId,
     @Schema(
             description = "Quantity to transfer (must be > 0)",
             example = "5.000",
             requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotNull(message = "Quantity is required")
-        @DecimalMin(value = "0.001", message = "Quantity must be greater than zero")
+        @NotNull(message = "La cantidad es obligatoria")
+        @DecimalMin(value = "0.001", message = "La cantidad debe ser mayor que cero")
         BigDecimal quantity) {}

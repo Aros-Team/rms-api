@@ -33,7 +33,7 @@ public enum PurchaseStatus {
     return switch (value.trim().toUpperCase(Locale.ROOT)) {
       case "CONFIRMED", "CONFIRMADA" -> CONFIRMED;
       case "RECEIVED", "RECIBIDA" -> RECEIVED;
-      default -> throw new IllegalArgumentException("Unknown purchase status: " + value);
+      default -> throw new IllegalArgumentException("Estado de compra desconocido: " + value);
     };
   }
 }

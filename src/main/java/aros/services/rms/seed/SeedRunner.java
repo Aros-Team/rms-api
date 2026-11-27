@@ -3,6 +3,7 @@
 package aros.services.rms.seed;
 
 import aros.services.rms.core.image.domain.ImageSize;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sksamuel.scrimage.ImmutableImage;
 import com.sksamuel.scrimage.webp.WebpWriter;
 import java.awt.Color;
@@ -13,6 +14,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
@@ -95,7 +97,7 @@ final class SeedRunner {
         statement.execute("SET unique_checks = 0");
       }
       if (!acquireLock()) {
-        throw new SeedException("Another seed is already running (GET_LOCK rms_seed)");
+        throw new SeedException("Ya hay otra carga de datos en ejecución (GET_LOCK rms_seed)");
       }
       try {
         if (runCatalog) {
@@ -105,8 +107,11 @@ final class SeedRunner {
         loadReferenceData();
         seedProductImages();
         upsertUsers();
+        seedWorkerImages();
         seedSuppliers();
         resetFloor();
+        seedFloorLayout();
+        resetOpeningHours();
         seedSchedulesAndTimeLogs();
         SeedPlan plan = SeedPlan.complete(anchor, now);
         seedOrdersAndInventory(plan);
@@ -142,7 +147,7 @@ final class SeedRunner {
         releaseLock();
       }
     } catch (SQLException exception) {
-      throw new SeedException("Seed reset failed: " + exception.getMessage(), exception);
+      throw new SeedException("Falló el reinicio de datos: " + exception.getMessage(), exception);
     } finally {
       try {
         connection.setAutoCommit(true);
@@ -201,6 +206,7 @@ final class SeedRunner {
             "purchase_orders",
             "special_selection_history",
             "system_alerts",
+            "user_notifications",
             // Payments reference orders and cash_shifts; children first.
             "payment_tenders",
             "payments",
@@ -216,14 +222,54 @@ final class SeedRunner {
       }
     }
     try (Statement statement = connection.createStatement()) {
-      statement.executeUpdate(
-          "DELETE FROM user_assigned_areas WHERE user_id BETWEEN "
-              + SeedConstants.SEED_USER_FIRST
-              + " AND "
-              + SeedConstants.SEED_USER_LAST);
+      // The seed owns the worker roster: remove every WORKER user (QA included) so a reset
+      // ends with exactly the seven people defined in SeedConstants.WORKERS. Admins stay.
+      deleteWorkerAccounts(statement);
       // Suppliers are upserted by their fixed seed ids; anything above the seed range is demo
       // data created after the previous reset and would break the golden supplier count.
       statement.executeUpdate("DELETE FROM suppliers WHERE id > " + SeedConstants.SUPPLIERS.size());
+    }
+  }
+
+  /** Deletes every worker account and the rows that reference it, plus its uploaded images. */
+  private void deleteWorkerAccounts(Statement statement) throws SQLException {
+    List<Long> workerIds = new ArrayList<>();
+    try (ResultSet rows = statement.executeQuery("SELECT id FROM users WHERE role = 'WORKER'")) {
+      while (rows.next()) {
+        workerIds.add(rows.getLong(1));
+      }
+    }
+    String workerFilter = " WHERE user_id IN (SELECT id FROM users WHERE role = 'WORKER')";
+    statement.executeUpdate(
+        "DELETE FROM entity_images WHERE entity_type = 'USER' AND entity_id IN "
+            + "(SELECT id FROM users WHERE role = 'WORKER')");
+    statement.executeUpdate("DELETE FROM user_assigned_areas" + workerFilter);
+    statement.executeUpdate("DELETE FROM worker_area_activities" + workerFilter);
+    statement.executeUpdate("DELETE FROM account_setup_tokens" + workerFilter);
+    statement.executeUpdate("DELETE FROM password_reset_tokens" + workerFilter);
+    statement.executeUpdate("DELETE FROM users WHERE role = 'WORKER'");
+    for (Long workerId : workerIds) {
+      deleteDirectory(uploadsDir.resolve("users").resolve(Long.toString(workerId)));
+    }
+  }
+
+  private void deleteDirectory(Path directory) {
+    if (!Files.exists(directory)) {
+      return;
+    }
+    try (var paths = Files.walk(directory)) {
+      paths
+          .sorted(Comparator.reverseOrder())
+          .forEach(
+              path -> {
+                try {
+                  Files.deleteIfExists(path);
+                } catch (IOException ignored) {
+                  // A leftover file is harmless; the next seed rewrites the variants.
+                }
+              });
+    } catch (IOException ignored) {
+      // Same rationale as above.
     }
   }
 
@@ -239,7 +285,8 @@ final class SeedRunner {
     try {
       Files.createDirectories(uploadsDir);
     } catch (IOException exception) {
-      throw new SeedException("Could not create image directory: " + uploadsDir, exception);
+      throw new SeedException(
+          "No se pudo crear el directorio de imágenes: " + uploadsDir, exception);
     }
 
     String existingSql =
@@ -304,9 +351,63 @@ final class SeedRunner {
     }
   }
 
-  /** First image row for a product, or {@code null} when it has no image. */
-  private ImageRow findImageRow(PreparedStatement query, long productId) throws SQLException {
-    query.setLong(1, productId);
+  /**
+   * Attaches the bundled portrait to every seeded worker.
+   *
+   * <p>The source photos live in {@code seed/worker-images/<id>.jpg} and are written as the same
+   * three WebP sizes the upload endpoint produces. A real upload is never replaced.
+   */
+  private void seedWorkerImages() throws SQLException {
+    String existingSql =
+        "SELECT id, storage_key, original_filename FROM entity_images "
+            + "WHERE entity_type = 'USER' AND entity_id = ? ORDER BY id LIMIT 1";
+    String insertSql =
+        "INSERT INTO entity_images "
+            + "(entity_type, entity_id, original_filename, content_type, original_size_bytes, "
+            + "storage_key) VALUES ('USER', ?, ?, ?, ?, ?)";
+    String updateSql =
+        "UPDATE entity_images SET original_filename = ?, content_type = ?, "
+            + "original_size_bytes = ? WHERE id = ?";
+
+    try (PreparedStatement existing = connection.prepareStatement(existingSql);
+        PreparedStatement insert = connection.prepareStatement(insertSql);
+        PreparedStatement update = connection.prepareStatement(updateSql)) {
+      for (SeedConstants.WorkerSpec worker : SeedConstants.WORKERS) {
+        ClassPathResource photo = workerPhotoResource(worker.id());
+        if (!photo.exists()) {
+          continue;
+        }
+        ImageRow row = findImageRow(existing, worker.id());
+        boolean seedManaged = row != null && row.originalFilename().startsWith("seed-worker-");
+        if (row != null && !seedManaged && imageFilesExist(row.storageKey())) {
+          continue;
+        }
+
+        String storageKey = row != null ? row.storageKey() : "users/" + worker.id() + "/seed";
+        long desktopSize = writeVersions(storageKey, loadImage(readResource(photo)));
+        String filename = "seed-worker-" + worker.id() + ".jpg";
+
+        if (row == null) {
+          insert.setLong(1, worker.id());
+          insert.setString(2, filename);
+          insert.setString(3, "image/jpeg");
+          insert.setLong(4, desktopSize);
+          insert.setString(5, storageKey);
+          insert.executeUpdate();
+        } else {
+          update.setString(1, filename);
+          update.setString(2, "image/jpeg");
+          update.setLong(3, desktopSize);
+          update.setLong(4, row.id());
+          update.executeUpdate();
+        }
+      }
+    }
+  }
+
+  /** First image row for a product or worker, or {@code null} when it has no image. */
+  private ImageRow findImageRow(PreparedStatement query, long entityId) throws SQLException {
+    query.setLong(1, entityId);
     try (ResultSet row = query.executeQuery()) {
       if (!row.next()) {
         return null;
@@ -320,12 +421,16 @@ final class SeedRunner {
     return new ClassPathResource("seed/product-images/" + productId + ".jpg");
   }
 
+  private static ClassPathResource workerPhotoResource(long workerId) {
+    return new ClassPathResource("seed/worker-images/" + workerId + ".jpg");
+  }
+
   private static byte[] readResource(ClassPathResource resource) {
     try (var stream = resource.getInputStream()) {
       return stream.readAllBytes();
     } catch (IOException exception) {
       throw new SeedException(
-          "Could not read bundled product image: " + resource.getPath(), exception);
+          "No se pudo leer la imagen de producto incluida: " + resource.getPath(), exception);
     }
   }
 
@@ -342,12 +447,24 @@ final class SeedRunner {
   /** Stores the mobile, tablet and desktop WebP versions of a product image. */
   private long writeProductImages(
       String storageKey, long productId, String name, String category, byte[] photo) {
-    try {
-      ImmutableImage image =
-          photo == null
-              ? ImmutableImage.fromAwt(renderProductCard(productId, name, category))
-              : ImmutableImage.loader().fromBytes(photo);
+    ImmutableImage image =
+        photo == null
+            ? ImmutableImage.fromAwt(renderProductCard(productId, name, category))
+            : loadImage(photo);
+    return writeVersions(storageKey, image);
+  }
 
+  private static ImmutableImage loadImage(byte[] data) {
+    try {
+      return ImmutableImage.loader().fromBytes(data);
+    } catch (IOException exception) {
+      throw new SeedException("No se pudo leer la imagen: " + exception.getMessage(), exception);
+    }
+  }
+
+  /** Stores the mobile, tablet and desktop WebP versions of an image. */
+  private long writeVersions(String storageKey, ImmutableImage image) {
+    try {
       for (ImageSize size : ImageSize.values()) {
         ImmutableImage resized = image.scaleToWidth(Math.min(size.maxWidth, image.width));
         byte[] bytes = resized.bytes(WebpWriter.DEFAULT.withQ(size.quality));
@@ -358,7 +475,7 @@ final class SeedRunner {
       return Files.size(versionPath(storageKey, ImageSize.DESKTOP));
     } catch (IOException exception) {
       throw new SeedException(
-          "Could not write product image " + storageKey + ": " + exception.getMessage(), exception);
+          "No se pudo escribir la imagen " + storageKey + ": " + exception.getMessage(), exception);
     }
   }
 
@@ -559,12 +676,13 @@ final class SeedRunner {
 
   private void upsertUsers() throws SQLException {
     String sql =
-        "INSERT INTO users (id, document, name, email, password, address, phone, role, status, "
-            + "salary, expected_hours_per_month) VALUES (?,?,?,?,?,?,?,?,?,?,?) "
+        "INSERT INTO users (id, document, name, email, password, address, phone, job_title, "
+            + "role, status, salary, expected_hours_per_month) "
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?) "
             + "ON DUPLICATE KEY UPDATE document=VALUES(document), name=VALUES(name), "
             + "email=VALUES(email), address=VALUES(address), phone=VALUES(phone), "
-            + "role=VALUES(role), status=VALUES(status), salary=VALUES(salary), "
-            + "expected_hours_per_month=VALUES(expected_hours_per_month)";
+            + "job_title=VALUES(job_title), role=VALUES(role), status=VALUES(status), "
+            + "salary=VALUES(salary), expected_hours_per_month=VALUES(expected_hours_per_month)";
     try (PreparedStatement statement = connection.prepareStatement(sql)) {
       for (SeedConstants.WorkerSpec worker : SeedConstants.WORKERS) {
         bindUser(
@@ -572,18 +690,34 @@ final class SeedRunner {
             worker.id(),
             worker.name(),
             worker.salary(),
+            worker.expectedHoursPerMonth(),
             "WORKER",
-            "SEED-" + worker.id(),
-            "seed" + worker.id() + "@rms.local");
+            SeedConstants.seedDocument(worker.id()),
+            "seed" + worker.id() + "@rms.local",
+            worker.jobTitle());
         statement.addBatch();
       }
-      bindUser(statement, 1007, "Administrador 1", null, "ADMIN", "SEED-1007", "admin1@rms.local");
+      bindUser(
+          statement,
+          1007,
+          "Administrador 1",
+          null,
+          160,
+          "ADMIN",
+          SeedConstants.seedDocument(1007),
+          "admin1@rms.local",
+          null);
       statement.addBatch();
-      bindUser(statement, 1008, "Administrador 2", null, "ADMIN", "SEED-1008", "admin2@rms.local");
-      statement.addBatch();
-      bindUser(statement, 1009, "QA Usuario 1", null, "WORKER", "SEED-QA-1009", "qa1@rms.local");
-      statement.addBatch();
-      bindUser(statement, 1010, "QA Usuario 2", null, "WORKER", "SEED-QA-1010", "qa2@rms.local");
+      bindUser(
+          statement,
+          1008,
+          "Administrador 2",
+          null,
+          160,
+          "ADMIN",
+          SeedConstants.seedDocument(1008),
+          "admin2@rms.local",
+          null);
       statement.addBatch();
       statement.executeBatch();
     }
@@ -591,9 +725,37 @@ final class SeedRunner {
         connection.prepareStatement(
             "INSERT IGNORE INTO user_assigned_areas (user_id, area_id) VALUES (?,?)")) {
       for (SeedConstants.WorkerSpec worker : SeedConstants.WORKERS) {
-        statement.setLong(1, worker.id());
-        statement.setInt(2, worker.areaId());
-        statement.addBatch();
+        for (Integer areaId : worker.areaIds()) {
+          statement.setLong(1, worker.id());
+          statement.setInt(2, areaId);
+          statement.addBatch();
+        }
+      }
+      statement.executeBatch();
+    }
+    seedWorkerAreaActivities();
+  }
+
+  /**
+   * Grants every activity configured on an area to the seeded workers assigned to it.
+   *
+   * <p>The access token carries the union of these rows, so a worker assigned to both Salón and Bar
+   * needs Bar's {@code PREPARATION} row, not just {@code SERVE}. Leaving this table empty made
+   * seeded bar workers unable to open the preparation workspace (403) even though the area supports
+   * it.
+   */
+  private void seedWorkerAreaActivities() throws SQLException {
+    try (PreparedStatement statement =
+        connection.prepareStatement(
+            "INSERT IGNORE INTO worker_area_activities (user_id, area_id, activity) "
+                + "SELECT ?, ?, activity FROM area_activities WHERE area_id = ?")) {
+      for (SeedConstants.WorkerSpec worker : SeedConstants.WORKERS) {
+        for (Integer areaId : worker.areaIds()) {
+          statement.setLong(1, worker.id());
+          statement.setInt(2, areaId);
+          statement.setInt(3, areaId);
+          statement.addBatch();
+        }
       }
       statement.executeBatch();
     }
@@ -621,9 +783,11 @@ final class SeedRunner {
       long id,
       String name,
       Integer salary,
+      int expectedHours,
       String role,
       String document,
-      String email)
+      String email,
+      String jobTitle)
       throws SQLException {
     statement.setLong(1, id);
     statement.setString(2, document);
@@ -632,35 +796,161 @@ final class SeedRunner {
     statement.setNull(5, Types.VARCHAR);
     statement.setString(6, "Calle 10 # 20-" + (id % 100));
     statement.setString(7, String.format(Locale.ROOT, "300%07d", id));
-    statement.setString(8, role);
-    statement.setString(9, "ACTIVE");
-    if (salary == null) {
-      statement.setNull(10, Types.DECIMAL);
+    if (jobTitle == null) {
+      statement.setNull(8, Types.VARCHAR);
     } else {
-      statement.setBigDecimal(10, BigDecimal.valueOf(salary));
+      statement.setString(8, jobTitle);
     }
-    statement.setInt(11, 160);
+    statement.setString(9, role);
+    statement.setString(10, "ACTIVE");
+    if (salary == null) {
+      statement.setNull(11, Types.DECIMAL);
+    } else {
+      statement.setBigDecimal(11, BigDecimal.valueOf(salary));
+    }
+    statement.setInt(12, expectedHours);
   }
 
   private void resetFloor() throws SQLException {
     try (Statement statement = connection.createStatement()) {
       statement.executeUpdate("UPDATE tables SET status = 'AVAILABLE'");
+      statement.executeUpdate(
+          "UPDATE areas SET exclusive = (id = " + SeedConstants.KITCHEN_AREA + ")");
     }
   }
 
-  private void seedSchedulesAndTimeLogs() throws SQLException {
-    // Monday is closed in the default opening hours, so no pattern schedules it.
-    String[] tuesdayToSaturday = {"TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"};
-    String[] wednesdayToSunday = {"WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"};
-    String[] tuesdayThursdayToSunday = {"TUESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"};
-    String[] wednesdayToSaturday = {"WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"};
-    String[][] patterns = {
-      tuesdayToSaturday, wednesdayToSunday, tuesdayThursdayToSunday, wednesdayToSaturday
-    };
+  /**
+   * Writes the restaurant distribution stored in {@code seed/floor-layout.json} and places the 20
+   * seeded tables on SERVED cells so the waiter map is usable right after a seed reset.
+   */
+  private void seedFloorLayout() throws SQLException {
+    FloorLayoutPlan plan = loadFloorLayoutPlan();
 
-    // One individual schedule per worker: a continuous shift, 4 or 8 hours, five days a week.
-    // No worker exceeds 40 h/week, under the 42 h cap, and the days off rotate so not everyone
-    // works the same days.
+    try (PreparedStatement statement =
+        connection.prepareStatement(
+            "INSERT INTO floor_layout (id, columns_count, rows_count) VALUES (1, ?, ?) "
+                + "ON DUPLICATE KEY UPDATE columns_count = VALUES(columns_count), "
+                + "rows_count = VALUES(rows_count), updated_at = CURRENT_TIMESTAMP")) {
+      statement.setInt(1, plan.columns());
+      statement.setInt(2, plan.rows());
+      statement.executeUpdate();
+    }
+    try (Statement statement = connection.createStatement()) {
+      statement.executeUpdate("DELETE FROM floor_layout_table WHERE floor_layout_id = 1");
+      statement.executeUpdate("DELETE FROM floor_layout_region WHERE floor_layout_id = 1");
+    }
+
+    String regionSql =
+        "INSERT INTO floor_layout_region "
+            + "(floor_layout_id, region_key, area_id, segments_json) VALUES (1, ?, ?, ?)";
+    try (PreparedStatement statement = connection.prepareStatement(regionSql)) {
+      for (FloorRegionSpec region : plan.regions()) {
+        addFloorRegion(statement, region.key(), region.areaId(), segmentsJson(region.segments()));
+      }
+      statement.executeBatch();
+    }
+
+    String placementSql =
+        "INSERT INTO floor_layout_table "
+            + "(floor_layout_id, table_id, row_index, column_index) "
+            + "SELECT 1, id, ?, ? FROM tables WHERE table_number = ?";
+    try (PreparedStatement statement = connection.prepareStatement(placementSql)) {
+      for (FloorTableSpec table : plan.tables()) {
+        addTablePlacement(statement, table.tableNumber(), table.row(), table.column());
+      }
+      statement.executeBatch();
+    }
+  }
+
+  static FloorLayoutPlan loadFloorLayoutPlan() {
+    try (InputStream input = new ClassPathResource("seed/floor-layout.json").getInputStream()) {
+      return new ObjectMapper().readValue(input, FloorLayoutPlan.class);
+    } catch (IOException exception) {
+      throw new SeedException("No se pudo leer seed/floor-layout.json", exception);
+    }
+  }
+
+  private static void addFloorRegion(
+      PreparedStatement statement, String key, int areaId, String segmentsJson)
+      throws SQLException {
+    statement.setString(1, key);
+    statement.setInt(2, areaId);
+    statement.setString(3, segmentsJson);
+    statement.addBatch();
+  }
+
+  private static void addTablePlacement(
+      PreparedStatement statement, int tableNumber, int row, int column) throws SQLException {
+    statement.setInt(1, row);
+    statement.setInt(2, column);
+    statement.setInt(3, tableNumber);
+    statement.addBatch();
+  }
+
+  /** Builds the compact row segments stored in {@code floor_layout_region.segments_json}. */
+  static String segmentsJson(List<FloorSegmentSpec> segments) {
+    StringBuilder json = new StringBuilder("[");
+    boolean first = true;
+    for (FloorSegmentSpec segment : segments) {
+      if (!first) {
+        json.append(',');
+      }
+      first = false;
+      json.append("{\"row\":")
+          .append(segment.row())
+          .append(",\"from\":")
+          .append(segment.from())
+          .append(",\"to\":")
+          .append(segment.to())
+          .append('}');
+    }
+    return json.append(']').toString();
+  }
+
+  record FloorLayoutPlan(
+      int columns, int rows, List<FloorRegionSpec> regions, List<FloorTableSpec> tables) {}
+
+  record FloorRegionSpec(String key, int areaId, List<FloorSegmentSpec> segments) {}
+
+  record FloorSegmentSpec(int row, int from, int to) {}
+
+  record FloorTableSpec(int tableNumber, int row, int column) {}
+
+  /** Restores the business hours the deterministic schedule is built against. */
+  private void resetOpeningHours() throws SQLException {
+    String sql =
+        "INSERT INTO opening_hours (day_of_week, open_time, close_time, is_closed) "
+            + "VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE open_time=VALUES(open_time), "
+            + "close_time=VALUES(close_time), is_closed=VALUES(is_closed)";
+    try (PreparedStatement statement = connection.prepareStatement(sql)) {
+      bindOpeningDay(statement, "MONDAY", null, null, true);
+      bindOpeningDay(statement, "TUESDAY", "08:00:00", "22:00:00", false);
+      bindOpeningDay(statement, "WEDNESDAY", "08:00:00", "22:00:00", false);
+      bindOpeningDay(statement, "THURSDAY", "08:00:00", "22:00:00", false);
+      bindOpeningDay(statement, "FRIDAY", "08:00:00", "22:00:00", false);
+      bindOpeningDay(statement, "SATURDAY", "08:00:00", "17:00:00", false);
+      bindOpeningDay(statement, "SUNDAY", "08:00:00", "17:00:00", false);
+      statement.executeBatch();
+    }
+  }
+
+  private void bindOpeningDay(
+      PreparedStatement statement, String day, String open, String close, boolean closed)
+      throws SQLException {
+    statement.setString(1, day);
+    if (open == null) {
+      statement.setNull(2, Types.TIME);
+      statement.setNull(3, Types.TIME);
+    } else {
+      statement.setString(2, open);
+      statement.setString(3, close);
+    }
+    statement.setBoolean(4, closed);
+    statement.addBatch();
+  }
+
+  private void seedSchedulesAndTimeLogs() throws SQLException {
+    Map<Long, Map<java.time.DayOfWeek, Long>> shiftIds = new LinkedHashMap<>();
     try (PreparedStatement schedule =
             connection.prepareStatement(
                 "INSERT INTO schedules (id, name, description) VALUES (?, ?, ?)");
@@ -668,25 +958,27 @@ final class SeedRunner {
             connection.prepareStatement(
                 "INSERT INTO schedule_shifts (id, schedule_id, day_of_week, start_time, end_time) "
                     + "VALUES (?, ?, ?, ?, ?)")) {
-      int shiftId = 1;
-      for (int index = 0; index < SeedConstants.WORKERS.size(); index++) {
-        SeedConstants.WorkerSpec worker = SeedConstants.WORKERS.get(index);
-        int scheduleId = index + 1;
-        final int startHour = 8 + 2 * (index % 4);
-        final int length = index >= SeedConstants.WORKERS.size() - 2 ? 4 : 8;
-        schedule.setInt(1, scheduleId);
+      long shiftId = 1;
+      long scheduleId = 1;
+      for (SeedConstants.WorkerSpec worker : SeedConstants.WORKERS) {
+        schedule.setLong(1, scheduleId);
         schedule.setString(2, "Turno de " + worker.name());
-        schedule.setString(3, "Turno individual continuo del dataset determinista");
+        schedule.setString(3, "Turno semanal real del dataset determinista");
         schedule.addBatch();
 
-        for (String day : patterns[index % patterns.length]) {
-          shift.setInt(1, shiftId++);
-          shift.setInt(2, scheduleId);
-          shift.setString(3, day);
-          shift.setTime(4, java.sql.Time.valueOf(LocalTime.of(startHour, 0)));
-          shift.setTime(5, java.sql.Time.valueOf(LocalTime.of(startHour + length, 0)));
+        Map<java.time.DayOfWeek, Long> byDay = new LinkedHashMap<>();
+        for (SeedConstants.ShiftSpec spec : worker.shifts()) {
+          shift.setLong(1, shiftId);
+          shift.setLong(2, scheduleId);
+          shift.setString(3, spec.day().name());
+          shift.setTime(4, java.sql.Time.valueOf(spec.start()));
+          shift.setTime(5, java.sql.Time.valueOf(spec.start().plusHours(spec.hours())));
           shift.addBatch();
+          byDay.put(spec.day(), shiftId);
+          shiftId++;
         }
+        shiftIds.put(worker.id(), byDay);
+        scheduleId++;
       }
       schedule.executeBatch();
       shift.executeBatch();
@@ -702,61 +994,75 @@ final class SeedRunner {
       assignment.executeBatch();
     }
 
+    // Attendance follows each worker's real weekly pattern: one IN/OUT pair per scheduled day,
+    // linked to the schedule shift that covers it.
     String insertLog =
         "INSERT INTO time_logs (worker_id, timestamp, type, within_shift, related_shift_id) "
             + "VALUES (?,?,?,?,?)";
     try (PreparedStatement log = connection.prepareStatement(insertLog)) {
       int pending = 0;
-      for (Map.Entry<YearMonth, List<LocalDate>> month : activeDaysByMonth().entrySet()) {
-        int shifts = shiftsForMonth(month.getKey(), month.getValue().size());
+      LocalDate start = anchor.minusDays(SeedConstants.HISTORY_DAYS);
+      for (LocalDate day = start; day.isBefore(anchor); day = day.plusDays(1)) {
         for (SeedConstants.WorkerSpec worker : SeedConstants.WORKERS) {
-          List<LocalDate> selected = new ArrayList<>(month.getValue());
-          selected.sort(
-              Comparator.comparingLong(
-                  day ->
-                      SeedMath.crc(
-                          SeedConstants.SEED_STRING + ":shift:" + worker.id() + ":" + day)));
-          for (int i = 0; i < Math.min(shifts, selected.size()); i++) {
-            LocalDate day = selected.get(i);
-            boolean lunch =
-                SeedMath.crc(SeedConstants.SEED_STRING + ":slot:" + worker.id() + ":" + day) % 2
-                    == 0;
-            LocalTime start = lunch ? LocalTime.of(11, 0) : LocalTime.of(15, 0);
-            LocalDateTime in = day.atTime(start);
-            log.setLong(1, worker.id());
-            log.setString(2, SeedMath.timestamp(in));
-            log.setString(3, "IN");
-            log.setBoolean(4, true);
-            log.setNull(5, Types.INTEGER);
-            log.addBatch();
-            log.setString(2, SeedMath.timestamp(in.plusHours(8)));
-            log.setString(3, "OUT");
-            log.setBoolean(4, true);
-            log.setNull(5, Types.INTEGER);
-            log.addBatch();
-            pending += 2;
-            if (pending >= BATCH_SIZE) {
-              log.executeBatch();
-              pending = 0;
-            }
+          SeedConstants.ShiftSpec spec = worker.shiftOn(day.getDayOfWeek());
+          if (spec == null) {
+            continue;
           }
+          Long relatedShiftId = shiftIds.get(worker.id()).get(day.getDayOfWeek());
+          LocalDateTime in = day.atTime(spec.start());
+          log.setLong(1, worker.id());
+          log.setString(2, SeedMath.timestamp(in));
+          log.setString(3, "IN");
+          log.setBoolean(4, true);
+          log.setLong(5, relatedShiftId);
+          log.addBatch();
+          log.setString(2, SeedMath.timestamp(in.plusHours(spec.hours())));
+          log.setString(3, "OUT");
+          log.setBoolean(4, true);
+          log.setLong(5, relatedShiftId);
+          log.addBatch();
+          pending += 2;
+          if (pending >= BATCH_SIZE) {
+            log.executeBatch();
+            pending = 0;
+          }
+        }
+      }
+
+      // Today's attendance up to the seed instant: a finished shift gets IN/OUT, an in-progress
+      // shift only IN (an open session), and a shift that has not started gets nothing.
+      for (SeedConstants.WorkerSpec worker : SeedConstants.WORKERS) {
+        SeedConstants.ShiftSpec spec = worker.shiftOn(anchor.getDayOfWeek());
+        if (spec == null) {
+          continue;
+        }
+        LocalDateTime in = anchor.atTime(spec.start());
+        if (now.isBefore(in)) {
+          continue;
+        }
+        Long relatedShiftId = shiftIds.get(worker.id()).get(anchor.getDayOfWeek());
+        log.setLong(1, worker.id());
+        log.setString(2, SeedMath.timestamp(in));
+        log.setString(3, "IN");
+        log.setBoolean(4, true);
+        log.setLong(5, relatedShiftId);
+        log.addBatch();
+        pending++;
+        if (!now.isBefore(in.plusHours(spec.hours()))) {
+          log.setString(2, SeedMath.timestamp(in.plusHours(spec.hours())));
+          log.setString(3, "OUT");
+          log.setBoolean(4, true);
+          log.setLong(5, relatedShiftId);
+          log.addBatch();
+          pending++;
+        }
+        if (pending >= BATCH_SIZE) {
+          log.executeBatch();
+          pending = 0;
         }
       }
       log.executeBatch();
     }
-  }
-
-  private int shiftsForMonth(YearMonth month, int activeDays) {
-    return (int) Math.round(20.0 * activeDays / month.lengthOfMonth());
-  }
-
-  private Map<YearMonth, List<LocalDate>> activeDaysByMonth() {
-    Map<YearMonth, List<LocalDate>> result = new TreeMap<>();
-    LocalDate start = anchor.minusDays(SeedConstants.HISTORY_DAYS);
-    for (LocalDate day = start; day.isBefore(anchor); day = day.plusDays(1)) {
-      result.computeIfAbsent(YearMonth.from(day), ignored -> new ArrayList<>()).add(day);
-    }
-    return result;
   }
 
   private void seedOrdersAndInventory(SeedPlan plan) throws SQLException {
@@ -768,10 +1074,6 @@ final class SeedRunner {
 
   private void seedPayroll(SeedPlan plan) throws SQLException {
     YearMonth anchorMonth = YearMonth.from(anchor);
-    Map<YearMonth, Integer> activeDays = new TreeMap<>();
-    for (YearMonth month : activeDaysByMonth().keySet()) {
-      activeDays.put(month, activeDaysByMonth().get(month).size());
-    }
     String payrollSql =
         "INSERT INTO payroll (user_id, period_year, period_month, period_start, period_end, "
             + "base_salary, bonuses, manual_bonuses, deductions, manual_deductions, net_amount, "
@@ -786,13 +1088,10 @@ final class SeedRunner {
         YearMonth month = anchorMonth.minusMonths(back);
         LocalDate periodStart = month.atDay(1);
         LocalDate periodEnd = month.atEndOfMonth();
-        int days = activeDays.getOrDefault(month, 0);
-        BigDecimal hours =
-            BigDecimal.valueOf(20.0 * days / month.lengthOfMonth() * 8)
-                .setScale(1, RoundingMode.HALF_UP);
         String status = back >= 2 ? "PAID" : (back == 1 ? "APPROVED" : "PENDING");
         int index = 0;
         for (SeedConstants.WorkerSpec worker : SeedConstants.WORKERS) {
+          BigDecimal hours = workedHours(worker, month);
           boolean attendanceBonus = index < 6;
           BigDecimal base = BigDecimal.valueOf(worker.salary());
           BigDecimal bonus = BigDecimal.valueOf(worker.bonus());
@@ -838,6 +1137,24 @@ final class SeedRunner {
       }
       payroll.executeBatch();
       event.executeBatch();
+    }
+  }
+
+  /** Hours actually logged by a worker in the given month, from the seeded attendance. */
+  private BigDecimal workedHours(SeedConstants.WorkerSpec worker, YearMonth month)
+      throws SQLException {
+    int shiftHours = worker.shifts().getFirst().hours();
+    try (PreparedStatement statement =
+        connection.prepareStatement(
+            "SELECT COUNT(*) FROM time_logs WHERE worker_id = ? AND type = 'OUT' "
+                + "AND YEAR(timestamp) = ? AND MONTH(timestamp) = ?")) {
+      statement.setLong(1, worker.id());
+      statement.setInt(2, month.getYear());
+      statement.setInt(3, month.getMonthValue());
+      try (ResultSet rows = statement.executeQuery()) {
+        rows.next();
+        return BigDecimal.valueOf(rows.getLong(1) * shiftHours).setScale(1, RoundingMode.HALF_UP);
+      }
     }
   }
 
@@ -1210,9 +1527,7 @@ final class SeedRunner {
   }
 
   private long cashierFor(LocalDate day) {
-    return SeedMath.modulo(SeedMath.crc(SeedConstants.SEED_STRING + ":cashier:" + day), 2) == 0
-        ? SeedConstants.CASHIER_ONE
-        : SeedConstants.CASHIER_TWO;
+    return SeedConstants.CASHIER_ONE;
   }
 
   private static String receiptNumber(long orderId, LocalDate day) {
@@ -1269,6 +1584,7 @@ final class SeedRunner {
       putMetadata(statement, "seed_days", Integer.toString(SeedConstants.DAYS));
       putMetadata(statement, "seed_timezone", "America/Bogota");
       putMetadata(statement, "seed_generated_at", anchor.atTime(12, 0).toString());
+      putMetadata(statement, "seed_logged_until", SeedMath.timestamp(now));
       putMetadata(
           statement,
           "seed_checksum",
@@ -1387,8 +1703,8 @@ final class SeedRunner {
                   + "customer_phone, customer_fingerprint) VALUES (?,?,?,?,?,?,?,?,?)");
       detailStatement =
           connection.prepareStatement(
-              "INSERT INTO order_details (id, order_id, product_id, unit_price, instructions) "
-                  + "VALUES (?,?,?,?,?)");
+              "INSERT INTO order_details (id, order_id, product_id, unit_price, instructions, "
+                  + "preparation_started_at, ready, ready_at) VALUES (?,?,?,?,?,?,?,?)");
       optionStatement =
           connection.prepareStatement(
               "INSERT INTO order_detail_options (order_detail_id, option_id, extra_price) "
@@ -1481,6 +1797,38 @@ final class SeedRunner {
         detailStatement.setNull(5, Types.VARCHAR);
       } else {
         detailStatement.setString(5, instruction);
+      }
+      // Live tickets must be internally consistent: a READY order needs every
+      // line marked ready, otherwise the waiter cannot deliver it (409).
+      boolean ready = "READY".equals(order.status());
+      boolean started = ready || "PREPARING".equals(order.status());
+      LocalDateTime startedAt = null;
+      LocalDateTime readyAt = null;
+      if (started) {
+        startedAt = order.openTime().plusMinutes(2);
+        if (startedAt.isAfter(now)) {
+          startedAt = now.minusMinutes(1);
+        }
+      }
+      if (ready) {
+        readyAt = order.openTime().plusMinutes(12);
+        if (readyAt.isAfter(now)) {
+          readyAt = now.minusMinutes(1);
+        }
+        if (startedAt == null || startedAt.isAfter(readyAt)) {
+          startedAt = readyAt.minusMinutes(5);
+        }
+      }
+      if (startedAt == null) {
+        detailStatement.setNull(6, Types.TIMESTAMP);
+      } else {
+        detailStatement.setString(6, SeedMath.timestamp(startedAt));
+      }
+      detailStatement.setBoolean(7, ready);
+      if (readyAt == null) {
+        detailStatement.setNull(8, Types.TIMESTAMP);
+      } else {
+        detailStatement.setString(8, SeedMath.timestamp(readyAt));
       }
       detailStatement.addBatch();
       if (++detailPending >= BATCH_SIZE) {
@@ -2081,7 +2429,7 @@ final class SeedRunner {
           BigDecimal bodegaQuantity = bodega.getOrDefault(variant, BigDecimal.ZERO);
           BigDecimal cocinaQuantity = cocina.getOrDefault(variant, BigDecimal.ZERO);
           if (bodegaQuantity.signum() < 0 || cocinaQuantity.signum() < 0) {
-            throw new SeedException("Negative stock for variant " + variant);
+            throw new SeedException("Stock negativo para la variante " + variant);
           }
           statement.setLong(1, variant);
           statement.setInt(2, bodegaLocation);

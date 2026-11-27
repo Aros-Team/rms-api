@@ -13,7 +13,7 @@ public enum OrderStatus {
   QUEUE,
   /** Orden en preparación por el cocinero. */
   PREPARING,
-  /** Orden lista para entregar al cliente. */
+  /** Todos los productos están preparados; queda pendiente la entrega física. */
   READY,
   /** Orden entregada al cliente. */
   DELIVERED

@@ -3,7 +3,6 @@
 package aros.services.rms.infraestructure.area.persistence.jpa;
 
 import aros.services.rms.core.area.domain.Area;
-import aros.services.rms.core.area.domain.AreaType;
 import org.springframework.stereotype.Component;
 
 /** Mapper between Area domain model and Area JPA entity. */
@@ -19,8 +18,12 @@ public class AreaMapper {
     return aros.services.rms.infraestructure.area.persistence.jpa.Area.builder()
         .id(domain.getId())
         .name(domain.getName())
-        .type(domain.getType() != null ? AreaType.valueOf(domain.getType().name()) : null)
+        .activities(
+            domain.getActivities() == null
+                ? new java.util.HashSet<>()
+                : new java.util.HashSet<>(domain.getActivities()))
         .enabled(domain.isEnabled())
+        .exclusive(domain.isExclusive())
         .build();
   }
 
@@ -33,8 +36,12 @@ public class AreaMapper {
     return Area.builder()
         .id(entity.getId())
         .name(entity.getName())
-        .type(entity.getType() != null ? AreaType.valueOf(entity.getType().name()) : null)
+        .activities(
+            entity.getActivities() == null
+                ? new java.util.HashSet<>()
+                : new java.util.HashSet<>(entity.getActivities()))
         .enabled(entity.isEnabled())
+        .exclusive(entity.isExclusive())
         .build();
   }
 }

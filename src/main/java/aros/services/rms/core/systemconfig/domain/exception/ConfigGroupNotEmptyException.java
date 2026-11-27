@@ -14,6 +14,6 @@ public class ConfigGroupNotEmptyException extends SettingsException {
   public ConfigGroupNotEmptyException(Long id, int entries) {
     super(
         SettingsErrorType.CONFLICT,
-        "Configuration group " + id + " still has " + entries + " entries");
+        "El grupo de configuración " + id + " todavía tiene " + entries + " entradas");
   }
 }

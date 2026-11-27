@@ -140,7 +140,7 @@ class OrderQueryUseCaseImplTest {
             IllegalArgumentException.class,
             () -> orderQueryUseCase.findOrders(null, startDate, endDate));
 
-    assertEquals("End date cannot be in the future", exception.getMessage());
+    assertEquals("La fecha final no puede estar en el futuro", exception.getMessage());
     verify(orderRepositoryPort, times(0)).findByDateBetween(any(), any());
   }
 
@@ -154,7 +154,8 @@ class OrderQueryUseCaseImplTest {
             IllegalArgumentException.class,
             () -> orderQueryUseCase.findOrders(null, startDate, endDate));
 
-    assertEquals("Start date cannot be after end date", exception.getMessage());
+    assertEquals(
+        "La fecha inicial no puede ser posterior a la fecha final", exception.getMessage());
     verify(orderRepositoryPort, times(0)).findByDateBetween(any(), any());
   }
 
@@ -347,7 +348,7 @@ class OrderQueryUseCaseImplTest {
                 orderQueryUseCase.findOrdersPage(
                     List.of(), startDate, endDate, null, 0, 20, "date,desc"));
 
-    assertEquals("End date cannot be in the future", exception.getMessage());
+    assertEquals("La fecha final no puede estar en el futuro", exception.getMessage());
     verify(orderRepositoryPort, times(0))
         .findOrdersPage(any(), any(), any(), any(), anyInt(), anyInt(), anyString());
   }
@@ -364,7 +365,8 @@ class OrderQueryUseCaseImplTest {
                 orderQueryUseCase.findOrdersPage(
                     List.of(), startDate, endDate, null, 0, 20, "date,desc"));
 
-    assertEquals("Start date cannot be after end date", exception.getMessage());
+    assertEquals(
+        "La fecha inicial no puede ser posterior a la fecha final", exception.getMessage());
     verify(orderRepositoryPort, times(0))
         .findOrdersPage(any(), any(), any(), any(), anyInt(), anyInt(), anyString());
   }

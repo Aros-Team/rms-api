@@ -15,7 +15,7 @@ public record AreaId(Long value) {
    */
   public AreaId {
     if (value == null) {
-      throw new IllegalArgumentException("El ID del area no puede ser nulo");
+      throw new IllegalArgumentException("El ID del área no puede ser nulo");
     }
   }
 

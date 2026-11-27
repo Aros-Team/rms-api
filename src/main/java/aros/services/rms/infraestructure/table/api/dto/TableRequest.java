@@ -12,10 +12,10 @@ import jakarta.validation.constraints.Positive;
     example = "{\"tableNumber\": 5, \"capacity\": 4}")
 public record TableRequest(
     @Schema(description = "Table number", example = "5")
-        @NotNull(message = "Table number is required")
-        @Positive(message = "Table number must be positive")
+        @NotNull(message = "El número de mesa es obligatorio")
+        @Positive(message = "El número de mesa debe ser positivo")
         Integer tableNumber,
     @Schema(description = "Table capacity (number of seats)", example = "4")
-        @NotNull(message = "Capacity is required")
-        @Positive(message = "Capacity must be positive")
+        @NotNull(message = "La capacidad es obligatoria")
+        @Positive(message = "La capacidad debe ser positiva")
         Integer capacity) {}
