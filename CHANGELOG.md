@@ -28,6 +28,44 @@ table must land on a cell of an enabled `SERVE` area; table and cell duplication
 - **workers**: expose `imageUrl` in `GET/PUT /api/v1/workers` and batch-resolve portraits with the
   new `GetImagesUseCase.getFirstByEntities`.
 
+## [v2.5.0](https://github.com/Aros-Team/rms-api/releases/tag/v2.5.0)
+
+### Features
+
+- **security**: enforce role and area authorization across the API
+- **seed**: deterministic 180-day dataset, reset CLI and dev endpoint
+- **auth**: log the 2FA code at DEBUG in development
+- **analytics**: operations, cohort, alerts and real top-selling
+- **payments**: minimal charge-and-close and cash shifts
+- **orders**: add GET /orders/{id}
+- **seed**: cohort identity, alerts, payments and reset safety
+- **settings**: typed business, currency, labor and notification settings
+- **payroll**: aggregate events and settlements into the summary
+- **seed**: suppliers, purchases and a reconciled stock ledger
+- **schedule**: clock in/out, withinShift and assignment rules
+- **kitchen**: station fields, station filter and item readiness
+- **backend**: typed purchase status, payroll transactions and money precision
+- **settings**: add weekly opening hours
+- **seed**: rotate shifts under 42 hours and use realistic names
+- **notifications**: persist and broadcast admin notifications
+- **seed**: bundle square product photos and add a seedReset task
+- **schedules**: notify clock-in and 10-minute late arrivals
+- **websocket**: expose a native /ws-native STOMP endpoint
+- **product**: expose responsive image variants in product responses
+
+### Bug Fixes
+
+- **time**: pin Hibernate to the business timezone
+- **twofactor**: return the newest valid code
+- **analytics**: accept LocalDateTime from the cohort native query
+- **analytics**: use AnalyticsPeriods for menu-engineering keys
+- **products**: preserve options and recipes when update omits them
+- **orders**: reject unsupported sort fields with 400
+- **schedule**: add OUT to LogType
+- **seed**: include manual payroll baseline and seeded events in totals
+- **api**: contract statuses, pagination and batch fetching
+- **seed**: guarantee 80+ current-day orders without future times
+
 ## [v2.4.0](https://github.com/Aros-Team/rms-api/releases/tag/v2.4.0)
 
 ### Features
