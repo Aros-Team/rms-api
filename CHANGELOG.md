@@ -1,5 +1,21 @@
 # Changelog
 
+## [v2.6.0](https://github.com/Aros-Team/rms-api/releases/tag/v2.6.0)
+
+### Features
+
+- **seed,workers**: seed the real roster, portraits and attendance
+- **workers**: add job title field and update seed
+- add product option management and per-line prep tracking
+- **workers**: exclusive areas, staff seed and targeted notifications
+- **areas**: area activities, worker scopes, delivery permissions and floor layout
+- **floor-layout**: expose operational map and seed distribution
+
+### Bug Fixes
+
+- **i18n**: localize user-facing API messages to Spanish
+- **schedules**: validate updates and preserve shift rows
+
 ## Unreleased
 
 ### Features
