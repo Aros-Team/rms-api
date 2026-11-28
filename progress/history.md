@@ -785,3 +785,181 @@ Changes on the API side:
 - Updated tests that asserted the old English text (1071 tests).
 - Precondition fix: `WorkerClockControllerTest` Javadoc header now matches the harness `Tests for {@...` check.
 - Verification: `./harness/harness.sh` → environment ready; all tests pass.
+
+---
+
+## Session archive — 2026-11-26/28 (moved from progress/current.md)
+
+# Current Session
+
+## Session ID
+
+2026-11-26 — worker roster, portraits and realistic pay
+
+## Activity
+
+feat(seed,workers): replace the demo staff with the seven real workers, seed their shifts and
+payroll, and allow a portrait when creating/editing a worker.
+
+## Task log
+
+- `SeedConstants`: seven `WorkerSpec` entries (ids 1011–1017) with their weekly `ShiftSpec`s,
+  pay and derived gross labor totals (15.3M total / 6.5M FOH / 8.8M BOH).
+- `SeedRunner`: deletes every `WORKER` user (QA included) plus its images and upload folders;
+  writes schedules/time logs from the real weekly pattern; sets per-worker
+  `expected_hours_per_month`; payroll hours come from the generated time logs; seeds the bundled
+  portraits as three WebP variants and one `entity_images` row per worker.
+- `SeedVerifier`: 7 workers, 42 payroll rows/events, 7 salary-history rows, time logs from the
+  schedules, workers with images, and payroll-hours consistency.
+- API: `UserResponse.imageUrl` + `GetImagesUseCase.getFirstByEntities` (batch).
+- Frontend: `WorkerImage` service, portrait picker in the create/edit dialog, photo on the card.
+
+## Notes
+
+- Fixed the weekly patterns: Monday is closed (the reset restores it), Tue–Fri 08–22 and Sat–Sun
+  08–17 are fully covered (0 coverage gaps) and every worker stays within 42 h/week.
+- The seed now writes anchor-day attendance up to the seed instant (open `IN` for shifts still in
+  progress) and stores `seed_logged_until`, so the "Registros de Ingreso" panel has records today.
+- `./gradlew spotlessCheck checkstyleMain checkstyleTest test` green (1,074 tests).
+- `./gradlew seedReset -PdbPassword=123` + `seedVerify`: 72/72 checks pass.
+- Frontend `lint:check` and `vitest run`: 178 files / 1,663 tests green.
+
+## 2026-11-27 — Floor layout API
+
+- V73 adds the singleton `floor_layout` and one row per region (`segments_json`), with
+  `ON DELETE RESTRICT` from regions to areas.
+- Pure `FloorGeometry` normalizes row runs and rejects overlaps/out-of-bounds cells.
+- `FloorLayoutService` validates the full document and all area references before the adapter
+  replaces layout + regions in one transaction.
+- `GET/PUT /api/v1/floor-layout`, admin-only, envelope response, 400 problem detail for invalid
+  layouts or unknown areas.
+- Verification: spotless, checkstyle and full Gradle tests green.
+
+## 2026-11-26 — Authoritative schedule update validation
+
+- `UpdateScheduleService` now loads the assignments of the edited schedule and re-validates
+  every affected worker against their other templates: shift overlap (`ShiftOverlapException`)
+  and the 42 h weekly cap (`WeeklyHoursExceededException`).
+- Wired `WorkerScheduleAssignmentRepositoryPort` in `ScheduleConfigBeans`.
+- Added tests for cross-template overlap, weekly-cap breach and the existing success path.
+
+Verification: `./harness/harness.sh` green.
+
+### Follow-up: PUT /schedules/{id} returned 500
+
+Root cause: `ScheduleRepositoryAdapter.save` cleared every `schedule_shift` row and re-inserted it,
+but `time_logs.related_shift_id` references those rows, so MySQL rejected the delete
+(`fk_timelog_shift`).
+
+Fix: the adapter now loads the managed `ScheduleEntity` and reconciles shifts in place
+(exact match → same start → same end → first unused row of the day), updating times and preserving
+shift ids. Only genuinely new/removed shifts are added/removed. New regression test:
+`ScheduleRepositoryAdapterTest`. Live PUT verified: 200, ids preserved, move and restore clean.
+
+## 2026-11-27 — Seeded bar workers lacked PREPARATION
+
+- Root cause: `SeedRunner.upsertUsers` wrote `user_assigned_areas` but never
+  `worker_area_activities`. The only rows came from migration V71, which maps Bar to `SERVE`
+  only, so the access token had no `PREPARATION` claim and the preparation workspace returned 403
+  even when the worker had the Bar area.
+- Fix: after assigning areas, seed every activity configured in `area_activities` for each
+  seeded worker/area (`SeedRunner.seedWorkerAreaActivities`), matching ADR-0007 ("the seed grants
+  both activities to its three bar workers").
+- Added `SeedVerifier` check: the three bar workers have both `PREPARATION` and `SERVE` in area 3.
+- Applied a one-time insert for workers 1013/1014/1018 in the local dev DB so their existing
+  assignment matches the seed.
+- Verification: `spotlessApply`, `checkstyleMain`, `compileJava`, `compileTestJava` and
+  `./gradlew test` green.
+
+## 2026-11-27 — Worker 403 on every workspace (GET /tables)
+
+- Root cause: `JustWaiterOrCashierOrAdmin` still checked the pre-V71 area types
+  (`SERVICE`, `BAR`, `CASH`). After the migration the token claim carries activities
+  (`PREPARATION`, `SERVE`, `CASH`), so a waiter with `SERVE` was denied `GET /api/v1/tables`;
+  the global error interceptor turned that 403 into the `/forbidden` page on every worker
+  landing (`/worker`, `/worker/waiter`, `/worker/kitchen`).
+- Fix: security annotations now reference `AreaActivity` enum constants instead of hardcoded
+  strings (`JustWaiterOrCashierOrAdmin`, `JustWaiterOrAdmin`, `JustKitchenOrAdmin`,
+  `JustCashierOrAdmin`). `SecurityExpressions` accepts `AreaActivity` values, so renaming the
+  enum fails at compile time instead of silently denying access.
+- `RefreshPrimeCostService` also derives its FOH/BOH activity lists from `AreaActivity`.
+- `SeedVerifier` builds its activity filters from `AreaActivity` and `SeedConstants.BAR_AREA`.
+- Test fixtures now use `AreaActivity.*.name()` instead of literal `"SERVE"`/`"SERVICE"` etc.;
+  the old literals made deny-tests pass for the wrong reason.
+- Verified end to end with a real session in the running app: `/worker`, `/worker/waiter` and
+  `/worker/kitchen` load with no 403; `GET /api/v1/tables` returns 200.
+- Full `spotlessApply`, `checkstyleMain`, `checkstyleTest` and `./gradlew test` green.
+
+## 2026-11-27 — Kitchen board leaked other preparation areas
+
+- A worker assigned to Bar/PREPARATION saw every station (Cocina and Bar) because the board
+  listed stations from the whole product catalogue and fetched orders without an `areaId`.
+- `Kitchen.applyAssignedPrepAreas()` now scopes the board to the worker's own preparation areas:
+  - a single assigned area starts the board already filtered (`area:<id>` + server-side `areaId`);
+  - several assigned areas keep "Todas" but counts, tickets, station chips and line groups are
+    filtered to those areas;
+  - the station filter is hidden when the worker has only one preparation area, and the page
+    title is "Preparación" instead of "Cocina".
+- Ticket-level actions (`prepareNext`, `prepareOrder`, `markReady`) now operate per assigned area
+  (`startArea` / `markAreaReady`) instead of the global order endpoints, so a Bar worker cannot
+  start or finish kitchen lines from a mixed ticket.
+- Tests: `kitchen.spec.ts` covers a Bar-only worker (only Bar station and only Bar lines) and the
+  area-scoped ready action. Frontend lint and the full suite are green (186 files / 1,731 tests).
+
+## 2026-11-27 — Stale access token blocked Bar actions
+
+- After the Bar/PREPARATION row was restored, the browser still held an access token issued while
+  the row was missing (`areaTypes: ["SERVE"]`). `/auth` reported the new activities, so the board
+  showed Bar, but `PUT /orders/{id}/areas/3/start` returned 403 because the token claim was old.
+- `Auth.loadUserInfo()` now compares the token's `areaTypes` claim with the activities returned by
+  `/auth`. When they differ it refreshes once (using the stored refresh token) before the guard
+  resolves, so the next request carries the current claim.
+- The check only runs when the `areaTypes` claim is present and a refresh token exists; a failed
+  refresh still routes to login instead of leaving a half-dead session.
+- Added `auth.spec.ts` coverage: stale claim triggers exactly one `auth/refresh`; a matching claim
+  triggers none.
+- Verified end to end in the running app with a deliberately stale `SERVE`-only token: the page
+  refreshed once and `PUT /orders/900153/areas/3/start` returned 200.
+- Frontend lint and full suite green (186 files / 1,730 tests).
+
+## 2026-11-27 — Waiter delivery, separation from preparation, READY label
+
+- Delivery was failing with 409/500:
+  - the seeded READY order had `order_details.ready = 0`, so the order-level deliver was
+    rejected with `409 Todavía hay líneas sin terminar`;
+  - once the lines were ready, `OrderPersistenceAdapter.save` cleared and re-added the details,
+    which removed a detail that still had `order_detail_options` rows and blew up with
+    `Could not set value of type Long: OrderDetailOptionId.optionId`.
+- Fixes:
+  - `SeedRunner` now writes `preparation_started_at`, `ready` and `ready_at` for active seed
+    orders (READY has every line ready; PREPARING has a start time; QUEUE stays pending).
+  - `OrderPersistenceAdapter.syncDetails` updates the managed detail rows in place instead of
+    clearing the collection; selected-option rows are left untouched on preparation/delivery
+    transitions, which is what caused the composite-key error.
+  - Delivery endpoints are now `@JustWaiterOrAdmin` (SERVE), not `@JustOperationsStaff`; the
+    Preparación board no longer renders an Entregar button or dialog. Kitchen/bar only mark lines
+    ready.
+  - READY is labeled `Listo` (was `Preparado`) in the kitchen and waiter boards, including the
+    waiter status filter and the kitchen announcement.
+- One-time data patch: order 900156's two lines were marked ready in the local dev DB.
+- Verified: `PUT /orders/900156/deliver` returns 200 as a waiter (SERVE); a PREPARATION-only token
+  gets 403. The waiter card shows `Listo` + `Entregar`; the kitchen board shows no deliver action.
+- `./gradlew test` green; frontend lint + full suite green (186 files / 1,728 tests). Note:
+  `checkstyleMain` still reports pre-existing violations in the in-progress floor-layout files.
+
+## 2026-11-27 — Table placements
+
+- V74 adds `floor_layout_table` with unique table and cell constraints and cascading deletes.
+- `GET/PUT /v1/floor-layout/tables` validates existing tables, unique cells and enabled SERVE areas.
+- Service and controller tests added; live PUT valid/invalid checks passed.
+
+## 2026-11-27 — Operational floor map
+
+- Added `GET /api/v1/floor-layout/map` for WORKER/ADMIN with layout + table placements.
+- Waiter table picker consumes it and selects tables from the map.
+
+## 2026-11-27 — Seed floor distribution
+
+- `seedReset` now writes the current 40×26 plan (Cocina, Salón Principal, Bar, Entrada) from
+  `seed/floor-layout.json`.
+- All 20 seeded tables are placed on SERVED areas so the waiter map starts populated.
