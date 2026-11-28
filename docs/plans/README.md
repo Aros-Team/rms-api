@@ -1,18 +1,24 @@
 # Plans Overview & Corrections Applied
 
-> Map of the 6 plans in this folder + a consolidated changelog of best-practice corrections.
+> Map of the 5 plans still pending in this folder + a consolidated changelog of best-practice
+> corrections.
 
-## The six plans
+## Pending plans
 
 | # | File | Bounded context | Status |
 |---|---|---|---|
-| 01 | [`01-insumo-management.md`](./01-insumo-management.md) | `inventory` (extend) | Foundation; unlocks every other plan |
-| 02 | [`02-purchase-invoice-preview-confirm.md`](./02-purchase-invoice-preview-confirm.md) | `purchase` (refactor + new flow) | Replaces one-step purchase with preview → confirm |
-| 03 | [`03-fixed-costs.md`](./03-fixed-costs.md) | `fixedcosts` (new) | Captures monthly operating expenses |
-| 04 | [`04-dish-cost-calculation.md`](./04-dish-cost-calculation.md) | `cost` (new) | On-the-fly formula = Materials + Labor + Fixed/Dishes |
-| 05 | [`05-monthly-closing.md`](./05-monthly-closing.md) | `cost` + `scheduled` (new) | Cron + ShedLock that snapshots every dish cost monthly |
-| 06 | [`06-money-value-object-refactor.md`](./06-money-value-object-refactor.md) | `common/money` (cross-cutting) | Centralizes BigDecimal handling via `Money` value object |
-| 07 | [`07-public-jwks-endpoint.md`](./07-public-jwks-endpoint.md) | `auth` (extend) | Public `/.well-known/jwks.json` for JWT verification, with key rotation |
+| 01 | [`01-insumo-management.md`](./01-insumo-management.md) | `inventory` (extend) | Not started; foundation that unlocks 02, 04 and 05 |
+| 02 | [`02-purchase-invoice-preview-confirm.md`](./02-purchase-invoice-preview-confirm.md) | `purchase` (refactor + new flow) | Not started; replaces one-step purchase with preview → confirm |
+| 03 | [`03-fixed-costs.md`](./03-fixed-costs.md) | `fixedcosts` (new) | Not started; captures monthly operating expenses |
+| 04 | [`04-dish-cost-calculation.md`](./04-dish-cost-calculation.md) | `cost` (new) | Not started; formula = Materials + Labor + Fixed/Dishes |
+| 05 | [`05-monthly-closing.md`](./05-monthly-closing.md) | `cost` + `scheduled` (new) | Not started; cron + ShedLock that snapshots every dish cost monthly |
+
+### Already shipped (plans and files removed)
+
+- **06 Money value object refactor** — `core/common/money` is the canonical monetary type and no
+  raw `BigDecimal` remains in `domain/`.
+- **07 Public JWKS endpoint** — `GET /.well-known/jwks.json` with key rotation lives in
+  `infraestructure/auth/jwk/`.
 
 ## Dependency graph
 
@@ -22,12 +28,9 @@
               ├─> 05 (Monthly Closing)
               └────────────────────┘
 03 (Fixed Costs) ──────> 04 ──> 05
-06 (Money refactor) ──> applied across 01, 02, 03, 04, 05
-07 (JWKS) ────────────> independent; touches `auth/` only
 ```
 
-**Recommended implementation order**: 06 → 07 → 01 → 02 → 03 → 04 → 05.
-(07 is small, scoped, and unblocks external clients — do it early.)
+**Recommended implementation order**: 01 → 02 → 03 → 04 → 05.
 
 ---
 
@@ -154,8 +157,8 @@ Researched against current Spring Boot 4, Hibernate 6, JPA, and Flyway docs. Eac
 1. **Currency**: confirm `default_currency = COP` is correct for v1. If multi-currency is on the roadmap, Plan 06's `Money` accommodates it via `java.util.Currency`; only the boundary resolution and the `findByKey("default_currency")` need to grow.
 2. **Scheduled zone**: confirm `America/Bogota` as `business_timezone`. Plan 05 reads it from `system_configuration`; Plan 04 uses the same value for order bucketing.
 3. **Order status filter**: confirm `non-CANCELLED` for "dishes sold". If business wants `DELIVERED` only, set `dish_count_status_filter = DELIVERED` once shipped.
-4. **ShedLock dependency license**: `net.javacrumbs.shedlock` is Apache 2.0; no legal blocker. Add to `build.gradle` in Plan 05's first PR.
-5. **Plan 06 rollout**: the refactor touches 7 bounded contexts. Execute as one activity per context, parallelizable, with the harness grep rule **disabled** until the last step (otherwise the build breaks mid-migration).
+4. **ShedLock dependency license**: `net.javacrumbs.shedlock` is Apache 2.0; no legal blocker. The
+   dependency and `shedlock` table (`V34`) are already in the build.
 
 ---
 
